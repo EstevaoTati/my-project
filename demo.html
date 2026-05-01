@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MWINDA GROUP — Live Preview · Desktop &amp; Mobile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050507;
+      --gold-1: #FFE680;
+      --gold-2: #FFD700;
+      --gold-3: #D4AF37;
+      --line: rgba(212,175,55,.22);
+      --text: #f6f1e1;
+      --mute: #a39c8b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 20% -10%, rgba(212,175,55,.10), transparent 50%),
+        radial-gradient(ellipse at 110% 110%, rgba(212,175,55,.08), transparent 45%),
+        #050507;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex; align-items: center; gap: 18px;
+      padding: 14px 24px;
+      background: rgba(8,8,12,.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 50;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Cinzel', serif; font-weight: 700;
+      letter-spacing: .25em;
+      color: var(--gold-2);
+      font-size: 14px;
+    }
+    .brand .bulb {
+      width: 22px; height: 22px;
+      filter: drop-shadow(0 0 10px rgba(255,215,0,.5));
+    }
+    .brand small {
+      display: block; font-size: 8px;
+      color: var(--mute); letter-spacing: .3em;
+      font-weight: 500;
+    }
+    .brand-stack { line-height: 1.1; }
+
+    .switcher {
+      margin-left: auto;
+      display: flex; gap: 6px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 80px;
+      background: rgba(212,175,55,.04);
+    }
+    .switcher button {
+      background: transparent;
+      border: none;
+      color: var(--mute);
+      font-family: inherit;
+      font-size: 12.5px; font-weight: 500;
+      letter-spacing: .08em;
+      padding: 9px 18px;
+      border-radius: 80px;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      transition: color .25s, background .25s, transform .2s;
+    }
+    .switcher button svg { opacity: .8; }
+    .switcher button:hover { color: var(--gold-1); }
+    .switcher button.active {
+      color: #1a1408;
+      background: linear-gradient(135deg, var(--gold-2), var(--gold-3));
+      box-shadow: 0 4px 14px rgba(212,175,55,.3);
+    }
+    .switcher button.active svg { opacity: 1; }
+
+    .open-link {
+      color: var(--gold-1);
+      font-size: 12.5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 9px 16px;
+      border: 1px solid var(--line);
+      border-radius: 80px;
+      transition: background .25s, border-color .25s;
+    }
+    .open-link:hover { background: rgba(212,175,55,.08); border-color: var(--gold-2); }
+
+    /* Stage */
+    .stage {
+      flex: 1;
+      padding: 28px;
+      display: flex; align-items: flex-start; justify-content: center;
+      gap: 32px;
+      overflow: auto;
+    }
+
+    /* Frames */
+    .frame {
+      position: relative;
+      background: #000;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px var(--line);
+      overflow: hidden;
+      transition: opacity .35s, transform .35s;
+    }
+    .frame iframe {
+      width: 100%; height: 100%;
+      border: none;
+      background: #050507;
+      display: block;
+    }
+    .frame .frame-label {
+      position: absolute; top: 12px; left: 14px;
+      font-family: 'Cinzel', serif;
+      font-size: 10px; letter-spacing: .25em;
+      color: var(--gold-2);
+      background: rgba(0,0,0,.6);
+      padding: 5px 12px;
+      border-radius: 80px;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+      z-index: 5; pointer-events: none;
+    }
+
+    /* Desktop frame */
+    .frame.desktop {
+      width: min(1280px, 100%);
+      height: calc(100vh - 130px);
+      min-height: 620px;
+    }
+    .frame.desktop::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 28px;
+      background: linear-gradient(180deg, #18181f, #0d0d12);
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      z-index: 3; pointer-events: none;
+    }
+    .frame.desktop::after {
+      content: '';
+      position: absolute; top: 9px; left: 14px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ff5f56;
+      box-shadow:
+        18px 0 0 #ffbd2e,
+        36px 0 0 #27c93f;
+      z-index: 4; pointer-events: none;
+    }
+    .frame.desktop iframe { padding-top: 28px; height: calc(100% - 28px); margin-top: 28px; }
+
+    /* Phone frame */
+    .frame.mobile {
+      width: 390px;
+      max-width: 92vw;
+      height: 800px;
+      max-height: calc(100vh - 130px);
+      border-radius: 42px;
+      padding: 14px 12px;
+      background: linear-gradient(180deg, #1a1a22, #0a0a0e);
+      box-shadow: 0 30px 70px rgba(0,0,0,.7), 0 0 0 1px rgba(212,175,55,.18), inset 0 0 0 2px rgba(255,255,255,.02);
+    }
+    .frame.mobile iframe {
+      border-radius: 30px;
+      height: 100%;
+    }
+    .frame.mobile::before {
+      content: '';
+      position: absolute; top: 22px; left: 50%;
+      transform: translateX(-50%);
+      width: 110px; height: 22px;
+      background: #050507;
+      border-radius: 18px;
+      z-index: 6; pointer-events: none;
+    }
+    .frame.mobile .frame-label {
+      top: 24px; left: 24px;
+      font-size: 9px;
+      padding: 4px 10px;
+    }
+
+    /* Mode states */
+    body[data-mode="both"] .frame.desktop { width: min(900px, 100%); height: 720px; }
+    body[data-mode="desktop"] .frame.mobile { display: none; }
+    body[data-mode="desktop"] .frame.desktop { width: min(1320px, 100%); height: calc(100vh - 130px); min-height: 700px; }
+    body[data-mode="mobile"]  .frame.desktop { display: none; }
+    body[data-mode="mobile"]  .frame.mobile  { height: min(840px, calc(100vh - 130px)); }
+
+    /* Footer */
+    .foot {
+      text-align: center;
+      padding: 14px 20px 22px;
+      font-size: 11.5px;
+      color: var(--mute);
+      letter-spacing: .1em;
+    }
+    .foot a { color: var(--gold-1); text-decoration: none; }
+    .foot a:hover { color: var(--gold-2); }
+
+    @media (max-width: 1100px) {
+      body[data-mode="both"] .stage { flex-direction: column; align-items: center; }
+      body[data-mode="both"] .frame.desktop { width: 100%; height: 70vh; min-height: 500px; }
+    }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 12px 14px; gap: 10px; }
+      .brand { font-size: 12px; }
+      .switcher button { padding: 7px 12px; font-size: 11px; }
+      .switcher button span { display: none; }
+      .open-link { padding: 7px 12px; font-size: 11px; }
+      .stage { padding: 16px; gap: 16px; }
+      .frame.desktop { height: 60vh; min-height: 420px; }
+      .frame.mobile { width: 100%; max-width: 360px; }
+    }
+  </style>
+</head>
+<body data-mode="both">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="bulb" viewBox="0 0 100 100" fill="currentColor">
+        <path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z"/>
+        <rect x="38" y="78" width="24" height="5" rx="1.5"/>
+        <rect x="40" y="84" width="20" height="4" rx="1.5" opacity=".8"/>
+        <rect x="42" y="89" width="16" height="3" rx="1.5" opacity=".6"/>
+      </svg>
+      <span class="brand-stack">MWINDA GROUP<small>Live Preview</small></span>
+    </div>
+
+    <div class="switcher" role="tablist">
+      <button data-mode="both" class="active" aria-label="Both views">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="14" height="11" rx="1"/><rect x="16" y="8" width="6" height="11" rx="1"/></svg>
+        <span>Les deux</span>
+      </button>
+      <button data-mode="desktop" aria-label="Desktop view">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Desktop</span>
+      </button>
+      <button data-mode="mobile" aria-label="Mobile view">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        <span>Mobile</span>
+      </button>
+    </div>
+
+    <a class="open-link" href="preview.html" target="_blank" rel="noopener">Plein écran ↗</a>
+  </header>
+
+  <main class="stage">
+    <div class="frame desktop">
+      <span class="frame-label">DESKTOP · 1280px</span>
+      <iframe src="preview.html" title="Mwinda Group Desktop Preview" loading="lazy"></iframe>
+    </div>
+
+    <div class="frame mobile">
+      <span class="frame-label">MOBILE · 390px</span>
+      <iframe src="preview.html" title="Mwinda Group Mobile Preview" loading="lazy"></iframe>
+    </div>
+  </main>
+
+  <footer class="foot">
+    © <span id="y"></span> MWINDA GROUP LLC — <a href="preview.html" target="_blank">Ouvrir en plein écran</a>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    const buttons = document.querySelectorAll('.switcher button');
+    buttons.forEach(b => b.addEventListener('click', () => {
+      buttons.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.body.dataset.mode = b.dataset.mode;
+    }));
+  </script>
+</body>
+</html>
