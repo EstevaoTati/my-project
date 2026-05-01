@@ -8,14 +8,21 @@
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
   /* ---------- Loader ---------- */
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const loader = document.getElementById('loader');
-      if (loader) loader.classList.add('hidden');
-      document.body.classList.add('loaded');
-      runHeroAnim();
-    }, 600);
-  });
+  // Mark JS as ready so the hero hidden state can apply (CSS only kicks in here)
+  document.documentElement.classList.add('js-ready');
+
+  let bootDone = false;
+  function boot() {
+    if (bootDone) return;
+    bootDone = true;
+    const loader = document.getElementById('loader');
+    if (loader) loader.classList.add('hidden');
+    document.body.classList.add('loaded');
+    runHeroAnim();
+  }
+  window.addEventListener('load', () => setTimeout(boot, 500));
+  // Safety net: never let the loader stick around if 'load' is delayed by a CDN
+  setTimeout(boot, 2500);
 
   /* ---------- Year ---------- */
   const yearEl = document.getElementById('year');
@@ -93,18 +100,22 @@
   }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  /* ---------- Hero text animation (GSAP) ---------- */
+  /* ---------- Hero text animation (GSAP, with fallback) ---------- */
   function runHeroAnim() {
-    if (!window.gsap) return;
+    const words = document.querySelectorAll('.hero-title .word');
+    if (!window.gsap) {
+      // Fallback: just show the words
+      words.forEach(w => { w.style.transform = 'translateY(0)'; w.style.transition = 'transform .8s ease'; });
+      return;
+    }
+    gsap.set(words, { yPercent: 110 });
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-    tl.to('.hero-title .word', {
-      y: 0, duration: 1.2, stagger: 0.08,
-    }, 0)
-    .from('.hero-tag', { opacity: 0, y: 20, duration: 1 }, 0.1)
-    .from('.hero-sub', { opacity: 0, y: 20, duration: 1 }, 0.4)
-    .from('.hero-actions > *', { opacity: 0, y: 20, duration: 1, stagger: 0.1 }, 0.55)
-    .from('.hero-meta > *', { opacity: 0, y: 20, duration: 1, stagger: 0.08 }, 0.7)
-    .from('.hero-scroll', { opacity: 0, duration: 1 }, 0.9);
+    tl.to(words, { yPercent: 0, duration: 1.2, stagger: 0.08 }, 0)
+      .from('.hero-tag', { opacity: 0, y: 20, duration: 1 }, 0.1)
+      .from('.hero-sub', { opacity: 0, y: 20, duration: 1 }, 0.4)
+      .from('.hero-actions > *', { opacity: 0, y: 20, duration: 1, stagger: 0.1 }, 0.55)
+      .from('.hero-meta > *', { opacity: 0, y: 20, duration: 1, stagger: 0.08 }, 0.7)
+      .from('.hero-scroll', { opacity: 0, duration: 1 }, 0.9);
   }
 
   /* ---------- 3D Tilt + spotlight on division cards ---------- */

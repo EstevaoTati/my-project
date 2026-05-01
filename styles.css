@@ -380,10 +380,9 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   margin-bottom: 32px;
 }
 .hero-title .line { display: block; overflow: hidden; }
-.hero-title .word {
-  display: inline-block;
-  transform: translateY(110%);
-}
+.hero-title .word { display: inline-block; will-change: transform; }
+/* Hidden initial state only applied when JS is ready (avoids being stuck if GSAP fails) */
+.js-ready .hero-title .word { transform: translateY(110%); }
 .hero-title .italic { font-style: italic; color: var(--gold-1); }
 
 .hero-sub {
@@ -877,17 +876,14 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 }
 .field input:focus + label,
 .field input:not(:placeholder-shown) + label,
-.field input:valid + label,
 .field textarea:focus + label,
-.field textarea:not(:empty) + label,
-.field textarea:valid + label,
+.field textarea:not(:placeholder-shown) + label,
 .field select:focus + label,
 .field select:valid + label {
   top: -8px; font-size: 11px;
   color: var(--gold-2);
   letter-spacing: .15em; text-transform: uppercase;
 }
-.field input:placeholder-shown + label { top: 14px; font-size: 14.5px; }
 .field input, .field textarea, .field select { caret-color: var(--gold-2); }
 .line-fx {
   position: absolute; left: 0; bottom: 0;
