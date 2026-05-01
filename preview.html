@@ -969,6 +969,134 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   }
   html { scroll-behavior: auto; }
 }
+
+/* ============================================================
+   MOBILE OPTIMIZATIONS (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Container & sections */
+  .container { padding: 0 20px; }
+  section { padding: 80px 0; }
+  .section-head { margin-bottom: 50px; }
+  .section-eyebrow { font-size: 10.5px; padding: 5px 14px; margin-bottom: 16px; }
+
+  /* Nav — tighter */
+  .nav { top: 12px; width: calc(100% - 20px); padding: 10px 12px 10px 16px; gap: 12px; border-radius: 60px; }
+  .nav-logo-bulb { width: 24px; height: 24px; }
+  .nav-logo-text { font-size: 13px; }
+  .nav-logo-text small { font-size: 7px; }
+
+  /* HERO */
+  .hero { padding: 110px 0 80px; min-height: 90vh; }
+  .hero-tag { font-size: 10.5px; padding: 6px 14px; margin-bottom: 22px; }
+  .hero-title { font-size: clamp(40px, 11vw, 64px); margin-bottom: 22px; }
+  .hero-sub { font-size: 15px; margin-bottom: 30px; }
+  .hero-actions { gap: 12px; margin-bottom: 40px; }
+  .btn { padding: 14px 22px; font-size: 13.5px; }
+  .hero-meta { gap: 26px; padding-top: 22px; }
+  .hero-meta strong { font-size: 28px; }
+  .hero-meta span { font-size: 10.5px; letter-spacing: .1em; }
+  .hero-glow { width: 90vw; height: 90vw; }
+  .hero-scroll { bottom: 16px; font-size: 9.5px; gap: 8px; }
+  .mouse { width: 18px; height: 30px; }
+
+  /* ABOUT */
+  .about-grid { gap: 40px; }
+  .about-text .lead { font-size: 18px; }
+  .about-pillars li { padding: 18px 18px; gap: 14px; }
+  .about-pillars h4 { font-size: 15px; }
+  .about-pillars p { font-size: 13px; }
+  .orb-ring { width: min(320px, 80vw); height: min(320px, 80vw); }
+  .orb-core { width: 90px; height: 90px; }
+  .orb-dot { width: 10px; height: 10px; }
+  .orb-dot.d1, .orb-dot.d2, .orb-dot.d3, .orb-dot.d4, .orb-dot.d5, .orb-dot.d6 {
+    /* recompute distance based on smaller orb */
+  }
+  .orb-dot.d1 { transform: translate(-50%, -50%) rotate(0deg)   translateY(calc(min(160px, 40vw) * -1)); }
+  .orb-dot.d2 { transform: translate(-50%, -50%) rotate(60deg)  translateY(calc(min(160px, 40vw) * -1)); }
+  .orb-dot.d3 { transform: translate(-50%, -50%) rotate(120deg) translateY(calc(min(160px, 40vw) * -1)); }
+  .orb-dot.d4 { transform: translate(-50%, -50%) rotate(180deg) translateY(calc(min(160px, 40vw) * -1)); }
+  .orb-dot.d5 { transform: translate(-50%, -50%) rotate(240deg) translateY(calc(min(160px, 40vw) * -1)); }
+  .orb-dot.d6 { transform: translate(-50%, -50%) rotate(300deg) translateY(calc(min(160px, 40vw) * -1)); }
+
+  /* DIVISIONS */
+  .div-grid { gap: 18px; }
+  .div-card-inner { padding: 28px 22px 26px; }
+  .div-icon { width: 54px; height: 54px; border-radius: 14px; margin-bottom: 18px; }
+  .div-icon svg { width: 28px; height: 28px; }
+  .div-card h3 { font-size: 21px; }
+  .div-card h3 span { font-size: 19px; }
+  .div-tag { font-size: 10px; }
+  .div-desc { font-size: 14px; margin-bottom: 18px; }
+  .div-list li { font-size: 13px; }
+  .div-num { top: 22px; right: 22px; font-size: 11px; }
+
+  /* ECOSYSTEM — switch to vertical stack on phones */
+  .eco-stage { aspect-ratio: auto; height: auto; padding: 0; min-height: 0; }
+  .eco-svg { display: none; }
+  .eco-center {
+    position: relative; top: auto; left: auto; transform: none;
+    width: 130px; margin: 0 auto 32px;
+  }
+  .eco-pulse { inset: -8%; }
+  .eco-stage {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    place-items: center;
+  }
+  .eco-stage .eco-center { grid-column: 1 / -1; }
+  .eco-node {
+    position: relative; top: auto; left: auto;
+    transform: none !important; animation: none;
+    width: 100%; aspect-ratio: 1.6;
+    border-radius: 16px;
+    font-size: 12px;
+  }
+  .eco-node:hover { transform: translateY(-3px) !important; }
+
+  /* IMPACT */
+  .stats { gap: 14px; margin-bottom: 50px; }
+  .stat { padding: 26px 14px; }
+  .stat-num { font-size: 36px; }
+  .stat-lbl { font-size: 11px; letter-spacing: .12em; }
+  .quote { padding: 40px 22px; font-size: 18px; }
+
+  /* CONTACT */
+  .contact-grid { gap: 40px; }
+  .contact-info > p { font-size: 14.5px; margin-bottom: 28px; }
+  .contact-list li { gap: 14px; }
+  .contact-list .ico { width: 40px; height: 40px; }
+  .contact-form { padding: 30px 22px; gap: 20px; border-radius: 16px; }
+  .field input, .field textarea, .field select { font-size: 16px; /* prevent iOS zoom */ }
+
+  /* Footer */
+  .footer { padding: 50px 0 24px; }
+  .footer-top { padding-bottom: 36px; gap: 36px; }
+  .footer-brand p { font-size: 13px; }
+  .footer-cols { gap: 22px; }
+  .footer-cols h5 { margin-bottom: 12px; }
+  .footer-cols a { font-size: 13px; padding: 4px 0; }
+  .footer-bottom { font-size: 11.5px; flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* No 3D bulb fighting for space on phones */
+  .hero-3d { display: none; }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .container { padding: 0 16px; }
+  .nav-logo-text small { display: none; }
+  .hero-title { font-size: 38px; }
+  .hero-meta { gap: 18px; }
+  .hero-meta strong { font-size: 24px; }
+  .div-card h3 { font-size: 19px; }
+}
+
+/* iOS Safari 100vh fix */
+@supports (-webkit-touch-callout: none) {
+  .hero { min-height: -webkit-fill-available; }
+}
 </style>
 </head>
 <body>
