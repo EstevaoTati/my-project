@@ -185,28 +185,25 @@
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const t = (window.i18n && window.i18n.t) ? window.i18n.t : (k => k);
       const name = form.querySelector('#name').value.trim();
       const email = form.querySelector('#email').value.trim();
       const topic = form.querySelector('#topic').value;
       const message = form.querySelector('#message').value.trim();
       if (!name || !email || !topic || !message) {
-        formNote.textContent = 'Merci de remplir tous les champs.';
+        formNote.textContent = t('form.err.empty');
         formNote.style.color = '#ff8a8a';
         return;
       }
       if (!/^\S+@\S+\.\S+$/.test(email)) {
-        formNote.textContent = 'Adresse email invalide.';
+        formNote.textContent = t('form.err.email');
         formNote.style.color = '#ff8a8a';
         return;
       }
       formNote.style.color = '';
-      formNote.textContent = `Merci ${name.split(' ')[0]}, votre message a bien été envoyé. Nous reviendrons vers vous très vite.`;
+      formNote.textContent = t('form.ok', { name: name.split(' ')[0] });
       form.reset();
     });
-
-    // Force "valid" floating label state after value change for select
-    const sel = form.querySelector('#topic');
-    if (sel) sel.addEventListener('change', () => sel.setAttribute('data-filled', sel.value ? 'true' : ''));
   }
 
   /* ============================================================

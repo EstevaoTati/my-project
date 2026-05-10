@@ -32,7 +32,7 @@ netlify deploy --prod --dir=.
 
 | File | Purpose |
 |------|---------|
-| `index.html`, `styles.css`, `script.js` | The site itself |
+| `index.html`, `styles.css`, `script.js`, `i18n.js` | The site itself (FR/EN i18n) |
 | `preview.html` | Self-contained single-file version (CSS+JS inlined) |
 | `demo.html` | Side-by-side desktop/mobile preview viewer |
 | `netlify.toml` | Build, redirects, security headers, caching |
