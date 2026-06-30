@@ -88,14 +88,15 @@ button { font-family: inherit; cursor: pointer; }
 body.cursor-hover .cursor-dot { width: 0; height: 0; }
 body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: var(--gold-2); background: rgba(255,215,0,.08); }
 
-/* ===== Loader ===== */
+/* ===== Loader (kept in DOM but hidden — site enters directly on welcome) ===== */
 .loader {
   position: fixed; inset: 0; z-index: 10000;
   background: #050507;
-  display: grid; place-items: center;
-  transition: opacity .6s ease, visibility .6s;
+  display: none;
+  place-items: center;
+  transition: opacity .3s ease, visibility .3s;
 }
-.loader.hidden { opacity: 0; visibility: hidden; }
+.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-inner { text-align: center; }
 .loader-bulb {
   width: 90px; height: 90px;
@@ -1899,7 +1900,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  /* ---------- Loader ---------- */
+  /* ---------- Welcome / boot ---------- */
   // Mark JS as ready so the hero hidden state can apply (CSS only kicks in here)
   document.documentElement.classList.add('js-ready');
 
@@ -1912,9 +1913,14 @@ section { position: relative; padding: 140px 0; z-index: 1; }
     document.body.classList.add('loaded');
     runHeroAnim();
   }
-  window.addEventListener('load', () => setTimeout(boot, 500));
-  // Safety net: never let the loader stick around if 'load' is delayed by a CDN
-  setTimeout(boot, 2500);
+  // Enter the welcome (hero) page as soon as the DOM is parsed — no loader delay.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  // Safety net for edge cases
+  setTimeout(boot, 1500);
 
   /* ---------- Year ---------- */
   const yearEl = document.getElementById('year');

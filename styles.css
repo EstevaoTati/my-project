@@ -76,14 +76,15 @@ button { font-family: inherit; cursor: pointer; }
 body.cursor-hover .cursor-dot { width: 0; height: 0; }
 body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: var(--gold-2); background: rgba(255,215,0,.08); }
 
-/* ===== Loader ===== */
+/* ===== Loader (kept in DOM but hidden — site enters directly on welcome) ===== */
 .loader {
   position: fixed; inset: 0; z-index: 10000;
   background: #050507;
-  display: grid; place-items: center;
-  transition: opacity .6s ease, visibility .6s;
+  display: none;
+  place-items: center;
+  transition: opacity .3s ease, visibility .3s;
 }
-.loader.hidden { opacity: 0; visibility: hidden; }
+.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-inner { text-align: center; }
 .loader-bulb {
   width: 90px; height: 90px;

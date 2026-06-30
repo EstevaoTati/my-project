@@ -7,7 +7,7 @@
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  /* ---------- Loader ---------- */
+  /* ---------- Welcome / boot ---------- */
   // Mark JS as ready so the hero hidden state can apply (CSS only kicks in here)
   document.documentElement.classList.add('js-ready');
 
@@ -20,9 +20,14 @@
     document.body.classList.add('loaded');
     runHeroAnim();
   }
-  window.addEventListener('load', () => setTimeout(boot, 500));
-  // Safety net: never let the loader stick around if 'load' is delayed by a CDN
-  setTimeout(boot, 2500);
+  // Enter the welcome (hero) page as soon as the DOM is parsed — no loader delay.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  // Safety net for edge cases
+  setTimeout(boot, 1500);
 
   /* ---------- Year ---------- */
   const yearEl = document.getElementById('year');
