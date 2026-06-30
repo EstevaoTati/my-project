@@ -906,7 +906,14 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   transition: border-color .3s;
   resize: none;
 }
-.field select { -webkit-appearance: none; appearance: none; cursor: pointer; }
+.field select {
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 16px;
+}
 .field select option { background: var(--bg-2); color: var(--text); }
 .field label {
   position: absolute; top: 14px; left: 0;
@@ -2055,9 +2062,10 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href');
-      if (id.length < 2) return;
+      // Bare "#" or empty — block default scroll-to-top
+      if (!id || id.length < 2) { e.preventDefault(); return; }
       const target = document.querySelector(id);
-      if (!target) return;
+      if (!target) { e.preventDefault(); return; }
       e.preventDefault();
       const top = target.getBoundingClientRect().top + window.scrollY - 60;
       window.scrollTo({ top, behavior: 'smooth' });

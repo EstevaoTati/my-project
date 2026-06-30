@@ -170,9 +170,10 @@
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href');
-      if (id.length < 2) return;
+      // Bare "#" or empty — block default scroll-to-top
+      if (!id || id.length < 2) { e.preventDefault(); return; }
       const target = document.querySelector(id);
-      if (!target) return;
+      if (!target) { e.preventDefault(); return; }
       e.preventDefault();
       const top = target.getBoundingClientRect().top + window.scrollY - 60;
       window.scrollTo({ top, behavior: 'smooth' });
