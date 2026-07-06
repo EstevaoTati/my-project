@@ -158,26 +158,90 @@
   }, { threshold: 0.6 });
   document.querySelectorAll("[data-count]").forEach((el) => counterIO.observe(el));
 
-  /* ---------- Hero stage: mouse-parallax depth ---------- */
-  const stage = document.getElementById("heroStage");
-  if (stage && !isTouch && !prefersReduced) {
-    const cards = [...stage.querySelectorAll(".float-card")];
-    let tx = 0, ty = 0, cx = 0, cy = 0;
-    addEventListener("mousemove", (e) => {
-      tx = (e.clientX / innerWidth - 0.5) * 2;
-      ty = (e.clientY / innerHeight - 0.5) * 2;
-    });
-    (function stageLoop() {
-      cx = lerp(cx, tx, 0.06);
-      cy = lerp(cy, ty, 0.06);
-      cards.forEach((card) => {
-        const d = +card.dataset.depth;
-        card.style.transform =
-          `translate3d(${-cx * d}px, ${-cy * d}px, 0) rotateY(${cx * 6}deg) rotateX(${-cy * 5}deg)`;
+  /* ---------- Cinematic hero: scroll-scrubbed 3D orbit + letter tracking ----------
+     The hero section is a 320vh runway; .hero-pin stays stuck while scroll
+     progress (0..1) drives the whole scene — Lando-Norris-helmet style. */
+  const hero = document.querySelector(".hero");
+  const orbitRing = document.getElementById("orbitRing");
+  const emblem = document.querySelector(".orbit-emblem");
+  const kicker = document.getElementById("heroKicker");
+  const display = document.getElementById("heroDisplay");
+  let chars = [];
+
+  // Split display lines into per-letter spans
+  if (display) {
+    display.querySelectorAll(".display-line").forEach((line) => {
+      const text = line.dataset.text || "";
+      line.textContent = "";
+      [...text].forEach((c) => {
+        const s = document.createElement("span");
+        s.className = "ch" + (c === " " ? " sp" : "");
+        s.textContent = c === " " ? " " : c;
+        line.appendChild(s);
+        chars.push(s);
       });
-      requestAnimationFrame(stageLoop);
-    })();
+    });
   }
+
+  // Position orbit cards around the ring
+  const orbitCards = orbitRing ? [...orbitRing.querySelectorAll(".orbit-card")] : [];
+  const RADIUS = Math.min(innerWidth * 0.3, 460);
+  orbitCards.forEach((card, i) => {
+    card.dataset.angle = (360 / orbitCards.length) * i;
+  });
+
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  // Smooth eased progress so the scrub feels weighted, not linear
+  let heroP = 0, heroPT = 0;
+
+  function heroScrub() {
+    if (!hero) return;
+    const rect = hero.getBoundingClientRect();
+    const runway = rect.height - innerHeight;
+    heroPT = runway > 0 ? clamp01(-rect.top / runway) : 0;
+    heroP = prefersReduced ? heroPT : lerp(heroP, heroPT, 0.09);
+    const p = heroP;
+
+    // 1) Letters track in one-by-one across the first 45% of the runway
+    const n = chars.length;
+    chars.forEach((ch, i) => {
+      const start = (i / n) * 0.3;             // stagger window
+      const k = clamp01((p - start) / 0.16);   // per-letter ease window
+      const e = 1 - Math.pow(1 - k, 3);
+      ch.style.opacity = e;
+      ch.style.transform =
+        `translateY(${(1 - e) * 0.55}em) rotateX(${(1 - e) * 60}deg) scale(${0.9 + e * 0.1})`;
+      ch.style.filter = `blur(${(1 - e) * 8}px)`;
+    });
+
+    // 2) Kicker fades in after the title lands
+    if (kicker) kicker.classList.toggle("is-in", p > 0.42);
+
+    // 3) Orbit ring: one full revolution across the runway
+    if (orbitRing) {
+      const rot = p * 360;
+      orbitRing.style.transform = `rotateX(6deg) rotateY(${rot}deg)`;
+      orbitCards.forEach((card) => {
+        const a = +card.dataset.angle;
+        card.style.transform =
+          `rotateY(${a}deg) translateZ(${RADIUS}px) rotateY(${-(a + rot)}deg)`;
+        // Cards fade as they pass behind the emblem
+        const rel = (((a + rot) % 360) + 360) % 360;
+        const depth = Math.cos((rel * Math.PI) / 180); // 1 front, -1 back
+        card.style.opacity = 0.25 + 0.75 * (depth * 0.5 + 0.5);
+      });
+    }
+
+    // 4) Emblem: breathes up then recedes as the story takes over
+    if (emblem) {
+      const grow = 0.72 + 0.28 * Math.sin(Math.min(p, 0.9) * Math.PI);
+      emblem.style.transform = `scale(${grow}) translateY(${p * -4}vh)`;
+      emblem.style.opacity = p > 0.94 ? String(1 - (p - 0.94) / 0.06) : "1";
+    }
+
+    requestAnimationFrame(heroScrub);
+  }
+  if (hero) requestAnimationFrame(heroScrub);
 
   /* ---------- 3D tilt cards + spotlight tracking ---------- */
   if (!isTouch && !prefersReduced) {
