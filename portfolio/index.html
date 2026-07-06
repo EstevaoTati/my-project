@@ -615,18 +615,16 @@
       });
       heroTl.to(state,{frame:FRAME_COUNT-1,ease:'none',duration:10,onUpdate:render},0);
 
-      // Lettres ESTEVAO se composent une à une
-      gsap.set('#heroName span',{opacity:0,y:'40%',rotateX:60});
-      heroTl.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.35,duration:2.6,ease:'power3.out'},.4);
-      heroTl.to('#heroSub',{opacity:1,duration:1.2},3.2);
-      heroTl.to('#heroTagline',{opacity:1,duration:1.2},3.9);
-      heroTl.to('.hero-scrollcue',{opacity:0,duration:.6},1);
-      heroTl.to('.hero-type',{yPercent:-18,opacity:0,duration:2.4,ease:'power2.in'},7.4);
+      // Scroll : le cue s'efface, puis le bloc-titre sort en parallaxe.
+      // fromTo rembobinable — au retour en haut, tout est restauré.
+      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:.6},.8);
+      heroTl.fromTo('.hero-type',{yPercent:0,opacity:1},{yPercent:-18,opacity:0,duration:2.6,ease:'power2.in'},7.4);
 
-      // Intro (au chargement, avant scroll) : premières lettres visibles
-      gsap.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.09,duration:1.1,ease:'power3.out',delay:1.15});
-      gsap.to('#heroSub',{opacity:1,duration:1,delay:2});
-      gsap.to('#heroTagline',{opacity:1,duration:1,delay:2.35});
+      // Chargement : ESTEVAO se compose lettre par lettre, puis sous-titre et tagline
+      gsap.set('#heroName span',{opacity:0,y:'40%',rotateX:60});
+      gsap.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.14,duration:1.3,ease:'power3.out',delay:1.15});
+      gsap.to('#heroSub',{opacity:1,duration:1,delay:2.4});
+      gsap.to('#heroTagline',{opacity:1,duration:1,delay:2.8});
 
       // Manifesto : mots qui s'allument
       window.initManifestoTrigger = function(){
