@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO — FR par défaut, EN via JS -->
+  <title data-i18n="meta.title">Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code</title>
+  <meta name="description" data-i18n-attr="content" data-i18n="meta.desc"
+        content="Estevao, fondateur de Mwinda Group. Je construis et je vends des agents IA avec Claude Code. Mwinda signifie lumière en lingala." />
+  <link rel="alternate" hreflang="fr" href="./" />
+  <link rel="alternate" hreflang="en" href="./?lang=en" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Estevao — Mwinda Group. La lumière qui perce l'obscurité." />
+  <meta property="og:description" content="Je construis et je vends des agents IA avec Claude Code. / I build & sell AI agents with Claude Code." />
+  <meta property="og:image" content="assets/hero/og-frame.jpg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="theme-color" content="#0A0F1E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============ MWINDA — CATHÉDRALE TECHNOLOGIQUE ============ */
+    :root{
+      --night:#0A0F1E;
+      --night-2:#0D1428;
+      --amber:#F5A623;
+      --amber-soft:rgba(245,166,35,.14);
+      --amber-line:rgba(245,166,35,.45);
+      --emerald:#2ECC8F;
+      --ink:#E8E4DA;
+      --ink-dim:rgba(232,228,218,.55);
+      --display:'Fraunces',serif;
+      --body:'Inter',system-ui,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    html.has-gsap{scroll-behavior:auto}
+    body{
+      background:var(--night);
+      color:var(--ink);
+      font-family:var(--body);
+      font-weight:300;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    ::selection{background:var(--amber);color:var(--night)}
+
+    /* ---------- Loader ---------- */
+    .loader{position:fixed;inset:0;z-index:200;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2rem;transition:opacity .9s ease,visibility .9s}
+    .loader.done{opacity:0;visibility:hidden}
+    .loader-word{font-family:var(--display);font-weight:900;font-size:clamp(2rem,6vw,4rem);letter-spacing:.4em;color:var(--ink)}
+    .loader-word span{opacity:.15;animation:lightUp 1.6s ease infinite alternate}
+    @keyframes lightUp{to{opacity:1;color:var(--amber);text-shadow:0 0 30px rgba(245,166,35,.6)}}
+    .loader-sub{font-size:.7rem;letter-spacing:.5em;text-transform:uppercase;color:var(--ink-dim)}
+
+    /* ---------- Nav ---------- */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.4rem clamp(1.2rem,4vw,3rem);mix-blend-mode:normal;transition:background .5s,backdrop-filter .5s}
+    .nav.scrolled{background:rgba(10,15,30,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(245,166,35,.08)}
+    .nav-mark{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}
+    .nav-mark .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+    .nav-mark strong{font-family:var(--display);font-weight:700;letter-spacing:.28em;font-size:.85rem}
+    .lang-switch{display:flex;gap:.15rem;border:1px solid rgba(232,228,218,.18);border-radius:99px;padding:.2rem}
+    .lang-switch button{background:none;border:none;color:var(--ink-dim);font-family:var(--body);font-size:.68rem;letter-spacing:.15em;padding:.32rem .7rem;border-radius:99px;cursor:pointer;transition:.3s}
+    .lang-switch button.active{background:var(--amber);color:var(--night);font-weight:600}
+
+    /* ---------- Hero ---------- */
+    .hero{position:relative;height:100vh;background:var(--night)}
+    .hero-stage{position:relative;height:100vh;overflow:hidden}
+    #heroCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+    .hero-fallback{position:absolute;inset:0;background:
+      radial-gradient(ellipse 60% 80% at 68% 45%, rgba(245,166,35,.22), transparent 60%),
+      radial-gradient(ellipse 40% 55% at 30% 70%, rgba(46,204,143,.05), transparent 65%),
+      var(--night)}
+    .hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(4,7,15,.85) 100%);pointer-events:none}
+    .hero-dust{position:absolute;inset:0;pointer-events:none}
+
+    .hero-type{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:3}
+    .hero-name{font-family:var(--display);font-weight:900;font-size:clamp(4rem,16vw,15rem);line-height:.9;letter-spacing:.02em;display:flex}
+    .hero-name span{opacity:0;transform:translateY(40%) rotateX(60deg);display:inline-block;text-shadow:0 0 60px rgba(245,166,35,.25)}
+    .hero-sub{margin-top:1.6rem;font-size:clamp(.65rem,1.4vw,.9rem);letter-spacing:.85em;text-transform:uppercase;color:var(--amber);opacity:0;text-indent:.85em}
+    .hero-tagline{margin-top:2.2rem;font-size:clamp(.95rem,2vw,1.3rem);color:var(--ink-dim);opacity:0;font-weight:300;max-width:34ch;text-align:center;line-height:1.6}
+    .hero-tagline em{color:var(--ink);font-style:normal;border-bottom:1px solid var(--amber-line)}
+    .hero-scrollcue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.8rem;color:var(--ink-dim);font-size:.6rem;letter-spacing:.4em;text-transform:uppercase}
+    .hero-scrollcue .line{width:1px;height:56px;background:linear-gradient(var(--amber),transparent);animation:cue 2.2s ease infinite}
+    @keyframes cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+    /* ---------- Manifesto interlude ---------- */
+    .manifesto{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:18vh clamp(1.5rem,8vw,6rem);text-align:center;position:relative}
+    .manifesto p{font-family:var(--display);font-weight:300;font-size:clamp(1.6rem,4.2vw,3.4rem);line-height:1.35;max-width:22ch}
+    .manifesto .word{opacity:.12;transition:opacity .3s}
+    .manifesto .word.lit{opacity:1}
+    .manifesto .word.amber{color:var(--amber)}
+
+    /* ---------- Stats ---------- */
+    .stats{padding:14vh clamp(1.5rem,6vw,5rem);border-top:1px solid rgba(245,166,35,.1);border-bottom:1px solid rgba(245,166,35,.1);background:linear-gradient(180deg,transparent,rgba(13,20,40,.6) 50%,transparent)}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:3rem;max-width:1200px;margin:0 auto}
+    .stat{text-align:center}
+    .stat-num{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,5vw,4.2rem);color:var(--amber);display:block;font-variant-numeric:tabular-nums}
+    .stat-num .suffix{font-size:.5em;vertical-align:.35em}
+    .stat-label{margin-top:.6rem;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-dim);line-height:1.8}
+    .stat[data-tbc] .stat-num{color:var(--emerald)}
+
+    /* ---------- Pillars ---------- */
+    .pillar{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(2rem,5vw,5rem);padding:16vh clamp(1.5rem,6vw,6rem);max-width:1500px;margin:0 auto}
+    .pillar:nth-child(even){direction:rtl}
+    .pillar:nth-child(even)>*{direction:ltr}
+    .pillar-media{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:var(--night-2);box-shadow:0 40px 120px -30px rgba(0,0,0,.8),0 0 0 1px rgba(245,166,35,.12)}
+    .pillar-media video,.pillar-media img{width:100%;height:100%;object-fit:cover;display:block}
+    .pillar-media .media-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;background:
+      radial-gradient(ellipse 70% 90% at 60% 30%,rgba(245,166,35,.12),transparent 60%),
+      radial-gradient(ellipse 50% 60% at 25% 80%,rgba(46,204,143,.08),transparent 60%),var(--night-2)}
+    .media-placeholder .glyph{font-family:var(--display);font-size:4rem;font-weight:900;color:rgba(245,166,35,.3)}
+    .media-placeholder .note{font-size:.6rem;letter-spacing:.35em;text-transform:uppercase;color:var(--ink-dim)}
+    .pillar-media .glare{position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(245,166,35,.08) 50%,transparent 70%);opacity:0;transition:opacity .6s}
+    .pillar:hover .glare{opacity:1}
+    .pillar-index{font-family:var(--display);font-size:clamp(4rem,9vw,8rem);font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(245,166,35,.35);line-height:1}
+    .pillar-kicker{margin-top:1rem;font-size:.68rem;letter-spacing:.45em;text-transform:uppercase;color:var(--amber)}
+    .pillar h2{font-family:var(--display);font-weight:700;font-size:clamp(1.9rem,4vw,3.2rem);margin:.9rem 0 1.4rem;line-height:1.1}
+    .pillar p{color:var(--ink-dim);line-height:1.85;max-width:46ch;font-size:1.02rem}
+    .pillar p strong{color:var(--ink);font-weight:500}
+    .pillar-flag{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.6rem;padding:.55rem 1.1rem;border:1px solid var(--amber-line);border-radius:99px;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
+    .pillar-flag .pulse{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald);animation:pulse 2s infinite}
+    @keyframes pulse{50%{opacity:.35}}
+
+    /* ---------- Work ---------- */
+    .work{padding:16vh clamp(1.5rem,6vw,6rem);max-width:1500px;margin:0 auto}
+    .section-head{margin-bottom:5rem}
+    .section-head .kicker{font-size:.68rem;letter-spacing:.45em;text-transform:uppercase;color:var(--amber)}
+    .section-head h2{font-family:var(--display);font-weight:900;font-size:clamp(2.6rem,7vw,5.5rem);line-height:1;margin-top:1rem}
+    .work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.6rem}
+    .work-card{position:relative;border:1px solid rgba(232,228,218,.09);border-radius:6px;padding:2.4rem 2rem;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:var(--night-2);transition:transform .5s cubic-bezier(.2,.8,.2,1),border-color .5s;cursor:pointer;text-decoration:none;color:var(--ink)}
+    .work-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% -20%,var(--amber-soft),transparent 55%);opacity:0;transition:opacity .6s}
+    .work-card:hover{transform:translateY(-8px);border-color:var(--amber-line)}
+    .work-card:hover::before{opacity:1}
+    .work-card .wc-tag{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--emerald);margin-bottom:1rem}
+    .work-card h3{font-family:var(--display);font-weight:700;font-size:1.45rem;line-height:1.25;margin-bottom:.7rem;transition:color .4s}
+    .work-card:hover h3{color:var(--amber)}
+    .work-card p{font-size:.88rem;color:var(--ink-dim);line-height:1.7}
+    .work-card .wc-arrow{position:absolute;top:1.6rem;right:1.6rem;opacity:.25;transition:.4s;color:var(--amber)}
+    .work-card:hover .wc-arrow{opacity:1;transform:translate(4px,-4px)}
+
+    /* ---------- Contact ---------- */
+    .contact{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#05080f;padding:16vh clamp(1.5rem,6vw,4rem);overflow:hidden}
+    .contact-beam{position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--amber) 30%,#ffd98a 50%,var(--amber) 70%,transparent);box-shadow:0 0 40px 2px rgba(245,166,35,.45);transform:scaleX(0)}
+    .contact-inner{position:relative;z-index:2;text-align:center;max-width:760px;width:100%}
+    .contact h2{font-family:var(--display);font-weight:900;font-size:clamp(2.8rem,8vw,6.5rem);line-height:1.02}
+    .contact .sub{margin-top:1.4rem;color:var(--ink-dim);font-size:1.05rem;line-height:1.7}
+    .contact-cta-row{display:flex;gap:1.2rem;justify-content:center;margin-top:3rem;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:.7rem;padding:1rem 2.2rem;border-radius:99px;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:.4s;border:1px solid var(--amber);cursor:pointer;font-family:var(--body)}
+    .btn-solid{background:var(--amber);color:var(--night);font-weight:600}
+    .btn-solid:hover{box-shadow:0 0 50px rgba(245,166,35,.5);transform:translateY(-2px)}
+    .btn-ghost{background:transparent;color:var(--amber)}
+    .btn-ghost:hover{background:var(--amber-soft)}
+
+    .contact-form{margin-top:4.5rem;text-align:left;display:none;gap:1.1rem;grid-template-columns:1fr 1fr}
+    .contact-form.open{display:grid}
+    .contact-form .full{grid-column:1/-1}
+    .contact-form label{display:flex;flex-direction:column;gap:.45rem;font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-dim)}
+    .contact-form input,.contact-form select,.contact-form textarea{background:rgba(232,228,218,.04);border:1px solid rgba(232,228,218,.14);border-radius:4px;color:var(--ink);padding:.9rem 1rem;font-family:var(--body);font-size:.95rem;transition:border-color .3s}
+    .contact-form input:focus,.contact-form select:focus,.contact-form textarea:focus{outline:none;border-color:var(--amber)}
+    .contact-form textarea{resize:vertical;min-height:110px}
+    .contact-form button{justify-self:start}
+
+    footer{background:#05080f;padding:3rem clamp(1.5rem,6vw,4rem);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-top:1px solid rgba(245,166,35,.08)}
+    footer .f-mark{font-family:var(--display);letter-spacing:.3em;font-size:.75rem;color:var(--ink-dim)}
+    footer .f-light{font-size:.68rem;color:var(--ink-dim);letter-spacing:.15em}
+    footer .f-light b{color:var(--amber);font-weight:500}
+
+    /* ---------- Responsive ---------- */
+    @media(max-width:900px){
+      .pillar{grid-template-columns:1fr;min-height:auto;padding:10vh clamp(1.2rem,5vw,3rem)}
+      .pillar:nth-child(even){direction:ltr}
+      .contact-form{grid-template-columns:1fr}
+    }
+
+    /* ---------- Reduced motion : version statique élégante ---------- */
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none!important;transition:none!important}
+      html{scroll-behavior:auto}
+      .hero{height:100vh}
+      .hero-name span{opacity:1!important;transform:none!important}
+      .hero-sub,.hero-tagline{opacity:1!important}
+      .manifesto .word{opacity:1}
+      .contact-beam{transform:scaleX(1)}
+      .loader{display:none}
+    }
+    .reduced .hero-name span{opacity:1;transform:none}
+    .reduced .hero-sub,.reduced .hero-tagline{opacity:1}
+    .reduced .manifesto .word{opacity:1}
+    .reduced .contact-beam{transform:scaleX(1)}
+  </style>
+</head>
+<body>
+
+  <!-- Loader -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-word" id="loaderWord"></div>
+    <div class="loader-sub">Mwinda · La lumière</div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav" id="nav">
+    <a class="nav-mark" href="#top" aria-label="Estevao — Mwinda Group">
+      <span class="dot"></span><strong>ESTEVAO</strong>
+    </a>
+    <div class="lang-switch" role="group" aria-label="Langue / Language">
+      <button data-lang="fr" class="active">FR</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </nav>
+
+  <!-- ============ HERO — LA LUMIÈRE ============ -->
+  <section class="hero" id="top" aria-label="Estevao — Mwinda Group">
+    <div class="hero-stage" id="heroStage">
+      <div class="hero-fallback"></div>
+      <canvas id="heroCanvas"></canvas>
+      <canvas class="hero-dust" id="dustCanvas" aria-hidden="true"></canvas>
+      <div class="hero-vignette"></div>
+
+      <div class="hero-type">
+        <h1 class="hero-name" id="heroName" aria-label="ESTEVAO">
+          <span>E</span><span>S</span><span>T</span><span>E</span><span>V</span><span>A</span><span>O</span>
+        </h1>
+        <div class="hero-sub" id="heroSub">MWINDA&nbsp;GROUP</div>
+        <p class="hero-tagline" id="heroTagline" data-i18n="hero.tagline">
+          Je construis et je vends des <em>agents IA</em> avec Claude&nbsp;Code.
+        </p>
+      </div>
+
+      <div class="hero-scrollcue" aria-hidden="true">
+        <span data-i18n="hero.scroll">Défiler</span>
+        <span class="line"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MANIFESTO ============ -->
+  <section class="manifesto" aria-label="Manifesto">
+    <p id="manifestoText" data-i18n="manifesto"
+       data-fr="Mwinda signifie lumière en lingala. Chaque agent que je construis est une lumière allumée dans l'obscurité d'un problème."
+       data-en="Mwinda means light in Lingala. Every agent I build is a light switched on in the darkness of a problem.">
+    </p>
+  </section>
+
+  <!-- ============ STATS ============ -->
+  <section class="stats" aria-label="Chiffres clés">
+    <div class="stats-grid">
+      <div class="stat" data-tbc>
+        <span class="stat-num" data-count="12"><span class="val">0</span><span class="suffix">+</span></span>
+        <span class="stat-label" data-i18n="stats.agents">Agents IA déployés<br/>· à confirmer ·</span>
+      </div>
+      <div class="stat" data-tbc>
+        <span class="stat-num" data-count="8"><span class="val">0</span><span class="suffix">+</span></span>
+        <span class="stat-label" data-i18n="stats.platforms">Plateformes livrées<br/>· à confirmer ·</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-count="6"><span class="val">0</span></span>
+        <span class="stat-label" data-i18n="stats.divisions">Divisions, 1 groupe :<br/>Mwinda</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" data-count="3"><span class="val">0</span></span>
+        <span class="stat-label" data-i18n="stats.continents">Continents,<br/>2 langues</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num"><span style="font-size:.7em">FR/EN</span></span>
+        <span class="stat-label" data-i18n="stats.langs">Natif,<br/>3 continents</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PILIERS ============ -->
+  <div id="pillars">
+    <section class="pillar" aria-labelledby="p1-title">
+      <div class="pillar-media" data-clip="assets/clips/builder.mp4">
+        <div class="media-placeholder">
+          <span class="glyph">01</span>
+          <span class="note" data-i18n="pillar.placeholder">Clip cinématique — The Builder</span>
+        </div>
+        <div class="glare"></div>
+      </div>
+      <div class="pillar-copy">
+        <div class="pillar-index">01</div>
+        <div class="pillar-kicker" data-i18n="p1.kicker">L'Agence — The Builder</div>
+        <h2 id="p1-title" data-i18n="p1.title">Mwinda Digital</h2>
+        <p data-i18n="p1.body">Agents IA sur mesure pour les cabinets de services. Produit phare : l'<strong>Agent Réception Client 24/7</strong>, bilingue FR/EN, qui capture les clients que vous perdez — la nuit, le week-end, pendant vos rendez-vous.</p>
+        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p1.flag">Agent Réception 24/7 — FR/EN</span></span>
+      </div>
+    </section>
+
+    <section class="pillar" aria-labelledby="p2-title">
+      <div class="pillar-media" data-clip="assets/clips/visionary.mp4">
+        <div class="media-placeholder">
+          <span class="glyph">02</span>
+          <span class="note" data-i18n="pillar.placeholder2">Clip cinématique — The Visionary</span>
+        </div>
+        <div class="glare"></div>
+      </div>
+      <div class="pillar-copy">
+        <div class="pillar-index">02</div>
+        <div class="pillar-kicker" data-i18n="p2.kicker">Le Conseil — The Visionary</div>
+        <h2 id="p2-title" data-i18n="p2.title">Mwinda Consulting</h2>
+        <p data-i18n="p2.body">Stratégie, structuration de projets et transformation IA pour les entreprises de la <strong>diaspora africaine et francophone</strong> aux USA. De Seattle à Kinshasa, Brazzaville, Paris et Montréal — des lignes de lumière au-dessus de l'Atlantique.</p>
+        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p2.flag">Seattle · Kinshasa · Paris · Montréal</span></span>
+      </div>
+    </section>
+
+    <section class="pillar" aria-labelledby="p3-title">
+      <div class="pillar-media" data-clip="assets/clips/closer.mp4">
+        <div class="media-placeholder">
+          <span class="glyph">03</span>
+          <span class="note" data-i18n="pillar.placeholder3">Clip cinématique — The Closer</span>
+        </div>
+        <div class="glare"></div>
+      </div>
+      <div class="pillar-copy">
+        <div class="pillar-index">03</div>
+        <div class="pillar-kicker" data-i18n="p3.kicker">La Lumière — L'Écosystème</div>
+        <h2 id="p3-title" data-i18n="p3.title">L'Écosystème Mwinda</h2>
+        <p data-i18n="p3.body"><strong>Les Élites Publishing</strong> (édition), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. Un groupe au service d'une seule vision : porter la lumière.</p>
+        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p3.flag">Édition · Impact · Événements</span></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ WORK ============ -->
+  <section class="work" aria-labelledby="work-title">
+    <div class="section-head">
+      <div class="kicker" data-i18n="work.kicker">Réalisations</div>
+      <h2 id="work-title" data-i18n="work.title">Ce que la lumière a déjà bâti</h2>
+    </div>
+    <div class="work-grid">
+      <a class="work-card" href="#contact">
+        <span class="wc-arrow">↗</span>
+        <span class="wc-tag">SaaS · Mwinda Digital</span>
+        <h3>AI Agents Agency</h3>
+        <p data-i18n="work.c1">SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.</p>
+      </a>
+      <a class="work-card" href="#contact">
+        <span class="wc-arrow">↗</span>
+        <span class="wc-tag" data-i18n="work.t2">Édition</span>
+        <h3>Les ÉLITES Publishing House</h3>
+        <p data-i18n="work.c2">Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.</p>
+      </a>
+      <a class="work-card" href="#contact">
+        <span class="wc-arrow">↗</span>
+        <span class="wc-tag" data-i18n="work.t3">Site international</span>
+        <h3>HGI Ministries</h3>
+        <p data-i18n="work.c3">Site cinématique international en 5 langues — une présence mondiale, une seule lumière.</p>
+      </a>
+      <a class="work-card" href="#contact">
+        <span class="wc-arrow">↗</span>
+        <span class="wc-tag" data-i18n="work.t4">Plateforme IA</span>
+        <h3>Stephane Taty Bible</h3>
+        <p data-i18n="work.c4">Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'intelligence artificielle.</p>
+      </a>
+      <a class="work-card" href="#contact">
+        <span class="wc-arrow">↗</span>
+        <span class="wc-tag" data-i18n="work.t5">Track record</span>
+        <h3 data-i18n="work.h5">35+ clients · 43 projets</h3>
+        <p data-i18n="work.c5">Plus de 35 clients accompagnés et 43 projets réalisés, de l'agent IA au site international.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="contact" id="contact" aria-labelledby="contact-title">
+    <div class="contact-beam" id="contactBeam"></div>
+    <div class="contact-inner">
+      <h2 id="contact-title" data-i18n="contact.title">Travaillons<br/>ensemble.</h2>
+      <p class="sub" data-i18n="contact.sub">Un agent IA à déployer, une plateforme à bâtir, une vision à structurer — parlons-en.</p>
+      <div class="contact-cta-row">
+        <button class="btn btn-solid" id="openForm" data-i18n="contact.cta1">Démarrer un projet</button>
+        <a class="btn btn-ghost" href="https://www.linkedin.com/in/estevao-macumba" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </div>
+
+      <form class="contact-form" id="qualForm" name="portfolio-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="portfolio-contact" />
+        <p style="display:none"><label>Ne pas remplir <input name="bot-field" /></label></p>
+        <label><span data-i18n="form.name">Nom</span><input type="text" name="nom" required /></label>
+        <label><span data-i18n="form.email">Email</span><input type="email" name="email" required /></label>
+        <label><span data-i18n="form.company">Entreprise / Cabinet</span><input type="text" name="entreprise" /></label>
+        <label><span data-i18n="form.need">Besoin</span>
+          <select name="besoin">
+            <option data-i18n="form.need1">Agent IA sur mesure</option>
+            <option data-i18n="form.need2">Agent Réception Client 24/7</option>
+            <option data-i18n="form.need3">Conseil / transformation IA</option>
+            <option data-i18n="form.need4">Plateforme ou site</option>
+            <option data-i18n="form.need5">Autre</option>
+          </select>
+        </label>
+        <label class="full"><span data-i18n="form.budget">Budget indicatif</span>
+          <select name="budget">
+            <option>&lt; 2 000 $</option>
+            <option>2 000 – 5 000 $</option>
+            <option>5 000 – 15 000 $</option>
+            <option>15 000 $ +</option>
+          </select>
+        </label>
+        <label class="full"><span data-i18n="form.msg">Votre projet en quelques lignes</span><textarea name="message"></textarea></label>
+        <button class="btn btn-solid full" type="submit" data-i18n="form.send">Envoyer</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <span class="f-mark">MWINDA GROUP</span>
+    <span class="f-light" data-i18n="footer">Mwinda — <b>la lumière</b> en lingala · © <span id="year"></span> Estevao</span>
+  </footer>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/ScrollTrigger.min.js"></script>
+  <script>
+  (function(){
+    'use strict';
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ============ i18n ============ */
+    const I18N = {
+      fr: {
+        'meta.title':"Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code",
+        'meta.desc':"Estevao, fondateur de Mwinda Group. Je construis et je vends des agents IA avec Claude Code. Mwinda signifie lumière en lingala.",
+        'hero.tagline':"Je construis et je vends des <em>agents IA</em> avec Claude&nbsp;Code.",
+        'hero.scroll':"Défiler",
+        'stats.agents':"Agents IA déployés<br/>· à confirmer ·",
+        'stats.platforms':"Plateformes livrées<br/>· à confirmer ·",
+        'stats.divisions':"Divisions, 1 groupe :<br/>Mwinda",
+        'stats.continents':"Continents,<br/>2 langues",
+        'stats.langs':"Natif,<br/>3 continents",
+        'pillar.placeholder':"Clip cinématique — The Builder",
+        'pillar.placeholder2':"Clip cinématique — The Visionary",
+        'pillar.placeholder3':"Clip cinématique — The Closer",
+        'p1.kicker':"L'Agence — The Builder",'p1.title':"Mwinda Digital",
+        'p1.body':"Agents IA sur mesure pour les cabinets de services. Produit phare : l'<strong>Agent Réception Client 24/7</strong>, bilingue FR/EN, qui capture les clients que vous perdez — la nuit, le week-end, pendant vos rendez-vous.",
+        'p1.flag':"Agent Réception 24/7 — FR/EN",
+        'p2.kicker':"Le Conseil — The Visionary",'p2.title':"Mwinda Consulting",
+        'p2.body':"Stratégie, structuration de projets et transformation IA pour les entreprises de la <strong>diaspora africaine et francophone</strong> aux USA. De Seattle à Kinshasa, Brazzaville, Paris et Montréal — des lignes de lumière au-dessus de l'Atlantique.",
+        'p2.flag':"Seattle · Kinshasa · Paris · Montréal",
+        'p3.kicker':"La Lumière — L'Écosystème",'p3.title':"L'Écosystème Mwinda",
+        'p3.body':"<strong>Les Élites Publishing</strong> (édition), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. Un groupe au service d'une seule vision : porter la lumière.",
+        'p3.flag':"Édition · Impact · Événements",
+        'work.kicker':"Réalisations",'work.title':"Ce que la lumière a déjà bâti",
+        'work.c1':"SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.",
+        'work.t2':"Édition",'work.c2':"Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.",
+        'work.t3':"Site international",'work.c3':"Site cinématique international en 5 langues — une présence mondiale, une seule lumière.",
+        'work.t4':"Plateforme IA",'work.c4':"Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'intelligence artificielle.",
+        'work.t5':"Track record",'work.h5':"35+ clients · 43 projets",
+        'work.c5':"Plus de 35 clients accompagnés et 43 projets réalisés, de l'agent IA au site international.",
+        'contact.title':"Travaillons<br/>ensemble.",
+        'contact.sub':"Un agent IA à déployer, une plateforme à bâtir, une vision à structurer — parlons-en.",
+        'contact.cta1':"Démarrer un projet",
+        'form.name':"Nom",'form.email':"Email",'form.company':"Entreprise / Cabinet",'form.need':"Besoin",
+        'form.need1':"Agent IA sur mesure",'form.need2':"Agent Réception Client 24/7",'form.need3':"Conseil / transformation IA",'form.need4':"Plateforme ou site",'form.need5':"Autre",
+        'form.budget':"Budget indicatif",'form.msg':"Votre projet en quelques lignes",'form.send':"Envoyer",
+        'footer':"Mwinda — <b>la lumière</b> en lingala · © <span id='year2'></span> Estevao"
+      },
+      en: {
+        'meta.title':"Estevao — Founder, Mwinda Group | AI Agents with Claude Code",
+        'meta.desc':"Estevao, founder of Mwinda Group. I build & sell AI agents with Claude Code. Mwinda means light in Lingala.",
+        'hero.tagline':"I build &amp; sell <em>AI agents</em> with Claude&nbsp;Code.",
+        'hero.scroll':"Scroll",
+        'stats.agents':"AI agents deployed<br/>· to confirm ·",
+        'stats.platforms':"Platforms shipped<br/>· to confirm ·",
+        'stats.divisions':"Divisions, 1 group:<br/>Mwinda",
+        'stats.continents':"Continents,<br/>2 languages",
+        'stats.langs':"Native,<br/>3 continents",
+        'pillar.placeholder':"Cinematic clip — The Builder",
+        'pillar.placeholder2':"Cinematic clip — The Visionary",
+        'pillar.placeholder3':"Cinematic clip — The Closer",
+        'p1.kicker':"The Agency — The Builder",'p1.title':"Mwinda Digital",
+        'p1.body':"Custom AI agents for service firms. Flagship product: the <strong>24/7 Client Reception Agent</strong>, bilingual FR/EN, capturing the clients you lose — at night, on weekends, during your meetings.",
+        'p1.flag':"24/7 Reception Agent — FR/EN",
+        'p2.kicker':"The Consultancy — The Visionary",'p2.title':"Mwinda Consulting",
+        'p2.body':"Strategy, project structuring and AI transformation for <strong>African & francophone diaspora</strong> businesses in the USA. From Seattle to Kinshasa, Brazzaville, Paris and Montréal — lines of light across the Atlantic.",
+        'p2.flag':"Seattle · Kinshasa · Paris · Montréal",
+        'p3.kicker':"The Light — The Ecosystem",'p3.title':"The Mwinda Ecosystem",
+        'p3.body':"<strong>Les Élites Publishing</strong> (publishing), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. One group serving one vision: carrying the light.",
+        'p3.flag':"Publishing · Impact · Events",
+        'work.kicker':"Selected Work",'work.title':"What the light has already built",
+        'work.c1':"AI agents SaaS — designing, deploying and selling agents built with Claude Code.",
+        'work.t2':"Publishing",'work.c2':"Publishing house — carrying diaspora voices and ideas across three continents.",
+        'work.t3':"International site",'work.c3':"International cinematic website in 5 languages — one global presence, one light.",
+        'work.t4':"AI platform",'work.c4':"AI Bible platform — original manuscripts, 35+ languages, Scripture illuminated by AI.",
+        'work.t5':"Track record",'work.h5':"35+ clients · 43 projects",
+        'work.c5':"35+ clients served and 43 projects delivered, from AI agents to international platforms.",
+        'contact.title':"Let's build.",
+        'contact.sub':"An AI agent to deploy, a platform to build, a vision to structure — let's talk.",
+        'contact.cta1':"Start a project",
+        'form.name':"Name",'form.email':"Email",'form.company':"Company / Firm",'form.need':"Need",
+        'form.need1':"Custom AI agent",'form.need2':"24/7 Client Reception Agent",'form.need3':"Consulting / AI transformation",'form.need4':"Platform or website",'form.need5':"Other",
+        'form.budget':"Indicative budget",'form.msg':"Your project in a few lines",'form.send':"Send",
+        'footer':"Mwinda — <b>light</b> in Lingala · © <span id='year2'></span> Estevao"
+      }
+    };
+    const MANIFESTO = {
+      fr:{text:"Mwinda signifie lumière en lingala. Chaque agent que je construis est une lumière allumée dans l'obscurité d'un problème.",amber:["lumière","lumière"]},
+      en:{text:"Mwinda means light in Lingala. Every agent I build is a light switched on in the darkness of a problem.",amber:["light","light"]}
+    };
+    let lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('mwinda-lang') || 'fr';
+    if(!I18N[lang]) lang='fr';
+
+    function buildManifesto(){
+      const cfg = MANIFESTO[lang];
+      const el = document.getElementById('manifestoText');
+      el.innerHTML = cfg.text.split(' ').map(w=>{
+        const amber = /lumi|light/i.test(w) ? ' amber':'';
+        return '<span class="word'+amber+'">'+w+'</span>';
+      }).join(' ');
+    }
+    function applyLang(){
+      document.documentElement.lang = lang;
+      const dict = I18N[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        const k = el.getAttribute('data-i18n');
+        if(!dict[k]) return;
+        if(el.hasAttribute('data-i18n-attr')) el.setAttribute(el.getAttribute('data-i18n-attr'), dict[k].replace(/<[^>]+>/g,''));
+        else el.innerHTML = dict[k];
+      });
+      document.title = dict['meta.title'];
+      document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
+      buildManifesto();
+      const y=document.getElementById('year2'); if(y) y.textContent=new Date().getFullYear();
+      if(window.initManifestoTrigger) window.initManifestoTrigger();
+    }
+    document.querySelectorAll('.lang-switch button').forEach(b=>{
+      b.addEventListener('click',()=>{ lang=b.dataset.lang; localStorage.setItem('mwinda-lang',lang); applyLang(); });
+    });
+    applyLang();
+
+    /* ============ Loader ============ */
+    const lw = document.getElementById('loaderWord');
+    'MWINDA'.split('').forEach((c,i)=>{
+      const s=document.createElement('span'); s.textContent=c; s.style.animationDelay=(i*.12)+'s'; lw.appendChild(s);
+    });
+
+    /* ============ Reduced motion ============ */
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasGSAP = !reduced && window.gsap && window.ScrollTrigger;
+    if(reduced) document.body.classList.add('reduced');
+    if(hasGSAP){ gsap.registerPlugin(ScrollTrigger); document.documentElement.classList.add('has-gsap'); }
+
+    /* ============ Nav scrolled state ============ */
+    addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40),{passive:true});
+
+    /* ============ HERO frame scrub (technique Lando Norris) ============ */
+    const FRAME_COUNT = 120;
+    const framePath = i => 'assets/hero/frame_'+String(i).padStart(4,'0')+'.webp';
+    const canvas = document.getElementById('heroCanvas');
+    const ctx = canvas.getContext('2d');
+    const frames = new Array(FRAME_COUNT);
+    let framesAvailable = false;
+    const state = {frame:0};
+
+    function sizeCanvas(){
+      const dpr = Math.min(devicePixelRatio||1, 2);
+      canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr;
+    }
+    sizeCanvas(); addEventListener('resize',()=>{sizeCanvas(); render();});
+
+    function render(){
+      const img = frames[Math.min(FRAME_COUNT-1, Math.max(0, Math.round(state.frame)))];
+      if(!img || !img.complete || !img.naturalWidth) return;
+      const cw=canvas.width, ch=canvas.height, ir=img.naturalWidth/img.naturalHeight, cr=cw/ch;
+      let dw,dh,dx,dy;
+      if(cr>ir){ dw=cw; dh=cw/ir; dx=0; dy=(ch-dh)/2; } else { dh=ch; dw=ch*ir; dx=(cw-dw)/2; dy=0; }
+      ctx.clearRect(0,0,cw,ch);
+      ctx.drawImage(img,dx,dy,dw,dh);
+    }
+
+    // Progressive loading: first frame, then coarse-to-fine
+    const probe = new Image();
+    probe.onload = ()=>{
+      framesAvailable = true;
+      frames[0]=probe; render();
+      const order=[]; for(let s=8;s>=1;s=s>>1){ for(let i=0;i<FRAME_COUNT;i+=s){ if(!order.includes(i)) order.push(i);} }
+      order.forEach(i=>{ if(frames[i])return; const im=new Image(); im.src=framePath(i+1); im.onload=()=>{frames[i]=im; if(Math.abs(i-state.frame)<2)render();}; });
+      canvas.style.opacity=1;
+    };
+    probe.onerror = ()=>{ canvas.style.display='none'; }; // fallback gradient reste visible
+    probe.src = framePath(1);
+    canvas.style.opacity=0; canvas.style.transition='opacity 1.2s ease';
+
+    /* ============ Dust particles ============ */
+    if(!reduced){
+      const dc=document.getElementById('dustCanvas'), dctx=dc.getContext('2d');
+      let P=[];
+      function dsize(){ dc.width=innerWidth; dc.height=innerHeight;
+        P=Array.from({length:70},()=>({x:Math.random()*dc.width,y:Math.random()*dc.height,r:Math.random()*1.6+.3,vy:-(Math.random()*.18+.04),vx:(Math.random()-.5)*.08,a:Math.random()*.5+.1}));
+      }
+      dsize(); addEventListener('resize',dsize);
+      (function dust(){
+        dctx.clearRect(0,0,dc.width,dc.height);
+        for(const p of P){
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.y<-4){p.y=dc.height+4;p.x=Math.random()*dc.width;}
+          dctx.beginPath(); dctx.arc(p.x,p.y,p.r,0,7);
+          dctx.fillStyle='rgba(245,166,35,'+p.a+')'; dctx.fill();
+        }
+        requestAnimationFrame(dust);
+      })();
+    }
+
+    /* ============ GSAP timelines ============ */
+    if(hasGSAP){
+      // Hero: pin + scrub frames + type composition
+      const heroTl = gsap.timeline({
+        scrollTrigger:{trigger:'.hero',start:'top top',end:'+=280%',scrub:.6,pin:true,anticipatePin:1}
+      });
+      heroTl.to(state,{frame:FRAME_COUNT-1,ease:'none',duration:10,onUpdate:render},0);
+
+      // Lettres ESTEVAO se composent une à une
+      gsap.set('#heroName span',{opacity:0,y:'40%',rotateX:60});
+      heroTl.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.35,duration:2.6,ease:'power3.out'},.4);
+      heroTl.to('#heroSub',{opacity:1,duration:1.2},3.2);
+      heroTl.to('#heroTagline',{opacity:1,duration:1.2},3.9);
+      heroTl.to('.hero-scrollcue',{opacity:0,duration:.6},1);
+      heroTl.to('.hero-type',{yPercent:-18,opacity:0,duration:2.4,ease:'power2.in'},7.4);
+
+      // Intro (au chargement, avant scroll) : premières lettres visibles
+      gsap.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.09,duration:1.1,ease:'power3.out',delay:1.15});
+      gsap.to('#heroSub',{opacity:1,duration:1,delay:2});
+      gsap.to('#heroTagline',{opacity:1,duration:1,delay:2.35});
+
+      // Manifesto : mots qui s'allument
+      window.initManifestoTrigger = function(){
+        ScrollTrigger.getById('manif') && ScrollTrigger.getById('manif').kill();
+        const words = document.querySelectorAll('#manifestoText .word');
+        ScrollTrigger.create({id:'manif',trigger:'.manifesto',start:'top 75%',end:'bottom 55%',scrub:.4,
+          onUpdate:self=>{ const n=Math.floor(self.progress*words.length);
+            words.forEach((w,i)=>w.classList.toggle('lit',i<=n)); }});
+      };
+      window.initManifestoTrigger();
+
+      // Stats count-up
+      document.querySelectorAll('.stat-num[data-count]').forEach(el=>{
+        const target=+el.dataset.count, val=el.querySelector('.val');
+        ScrollTrigger.create({trigger:el,start:'top 85%',once:true,onEnter:()=>{
+          gsap.to({n:0},{n:target,duration:1.8,ease:'power2.out',onUpdate:function(){val.textContent=Math.round(this.targets()[0].n);}});
+        }});
+      });
+
+      // Piliers : reveal
+      document.querySelectorAll('.pillar').forEach(p=>{
+        gsap.from(p.querySelector('.pillar-media'),{opacity:0,y:80,scale:.94,duration:1.2,ease:'power3.out',
+          scrollTrigger:{trigger:p,start:'top 70%'}});
+        gsap.from(p.querySelectorAll('.pillar-copy > *'),{opacity:0,y:40,stagger:.12,duration:1,ease:'power3.out',
+          scrollTrigger:{trigger:p,start:'top 65%'}});
+      });
+
+      // Work cards
+      gsap.from('.work-card',{opacity:0,y:60,stagger:.08,duration:.9,ease:'power3.out',
+        scrollTrigger:{trigger:'.work-grid',start:'top 80%'}});
+
+      // Contact beam
+      gsap.to('#contactBeam',{scaleX:1,duration:2,ease:'power3.inOut',
+        scrollTrigger:{trigger:'.contact',start:'top 60%'}});
+      gsap.from('.contact-inner > *',{opacity:0,y:50,stagger:.15,duration:1.1,ease:'power3.out',
+        scrollTrigger:{trigger:'.contact',start:'top 55%'}});
+    } else {
+      // Statique : tout visible, stats affichées directement
+      document.querySelectorAll('.stat-num[data-count]').forEach(el=>{
+        el.querySelector('.val').textContent = el.dataset.count;
+      });
+      document.querySelectorAll('#manifestoText .word').forEach(w=>w.classList.add('lit'));
+      if(framesAvailable) state.frame=0;
+    }
+
+    /* ============ Lazy-load clips 2-4 ============ */
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const holder=e.target, src=holder.dataset.clip;
+        io.unobserve(holder);
+        fetch(src,{method:'HEAD'}).then(r=>{
+          if(!r.ok) return; // clip pas encore intégré : placeholder reste
+          const v=document.createElement('video');
+          v.src=src; v.muted=true; v.loop=true; v.playsInline=true; v.autoplay=!reduced;
+          v.setAttribute('muted',''); v.setAttribute('playsinline','');
+          v.style.opacity=0; v.style.transition='opacity 1s ease';
+          holder.prepend(v);
+          v.addEventListener('canplay',()=>{ v.style.opacity=1; if(!reduced) v.play().catch(()=>{}); const ph=holder.querySelector('.media-placeholder'); if(ph) ph.style.opacity=0; });
+        }).catch(()=>{});
+      });
+    },{rootMargin:'300px'}) : null;
+    if(io) document.querySelectorAll('.pillar-media[data-clip]').forEach(el=>io.observe(el));
+
+    /* ============ Contact form toggle ============ */
+    document.getElementById('openForm').addEventListener('click',()=>{
+      const f=document.getElementById('qualForm');
+      f.classList.toggle('open');
+      if(f.classList.contains('open')) f.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'});
+    });
+
+    /* ============ Loader out ============ */
+    addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'), reduced?0:900));
+    setTimeout(()=>document.getElementById('loader').classList.add('done'),3500); // sécurité
+  })();
+  </script>
+</body>
+</html>
