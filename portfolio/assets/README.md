@@ -1,5 +1,11 @@
 # Pipeline d'assets — Portfolio Estevao / Mwinda
 
+> **Portrait 3D actuel** : en attendant les clips, le hero anime la photo
+> d'Estevao (`estevao-graded.jpg`, étalonnée nuit/ambre) dans un monolithe 3D
+> qui tourne au scroll et s'incline à la souris. Une fois les 120 frames du
+> clip 1 intégrées, garder ou retirer le bloc `#hero3d` dans `index.html`
+> selon le rendu combiné.
+
 Le site (`portfolio/index.html`) fonctionne dès maintenant avec des placeholders
 élégants. Dès qu'un asset est déposé au bon endroit, il est détecté et intégré
 automatiquement (aucune modification de code nécessaire).
