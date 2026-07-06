@@ -183,12 +183,19 @@
     });
   }
 
-  // Position orbit cards around the ring
+  // Position orbit cards around the ring — responsive to viewport and
+  // to cards hidden by CSS (mobile shows fewer to avoid overlap)
   const orbitCards = orbitRing ? [...orbitRing.querySelectorAll(".orbit-card")] : [];
-  const RADIUS = Math.min(innerWidth * 0.36, 620);
-  orbitCards.forEach((card, i) => {
-    card.dataset.angle = (360 / orbitCards.length) * i;
-  });
+  let RADIUS = 0, visibleCards = [];
+  function layoutOrbit() {
+    RADIUS = Math.min(innerWidth * 0.36, 620);
+    visibleCards = orbitCards.filter((c) => getComputedStyle(c).display !== "none");
+    visibleCards.forEach((card, i) => {
+      card.dataset.angle = (360 / visibleCards.length) * i;
+    });
+  }
+  layoutOrbit();
+  addEventListener("resize", layoutOrbit);
 
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   // Smooth eased progress so the scrub feels weighted, not linear
@@ -221,7 +228,7 @@
     if (orbitRing) {
       const rot = p * 360;
       orbitRing.style.transform = `rotateX(6deg) rotateY(${rot}deg)`;
-      orbitCards.forEach((card) => {
+      visibleCards.forEach((card) => {
         const a = +card.dataset.angle;
         card.style.transform =
           `rotateY(${a}deg) translateZ(${RADIUS}px) rotateY(${-(a + rot)}deg)`;
@@ -286,11 +293,12 @@
     });
   }
 
-  /* ---------- Moments: drag-to-scroll ---------- */
+  /* ---------- Moments: drag-to-scroll (mouse only — touch scrolls natively) ---------- */
   const track = document.getElementById("momentsTrack");
   if (track) {
     let down = false, startX = 0, startScroll = 0;
     track.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse") return;
       down = true; startX = e.clientX; startScroll = track.scrollLeft;
       track.style.scrollSnapType = "none";
     });

@@ -170,7 +170,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 .btn-primary:hover::after { transform: translateX(110%); }
 .btn-ghost {
   border: 1px solid rgba(232, 185, 65, 0.35); color: var(--cream);
-  background: var(--glass); backdrop-filter: blur(12px);
+  background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
 }
 .btn-ghost:hover { border-color: var(--gold); background: var(--gold-soft); }
 .btn-block { width: 100%; justify-content: center; }
@@ -192,7 +192,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 .nav.is-scrolled {
   height: 68px;
   background: rgba(8, 6, 4, 0.72);
-  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4); backdrop-filter: blur(20px) saturate(1.4);
   border-bottom-color: rgba(232, 185, 65, 0.12);
 }
 .nav-logo { display: inline-flex; align-items: center; gap: 14px; }
@@ -336,7 +336,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   padding: 9px 20px; border-radius: 100px; font-size: 12.5px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--ink);
   background: var(--glass); border: 1px solid var(--glass-edge);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
 }
 .hero-tag .dot {
   width: 7px; height: 7px; border-radius: 50%; background: var(--gold);
@@ -422,7 +422,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   display: flex; gap: 22px; align-items: flex-start;
   padding: 22px 26px; border-radius: 16px;
   background: var(--glass); border: 1px solid rgba(232,185,65,.1);
-  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   transition: border-color .5s, transform .5s var(--ease-out), box-shadow .5s;
 }
 .about-pillars li:hover {
@@ -487,7 +487,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   border-radius: 20px; overflow: hidden;
   background: linear-gradient(165deg, rgba(255,246,224,.05), rgba(255,246,224,.015) 55%);
   border: 1px solid rgba(232,185,65,.12);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   transition: transform .6s var(--ease-out), border-color .6s, box-shadow .6s;
   transform-style: preserve-3d; will-change: transform;
 }
@@ -555,7 +555,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 .gather-card {
   position: relative; padding: 44px 36px; border-radius: 22px;
   background: var(--glass); border: 1px solid rgba(232,185,65,.12);
-  backdrop-filter: blur(10px); overflow: hidden;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); overflow: hidden;
   transition: transform .55s var(--ease-out), border-color .55s, box-shadow .55s;
 }
 .gather-card:hover {
@@ -697,7 +697,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   padding: clamp(30px, 4vw, 48px); border-radius: 26px;
   background: linear-gradient(165deg, rgba(255,246,224,.055), rgba(255,246,224,.015));
   border: 1px solid rgba(232,185,65,.16);
-  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
   box-shadow: 0 40px 90px rgba(0,0,0,.45);
   display: grid; gap: 26px;
 }
@@ -759,7 +759,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   .nav-links {
     position: fixed; inset: 0; z-index: -1;
     flex-direction: column; justify-content: center; align-items: center; gap: 8px;
-    background: rgba(6, 4, 2, .96); backdrop-filter: blur(24px);
+    background: rgba(6, 4, 2, .96); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
     opacity: 0; pointer-events: none; transition: opacity .5s;
   }
   .nav-links.is-open { opacity: 1; pointer-events: auto; z-index: 999; }
@@ -777,9 +777,14 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   .nav-logo { margin-right: auto; }
 
   .hero { height: 260vh; }
-  .orbit-card { width: clamp(120px, 26vw, 180px); margin: calc(clamp(120px, 26vw, 180px) / -2) 0 0 calc(clamp(120px, 26vw, 180px) / -2); }
+  /* Show 5 of 10 orbit photos on small screens so the ring stays uncluttered */
+  .orbit-card:nth-child(2n) { display: none; }
+  .orbit-card { width: clamp(110px, 24vw, 170px); margin: calc(clamp(110px, 24vw, 170px) / -2) 0 0 calc(clamp(110px, 24vw, 170px) / -2); }
   .orbit-emblem { width: clamp(160px, 44vw, 260px); }
-  .hero-display { font-size: clamp(40px, 12.5vw, 90px); }
+  .hero-display { font-size: clamp(38px, 11.5vw, 90px); }
+  .hero-tag { max-width: 92vw; text-align: center; white-space: normal; line-height: 1.5; }
+  .event-actions .btn { flex: 1 1 auto; justify-content: center; }
+  .gather-address { text-align: center; padding-inline: 4vw; }
   .about-grid, .contact-grid, .footer-top { grid-template-columns: 1fr; }
   .about-visual { min-height: 0; margin-top: 10px; }
   .about-visual .photo-frame:first-child { width: 100%; aspect-ratio: 4/5; }
