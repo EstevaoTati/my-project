@@ -185,7 +185,7 @@
 
   // Position orbit cards around the ring
   const orbitCards = orbitRing ? [...orbitRing.querySelectorAll(".orbit-card")] : [];
-  const RADIUS = Math.min(innerWidth * 0.3, 460);
+  const RADIUS = Math.min(innerWidth * 0.36, 620);
   orbitCards.forEach((card, i) => {
     card.dataset.angle = (360 / orbitCards.length) * i;
   });
