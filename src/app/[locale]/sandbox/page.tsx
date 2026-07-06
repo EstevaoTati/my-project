@@ -1,0 +1,42 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import SandboxClient from "@/components/sandbox/SandboxClient";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.sandbox" });
+  return { title: t("title"), description: t("description") };
+}
+
+export default async function SandboxPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("sandbox");
+
+  return (
+    <>
+      <section className="mwinda-glow">
+        <div className="mx-auto max-w-3xl px-4 pb-10 pt-16 text-center sm:px-6">
+          <h1 className="font-display text-4xl text-warmwhite sm:text-5xl">
+            <span className="text-gradient-light">{t("hero.title")}</span>
+          </h1>
+          <p className="mt-4 text-ink-muted">{t("hero.subtitle")}</p>
+        </div>
+      </section>
+      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+        <Suspense>
+          <SandboxClient />
+        </Suspense>
+      </section>
+    </>
+  );
+}

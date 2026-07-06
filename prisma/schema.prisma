@@ -1,0 +1,61 @@
+// Mwinda Digital — AI Agents Agency
+// Phase 1 : Lead (formulaire diagnostic) + fondations Phase 2 (SandboxSession)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lead capturé par le formulaire « Réserver mon diagnostic »
+model Lead {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  name              String
+  email             String
+  phone             String?
+  firmName          String
+  profession        Profession
+  weeklyInquiries   InquiryVolume
+  averageTicket     Int? // panier moyen en USD
+  preferredLanguage Language @default(FR)
+  message           String?
+  locale            String   @default("fr") // langue du site au moment de la soumission
+  status            LeadStatus @default(NEW)
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+enum Profession {
+  TAX_PREPARER
+  IMMIGRATION_LAWYER
+  INSURANCE_AGENT
+  ACCOUNTANT
+  TRAVEL_AGENCY
+  OTHER
+}
+
+enum InquiryVolume {
+  UNDER_10
+  FROM_10_TO_30
+  FROM_30_TO_75
+  OVER_75
+}
+
+enum Language {
+  FR
+  EN
+  BOTH
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  DIAGNOSTIC_BOOKED
+  CLIENT
+  LOST
+}
