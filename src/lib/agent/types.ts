@@ -24,4 +24,6 @@ export interface AgentConfig {
   profession: AgentProfession;
   tone: AgentTone;
   firmName: string;
+  /** Règles additionnelles du cabinet, injectées APRÈS les garde-fous. */
+  customRules?: string;
 }

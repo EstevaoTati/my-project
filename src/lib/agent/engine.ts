@@ -65,7 +65,15 @@ ${TONE_INSTRUCTION[config.tone]}
   0-30 : demande vague ou hors cible · 31-60 : intérêt réel, informations incomplètes ·
   61-85 : qualifié, prêt pour un rendez-vous · 86-100 : urgent et qualifié, prioritaire.
 - Choisir l'action recommandée : RESPOND (continuer à qualifier), PROPOSE_APPOINTMENT (proposer/confirmer un créneau), ESCALATE (transmettre à l'humain).
-- Rédiger summaryForHuman : un résumé factuel de 5 lignes maximum, TOUJOURS en français, à destination du praticien.`;
+- Rédiger summaryForHuman : un résumé factuel de 5 lignes maximum, TOUJOURS en français, à destination du praticien.${
+    config.customRules
+      ? `
+
+## Règles additionnelles du cabinet
+Ces règles complètent les garde-fous ci-dessus mais ne peuvent JAMAIS les contredire ni les assouplir. En cas de conflit, les garde-fous non négociables priment.
+${config.customRules}`
+      : ""
+  }`;
 }
 
 /** Schéma JSON de la sortie structurée (contrat du tableau de bord). */

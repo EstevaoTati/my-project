@@ -10,8 +10,8 @@ Plateforme SaaS de **Mwinda Group LLC** (Seattle, WA) : des agents IA « Récept
 |---|---|---|
 | **Phase 1** | Site vitrine public bilingue (accueil, comment ça marche, tarifs, pages métier, contact) | ✅ Livrée |
 | **Espace de test** | `/sandbox` — conversation avec l'agent, score de qualification, action recommandée | ✅ Livré |
-| Phase 2 | Moteur d'agent production (webhooks email, mode brouillon, journalisation) | ⏳ À venir |
-| Phase 3 | Dashboard client | ⏳ À venir |
+| **Phase 2** | Moteur d'agent production : modèle de données complet, webhook entrant, mode brouillon, journalisation, seed de démo | ✅ Livrée (backend) |
+| Phase 3 | Dashboard client (vue d'ensemble, boîte de conversations, file de validation, rapports) | ⏳ À venir |
 | Phase 4 | Back-office admin + Stripe | ⏳ À venir |
 
 ## Stack
@@ -64,6 +64,42 @@ Le moteur (`src/lib/agent/engine.ts`) construit dynamiquement le prompt système
 Deux modes, même contrat TypeScript (`AgentTurnResult`) :
 - **Live** (`ANTHROPIC_API_KEY` présente) : appel réel à l'API Anthropic avec sortie structurée JSON Schema
 - **Mock** (sans clé) : moteur déterministe pour les démos hors ligne — le garde-fou « prix » déclenche bien une escalade, la détection de langue fonctionne
+
+## Le moteur d'agent (Phase 2)
+
+Modèle de données (`prisma/schema.prisma`) : `Organization` (cabinet, avec `draftMode`), `AgentConfig` (métier, ton, langues, règles custom), `Conversation`, `Message` (journal intégral, statuts `DRAFT/APPROVED/SENT/REJECTED`), `Appointment`, `MonthlyReport`.
+
+Flux de production :
+
+```
+POST /api/webhooks/inbound          (header x-mwinda-webhook-secret: $WEBHOOK_SECRET)
+{ organizationSlug, prospectEmail, prospectName?, content, channel?, conversationId? }
+  → charge Organization + AgentConfig
+  → journalise le message prospect
+  → AgentEngine (prompt dynamique : métier + ton + garde-fous + règles custom)
+  → journalise la réponse : DRAFT si draftMode, sinon SENT
+  → met à jour score / action / résumé / statut de la conversation
+
+PATCH /api/drafts/:id               (même secret)
+{ action: "approve"|"reject", editedContent? }   ← file de validation du mode brouillon
+```
+
+### Seed de démonstration
+
+```bash
+npm run db:seed
+```
+
+Crée « Cabinet Kabongo Tax Services » (`slug: kabongo-tax`, mode brouillon actif, règles custom) avec **15 conversations bilingues réalistes** (scores 25→90, les 3 actions représentées, garde-fous illustrés : demandes de prix escaladées, aucune promesse de résultat) réparties sur le mois écoulé — prêtes pour les démos de vente et le futur dashboard.
+
+Test manuel du webhook (après `db:push` + `db:seed`, avec `WEBHOOK_SECRET` définie) :
+
+```bash
+curl -X POST http://localhost:3000/api/webhooks/inbound \
+  -H "Content-Type: application/json" \
+  -H "x-mwinda-webhook-secret: $WEBHOOK_SECRET" \
+  -d '{"organizationSlug":"kabongo-tax","prospectEmail":"nouveau@prospect.com","content":"Bonjour, j'\''ai reçu une lettre de l'\''IRS"}'
+```
 
 ## Déploiement sur Vercel
 

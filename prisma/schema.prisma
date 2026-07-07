@@ -59,3 +59,164 @@ enum LeadStatus {
   CLIENT
   LOST
 }
+
+// ════════════════════════════════════════════════════════════
+// Phase 2 — Moteur d'agent
+// ════════════════════════════════════════════════════════════
+
+/// Cabinet client de Mwinda Digital
+model Organization {
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String
+  slug          String         @unique // identifiant public (webhooks, URLs)
+  contactEmail  String
+  active        Boolean        @default(true)
+  /// Mode « brouillon d'abord » : les réponses de l'agent attendent
+  /// une validation humaine avant envoi
+  draftMode     Boolean        @default(true)
+  agentConfig   AgentConfig?
+  conversations Conversation[]
+  reports       MonthlyReport[]
+}
+
+/// Configuration de l'agent d'un cabinet (métier, ton, règles)
+model AgentConfig {
+  id             String           @id @default(cuid())
+  updatedAt      DateTime         @updatedAt
+  organizationId String           @unique
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  profession     AgentProfession
+  tone           AgentToneSetting @default(PROFESSIONAL)
+  languages      Language         @default(BOTH)
+  /// Règles additionnelles propres au cabinet, injectées dans le prompt
+  /// système APRÈS les garde-fous non négociables (jamais à leur place)
+  customRules    String?
+}
+
+enum AgentProfession {
+  TAX
+  IMMIGRATION
+  INSURANCE
+}
+
+enum AgentToneSetting {
+  PROFESSIONAL
+  FORMAL
+  CONCISE
+}
+
+/// Fil de conversation avec un prospect d'un cabinet
+model Conversation {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  organizationId     String
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  channel            Channel             @default(EMAIL)
+  prospectName       String?
+  prospectEmail      String?
+  detectedLanguage   Language?
+  /// Dernier score de qualification calculé par l'agent (0-100)
+  qualificationScore Int?
+  recommendedAction  RecommendedAction?
+  /// Résumé en 5 lignes max pour l'humain (toujours en français)
+  summaryForHuman    String?
+  status             ConversationStatus  @default(OPEN)
+  messages           Message[]
+  appointment        Appointment?
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([prospectEmail])
+}
+
+enum Channel {
+  EMAIL
+  WEB_FORM
+  SANDBOX
+}
+
+enum RecommendedAction {
+  RESPOND
+  PROPOSE_APPOINTMENT
+  ESCALATE
+}
+
+enum ConversationStatus {
+  OPEN
+  APPOINTMENT_PROPOSED
+  ESCALATED
+  CLOSED
+}
+
+/// Message journalisé — chaque échange est conservé intégralement
+model Message {
+  id                 String        @id @default(cuid())
+  createdAt          DateTime      @default(now())
+  conversationId     String
+  conversation       Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role               MessageRole
+  content            String
+  /// Cycle de vie en mode brouillon : DRAFT -> APPROVED/REJECTED -> SENT
+  status             MessageStatus @default(SENT)
+  /// Journalisation moteur (messages AGENT uniquement)
+  modelUsed          String?
+  qualificationScore Int?
+
+  @@index([conversationId, createdAt])
+  @@index([status])
+}
+
+enum MessageRole {
+  PROSPECT
+  AGENT
+  HUMAN
+}
+
+enum MessageStatus {
+  DRAFT
+  APPROVED
+  SENT
+  REJECTED
+}
+
+/// Rendez-vous proposé ou confirmé pour une conversation
+model Appointment {
+  id             String            @id @default(cuid())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  conversationId String            @unique
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// Créneaux proposés par l'agent (texte libre, ex. « mer. 14 h / jeu. 11 h »)
+  proposedSlots  String?
+  scheduledAt    DateTime?
+  status         AppointmentStatus @default(PROPOSED)
+}
+
+enum AppointmentStatus {
+  PROPOSED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+/// Rapport mensuel généré pour chaque cabinet (envoyé le 1er du mois)
+model MonthlyReport {
+  id                     String       @id @default(cuid())
+  createdAt              DateTime     @default(now())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  year                   Int
+  month                  Int // 1-12
+  leadsCount             Int          @default(0)
+  appointmentsCount      Int          @default(0)
+  escalationsCount       Int          @default(0)
+  avgResponseSeconds     Int?
+  /// Valeur estimée capturée en USD (leads qualifiés × panier moyen)
+  estimatedValueCaptured Int?
+  sentAt                 DateTime?
+
+  @@unique([organizationId, year, month])
+}
