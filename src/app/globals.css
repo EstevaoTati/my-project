@@ -117,3 +117,149 @@ body {
     animation: none;
   }
 }
+
+/* ── Scène 3D « orbe Mwinda » (hero) ─────────────────────────
+   Orbe pulsant + anneaux orbitaux ambre/cyan en rotation 3D,
+   inspirés de la référence « main robotique / atome de lumière ». */
+
+.orb-scene {
+  position: relative;
+  width: min(340px, 78vw);
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+  perspective: 900px;
+}
+
+.orb-halo {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(245, 166, 35, 0.22),
+    rgba(45, 156, 219, 0.08) 55%,
+    transparent 72%
+  );
+  filter: blur(6px);
+  animation: orbGlow 4s ease-in-out infinite;
+}
+
+.orb-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #fff6e6, #ffc95e 45%, #f5a623 75%);
+  box-shadow:
+    0 0 28px rgba(245, 166, 35, 0.85),
+    0 0 90px rgba(245, 166, 35, 0.45),
+    0 0 160px rgba(88, 199, 250, 0.25);
+  animation: orbPulse 4s ease-in-out infinite;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transform-style: preserve-3d;
+}
+
+.orb-ring-amber {
+  border-color: rgba(245, 166, 35, 0.55);
+  box-shadow:
+    0 0 12px rgba(245, 166, 35, 0.25),
+    inset 0 0 12px rgba(245, 166, 35, 0.15);
+  animation: orbSpinA 9s linear infinite;
+}
+
+.orb-ring-cyan {
+  inset: 2%;
+  border-color: rgba(88, 199, 250, 0.45);
+  box-shadow:
+    0 0 12px rgba(88, 199, 250, 0.2),
+    inset 0 0 12px rgba(88, 199, 250, 0.12);
+  animation: orbSpinB 13s linear infinite;
+}
+
+.orb-ring-faint {
+  inset: -4%;
+  border-color: rgba(232, 236, 248, 0.1);
+  animation: orbSpinC 22s linear infinite;
+}
+
+.orb-satellite {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.orb-satellite-amber {
+  background: #ffc95e;
+  box-shadow: 0 0 14px rgba(245, 166, 35, 0.9), 0 0 34px rgba(245, 166, 35, 0.5);
+}
+
+.orb-satellite-cyan {
+  background: #7fd4fb;
+  box-shadow: 0 0 14px rgba(88, 199, 250, 0.9), 0 0 34px rgba(88, 199, 250, 0.5);
+}
+
+.orb-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 246, 230, 0.8);
+  box-shadow: 0 0 8px rgba(255, 246, 230, 0.6);
+  animation: orbFloat 6s ease-in-out infinite;
+}
+
+.orb-particle-1 { left: 14%; top: 24%; animation-delay: 0s; }
+.orb-particle-2 { right: 12%; top: 36%; animation-delay: 1.6s; background: rgba(127, 212, 251, 0.8); }
+.orb-particle-3 { left: 22%; bottom: 18%; animation-delay: 3.1s; background: rgba(255, 201, 94, 0.85); }
+.orb-particle-4 { right: 20%; bottom: 28%; animation-delay: 4.4s; }
+
+@keyframes orbPulse {
+  0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); }
+}
+
+@keyframes orbGlow {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes orbSpinA {
+  from { transform: rotateX(64deg) rotateY(-12deg) rotateZ(0deg); }
+  to { transform: rotateX(64deg) rotateY(-12deg) rotateZ(360deg); }
+}
+
+@keyframes orbSpinB {
+  from { transform: rotateX(-58deg) rotateY(18deg) rotateZ(360deg); }
+  to { transform: rotateX(-58deg) rotateY(18deg) rotateZ(0deg); }
+}
+
+@keyframes orbSpinC {
+  from { transform: rotateX(74deg) rotateZ(0deg); }
+  to { transform: rotateX(74deg) rotateZ(-360deg); }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50% { transform: translateY(-14px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-halo,
+  .orb-core,
+  .orb-ring,
+  .orb-particle {
+    animation: none;
+  }
+}

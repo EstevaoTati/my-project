@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import PainCalculator from "@/components/home/PainCalculator";
 import Faq from "@/components/home/Faq";
+import HeroVisual from "@/components/home/HeroVisual";
 
 export async function generateMetadata({
   params,
@@ -24,24 +25,29 @@ function HomeContent() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="mwinda-glow">
-        <div className="mx-auto max-w-4xl px-4 pb-20 pt-20 text-center sm:px-6 sm:pt-28">
-          <p className="fade-up text-sm font-medium uppercase tracking-[0.2em] text-amber">
-            {t("hero.eyebrow")}
-          </p>
-          <h1 className="fade-up-delay-1 mt-5 font-display text-4xl leading-tight text-warmwhite sm:text-6xl">
-            <span className="text-gradient-light">{t("hero.title")}</span>
-          </h1>
-          <p className="fade-up-delay-2 mx-auto mt-6 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            {t("hero.subtitle")}
-          </p>
-          <div className="fade-up-delay-2 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/contact" className="btn-primary w-full sm:w-auto">
-              {t("hero.cta")}
-            </Link>
-            <Link href="/sandbox" className="btn-secondary w-full sm:w-auto">
-              {t("hero.ctaSecondary")}
-            </Link>
+      <section className="mwinda-glow overflow-hidden">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1.15fr_0.85fr] lg:gap-8">
+          <div className="text-center lg:text-left">
+            <p className="fade-up text-sm font-medium uppercase tracking-[0.2em] text-amber">
+              {t("hero.eyebrow")}
+            </p>
+            <h1 className="fade-up-delay-1 mt-5 font-display text-4xl leading-tight text-warmwhite sm:text-6xl">
+              <span className="text-gradient-light">{t("hero.title")}</span>
+            </h1>
+            <p className="fade-up-delay-2 mt-6 max-w-2xl text-base leading-relaxed text-ink-muted sm:text-lg lg:mx-0 mx-auto">
+              {t("hero.subtitle")}
+            </p>
+            <div className="fade-up-delay-2 mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <Link href="/contact" className="btn-primary w-full sm:w-auto">
+                {t("hero.cta")}
+              </Link>
+              <Link href="/sandbox" className="btn-secondary w-full sm:w-auto">
+                {t("hero.ctaSecondary")}
+              </Link>
+            </div>
+          </div>
+          <div className="fade-up-delay-2 flex justify-center">
+            <HeroVisual />
           </div>
         </div>
       </section>
