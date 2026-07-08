@@ -192,7 +192,7 @@
     if (prefersReduced) {
       renderOrbit(0); // static arrangement, no motion
     } else {
-      const SPEED = 360 / 44000; // one calm revolution every 44s (deg per ms)
+      const SPEED = 360 / 20000; // one revolution every 20s (deg per ms)
       let heroVisible = true, running = false, last = null, rot = 0;
 
       function spin(t) {
