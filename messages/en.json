@@ -412,6 +412,140 @@
       "waiting": "Waiting for the first exchange…"
     }
   },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Enter your access code. Client firms receive their code during setup.",
+    "codeLabel": "Access code",
+    "codePlaceholder": "Your code…",
+    "submit": "Sign in",
+    "errorInvalid": "Invalid code or deactivated account.",
+    "errorUnconfigured": "Authentication is not configured on this deployment (AUTH_SECRET missing).",
+    "logout": "Sign out"
+  },
+  "dash": {
+    "nav": {
+      "overview": "Overview",
+      "conversations": "Conversations",
+      "validation": "Review queue",
+      "reports": "Reports",
+      "settings": "Settings"
+    },
+    "overview": {
+      "title": "Overview",
+      "thisMonth": "This month",
+      "leads": "Leads received",
+      "appointments": "Appointments proposed",
+      "avgResponse": "Average response time",
+      "capturedValue": "Estimated value captured",
+      "pendingDrafts": "Drafts awaiting review",
+      "escalated": "Escalated conversations",
+      "noTicket": "Set your average ticket in Settings to enable this calculation.",
+      "seconds": "s",
+      "reviewCta": "Review drafts"
+    },
+    "conversations": {
+      "title": "Conversation inbox",
+      "empty": "No conversations yet.",
+      "score": "Score",
+      "statusLabels": {
+        "OPEN": "Open",
+        "APPOINTMENT_PROPOSED": "Appointment proposed",
+        "ESCALATED": "Escalated",
+        "CLOSED": "Closed"
+      },
+      "channelLabels": { "EMAIL": "Email", "WEB_FORM": "Web form", "SANDBOX": "Sandbox" },
+      "roleLabels": { "PROSPECT": "Prospect", "AGENT": "Agent", "HUMAN": "You" },
+      "draftBadge": "Draft",
+      "rejectedBadge": "Rejected",
+      "takeOverTitle": "Take over",
+      "takeOverPlaceholder": "Your reply to the prospect…",
+      "takeOverSubmit": "Send and take over",
+      "close": "Close conversation",
+      "summaryTitle": "Summary for you",
+      "back": "← All conversations"
+    },
+    "validation": {
+      "title": "Review queue",
+      "subtitle": "Draft mode is active: every agent reply awaits your decision.",
+      "empty": "No drafts pending. The agent has nothing awaiting review.",
+      "draftFrom": "Draft for",
+      "viewThread": "View thread",
+      "approve": "Approve",
+      "reject": "Reject",
+      "editHint": "You can edit the text before approving."
+    },
+    "reports": {
+      "title": "Monthly reports",
+      "empty": "No reports generated yet. The first arrives on the 1st of the month.",
+      "month": "Month",
+      "print": "Export as PDF (print)",
+      "sentAt": "Sent on",
+      "notSent": "Not sent"
+    },
+    "settings": {
+      "title": "Agent settings",
+      "tone": "Agent tone",
+      "languages": "Languages",
+      "draftMode": "Draft mode (approval before sending)",
+      "averageTicket": "Average ticket ($)",
+      "customRules": "Custom rules (injected after the guardrails)",
+      "businessHours": "Business hours",
+      "calendarUrl": "Connected calendar URL",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "billing": "Subscription",
+      "billingTier": "Current tier",
+      "billingNone": "No active subscription",
+      "billingManage": "Manage my subscription",
+      "billingSubscribe": "Subscribe"
+    }
+  },
+  "adminUi": {
+    "nav": { "orgs": "Organizations", "onboarding": "Onboarding" },
+    "title": "Mwinda back-office",
+    "orgs": {
+      "title": "Organizations",
+      "empty": "No organizations. Create the first one via onboarding.",
+      "conversations": "conversations",
+      "escalationRate": "escalation rate",
+      "pendingDrafts": "drafts pending",
+      "inactive": "Deactivated",
+      "draftOn": "Draft mode on",
+      "newOrg": "+ New firm"
+    },
+    "org": {
+      "title": "Firm",
+      "name": "Firm name",
+      "slug": "Slug (webhooks)",
+      "contactEmail": "Contact email",
+      "profession": "Profession",
+      "professionLabels": { "TAX": "Tax", "IMMIGRATION": "Immigration", "INSURANCE": "Insurance" },
+      "tone": "Tone",
+      "toneLabels": { "PROFESSIONAL": "Professional", "FORMAL": "Formal", "CONCISE": "Concise" },
+      "languages": "Languages",
+      "languageLabels": { "FR": "French", "EN": "English", "BOTH": "Both" },
+      "draftMode": "Draft mode",
+      "active": "Organization active",
+      "customRules": "Custom rules",
+      "save": "Save",
+      "token": "Dashboard access code",
+      "tokenHint": "Give this to the firm — it grants access to their dashboard.",
+      "regenerate": "Regenerate code",
+      "generateReport": "Generate last month's report",
+      "webhookHint": "Inbound endpoint: POST /api/webhooks/inbound with organizationSlug"
+    },
+    "onboarding": {
+      "title": "Onboard a new firm",
+      "subtitle": "Target < 30 minutes: configure, test in the sandbox, activate.",
+      "step1": "1 · Configuration",
+      "step2": "2 · Sandbox test",
+      "step2Text": "The system prompt is generated automatically from this configuration. Test the behavior in the test space before activating.",
+      "step2Cta": "Open the test space",
+      "step3": "3 · Activation",
+      "step3Text": "On creation, the firm receives its dashboard access code. Then connect the email channel to the inbound webhook.",
+      "create": "Create the firm"
+    }
+  },
   "notFound": {
     "title": "Page not found",
     "text": "This page doesn't exist or has been moved.",

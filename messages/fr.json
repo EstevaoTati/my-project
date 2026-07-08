@@ -412,6 +412,140 @@
       "waiting": "En attente du premier échange…"
     }
   },
+  "auth": {
+    "title": "Connexion",
+    "subtitle": "Entrez votre code d'accès. Les cabinets clients reçoivent leur code lors de l'installation.",
+    "codeLabel": "Code d'accès",
+    "codePlaceholder": "Votre code…",
+    "submit": "Se connecter",
+    "errorInvalid": "Code invalide ou compte désactivé.",
+    "errorUnconfigured": "Authentification non configurée sur ce déploiement (AUTH_SECRET manquante).",
+    "logout": "Se déconnecter"
+  },
+  "dash": {
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "conversations": "Conversations",
+      "validation": "File de validation",
+      "reports": "Rapports",
+      "settings": "Paramètres"
+    },
+    "overview": {
+      "title": "Vue d'ensemble",
+      "thisMonth": "Ce mois-ci",
+      "leads": "Leads reçus",
+      "appointments": "RDV proposés",
+      "avgResponse": "Temps de réponse moyen",
+      "capturedValue": "Valeur estimée capturée",
+      "pendingDrafts": "Brouillons en attente",
+      "escalated": "Conversations escaladées",
+      "noTicket": "Renseignez votre panier moyen dans Paramètres pour activer ce calcul.",
+      "seconds": "s",
+      "reviewCta": "Valider les brouillons"
+    },
+    "conversations": {
+      "title": "Boîte de conversations",
+      "empty": "Aucune conversation pour l'instant.",
+      "score": "Score",
+      "statusLabels": {
+        "OPEN": "Ouverte",
+        "APPOINTMENT_PROPOSED": "RDV proposé",
+        "ESCALATED": "Escaladée",
+        "CLOSED": "Clôturée"
+      },
+      "channelLabels": { "EMAIL": "Email", "WEB_FORM": "Formulaire", "SANDBOX": "Sandbox" },
+      "roleLabels": { "PROSPECT": "Prospect", "AGENT": "Agent", "HUMAN": "Vous" },
+      "draftBadge": "Brouillon",
+      "rejectedBadge": "Rejeté",
+      "takeOverTitle": "Reprendre la main",
+      "takeOverPlaceholder": "Votre réponse au prospect…",
+      "takeOverSubmit": "Envoyer et reprendre la main",
+      "close": "Clôturer la conversation",
+      "summaryTitle": "Résumé pour vous",
+      "back": "← Toutes les conversations"
+    },
+    "validation": {
+      "title": "File de validation",
+      "subtitle": "Mode brouillon actif : chaque réponse de l'agent attend votre décision.",
+      "empty": "Aucun brouillon en attente. L'agent n'a rien à faire valider.",
+      "draftFrom": "Brouillon pour",
+      "viewThread": "Voir le fil",
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "editHint": "Vous pouvez modifier le texte avant d'approuver."
+    },
+    "reports": {
+      "title": "Rapports mensuels",
+      "empty": "Aucun rapport généré pour l'instant. Le premier arrive le 1er du mois.",
+      "month": "Mois",
+      "print": "Exporter en PDF (imprimer)",
+      "sentAt": "Envoyé le",
+      "notSent": "Non envoyé"
+    },
+    "settings": {
+      "title": "Paramètres de l'agent",
+      "tone": "Ton de l'agent",
+      "languages": "Langues",
+      "draftMode": "Mode brouillon (validation avant envoi)",
+      "averageTicket": "Panier moyen ($)",
+      "customRules": "Règles personnalisées (injectées après les garde-fous)",
+      "businessHours": "Horaires du cabinet",
+      "calendarUrl": "URL du calendrier connecté",
+      "save": "Enregistrer",
+      "saved": "Paramètres enregistrés.",
+      "billing": "Abonnement",
+      "billingTier": "Palier actuel",
+      "billingNone": "Aucun abonnement actif",
+      "billingManage": "Gérer mon abonnement",
+      "billingSubscribe": "S'abonner"
+    }
+  },
+  "adminUi": {
+    "nav": { "orgs": "Organisations", "onboarding": "Onboarding" },
+    "title": "Back-office Mwinda",
+    "orgs": {
+      "title": "Organisations",
+      "empty": "Aucune organisation. Créez la première via l'onboarding.",
+      "conversations": "conversations",
+      "escalationRate": "taux d'escalade",
+      "pendingDrafts": "brouillons en attente",
+      "inactive": "Désactivée",
+      "draftOn": "Brouillon actif",
+      "newOrg": "+ Nouveau cabinet"
+    },
+    "org": {
+      "title": "Cabinet",
+      "name": "Nom du cabinet",
+      "slug": "Slug (webhooks)",
+      "contactEmail": "Email de contact",
+      "profession": "Métier",
+      "professionLabels": { "TAX": "Impôts", "IMMIGRATION": "Immigration", "INSURANCE": "Assurance" },
+      "tone": "Ton",
+      "toneLabels": { "PROFESSIONAL": "Professionnel", "FORMAL": "Formel", "CONCISE": "Concis" },
+      "languages": "Langues",
+      "languageLabels": { "FR": "Français", "EN": "Anglais", "BOTH": "Les deux" },
+      "draftMode": "Mode brouillon",
+      "active": "Organisation active",
+      "customRules": "Règles personnalisées",
+      "save": "Enregistrer",
+      "token": "Code d'accès dashboard",
+      "tokenHint": "À remettre au cabinet — donne accès à son tableau de bord.",
+      "regenerate": "Régénérer le code",
+      "generateReport": "Générer le rapport du mois écoulé",
+      "webhookHint": "Endpoint d'entrée : POST /api/webhooks/inbound avec organizationSlug"
+    },
+    "onboarding": {
+      "title": "Onboarding d'un nouveau cabinet",
+      "subtitle": "Objectif < 30 minutes : configurer, tester en sandbox, activer.",
+      "step1": "1 · Configuration",
+      "step2": "2 · Test en sandbox",
+      "step2Text": "Le prompt système est généré automatiquement depuis cette configuration. Testez le comportement dans l'espace de test avant d'activer.",
+      "step2Cta": "Ouvrir l'espace de test",
+      "step3": "3 · Activation",
+      "step3Text": "À la création, le cabinet reçoit son code d'accès dashboard. Branchez ensuite le canal email sur le webhook d'entrée.",
+      "create": "Créer le cabinet"
+    }
+  },
   "notFound": {
     "title": "Page introuvable",
     "text": "Cette page n'existe pas ou a été déplacée.",

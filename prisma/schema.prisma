@@ -76,9 +76,23 @@ model Organization {
   /// Mode « brouillon d'abord » : les réponses de l'agent attendent
   /// une validation humaine avant envoi
   draftMode     Boolean        @default(true)
+  /// Code d'accès au dashboard client (auth pilote — remis au cabinet)
+  dashboardToken String        @unique @default(cuid())
+  /// Panier moyen du cabinet (USD) — base du calcul de valeur capturée
+  averageTicket  Int?
+  // Abonnement Stripe
+  stripeCustomerId   String?          @unique
+  subscriptionTier   SubscriptionTier?
+  subscriptionStatus String?
   agentConfig   AgentConfig?
   conversations Conversation[]
   reports       MonthlyReport[]
+}
+
+enum SubscriptionTier {
+  ESSENTIAL
+  PRO
+  FIRM
 }
 
 /// Configuration de l'agent d'un cabinet (métier, ton, règles)
@@ -93,6 +107,10 @@ model AgentConfig {
   /// Règles additionnelles propres au cabinet, injectées dans le prompt
   /// système APRÈS les garde-fous non négociables (jamais à leur place)
   customRules    String?
+  /// Horaires du cabinet (texte libre affiché/injecté dans le prompt)
+  businessHours  String?
+  /// URL du calendrier connecté (Google Calendar, Calendly…)
+  calendarUrl    String?
 }
 
 enum AgentProfession {
