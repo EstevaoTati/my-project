@@ -158,37 +158,15 @@
   }, { threshold: 0.6 });
   document.querySelectorAll("[data-count]").forEach((el) => counterIO.observe(el));
 
-  /* ---------- Cinematic hero: scroll-scrubbed 3D orbit + letter tracking ----------
-     The hero section is a 320vh runway; .hero-pin stays stuck while scroll
-     progress (0..1) drives the whole scene — Lando-Norris-helmet style. */
-  const hero = document.querySelector(".hero");
+  /* ---------- Hero: auto-rotating 3D photo orbit ---------- */
   const orbitRing = document.getElementById("orbitRing");
-  const emblem = document.querySelector(".orbit-emblem");
-  const kicker = document.getElementById("heroKicker");
-  const display = document.getElementById("heroDisplay");
-  let chars = [];
-
-  // Split display lines into per-letter spans
-  if (display) {
-    display.querySelectorAll(".display-line").forEach((line) => {
-      const text = line.dataset.text || "";
-      line.textContent = "";
-      [...text].forEach((c) => {
-        const s = document.createElement("span");
-        s.className = "ch" + (c === " " ? " sp" : "");
-        s.textContent = c === " " ? " " : c;
-        line.appendChild(s);
-        chars.push(s);
-      });
-    });
-  }
-
-  // Position orbit cards around the ring — responsive to viewport and
-  // to cards hidden by CSS (mobile shows fewer to avoid overlap)
+  const orbitScene = document.getElementById("orbitScene");
   const orbitCards = orbitRing ? [...orbitRing.querySelectorAll(".orbit-card")] : [];
+
+  // Lay out the visible cards evenly around the ring (mobile hides some via CSS)
   let RADIUS = 0, visibleCards = [];
   function layoutOrbit() {
-    RADIUS = Math.min(innerWidth * 0.36, 620);
+    RADIUS = Math.min(innerWidth * 0.42, 620);
     visibleCards = orbitCards.filter((c) => getComputedStyle(c).display !== "none");
     visibleCards.forEach((card, i) => {
       card.dataset.angle = (360 / visibleCards.length) * i;
@@ -197,58 +175,47 @@
   layoutOrbit();
   addEventListener("resize", layoutOrbit);
 
-  const clamp01 = (v) => Math.min(1, Math.max(0, v));
-  // Smooth eased progress so the scrub feels weighted, not linear
-  let heroP = 0, heroPT = 0;
-
-  function heroScrub() {
-    if (!hero) return;
-    const rect = hero.getBoundingClientRect();
-    const runway = rect.height - innerHeight;
-    heroPT = runway > 0 ? clamp01(-rect.top / runway) : 0;
-    heroP = prefersReduced ? heroPT : lerp(heroP, heroPT, 0.09);
-    const p = heroP;
-
-    // 1) Letters track in one-by-one across the first 45% of the runway
-    const n = chars.length;
-    chars.forEach((ch, i) => {
-      const start = (i / n) * 0.3;             // stagger window
-      const k = clamp01((p - start) / 0.16);   // per-letter ease window
-      const e = 1 - Math.pow(1 - k, 3);
-      ch.style.opacity = e;
-      ch.style.transform =
-        `translateY(${(1 - e) * 0.55}em) rotateX(${(1 - e) * 60}deg) scale(${0.9 + e * 0.1})`;
-      ch.style.filter = `blur(${(1 - e) * 8}px)`;
+  function renderOrbit(rot) {
+    if (!orbitRing) return;
+    orbitRing.style.transform = `rotateX(6deg) rotateY(${rot}deg)`;
+    visibleCards.forEach((card) => {
+      const a = +card.dataset.angle;
+      card.style.transform =
+        `rotateY(${a}deg) translateZ(${RADIUS}px) rotateY(${-(a + rot)}deg)`;
+      const rel = (((a + rot) % 360) + 360) % 360;
+      const depth = Math.cos((rel * Math.PI) / 180); // 1 = front, -1 = behind emblem
+      card.style.opacity = (0.28 + 0.72 * (depth * 0.5 + 0.5)).toFixed(3);
     });
-
-    // 2) Kicker fades in after the title lands
-    if (kicker) kicker.classList.toggle("is-in", p > 0.42);
-
-    // 3) Orbit ring: one full revolution across the runway
-    if (orbitRing) {
-      const rot = p * 360;
-      orbitRing.style.transform = `rotateX(6deg) rotateY(${rot}deg)`;
-      visibleCards.forEach((card) => {
-        const a = +card.dataset.angle;
-        card.style.transform =
-          `rotateY(${a}deg) translateZ(${RADIUS}px) rotateY(${-(a + rot)}deg)`;
-        // Cards fade as they pass behind the emblem
-        const rel = (((a + rot) % 360) + 360) % 360;
-        const depth = Math.cos((rel * Math.PI) / 180); // 1 front, -1 back
-        card.style.opacity = 0.25 + 0.75 * (depth * 0.5 + 0.5);
-      });
-    }
-
-    // 4) Emblem: breathes up then recedes as the story takes over
-    if (emblem) {
-      const grow = 0.72 + 0.28 * Math.sin(Math.min(p, 0.9) * Math.PI);
-      emblem.style.transform = `scale(${grow}) translateY(${p * -4}vh)`;
-      emblem.style.opacity = p > 0.94 ? String(1 - (p - 0.94) / 0.06) : "1";
-    }
-
-    requestAnimationFrame(heroScrub);
   }
-  if (hero) requestAnimationFrame(heroScrub);
+
+  if (orbitRing) {
+    if (prefersReduced) {
+      renderOrbit(0); // static arrangement, no motion
+    } else {
+      const SPEED = 360 / 44000; // one calm revolution every 44s (deg per ms)
+      let heroVisible = true, running = false, last = null, rot = 0;
+
+      function spin(t) {
+        if (last != null) rot = (rot + (t - last) * SPEED) % 360;
+        last = t;
+        renderOrbit(rot);
+        if (heroVisible) requestAnimationFrame(spin);
+        else { running = false; last = null; }
+      }
+      function start() {
+        if (!running) { running = true; last = null; requestAnimationFrame(spin); }
+      }
+
+      // Pause the loop while the hero is off-screen to save battery
+      if (orbitScene && "IntersectionObserver" in window) {
+        new IntersectionObserver((entries) => {
+          heroVisible = entries[0].isIntersecting;
+          if (heroVisible) start();
+        }, { threshold: 0 }).observe(orbitScene);
+      }
+      start();
+    }
+  }
 
   /* ---------- 3D tilt cards + spotlight tracking ---------- */
   if (!isTouch && !prefersReduced) {

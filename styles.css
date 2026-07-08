@@ -227,15 +227,15 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 .nav-cta:hover { background: var(--gold); color: var(--black); box-shadow: 0 8px 28px rgba(232,185,65,.35); }
 .nav-burger { display: none; }
 
-/* ---------- Hero: pinned cinematic 3D scroll-orbit ---------- */
+/* ---------- Hero: auto-rotating 3D photo orbit ---------- */
 .hero {
-  /* Tall scroll runway; inner .hero-pin stays stuck while progress scrubs the scene */
-  height: 320vh;
+  position: relative;
+  height: 100vh; height: 100svh;
   padding: 0;
 }
 .hero-pin {
-  position: sticky; top: 0; height: 100vh; height: 100svh;
-  display: flex; align-items: center; justify-content: center;
+  position: relative; height: 100vh; height: 100svh;
+  display: grid; place-items: center;
   overflow: hidden;
 }
 .hero-bg { position: absolute; inset: 0; z-index: 0; }
@@ -328,8 +328,8 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 }
 
 .hero-content {
-  width: min(1200px, 92vw); margin-inline: auto; max-width: 100%;
-  position: relative; z-index: 3; text-align: center;
+  position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
+  z-index: 3; text-align: center; width: max-content; max-width: 92vw;
 }
 .hero-tag {
   display: inline-flex; align-items: center; gap: 10px;
@@ -776,7 +776,7 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
   .nav { gap: 14px; }
   .nav-logo { margin-right: auto; }
 
-  .hero { height: 260vh; }
+  .hero { height: 100vh; height: 100svh; }
   /* Show 5 of 10 orbit photos on small screens so the ring stays uncluttered */
   .orbit-card:nth-child(2n) { display: none; }
   .orbit-card { width: clamp(110px, 24vw, 170px); margin: calc(clamp(110px, 24vw, 170px) / -2) 0 0 calc(clamp(110px, 24vw, 170px) / -2); }
