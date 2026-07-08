@@ -247,10 +247,16 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
     linear-gradient(180deg, #0a0805 0%, #0d0a06 45%, var(--black) 100%);
 }
 .hero-bg-img::before {
-  content: ""; position: absolute; inset: 0;
-  background-image: url("https://d8j0ntlcm91z4.cloudfront.net/user_3F0sXQtTZltgrFplwje5rUqODRv/hf_20260612_004908_c2df4079-8332-4860-a427-c761483e23f3.png");
-  background-size: cover; background-position: center 30%;
-  opacity: .5;
+  content: ""; position: absolute; inset: -10%;
+  /* Self-contained "divine god-rays" — no external image */
+  background:
+    conic-gradient(from 210deg at 72% 18%,
+      transparent 0deg, rgba(246,220,141,.10) 8deg, transparent 16deg,
+      rgba(246,220,141,.07) 24deg, transparent 34deg,
+      rgba(246,220,141,.12) 44deg, transparent 54deg,
+      rgba(246,220,141,.06) 66deg, transparent 78deg),
+    radial-gradient(ellipse 60% 50% at 72% 20%, rgba(232,185,65,.20), transparent 60%);
+  opacity: .7;
   mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
   -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
   animation: heroDrift 26s var(--ease-luxe) infinite alternate;
@@ -531,9 +537,12 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 }
 .verse-band-bg::before {
   content: ""; position: absolute; inset: 0;
-  background-image: url("https://d8j0ntlcm91z4.cloudfront.net/user_3F0sXQtTZltgrFplwje5rUqODRv/hf_20260612_004913_d83a8a67-8f29-47ea-8beb-c356fb0bcad2.png");
-  background-size: cover; background-position: center;
-  opacity: .34;
+  /* Self-contained ember glow — no external image */
+  background:
+    radial-gradient(circle at 20% 40%, rgba(232,185,65,.12), transparent 30%),
+    radial-gradient(circle at 78% 62%, rgba(200,90,30,.14), transparent 34%),
+    radial-gradient(circle at 50% 85%, rgba(140,60,20,.16), transparent 45%);
+  opacity: .7;
   mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
@@ -661,9 +670,12 @@ section { position: relative; z-index: 1; padding: clamp(80px, 13vh, 140px) 0; }
 }
 .give-bg::before {
   content: ""; position: absolute; inset: 0;
-  background-image: url("https://d8j0ntlcm91z4.cloudfront.net/user_3F0sXQtTZltgrFplwje5rUqODRv/hf_20260612_004911_c79e948d-f43e-4de8-ad64-68a4826993f2.png");
-  background-size: cover; background-position: center;
-  opacity: .3;
+  /* Self-contained golden glow — no external image */
+  background:
+    radial-gradient(ellipse 50% 45% at 50% 45%, rgba(232,185,65,.16), transparent 65%),
+    radial-gradient(circle at 30% 70%, rgba(232,185,65,.08), transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(232,185,65,.08), transparent 40%);
+  opacity: .8;
   mask-image: linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent);
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent);
 }

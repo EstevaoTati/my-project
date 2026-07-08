@@ -36,9 +36,9 @@ This folder is a complete, ready-to-deploy static site for
 
 ## Notes
 
-- Three decorative backgrounds load from the Higgsfield CDN
-  (`d8j0ntlcm91z4.cloudfront.net`) with gradient fallbacks if offline.
-  The `netlify.toml` Content-Security-Policy already allows that host.
+- The site is fully self-contained: all images are in `assets/` and all
+  decorative backgrounds are pure CSS. The only external requests are to
+  Google Fonts, which the `netlify.toml` Content-Security-Policy allows.
 - To update event flyers later, replace the images in `assets/`
   (`flyer-prayer-retreat.jpg`, `flyer-baptism.jpg`, `flyer-bible-study.jpg`)
   keeping the same file names — no code changes needed.
