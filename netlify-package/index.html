@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mwinda Digital — AI Agents Agency (aperçu statique)</title>
+    <meta
+      name="description"
+      content="Aperçu statique de la plateforme Mwinda Digital — Agent Réception Client 24/7 bilingue FR/EN. Rendu via raw.githack. L'application complète est une app Next.js 15."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --night: #0a0f1e;
+        --night-soft: #101731;
+        --night-card: #141c3a;
+        --night-border: #232d52;
+        --amber: #f5a623;
+        --amber-soft: #ffc95e;
+        --warmwhite: #fff6e6;
+        --emerald: #2dd4a7;
+        --ink: #e8ecf8;
+        --ink-muted: #9aa5c6;
+        --display: "Fraunces", Georgia, serif;
+        --body: "Inter", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--night);
+        color: var(--ink);
+        font-family: var(--body);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+      .glow {
+        background:
+          radial-gradient(ellipse 60% 45% at 50% -5%, rgba(245, 166, 35, 0.16), transparent 70%),
+          radial-gradient(ellipse 35% 30% at 80% 10%, rgba(255, 201, 94, 0.07), transparent 70%);
+      }
+      .gradient-text {
+        background: linear-gradient(105deg, #fff6e6 20%, #ffc95e 55%, #f5a623 85%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      h1, h2, h3 { font-family: var(--display); font-weight: 500; color: var(--warmwhite); letter-spacing: -0.01em; }
+      /* Header */
+      header {
+        position: sticky; top: 0; z-index: 50;
+        border-bottom: 1px solid rgba(35, 45, 82, 0.7);
+        background: rgba(10, 15, 30, 0.85); backdrop-filter: blur(12px);
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 16px; }
+      .logo { font-family: var(--display); font-size: 19px; color: var(--warmwhite); display: flex; align-items: center; gap: 8px; }
+      .logo b { color: var(--amber); font-weight: 500; }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 14px rgba(245,166,35,.8); display: inline-block; }
+      .nav-links { display: flex; gap: 24px; }
+      .nav-links a { color: var(--ink-muted); text-decoration: none; font-size: 14px; }
+      .nav-links a:hover { color: var(--warmwhite); }
+      @media (max-width: 860px) { .nav-links { display: none; } }
+      .lang { display: flex; border: 1px solid var(--night-border); border-radius: 999px; overflow: hidden; font-size: 12px; font-weight: 600; }
+      .lang button { padding: 6px 12px; background: none; border: none; color: var(--ink-muted); cursor: pointer; }
+      .lang button.active { background: var(--amber); color: var(--night); }
+      /* Buttons */
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; font-weight: 600; padding: 13px 28px; text-decoration: none; cursor: pointer; font-size: 15px; transition: box-shadow .3s, transform .2s, border-color .3s; border: none; }
+      .btn-primary { background: linear-gradient(120deg, #f5a623, #ffc95e); color: var(--night); }
+      .btn-primary:hover { box-shadow: 0 0 32px rgba(245,166,35,.35); transform: translateY(-1px); }
+      .btn-secondary { border: 1px solid var(--night-border); color: var(--ink); background: none; }
+      .btn-secondary:hover { border-color: var(--amber); background: rgba(245,166,35,.06); }
+      /* Hero */
+      .hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 32px; align-items: center; padding: 64px 0 80px; }
+      @media (max-width: 900px) { .hero { grid-template-columns: 1fr; text-align: center; } }
+      .eyebrow { color: var(--amber); text-transform: uppercase; letter-spacing: .2em; font-size: 13px; font-weight: 500; }
+      .hero h1 { font-size: 60px; line-height: 1.05; margin: 20px 0; }
+      @media (max-width: 600px) { .hero h1 { font-size: 38px; } }
+      .hero p { color: var(--ink-muted); font-size: 18px; max-width: 620px; margin-bottom: 32px; }
+      @media (max-width: 900px) { .hero p { margin-left: auto; margin-right: auto; } }
+      .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+      @media (max-width: 900px) { .cta-row { justify-content: center; } }
+      /* Orb */
+      .orb-scene { position: relative; width: min(320px, 78vw); aspect-ratio: 1; margin: 0 auto; perspective: 900px; transform-style: preserve-3d; }
+      .orb-halo { position: absolute; inset: 12%; border-radius: 50%; background: radial-gradient(circle, rgba(245,166,35,.22), rgba(45,156,219,.08) 55%, transparent 72%); filter: blur(6px); animation: glow 4s ease-in-out infinite; }
+      .orb-core { position: absolute; left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; background: radial-gradient(circle at 38% 32%, #fff6e6, #ffc95e 45%, #f5a623 75%); box-shadow: 0 0 28px rgba(245,166,35,.85), 0 0 90px rgba(245,166,35,.45), 0 0 160px rgba(88,199,250,.25); animation: pulse 4s ease-in-out infinite; }
+      .ring { position: absolute; inset: 6%; border-radius: 50%; border: 1.5px solid transparent; transform-style: preserve-3d; }
+      .ring-amber { border-color: rgba(245,166,35,.55); box-shadow: 0 0 12px rgba(245,166,35,.25), inset 0 0 12px rgba(245,166,35,.15); animation: spinA 9s linear infinite; }
+      .ring-cyan { inset: 2%; border-color: rgba(88,199,250,.45); box-shadow: 0 0 12px rgba(88,199,250,.2), inset 0 0 12px rgba(88,199,250,.12); animation: spinB 13s linear infinite; }
+      .ring-faint { inset: -4%; border-color: rgba(232,236,248,.1); animation: spinC 22s linear infinite; }
+      .sat { position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; border-radius: 50%; }
+      .sat-amber { background: #ffc95e; box-shadow: 0 0 14px rgba(245,166,35,.9), 0 0 34px rgba(245,166,35,.5); }
+      .sat-cyan { background: #7fd4fb; box-shadow: 0 0 14px rgba(88,199,250,.9), 0 0 34px rgba(88,199,250,.5); }
+      @keyframes pulse { 0%,100% { opacity:.85; transform: translate(-50%,-50%) scale(1);} 50% { opacity:1; transform: translate(-50%,-50%) scale(1.07);} }
+      @keyframes glow { 0%,100% { opacity:.7; transform: scale(1);} 50% { opacity:1; transform: scale(1.05);} }
+      @keyframes spinA { from { transform: rotateX(64deg) rotateY(-12deg) rotateZ(0);} to { transform: rotateX(64deg) rotateY(-12deg) rotateZ(360deg);} }
+      @keyframes spinB { from { transform: rotateX(-58deg) rotateY(18deg) rotateZ(360deg);} to { transform: rotateX(-58deg) rotateY(18deg) rotateZ(0);} }
+      @keyframes spinC { from { transform: rotateX(74deg) rotateZ(0);} to { transform: rotateX(74deg) rotateZ(-360deg);} }
+      /* Sections */
+      section.band { border-top: 1px solid var(--night-border); border-bottom: 1px solid var(--night-border); background: var(--night-soft); }
+      .sec { padding: 64px 0; }
+      .sec h2 { font-size: 34px; text-align: center; }
+      .sec .sub { text-align: center; color: var(--ink-muted); margin-top: 12px; }
+      .grid { display: grid; gap: 16px; margin-top: 36px; }
+      .g3 { grid-template-columns: repeat(3, 1fr); }
+      .g5 { grid-template-columns: repeat(5, 1fr); }
+      @media (max-width: 860px) { .g3 { grid-template-columns: 1fr; } .g5 { grid-template-columns: 1fr 1fr; } }
+      .card { border: 1px solid var(--night-border); border-radius: 16px; background: var(--night-card); padding: 24px; }
+      .card.pro { border-color: rgba(245,166,35,.5); box-shadow: 0 0 40px rgba(245,166,35,.12); }
+      .card h3 { font-size: 18px; }
+      .card .price { font-family: var(--display); font-size: 34px; color: var(--warmwhite); margin: 12px 0; }
+      .card .price span { font-size: 14px; color: var(--ink-muted); font-family: var(--body); }
+      .card p { color: var(--ink-muted); font-size: 14px; margin-top: 8px; }
+      .tag { color: var(--amber); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+      .num { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 50%; background: rgba(245,166,35,.15); color: var(--amber); font-family: var(--display); font-size: 14px; }
+      .pill { display: inline-block; background: var(--amber); color: var(--night); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; margin-bottom: 8px; }
+      .notice { background: rgba(245,166,35,.06); border: 1px solid rgba(245,166,35,.25); border-radius: 12px; padding: 14px 18px; color: var(--amber-soft); font-size: 13px; text-align: center; margin: 24px auto 0; max-width: 760px; }
+      footer { border-top: 1px solid var(--night-border); background: var(--night-soft); padding: 40px 0; color: var(--ink-muted); font-size: 13px; }
+      footer .dotg { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); display: inline-block; margin-right: 6px; }
+      [data-en] { display: none; }
+      body.en [data-fr] { display: none; }
+      body.en [data-en] { display: inline; }
+      body.en [data-en].block { display: block; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <span class="logo"><span class="dot"></span> Mwinda <b>Digital</b></span>
+        <nav class="nav-links">
+          <a href="#offer"><span data-fr>Comment ça marche</span><span data-en>How it works</span></a>
+          <a href="#pricing"><span data-fr>Tarifs</span><span data-en>Pricing</span></a>
+          <a href="#flow"><span data-fr>Le flux</span><span data-en>The flow</span></a>
+        </nav>
+        <div class="lang">
+          <button class="active" onclick="setLang('fr', this)">FR</button>
+          <button onclick="setLang('en', this)">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="glow">
+      <div class="wrap hero">
+        <div>
+          <p class="eyebrow"><span data-fr>Agents IA pour cabinets de services professionnels</span><span data-en>AI agents for professional service firms</span></p>
+          <h1 class="gradient-text"><span data-fr>Nous capturons les clients que vous perdez.</span><span data-en>We capture the clients you're losing.</span></h1>
+          <p>
+            <span data-fr>Votre cabinet reçoit des demandes le soir, le week-end, en pleine saison fiscale. Chaque demande sans réponse est un client qui signe chez un concurrent. Notre Agent Réception Client 24/7 répond en français et en anglais, qualifie, propose un rendez-vous — et vous transmet les cas complexes avec un résumé.</span>
+            <span data-en>Your firm gets inquiries at night, on weekends, at the peak of tax season. Every unanswered inquiry is a client signing with a competitor. Our 24/7 Client Reception Agent replies in French and English, qualifies, proposes an appointment — and hands complex cases to you with a summary.</span>
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary"><span data-fr>Réserver mon diagnostic</span><span data-en>Book my diagnostic</span></a>
+            <a class="btn btn-secondary"><span data-fr>Voir l'agent en action</span><span data-en>See the agent in action</span></a>
+          </div>
+        </div>
+        <div class="orb-scene" aria-hidden="true">
+          <div class="orb-halo"></div>
+          <div class="orb-core"></div>
+          <div class="ring ring-amber"><span class="sat sat-amber"></span></div>
+          <div class="ring ring-cyan"><span class="sat sat-cyan"></span></div>
+          <div class="ring ring-faint"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flow -->
+    <section class="band" id="flow">
+      <div class="wrap sec">
+        <h2><span data-fr>Du premier message au rendez-vous, sans vous</span><span data-en>From first message to booked appointment, without you</span></h2>
+        <div class="grid g5">
+          <div class="card"><span class="num">1</span><h3 style="margin-top:14px" data-fr>Demande entrante</h3><h3 style="margin-top:14px" data-en>Incoming inquiry</h3><p><span data-fr>Email, formulaire — à toute heure, FR ou EN.</span><span data-en>Email or form — any hour, FR or EN.</span></p></div>
+          <div class="card"><span class="num">2</span><h3 style="margin-top:14px" data-fr>L'agent répond</h3><h3 style="margin-top:14px" data-en>The agent replies</h3><p><span data-fr>Réponse pro en moins de 2 min, dans sa langue.</span><span data-en>Professional reply in under 2 min, in their language.</span></p></div>
+          <div class="card"><span class="num">3</span><h3 style="margin-top:14px" data-fr>Qualification</h3><h3 style="margin-top:14px" data-en>Qualification</h3><p><span data-fr>Besoin, urgence, budget : score calculé.</span><span data-en>Need, urgency, budget: score computed.</span></p></div>
+          <div class="card"><span class="num">4</span><h3 style="margin-top:14px" data-fr>RDV proposé</h3><h3 style="margin-top:14px" data-en>Appointment</h3><p><span data-fr>Créneau proposé dans votre calendrier.</span><span data-en>Slot offered from your calendar.</span></p></div>
+          <div class="card"><span class="num">5</span><h3 style="margin-top:14px" data-fr>Résumé pour vous</h3><h3 style="margin-top:14px" data-en>Summary for you</h3><p><span data-fr>Cas complexes transmis, résumé en 5 lignes.</span><span data-en>Complex cases escalated with a 5-line summary.</span></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Offer -->
+    <section class="sec" id="offer">
+      <div class="wrap">
+        <h2><span data-fr>Une offre en trois briques</span><span data-en>One offer, three building blocks</span></h2>
+        <p class="sub"><span data-fr>Pas d'engagement à l'aveugle : chaque étape prouve sa valeur avant la suivante.</span><span data-en>No blind commitment: each step proves its value before the next.</span></p>
+        <div class="grid g3">
+          <div class="card"><p class="tag" data-fr>Diagnostic</p><p class="tag" data-en>Diagnostic</p><p class="price">750 $ <span data-fr>unique</span><span data-en>one-time</span></p><p><span data-fr>Audit de vos canaux entrants, chiffrage des pertes, plan d'action. Déductible de l'installation.</span><span data-en>Audit of your inbound channels, loss quantification, action plan. Credited toward setup.</span></p></div>
+          <div class="card"><p class="tag" data-fr>Installation</p><p class="tag" data-en>Setup</p><p class="price">2 500 $ <span data-fr>unique</span><span data-en>one-time</span></p><p><span data-fr>Configuration de votre agent : métier, ton, garde-fous, email et calendrier, 2 semaines en mode brouillon.</span><span data-en>Your agent configured: profession, tone, guardrails, email and calendar, 2 weeks in draft mode.</span></p></div>
+          <div class="card"><p class="tag" data-fr>Abonnement</p><p class="tag" data-en>Subscription</p><p class="price"><span data-fr>dès 500 $</span><span data-en>from $500</span> <span>/ mois</span></p><p><span data-fr>Votre agent en production : réponses 24/7, rapports mensuels, ajustements continus.</span><span data-en>Your agent in production: 24/7 replies, monthly reports, continuous tuning.</span></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="band" id="pricing">
+      <div class="wrap sec">
+        <h2><span data-fr>L'abonnement mensuel</span><span data-en>The monthly subscription</span></h2>
+        <div class="grid g3">
+          <div class="card"><p class="tag" data-fr>Essentiel</p><p class="tag" data-en>Essential</p><p class="price">500 $ <span>/ mois</span></p><p><span data-fr>Pour les cabinets solo</span><span data-en>For solo practices</span></p></div>
+          <div class="card pro"><span class="pill" data-fr>Le plus choisi</span><span class="pill" data-en>Most popular</span><p class="tag">Pro</p><p class="price">900 $ <span>/ mois</span></p><p><span data-fr>Pour les cabinets en croissance</span><span data-en>For growing firms</span></p></div>
+          <div class="card"><p class="tag" data-fr>Cabinet</p><p class="tag" data-en>Firm</p><p class="price">1 500 $ <span>/ mois</span></p><p><span data-fr>Pour les équipes multi-praticiens</span><span data-en>For multi-practitioner teams</span></p></div>
+        </div>
+        <p class="notice">
+          <span data-fr class="block">Aperçu statique de la Phase 1. L'application complète — espace de test des agents, dashboard client, back-office admin, moteur Anthropic — est une app Next.js 15 (voir le dépôt / la PR).</span>
+          <span data-en class="block">Static preview of Phase 1. The full application — agent test space, client dashboard, admin back-office, Anthropic engine — is a Next.js 15 app (see the repo / PR).</span>
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <p style="font-family:var(--display);font-size:18px;color:var(--warmwhite)">Mwinda <span style="color:var(--amber)">Digital</span></p>
+        <p style="margin-top:8px;max-width:520px">
+          <span data-fr>« Mwinda » signifie lumière en lingala. Nous éclairons les demandes que votre cabinet laisse dans l'ombre.</span>
+          <span data-en>"Mwinda" means light in Lingala. We shine a light on the inquiries your firm leaves in the dark.</span>
+        </p>
+        <p style="margin-top:16px"><span class="dotg"></span><span data-fr>Aucune donnée client n'est utilisée pour entraîner un quelconque modèle d'IA.</span><span data-en>No client data is ever used to train any AI model.</span></p>
+        <p style="margin-top:8px">© <span id="yr"></span> Mwinda Group LLC — Seattle, WA.</p>
+      </div>
+    </footer>
+
+    <script>
+      function setLang(lang, btn) {
+        document.body.classList.toggle("en", lang === "en");
+        document.documentElement.lang = lang;
+        document.querySelectorAll(".lang button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      document.getElementById("yr").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

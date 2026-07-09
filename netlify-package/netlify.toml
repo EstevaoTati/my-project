@@ -1,0 +1,13 @@
+# Mwinda Digital — aperçu statique de la home (déploiement Netlify drag-and-drop)
+# Il s'agit de la vitrine statique de la Phase 1. L'application complète
+# (dashboards, API, moteur Anthropic) est une app Next.js 15 à déployer sur Vercel.
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
