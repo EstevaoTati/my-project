@@ -147,10 +147,10 @@
       .gdot{width:6px;height:6px;border-radius:50%;background:var(--emerald);display:inline-block;margin-right:6px}
       .notice{background:rgba(88,199,250,.06);border:1px solid rgba(88,199,250,.25);border-radius:12px;padding:12px 16px;color:#9fd8f5;font-size:13px;margin-top:20px}
       .notice.amber{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.25);color:var(--amber-soft)}
-      [data-en]{display:none}
-      body.en [data-fr]{display:none}
-      body.en [data-en]{display:inline}
-      body.en [data-en].blk{display:block}
+      [data-en]{display:none!important}
+      body.en [data-fr]{display:none!important}
+      body.en [data-en]{display:inline!important}
+      body.en [data-en].blk{display:block!important}
       .hide{display:none!important}
     </style>
   </head>
@@ -238,12 +238,15 @@
     <!-- ════ WORKSPACE (client) ════ -->
     <div id="view-dash" class="view">
       <div class="wrap">
+        <div id="wsBanner" class="hide" style="margin-top:20px;border:1px solid rgba(45,212,167,.4);background:rgba(45,212,167,.08);border-radius:14px;padding:16px 18px;color:var(--emerald);font-size:14px"></div>
         <div class="ws-hd">
           <div>
             <h1 style="font-size:28px"><span data-fr>Espace de</span><span data-en>Workspace —</span> <span id="wsCompany" class="gt"></span></h1>
             <p class="k" id="wsSub" style="margin-top:6px"></p>
+            <p id="wsPlan" style="margin-top:8px;font-size:13px;color:var(--ink-muted)"></p>
           </div>
           <div class="cta-row">
+            <button class="btn btn-secondary btn-sm" onclick="manageBilling()"><span data-fr>Gérer l'abonnement</span><span data-en>Manage subscription</span></button>
             <button class="btn btn-secondary btn-sm" onclick="openSignup(true)"><span data-fr>Ajouter / modifier des agents</span><span data-en>Add / edit agents</span></button>
           </div>
         </div>
@@ -294,8 +297,8 @@
       <div class="modal">
         <button class="close" onclick="closeSignup()">&times;</button>
         <h2><span data-fr>Ouvrir un compte</span><span data-en>Open an account</span></h2>
-        <div class="steps"><i class="on" id="s1"></i><i id="s2"></i><i id="s3"></i></div>
-        <form id="signupForm" onsubmit="return finishSignup(event)">
+        <div class="steps"><i class="on" id="s1"></i><i id="s2"></i><i id="s3"></i><i id="s4"></i></div>
+        <form id="signupForm" onsubmit="return confirmPayment(event)">
           <!-- Étape 1 : profil -->
           <div id="step1">
             <label class="fl"><span data-fr>Type de compte</span><span data-en>Account type</span>
@@ -337,7 +340,37 @@
             <div id="agentConfigs"></div>
             <div style="display:flex;gap:8px;margin-top:6px">
               <button type="button" class="btn btn-secondary" onclick="toStep(2)"><span data-fr>Retour</span><span data-en>Back</span></button>
-              <button type="submit" class="btn btn-primary" style="flex:1"><span data-fr>Créer mon compte & déployer</span><span data-en>Create account & deploy</span></button>
+              <button type="button" class="btn btn-primary" style="flex:1" onclick="toPayment()"><span data-fr>Continuer vers le paiement</span><span data-en>Continue to payment</span></button>
+            </div>
+          </div>
+          <!-- Étape 4 : paiement -->
+          <div id="step4" class="hide">
+            <p class="k" style="margin-bottom:10px" data-fr>Récapitulatif & paiement</p><p class="k" style="margin-bottom:10px" data-en>Summary & payment</p>
+            <div class="card" style="padding:16px;margin-bottom:14px">
+              <div id="paySummary"></div>
+              <div style="border-top:1px solid var(--night-border);margin-top:12px;padding-top:12px">
+                <label class="fl" style="margin-bottom:10px"><span data-fr>Cycle de facturation</span><span data-en>Billing cycle</span>
+                  <div class="seg">
+                    <label><input type="radio" name="cycle" value="monthly" checked onchange="renderPaySummary()"><span data-fr>Mensuel</span><span data-en>Monthly</span></label>
+                    <label><input type="radio" name="cycle" value="annual" onchange="renderPaySummary()"><span data-fr>Annuel · -20%</span><span data-en>Annual · -20%</span></label>
+                  </div>
+                </label>
+                <div id="payTotal" style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);color:var(--warmwhite)"></div>
+              </div>
+            </div>
+            <p class="k" style="margin-bottom:8px" data-fr>Procédure de paiement</p><p class="k" style="margin-bottom:8px" data-en>Payment procedure</p>
+            <label class="fl" style="margin-bottom:10px"><span data-fr>Nom sur la carte</span><span data-en>Name on card</span><input class="inp" id="ccName" placeholder="Estevao Macumba" /></label>
+            <label class="fl" style="margin-bottom:10px"><span data-fr>Numéro de carte</span><span data-en>Card number</span><input class="inp" id="ccNum" inputmode="numeric" placeholder="4242 4242 4242 4242" oninput="fmtCard(this)" /></label>
+            <div class="pick" style="margin-bottom:6px">
+              <label class="fl" style="margin:0"><span data-fr>Expiration</span><span data-en>Expiry</span><input class="inp" id="ccExp" placeholder="MM/AA" oninput="fmtExp(this)" /></label>
+              <label class="fl" style="margin:0"><span>CVC</span><input class="inp" id="ccCvc" inputmode="numeric" maxlength="4" placeholder="123" oninput="this.value=this.value.replace(/\D/g,'')" /></label>
+            </div>
+            <p class="err hide" id="payErr" data-fr>Veuillez compléter les informations de paiement.</p>
+            <p class="err hide" id="payErrEn" data-en>Please complete the payment details.</p>
+            <p style="font-size:11px;color:var(--ink-muted);margin:8px 0 14px">🔒 <span data-fr>Démonstration : aucun paiement réel n'est effectué et aucune donnée de carte n'est transmise. En production, le paiement passe par Stripe (Checkout sécurisé).</span><span data-en>Demo: no real payment is processed and no card data is transmitted. In production, payment goes through Stripe (secure Checkout).</span></p>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-secondary" onclick="toStep(3)"><span data-fr>Retour</span><span data-en>Back</span></button>
+              <button type="submit" id="payBtn" class="btn btn-primary" style="flex:1"><span data-fr>Confirmer et ouvrir mon compte</span><span data-en>Confirm & open my account</span></button>
             </div>
           </div>
         </form>
@@ -517,10 +550,11 @@
       }
       function closeSignup(){ document.getElementById("signupModal").classList.remove("open"); }
       function toStep(n) {
-        [1,2,3].forEach(i=>document.getElementById("step"+i).classList.toggle("hide", i!==n));
+        [1,2,3,4].forEach(i=>document.getElementById("step"+i).classList.toggle("hide", i!==n));
         document.getElementById("s1").classList.add("on");
         document.getElementById("s2").classList.toggle("on", n>=2);
         document.getElementById("s3").classList.toggle("on", n>=3);
+        document.getElementById("s4").classList.toggle("on", n>=4);
         if (n===3) buildAgentConfigs();
       }
       function toggleCompany(){
@@ -559,34 +593,107 @@
           </div>`;
         }).join("");
       }
-      function finishSignup(e) {
-        e.preventDefault();
+      // ─── Tarification ───
+      const UNIT = 290;   // $ / agent / mois
+      const SETUP = 750;  // frais d'installation unique (déductible du diagnostic)
+      const money = (n) => new Intl.NumberFormat(LANG==="en"?"en-US":"fr-FR").format(n) + " $";
+      let pendingAccount = null;
+
+      // Capture la config à l'étape 3 -> prépare le paiement (compte NON encore ouvert)
+      function toPayment() {
         const ids = selectedAgentIds();
-        if (ids.length === 0) { toStep(2); document.getElementById("pickErr").classList.remove("hide"); return false; }
-        const f = e.target;
+        if (ids.length === 0) { toStep(2); document.getElementById("pickErr").classList.remove("hide"); return; }
+        const f = document.getElementById("signupForm");
         const agents = [...document.querySelectorAll("#agentConfigs .cfg-agent")].map(d=>({
           id: d.getAttribute("data-id"),
           customName: d.querySelector(".cfg-name").value.trim() || L(AGENT_BY_ID[d.getAttribute("data-id")].name),
           tone: d.querySelector(".cfg-tone").value,
           scope: d.querySelector(".cfg-scope").value.trim(),
         }));
-        const acc = {
+        pendingAccount = {
           profileType: f.profileType.value, name: f.name.value.trim(), email: f.email.value.trim(),
           company: f.company.value.trim(), sector: f.sector.value.trim(), size: f.size.value,
           country: f.country.value.trim(), languages: f.languages.value, agents,
         };
-        localStorage.setItem(KEY, JSON.stringify(acc));
-        closeSignup(); renderAccountBtn(); go("dash");
+        toStep(4); renderPaySummary();
+      }
+      function renderPaySummary() {
+        if (!pendingAccount) return;
+        const list = pendingAccount.agents;
+        document.getElementById("paySummary").innerHTML =
+          `<div class="k" style="margin-bottom:8px">${T("Agents déployés","Deployed agents")} (${list.length})</div>` +
+          list.map(x=>`<div style="display:flex;justify-content:space-between;font-size:14px;padding:3px 0"><span>${AGENT_BY_ID[x.id].ico} ${x.customName}</span><span style="color:var(--ink-muted)">${money(UNIT)}/${T("mois","mo")}</span></div>`).join("");
+        const cycle = (document.querySelector('input[name="cycle"]:checked')||{}).value || "monthly";
+        const monthly = list.length * UNIT;
+        const perMonth = cycle==="annual" ? Math.round(monthly*0.8) : monthly;
+        const label = cycle==="annual"
+          ? `${money(perMonth)} /${T("mois","mo")} · ${money(perMonth*12)} /${T("an","yr")}`
+          : `${money(perMonth)} /${T("mois","mo")}`;
+        document.getElementById("payTotal").innerHTML =
+          `<span style="font-size:14px;color:var(--ink-muted);font-family:var(--body)">${T("Installation unique","One-time setup")} ${money(SETUP)} + ${T("abonnement","subscription")}</span><span style="font-size:22px">${label}</span>`;
+      }
+      function fmtCard(el){ el.value = el.value.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim(); }
+      function fmtExp(el){ let v=el.value.replace(/\D/g,"").slice(0,4); if(v.length>=3) v=v.slice(0,2)+"/"+v.slice(2); el.value=v; }
+
+      // Confirme le paiement -> OUVRE le compte (activation)
+      function confirmPayment(e) {
+        e.preventDefault();
+        if (!pendingAccount) { toStep(1); return false; }
+        const num = (document.getElementById("ccNum").value||"").replace(/\s/g,"");
+        const exp = document.getElementById("ccExp").value||"";
+        const cvc = document.getElementById("ccCvc").value||"";
+        const name = document.getElementById("ccName").value.trim();
+        const ok = name && num.length>=13 && /^\d{2}\/\d{2}$/.test(exp) && cvc.length>=3;
+        if (!ok) { document.getElementById("payErr").classList.remove("hide"); document.getElementById("payErrEn").classList.remove("hide"); return false; }
+
+        const btn = document.getElementById("payBtn");
+        btn.disabled = true;
+        btn.innerHTML = `<span data-fr>Paiement en cours…</span><span data-en>Processing payment…</span>`;
+        // Simulation du traitement sécurisé (Stripe en production)
+        setTimeout(()=>{
+          const cycle = (document.querySelector('input[name="cycle"]:checked')||{}).value || "monthly";
+          const monthly = pendingAccount.agents.length * UNIT;
+          const perMonth = cycle==="annual" ? Math.round(monthly*0.8) : monthly;
+          const acc = {
+            ...pendingAccount,
+            paid: true, status: "active",
+            plan: { cycle, agents: pendingAccount.agents.length, perMonth, setup: SETUP },
+            openedAt: new Date().toISOString(),
+            invoiceId: "MW-" + Math.random().toString(36).slice(2,8).toUpperCase(),
+            cardLast4: num.slice(-4),
+          };
+          localStorage.setItem(KEY, JSON.stringify(acc));
+          btn.disabled = false;
+          btn.innerHTML = `<span data-fr>Confirmer et ouvrir mon compte</span><span data-en>Confirm & open my account</span>`;
+          closeSignup(); renderAccountBtn();
+          justOpened = true; go("dash");
+        }, 1300);
         return false;
       }
 
       // ════════ Workspace ════════
+      let justOpened = false;
       const orgName = (a) => a.company || a.name || "—";
+      const money2 = (n) => new Intl.NumberFormat(LANG==="en"?"en-US":"fr-FR").format(n) + " $";
       function renderWorkspace() {
         const a = getAccount(); if (!a) return;
         document.getElementById("wsCompany").textContent = orgName(a);
         document.getElementById("wsSub").textContent =
           [a.profileType==="company"?T("Entreprise","Company"):T("Indépendant","Freelance"), a.sector, a.size, a.country].filter(Boolean).join(" · ");
+        // Bannière de confirmation d'ouverture (après paiement)
+        const banner = document.getElementById("wsBanner");
+        if (justOpened && a.paid) {
+          banner.classList.remove("hide");
+          banner.innerHTML = T(
+            `✅ Compte ouvert et activé. Paiement confirmé (facture ${a.invoiceId||""}, carte •••• ${a.cardLast4||"—"}). Vos ${a.agents.length} agent(s) sont déployés sous supervision Mwinda.`,
+            `✅ Account opened and activated. Payment confirmed (invoice ${a.invoiceId||""}, card •••• ${a.cardLast4||"—"}). Your ${a.agents.length} agent(s) are deployed under Mwinda supervision.`);
+          justOpened = false;
+        } else { banner.classList.add("hide"); }
+        // Ligne d'abonnement
+        const plan = a.plan;
+        document.getElementById("wsPlan").innerHTML = plan
+          ? `● ${T("Abonnement actif","Active subscription")} — ${money2(plan.perMonth)}/${T("mois","mo")} · ${plan.cycle==="annual"?T("facturation annuelle","annual billing"):T("mensuel","monthly")} · ${plan.agents} ${T("agent(s)","agent(s)")}`
+          : `<span style="color:var(--amber-soft)">${T("Abonnement en attente de paiement","Subscription pending payment")}</span>`;
         document.getElementById("wsAgents").innerHTML = (a.agents||[]).map(x=>{
           const def=AGENT_BY_ID[x.id];
           return `<div class="card ws-agent">
@@ -599,6 +706,19 @@
             <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="testAgent('${x.id}')">${T("Tester cet agent","Test this agent")}</button>
           </div>`;
         }).join("");
+      }
+
+      function manageBilling() {
+        const a = getAccount(); if (!a) return;
+        const banner = document.getElementById("wsBanner");
+        banner.classList.remove("hide");
+        banner.style.borderColor = "rgba(245,166,35,.4)";
+        banner.style.background = "rgba(245,166,35,.08)";
+        banner.style.color = "var(--amber-soft)";
+        banner.innerHTML = a.plan
+          ? T(`Abonnement ${a.plan.cycle==="annual"?"annuel":"mensuel"} · ${money2(a.plan.perMonth)}/mois · carte •••• ${a.cardLast4||"—"}. En production, ce bouton ouvre le portail Stripe (changer de carte, facture, résiliation).`,
+              `${a.plan.cycle==="annual"?"Annual":"Monthly"} subscription · ${money2(a.plan.perMonth)}/mo · card •••• ${a.cardLast4||"—"}. In production, this button opens the Stripe portal (change card, invoices, cancellation).`)
+          : T("Aucun abonnement actif.","No active subscription.");
       }
 
       // ════════ Test / Chat ════════
