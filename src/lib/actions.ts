@@ -69,7 +69,18 @@ async function requireClient(): Promise<{ organizationId: string }> {
     // les actions client exigent un orgId explicite en session.
     throw new Error("unauthorized");
   }
-  return { organizationId: session.organizationId! };
+  const organizationId = session.organizationId!;
+  // Révocation immédiate : une organisation désactivée ne peut plus agir,
+  // même si le cookie de session signé n'a pas encore expiré.
+  const prisma = getPrisma();
+  if (prisma) {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { active: true },
+    });
+    if (!org?.active) throw new Error("unauthorized");
+  }
+  return { organizationId };
 }
 
 async function requireAdmin(): Promise<void> {
