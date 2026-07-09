@@ -102,6 +102,9 @@ model AgentConfig {
   organizationId String           @unique
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   profession     AgentProfession
+  /// Type d'agent fonctionnel (RH, comptabilité, service client…). Si présent,
+  /// il pilote le prompt système via le catalogue Mwinda.
+  agentType      AgentType?
   tone           AgentToneSetting @default(PROFESSIONAL)
   languages      Language         @default(BOTH)
   /// Règles additionnelles propres au cabinet, injectées dans le prompt
@@ -117,6 +120,16 @@ enum AgentProfession {
   TAX
   IMMIGRATION
   INSURANCE
+}
+
+/// Catalogue des agents IA Mwinda, par fonction métier (voir src/lib/agent/catalog.ts)
+enum AgentType {
+  CUSTOMER_SERVICE
+  HR
+  ACCOUNTING
+  ADMINISTRATION
+  SALES
+  IT_SUPPORT
 }
 
 enum AgentToneSetting {

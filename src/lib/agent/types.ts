@@ -26,4 +26,10 @@ export interface AgentConfig {
   firmName: string;
   /** Règles additionnelles du cabinet, injectées APRÈS les garde-fous. */
   customRules?: string;
+  /**
+   * Type d'agent fonctionnel (RH, comptabilité, service client…).
+   * Si présent, il pilote le prompt système via le catalogue ; sinon on
+   * retombe sur la construction historique basée sur `profession`.
+   */
+  agentType?: import("./catalog").AgentType;
 }

@@ -5,6 +5,7 @@ import type {
   ChatMessage,
 } from "./types";
 import { runMockAgent } from "./mock";
+import { buildSystemPromptFromType } from "./catalog";
 
 // Modèle imposé par le cahier des charges Mwinda pour le moteur conversationnel.
 const MODEL = "claude-sonnet-4-6";
@@ -42,6 +43,16 @@ const TONE_INSTRUCTION: Record<AgentConfig["tone"], string> = {
  * C'est la même construction qui servira au moteur de production (Phase 2).
  */
 export function buildSystemPrompt(config: AgentConfig): string {
+  // Agent fonctionnel (RH, comptabilité, service client…) : catalogue.
+  if (config.agentType) {
+    return buildSystemPromptFromType({
+      agentType: config.agentType,
+      organizationName: config.firmName,
+      tone: config.tone,
+      customRules: config.customRules,
+    });
+  }
+  // Rétro-compatibilité : agent « réception » basé sur la verticale.
   return `Tu es l'« Agent Réception Client 24/7 » du cabinet « ${config.firmName} », déployé par Mwinda Digital.
 Tu réponds aux demandes entrantes de prospects, tu les qualifies et tu proposes des rendez-vous.
 
