@@ -180,7 +180,7 @@ const FUNCTION_SCRIPTS: Record<string, FnScript> = {
     sumEsc: "Demande de prix ferme / remise / conditions contractuelles. Garde-fou appliqué : aucun engagement. Escaladé à un commercial — démonstration proposée.",
   },
   it_support: {
-    escalate: ["piratage", "intrusion", "fuite", "rançongiciel", "ransomware", "phishing", "hacked", "breach", "supprimer", "delete", "formater", "format", "mot de passe", "password"],
+    escalate: ["pirat", "intrusion", "fuite", "rançongiciel", "ransomware", "phishing", "hack", "breach", "supprimer", "delete", "formater", "format", "mot de passe", "password", "virus", "malware"],
     greetFr: "Bonjour ! Je suis l'assistant support IT de {f} — je qualifie votre demande et un technicien prend le relais si besoin. Pouvez-vous décrire le problème, le matériel ou logiciel concerné, et un éventuel message d'erreur ?",
     greetEn: "Hello! I'm {f}'s IT support assistant — I triage your request and a technician takes over if needed. Can you describe the problem, the device or software involved, and any error message?",
     progressFr: "Merci, c'est clair. Je crée un ticket avec ces éléments. Un technicien peut vous rappeler : aujourd'hui 14 h ou demain 10 h. Quel créneau préférez-vous ?",
