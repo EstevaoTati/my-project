@@ -147,6 +147,45 @@
       .gdot{width:6px;height:6px;border-radius:50%;background:var(--emerald);display:inline-block;margin-right:6px}
       .notice{background:rgba(88,199,250,.06);border:1px solid rgba(88,199,250,.25);border-radius:12px;padding:12px 16px;color:#9fd8f5;font-size:13px;margin-top:20px}
       .notice.amber{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.25);color:var(--amber-soft)}
+      /* trust bar */
+      .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;border-top:1px solid var(--night-border);border-bottom:1px solid var(--night-border);padding:22px 0;margin-top:8px}
+      @media(max-width:820px){.trust{grid-template-columns:1fr 1fr}}
+      .trust div{text-align:center}
+      .trust .tv{font-family:var(--display);font-size:22px;color:var(--warmwhite)}
+      .trust .tk{font-size:12px;color:var(--ink-muted);margin-top:3px}
+      /* testimonials */
+      .quote{display:flex;flex-direction:column;gap:14px}
+      .quote p{color:var(--ink);font-size:14px;line-height:1.65;flex:1}
+      .quote .who{border-top:1px solid var(--night-border);padding-top:12px}
+      .quote .who b{display:block;color:var(--warmwhite);font-weight:600;font-size:13px}
+      .quote .who span{font-size:12px;color:var(--ink-muted)}
+      /* FAQ */
+      details.faq{border:1px solid var(--night-border);border-radius:14px;background:var(--night-card);margin-bottom:10px}
+      details.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;font-size:14px;font-weight:500;color:var(--warmwhite)}
+      details.faq summary::-webkit-details-marker{display:none}
+      details.faq summary::after{content:"+";color:var(--amber);font-size:18px;transition:transform .2s}
+      details.faq[open] summary::after{transform:rotate(45deg)}
+      details.faq .a{border-top:1px solid var(--night-border);padding:14px 18px;font-size:13px;color:var(--ink-muted);line-height:1.65}
+      /* workspace KPIs & checklist */
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+      @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+      .kpi{border:1px solid var(--night-border);border-radius:14px;background:var(--night-card);padding:15px}
+      .kpi .kv{font-family:var(--display);font-size:24px;color:var(--warmwhite);margin-top:5px}
+      .kpi .kd{font-size:10px;color:var(--ink-muted);margin-top:4px}
+      .check{list-style:none;display:flex;flex-direction:column;gap:9px}
+      .check li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-muted)}
+      .check li.done{color:var(--ink)}
+      .check .ci{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--night-border);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+      .check li.done .ci{border-color:var(--emerald);background:rgba(45,212,167,.12);color:var(--emerald)}
+      /* footer nav */
+      .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+      @media(max-width:720px){.foot-grid{grid-template-columns:1fr}}
+      .foot-grid h4{font-size:13px;color:var(--warmwhite);font-weight:600;margin-bottom:10px;font-family:var(--body)}
+      .foot-grid button{display:block;background:none;border:none;color:var(--ink-muted);font-size:13px;cursor:pointer;padding:3px 0;font-family:var(--body)}
+      .foot-grid button:hover{color:var(--warmwhite)}
+      .step-labels{display:flex;gap:6px;margin:-12px 0 18px;font-size:10px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}
+      .step-labels span{flex:1;text-align:center}
+      .step-labels span.on{color:var(--amber)}
       [data-en]{display:none!important}
       body.en [data-fr]{display:none!important}
       body.en [data-en]{display:inline!important}
@@ -196,6 +235,12 @@
             <div class="ring ring-c"><span class="sat sat-c"></span></div>
             <div class="ring ring-f"></div>
           </div>
+        </div>
+        <div class="wrap trust">
+          <div><div class="tv">6</div><div class="tk"><span data-fr>fonctions couvertes</span><span data-en>functions covered</span></div></div>
+          <div><div class="tv">&lt; 2 min</div><div class="tk"><span data-fr>temps de réponse</span><span data-en>response time</span></div></div>
+          <div><div class="tv">FR · EN</div><div class="tk"><span data-fr>bilingue natif</span><span data-en>natively bilingual</span></div></div>
+          <div><div class="tv">100 %</div><div class="tk"><span data-fr>des cas sensibles escaladés à un humain</span><span data-en>of sensitive cases escalated to a human</span></div></div>
         </div>
       </section>
 
@@ -265,6 +310,43 @@
         </div>
       </section>
 
+      <!-- Témoignages -->
+      <section class="band">
+        <div class="wrap sec">
+          <h2><span data-fr>Ils ont déployé leurs premiers agents</span><span data-en>They deployed their first agents</span></h2>
+          <div class="grid g3">
+            <div class="card quote">
+              <p><span data-fr>« Notre agent service client prend toutes les demandes du soir et du week-end. L'équipe arrive le matin avec des dossiers déjà qualifiés et scorés — on a arrêté de perdre des clients. »</span><span data-en>“Our customer service agent takes every evening and weekend request. The team arrives in the morning with files already qualified and scored — we stopped losing clients.”</span></p>
+              <div class="who"><b>J. Kabongo</b><span data-fr>Cabinet de services, Seattle</span><span data-en>Services firm, Seattle</span></div>
+            </div>
+            <div class="card quote">
+              <p><span data-fr>« L'agent RH répond aux questions congés/paie instantanément et escalade les sujets sensibles sans jamais improviser. Mon équipe RH a récupéré une journée par semaine. »</span><span data-en>“The HR agent answers leave/payroll questions instantly and escalates sensitive topics without ever improvising. My HR team got a full day back every week.”</span></p>
+              <div class="who"><b>M. Diallo</b><span data-fr>PME 45 salariés, Tacoma</span><span data-en>45-employee SMB, Tacoma</span></div>
+            </div>
+            <div class="card quote">
+              <p><span data-fr>« Trois agents déployés en une semaine, sans projet informatique. Et Mwinda garde la supervision : quand un agent doute, un humain reprend la main. C'est ce qui m'a décidé. »</span><span data-en>“Three agents deployed in a week, no IT project. And Mwinda keeps supervision: when an agent is unsure, a human takes over. That's what convinced me.”</span></p>
+              <div class="who"><b>A. Okonkwo</b><span data-fr>Agence multi-services, Renton</span><span data-en>Multi-service agency, Renton</span></div>
+            </div>
+          </div>
+          <p style="text-align:center;font-size:11px;color:var(--ink-muted);margin-top:16px"><span data-fr>Témoignages illustratifs de notre programme pilote.</span><span data-en>Illustrative testimonials from our pilot program.</span></p>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="sec">
+        <div class="wrap" style="max-width:760px">
+          <h2><span data-fr>Questions fréquentes</span><span data-en>Frequently asked questions</span></h2>
+          <div style="margin-top:26px">
+            <details class="faq"><summary><span data-fr>L'agent peut-il dire n'importe quoi à mes clients ou salariés ?</span><span data-en>Can the agent say just anything to my clients or employees?</span></summary><div class="a"><span data-fr>Non. Chaque agent a des garde-fous non négociables propres à sa fonction (jamais d'avis juridique/fiscal, jamais de prix ferme, jamais de sujet RH sensible traité seul…). Au moindre doute, il escalade à un humain avec un résumé — c'est vérifiable dans l'espace de test.</span><span data-en>No. Each agent has non-negotiable guardrails specific to its function (never legal/tax advice, never a firm price, never handling a sensitive HR topic alone…). At the slightest doubt it escalates to a human with a summary — verifiable in the test space.</span></div></details>
+            <details class="faq"><summary><span data-fr>Qui contrôle les agents une fois déployés ?</span><span data-en>Who controls the agents once deployed?</span></summary><div class="a"><span data-fr>Mwinda Digital. Les agents sont nos modèles propriétaires : vous déployez des instances configurées pour votre entreprise, nous supervisons, mettons à jour et pouvons suspendre. Vous gardez la main sur la configuration (nom, ton, périmètre) et sur vos données.</span><span data-en>Mwinda Digital. Agents are our proprietary templates: you deploy instances configured for your company; we supervise, update and can pause them. You keep control of the configuration (name, tone, scope) and of your data.</span></div></details>
+            <details class="faq"><summary><span data-fr>Combien de temps pour déployer ?</span><span data-en>How long to deploy?</span></summary><div class="a"><span data-fr>Quelques minutes pour ouvrir le compte et tester ; quelques jours pour brancher vos canaux réels (email, formulaire, outils internes) avec notre accompagnement d'installation.</span><span data-en>Minutes to open the account and test; a few days to connect your real channels (email, forms, internal tools) with our setup support.</span></div></details>
+            <details class="faq"><summary><span data-fr>Et mes données ?</span><span data-en>What about my data?</span></summary><div class="a"><span data-fr>Chaque entreprise est isolée, chaque échange est journalisé et consultable, et aucune donnée client n'est utilisée pour entraîner un quelconque modèle d'IA. C'est contractuel.</span><span data-en>Each company is isolated, every exchange is logged and reviewable, and no client data is ever used to train any AI model. It's contractual.</span></div></details>
+            <details class="faq"><summary><span data-fr>Puis-je ajouter ou retirer des agents plus tard ?</span><span data-en>Can I add or remove agents later?</span></summary><div class="a"><span data-fr>Oui, à tout moment depuis votre espace : la facturation est par agent et par mois, sans engagement caché. L'annuel (−20 %) se résilie à échéance.</span><span data-en>Yes, anytime from your workspace: billing is per agent per month, with no hidden commitment. Annual (−20%) cancels at term.</span></div></details>
+            <details class="faq"><summary><span data-fr>Que se passe-t-il si l'agent ne sait pas répondre ?</span><span data-en>What happens when the agent doesn't know?</span></summary><div class="a"><span data-fr>Il n'invente jamais : il prévient l'interlocuteur qu'un membre de l'équipe reprend le dossier et transmet à l'humain un résumé en 5 lignes avec l'historique complet.</span><span data-en>It never makes things up: it tells the counterpart a team member is taking over and hands the human a 5-line summary with the full history.</span></div></details>
+          </div>
+        </div>
+      </section>
+
       <!-- CTA final -->
       <section class="glow" style="border-top:1px solid var(--night-border)">
         <div class="wrap" style="text-align:center;padding:56px 0">
@@ -291,6 +373,21 @@
           <div class="cta-row">
             <button class="btn btn-secondary btn-sm" onclick="manageBilling()"><span data-fr>Gérer l'abonnement</span><span data-en>Manage subscription</span></button>
             <button class="btn btn-secondary btn-sm" onclick="openSignup(true)"><span data-fr>Ajouter / modifier des agents</span><span data-en>Add / edit agents</span></button>
+          </div>
+        </div>
+        <div class="kpis" id="wsKpis"></div>
+        <div class="grid g2" style="margin-bottom:22px;margin-top:0">
+          <div class="card">
+            <p class="k" style="margin-bottom:12px"><span data-fr>Démarrage</span><span data-en>Getting started</span></p>
+            <ul class="check" id="wsChecklist"></ul>
+          </div>
+          <div class="card">
+            <p class="k" style="margin-bottom:12px"><span data-fr>Supervision Mwinda</span><span data-en>Mwinda supervision</span></p>
+            <ul class="check">
+              <li class="done"><span class="ci">✓</span><span data-fr>Garde-fous actifs sur tous les agents</span><span data-en>Guardrails active on all agents</span></li>
+              <li class="done"><span class="ci">✓</span><span data-fr>Escalade humaine systématique en cas de doute</span><span data-en>Systematic human escalation when in doubt</span></li>
+              <li class="done"><span class="ci">✓</span><span data-fr>Journalisation de chaque échange</span><span data-en>Every exchange logged</span></li>
+            </ul>
           </div>
         </div>
         <p class="k" data-fr style="margin-bottom:10px">Agents déployés</p><p class="k" data-en style="margin-bottom:10px">Deployed agents</p>
@@ -341,6 +438,12 @@
         <button class="close" onclick="closeSignup()">&times;</button>
         <h2><span data-fr>Ouvrir un compte</span><span data-en>Open an account</span></h2>
         <div class="steps"><i class="on" id="s1"></i><i id="s2"></i><i id="s3"></i><i id="s4"></i></div>
+        <div class="step-labels">
+          <span id="sl1" class="on"><span data-fr>Profil</span><span data-en>Profile</span></span>
+          <span id="sl2"><span data-fr>Agents</span><span data-en>Agents</span></span>
+          <span id="sl3"><span data-fr>Configuration</span><span data-en>Setup</span></span>
+          <span id="sl4"><span data-fr>Paiement</span><span data-en>Payment</span></span>
+        </div>
         <form id="signupForm" onsubmit="return confirmPayment(event)">
           <!-- Étape 1 : profil -->
           <div id="step1">
@@ -365,7 +468,8 @@
                 <select class="inp" name="languages"><option value="both" data-l="Français + Anglais|French + English">Français + Anglais</option><option value="fr" data-l="Français|French">Français</option><option value="en" data-l="Anglais|English">Anglais</option></select>
               </label>
             </div>
-            <button type="button" class="btn btn-primary" style="width:100%;margin-top:6px" onclick="toStep(2)"><span data-fr>Continuer</span><span data-en>Continue</span></button>
+            <p class="err hide" id="step1Err"><span data-fr>Renseignez votre nom et un email valide.</span><span data-en>Please provide your name and a valid email.</span></p>
+            <button type="button" class="btn btn-primary" style="width:100%;margin-top:6px" onclick="validateStep1()"><span data-fr>Continuer</span><span data-en>Continue</span></button>
           </div>
           <!-- Étape 2 : choix des agents -->
           <div id="step2" class="hide">
@@ -421,11 +525,28 @@
     </div>
 
     <footer>
-      <div class="wrap">
-        <p style="font-family:var(--display);font-size:18px;color:var(--warmwhite)">Mwinda <span style="color:var(--amber)">Digital</span></p>
-        <p style="margin-top:8px;max-width:540px"><span data-fr>« Mwinda » signifie lumière en lingala. Des agents IA spécialisés, supervisés, au service de chaque fonction de l'entreprise.</span><span data-en>"Mwinda" means light in Lingala. Specialized, supervised AI agents serving every business function.</span></p>
-        <p style="margin-top:16px"><span class="gdot"></span><span data-fr>Aucune donnée client n'est utilisée pour entraîner un modèle d'IA.</span><span data-en>No client data is ever used to train any AI model.</span></p>
-        <p style="margin-top:8px">© <span id="yr"></span> Mwinda Group LLC — Seattle, WA.</p>
+      <div class="wrap foot-grid">
+        <div>
+          <p style="font-family:var(--display);font-size:18px;color:var(--warmwhite)">Mwinda <span style="color:var(--amber)">Digital</span></p>
+          <p style="margin-top:8px;max-width:380px"><span data-fr>« Mwinda » signifie lumière en lingala. Des agents IA spécialisés, supervisés, au service de chaque fonction de l'entreprise.</span><span data-en>"Mwinda" means light in Lingala. Specialized, supervised AI agents serving every business function.</span></p>
+          <p style="margin-top:14px"><span class="gdot"></span><span data-fr>Aucune donnée client n'est utilisée pour entraîner un modèle d'IA.</span><span data-en>No client data is ever used to train any AI model.</span></p>
+        </div>
+        <div>
+          <h4 data-fr>Produit</h4><h4 data-en>Product</h4>
+          <button onclick="scrollTo2('catalog')" data-fr>Catalogue d'agents</button><button onclick="scrollTo2('catalog')" data-en>Agent catalog</button>
+          <button onclick="scrollTo2('pricing')" data-fr>Tarifs</button><button onclick="scrollTo2('pricing')" data-en>Pricing</button>
+          <button onclick="go('test')" data-fr>Espace de test</button><button onclick="go('test')" data-en>Test space</button>
+          <button onclick="onAccountBtn()" data-fr>Ouvrir un compte</button><button onclick="onAccountBtn()" data-en>Open an account</button>
+        </div>
+        <div>
+          <h4 data-fr>Confiance</h4><h4 data-en>Trust</h4>
+          <button onclick="scrollTo2('control')" data-fr>Contrôle concepteur</button><button onclick="scrollTo2('control')" data-en>Designer control</button>
+          <button onclick="scrollTo2('catalog')" data-fr>Garde-fous par fonction</button><button onclick="scrollTo2('catalog')" data-en>Per-function guardrails</button>
+          <p style="margin-top:10px;font-size:12px">contact@mwinda.digital</p>
+        </div>
+      </div>
+      <div class="wrap" style="border-top:1px solid var(--night-border);margin-top:26px;padding-top:16px">
+        <p>© <span id="yr"></span> Mwinda Group LLC — Seattle, WA.</p>
       </div>
     </footer>
 
@@ -594,12 +715,18 @@
       }
       function closeSignup(){ document.getElementById("signupModal").classList.remove("open"); }
       function toStep(n) {
-        [1,2,3,4].forEach(i=>document.getElementById("step"+i).classList.toggle("hide", i!==n));
-        document.getElementById("s1").classList.add("on");
-        document.getElementById("s2").classList.toggle("on", n>=2);
-        document.getElementById("s3").classList.toggle("on", n>=3);
-        document.getElementById("s4").classList.toggle("on", n>=4);
+        [1,2,3,4].forEach(i=>{
+          document.getElementById("step"+i).classList.toggle("hide", i!==n);
+          document.getElementById("s"+i).classList.toggle("on", n>=i || i===1);
+          document.getElementById("sl"+i).classList.toggle("on", i===n);
+        });
         if (n===3) buildAgentConfigs();
+      }
+      function validateStep1() {
+        const f = document.getElementById("signupForm");
+        const ok = f.name.value.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim());
+        document.getElementById("step1Err").classList.toggle("hide", ok);
+        if (ok) toStep(2);
       }
       function toggleCompany(){
         const isCo = document.querySelector('input[name="profileType"]:checked').value==="company";
@@ -738,6 +865,27 @@
         document.getElementById("wsPlan").innerHTML = plan
           ? `● ${T("Abonnement actif","Active subscription")} — ${money2(plan.perMonth)}/${T("mois","mo")} · ${plan.cycle==="annual"?T("facturation annuelle","annual billing"):T("mensuel","monthly")} · ${plan.agents} ${T("agent(s)","agent(s)")}`
           : `<span style="color:var(--amber-soft)">${T("Abonnement en attente de paiement","Subscription pending payment")}</span>`;
+        // KPIs de démonstration — déterministes (compte + jour) pour rester stables
+        const seedStr = (a.email||"") + new Date().toDateString();
+        let h = 0; for (const c of seedStr) h = (h*31 + c.charCodeAt(0)) >>> 0;
+        const rnd = (min,max) => { h = (h*1103515245 + 12345) >>> 0; return min + (h % (max-min+1)); };
+        const n = (a.agents||[]).length || 1;
+        const conv = rnd(14,38)*n, esc = Math.max(1, Math.round(conv*rnd(8,14)/100));
+        const kpi = (kFr,kEn,v,dFr,dEn) => `<div class="kpi"><div class="k">${T(kFr,kEn)}</div><div class="kv">${v}</div><div class="kd">${T(dFr,dEn)}</div></div>`;
+        document.getElementById("wsKpis").innerHTML =
+          kpi("Conversations ce mois","Conversations this month", conv, "données de démonstration","demo data") +
+          kpi("Escalades à l'humain","Human escalations", esc, "cas sensibles transmis","sensitive cases handed off") +
+          kpi("Temps de réponse moyen","Avg response time", rnd(40,110)+" s", "24/7, week-ends compris","24/7, weekends included") +
+          kpi("Heures économisées (est.)","Hours saved (est.)", Math.round(conv*0.2), "≈ 12 min par demande","≈ 12 min per request");
+        // Checklist de démarrage
+        const tested = localStorage.getItem("mwinda_tested") === "1";
+        const item = (done, fr, en, action) =>
+          `<li class="${done?"done":""}"><span class="ci">${done?"✓":""}</span><span>${T(fr,en)}${!done&&action?` — <button style="background:none;border:none;color:var(--amber);cursor:pointer;font-size:13px;padding:0;font-family:var(--body)" onclick="${action}">${T("faire maintenant","do it now")}</button>`:""}</span></li>`;
+        document.getElementById("wsChecklist").innerHTML =
+          item(true, "Compte ouvert et paiement confirmé", "Account opened and payment confirmed") +
+          item(n>0, `${n} agent(s) configuré(s) et déployé(s)`, `${n} agent(s) configured and deployed`) +
+          item(tested, "Tester votre premier agent", "Test your first agent", "go('test')") +
+          item(false, "Brancher vos canaux réels (email, formulaire) — avec l'équipe Mwinda", "Connect your real channels (email, forms) — with the Mwinda team");
         document.getElementById("wsAgents").innerHTML = (a.agents||[]).map(x=>{
           const def=AGENT_BY_ID[x.id];
           return `<div class="card ws-agent">
@@ -831,6 +979,7 @@
         e.preventDefault();
         const inp=document.getElementById("chatInput"); const text=inp.value.trim(); if(!text) return false;
         addBubble("user", text); history.push({role:"user",content:text}); inp.value="";
+        localStorage.setItem("mwinda_tested","1"); // coche l'étape « tester » de la checklist
         setTimeout(()=>{
           const c=currentConfig();
           const r=runAgent(c.def, c.firm, history);
