@@ -166,6 +166,19 @@
       details.faq summary::after{content:"+";color:var(--amber);font-size:18px;transition:transform .2s}
       details.faq[open] summary::after{transform:rotate(45deg)}
       details.faq .a{border-top:1px solid var(--night-border);padding:14px 18px;font-size:13px;color:var(--ink-muted);line-height:1.65}
+      /* agent lifecycle & connexions */
+      .st-pending{color:var(--amber-soft)!important}
+      .st-deploying{color:#7fd4fb!important}
+      .conn-panel{border-top:1px solid var(--night-border);margin-top:12px;padding-top:12px}
+      .conn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+      .conn-row .cn{color:var(--ink)}
+      .conn-row .cv{font-size:11px;color:var(--ink-muted);word-break:break-all}
+      .conn-btn{border:1px solid var(--night-border);background:none;color:var(--ink-muted);border-radius:999px;padding:5px 13px;font-size:12px;cursor:pointer;font-family:var(--body);white-space:nowrap}
+      .conn-btn.on{border-color:var(--emerald);color:var(--emerald);background:rgba(45,212,167,.08)}
+      .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(127,212,251,.35);border-top-color:#7fd4fb;border-radius:50%;animation:rot 0.8s linear infinite;vertical-align:-2px}
+      @keyframes rot{to{transform:rotate(360deg)}}
+      .play-btn{border:1px dashed rgba(245,166,35,.45);background:rgba(245,166,35,.06);color:var(--amber-soft);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--body)}
+      .play-btn:disabled{opacity:.5;cursor:wait}
       /* workspace KPIs & checklist */
       .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
       @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
@@ -404,7 +417,7 @@
         <div class="chat-grid">
           <aside class="agent-switch" id="agentSwitch"></aside>
           <div class="chatbox">
-            <div class="chat-hd"><span id="chatTitle">—</span><span class="badge-mwinda">🛡️ <span data-fr>Supervisé</span><span data-en>Supervised</span></span></div>
+            <div class="chat-hd"><span id="chatTitle">—</span><span style="display:flex;gap:8px;align-items:center"><button type="button" class="play-btn" id="playBtn" onclick="playExample()">▶ <span data-fr>Exemple de test</span><span data-en>Example test</span></button><span class="badge-mwinda">🛡️ <span data-fr>Supervisé</span><span data-en>Supervised</span></span></span></div>
             <div class="msgs" id="msgs"></div>
             <form class="chat-in" onsubmit="return sendMsg(event)">
               <input id="chatInput" autocomplete="off" placeholder="…" />
@@ -827,6 +840,11 @@
           const perMonth = cycle==="annual" ? Math.round(monthly*0.8) : monthly;
           const acc = {
             ...pendingAccount,
+            // Chaque agent démarre « à déployer », canaux déconnectés
+            agents: pendingAccount.agents.map(x => ({
+              ...x, status: "pending",
+              channels: { email: false, form: false, api: false },
+            })),
             paid: true, status: "active",
             plan: { cycle, agents: pendingAccount.agents.length, perMonth, setup: SETUP },
             openedAt: new Date().toISOString(),
@@ -856,8 +874,8 @@
         if (justOpened && a.paid) {
           banner.classList.remove("hide");
           banner.innerHTML = T(
-            `✅ Compte ouvert et activé. Paiement confirmé (facture ${a.invoiceId||""}, carte •••• ${a.cardLast4||"—"}). Vos ${a.agents.length} agent(s) sont déployés sous supervision Mwinda.`,
-            `✅ Account opened and activated. Payment confirmed (invoice ${a.invoiceId||""}, card •••• ${a.cardLast4||"—"}). Your ${a.agents.length} agent(s) are deployed under Mwinda supervision.`);
+            `✅ Compte ouvert et activé. Paiement confirmé (facture ${a.invoiceId||""}, carte •••• ${a.cardLast4||"—"}). Vos ${a.agents.length} agent(s) sont prêts : déployez-les ci-dessous, puis connectez leurs canaux.`,
+            `✅ Account opened and activated. Payment confirmed (invoice ${a.invoiceId||""}, card •••• ${a.cardLast4||"—"}). Your ${a.agents.length} agent(s) are ready: deploy them below, then connect their channels.`);
           justOpened = false;
         } else { banner.classList.add("hide"); }
         // Ligne d'abonnement
@@ -877,27 +895,89 @@
           kpi("Escalades à l'humain","Human escalations", esc, "cas sensibles transmis","sensitive cases handed off") +
           kpi("Temps de réponse moyen","Avg response time", rnd(40,110)+" s", "24/7, week-ends compris","24/7, weekends included") +
           kpi("Heures économisées (est.)","Hours saved (est.)", Math.round(conv*0.2), "≈ 12 min par demande","≈ 12 min per request");
-        // Checklist de démarrage
+        // Checklist de démarrage — états réels du cycle de vie
         const tested = localStorage.getItem("mwinda_tested") === "1";
+        const allDeployed = (a.agents||[]).every(x => (x.status||"active") === "active");
+        const anyConnected = (a.agents||[]).some(x => connCount(x) > 0);
         const item = (done, fr, en, action) =>
           `<li class="${done?"done":""}"><span class="ci">${done?"✓":""}</span><span>${T(fr,en)}${!done&&action?` — <button style="background:none;border:none;color:var(--amber);cursor:pointer;font-size:13px;padding:0;font-family:var(--body)" onclick="${action}">${T("faire maintenant","do it now")}</button>`:""}</span></li>`;
         document.getElementById("wsChecklist").innerHTML =
           item(true, "Compte ouvert et paiement confirmé", "Account opened and payment confirmed") +
-          item(n>0, `${n} agent(s) configuré(s) et déployé(s)`, `${n} agent(s) configured and deployed`) +
-          item(tested, "Tester votre premier agent", "Test your first agent", "go('test')") +
-          item(false, "Brancher vos canaux réels (email, formulaire) — avec l'équipe Mwinda", "Connect your real channels (email, forms) — with the Mwinda team");
+          item(allDeployed, `Déployer vos ${n} agent(s)`, `Deploy your ${n} agent(s)`, "document.getElementById('wsAgents').scrollIntoView({behavior:'smooth'})") +
+          item(anyConnected, "Connecter au moins un canal (email, formulaire, API)", "Connect at least one channel (email, form, API)", "document.getElementById('wsAgents').scrollIntoView({behavior:'smooth'})") +
+          item(tested, "Tester votre premier agent", "Test your first agent", "go('test')");
         document.getElementById("wsAgents").innerHTML = (a.agents||[]).map(x=>{
           const def=AGENT_BY_ID[x.id];
-          return `<div class="card ws-agent">
+          const status = x.status || "active"; // rétro-compat comptes existants
+          const stHtml = status === "pending"
+            ? `<div class="st st-pending">◌ ${T("Prêt à déployer","Ready to deploy")}</div>`
+            : status === "deploying"
+              ? `<div class="st st-deploying"><span class="spin"></span> ${T("Déploiement en cours…","Deploying…")}</div>`
+              : `<div class="st">● ${T("Actif — supervisé","Active — supervised")}</div>`;
+          const mainBtn = status === "pending"
+            ? `<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="deployAgent('${x.id}')">🚀 ${T("Déployer cet agent","Deploy this agent")}</button>`
+            : status === "deploying"
+              ? `<button class="btn btn-primary btn-sm" style="margin-top:8px" disabled>${T("Déploiement…","Deploying…")}</button>`
+              : `<div style="display:flex;gap:8px;margin-top:8px">
+                   <button class="btn btn-primary btn-sm" style="flex:1" onclick="testAgent('${x.id}')">${T("Tester","Test")}</button>
+                   <button class="btn btn-secondary btn-sm" style="flex:1" onclick="toggleConn('${x.id}')">${T("Connecter","Connect")} ${connCount(x)?`(${connCount(x)})`:""}</button>
+                 </div>`;
+          return `<div class="card ws-agent" id="wsA-${x.id}">
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
               <div style="display:flex;gap:10px;align-items:center"><span class="agent-ico">${def.ico}</span>
                 <div><div style="color:var(--warmwhite);font-weight:600">${x.customName}</div><div class="agent-cat">${L(def.cat)}</div></div></div>
               <span class="badge-mwinda">🛡️ Mwinda</span>
             </div>
-            <div class="st">● ${T("Actif — supervisé","Active — supervised")}</div>
-            <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="testAgent('${x.id}')">${T("Tester cet agent","Test this agent")}</button>
+            ${stHtml}
+            ${mainBtn}
+            ${status==="active" ? connPanel(a, x) : ""}
           </div>`;
         }).join("");
+      }
+
+      // ─── Déploiement & connexions ───
+      const slugify = (s) => (s||"entreprise").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30) || "entreprise";
+      const connCount = (x) => Object.values(x.channels||{}).filter(Boolean).length;
+      const openConn = new Set(); // panneaux de connexion ouverts
+
+      function saveAgents(mutate) {
+        const a = getAccount(); if (!a) return null;
+        mutate(a);
+        localStorage.setItem(KEY, JSON.stringify(a));
+        return a;
+      }
+      function deployAgent(id) {
+        // pending -> deploying (provisioning simulé) -> active
+        saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x && (x.status||"active")==="pending") x.status="deploying"; });
+        renderWorkspace();
+        setTimeout(() => {
+          saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x) x.status="active"; });
+          openConn.add(id); // ouvre le panneau de connexion à l'activation
+          renderWorkspace();
+        }, 1400);
+      }
+      function toggleConn(id) { openConn.has(id) ? openConn.delete(id) : openConn.add(id); renderWorkspace(); }
+      function connectChannel(id, ch) {
+        saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x) { x.channels=x.channels||{email:false,form:false,api:false}; x.channels[ch]=!x.channels[ch]; } });
+        renderWorkspace();
+      }
+      function connPanel(a, x) {
+        if (!openConn.has(x.id)) return "";
+        const dom = slugify(orgName(a));
+        const agentSlug = x.id.replace(/_/g,"-");
+        const ch = x.channels || {};
+        const row = (key, name, value) => `
+          <div class="conn-row">
+            <div><div class="cn">${name}</div><div class="cv">${value}</div></div>
+            <button type="button" class="conn-btn ${ch[key]?"on":""}" onclick="connectChannel('${x.id}','${key}')">${ch[key]?("✓ "+T("Connecté","Connected")):T("Connecter","Connect")}</button>
+          </div>`;
+        return `<div class="conn-panel">
+          <div class="k" style="margin-bottom:6px">${T("Canaux de l'agent","Agent channels")}</div>
+          ${row("email", T("Adresse email dédiée","Dedicated email address"), `${agentSlug}@${dom}.mwinda.digital`)}
+          ${row("form", T("Formulaire web (widget à intégrer)","Web form (embeddable widget)"), `&lt;script src="https://cdn.mwinda.digital/widget.js" data-agent="${dom}/${agentSlug}"&gt;`)}
+          ${row("api", T("Webhook API entrant","Inbound API webhook"), `POST https://api.mwinda.digital/v1/inbound/${dom}/${agentSlug}`)}
+          <p style="font-size:10px;color:var(--ink-muted);margin-top:8px">${T("Démonstration : en production, ces canaux sont provisionnés par l'équipe Mwinda et reliés au webhook /api/webhooks/inbound.","Demo: in production these channels are provisioned by the Mwinda team and wired to the /api/webhooks/inbound endpoint.")}</p>
+        </div>`;
       }
 
       function manageBilling() {
@@ -998,6 +1078,40 @@
         document.getElementById("aAction").innerHTML=`<span class="chip" style="border-color:${col};color:${col}">${L(ACTION_LABEL[r.action])}</span>`;
         document.getElementById("aLang").textContent=r.lang==="FR"?"Français":"English";
         document.getElementById("aSummary").textContent=r.summary;
+      }
+
+      // ════════ Exemple de test guidé (auto-play) ════════
+      // Rejoue un scénario complet sur l'agent courant : question type →
+      // qualification → sujet sensible → escalade avec résumé pour l'humain.
+      let exampleRunning = false;
+      function scriptedTurn(text, done){
+        addBubble("user", text); history.push({role:"user",content:text});
+        setTimeout(()=>{
+          const c=currentConfig();
+          const r=runAgent(c.def, c.firm, history);
+          addBubble("agent", r.reply); history.push({role:"assistant",content:r.reply});
+          updateAnalysis(r);
+          if(done) done();
+        }, 620);
+      }
+      function playExample(){
+        if (exampleRunning) return;
+        exampleRunning = true;
+        const btn=document.getElementById("playBtn");
+        if(btn){ btn.disabled=true; btn.innerHTML="⏳ "+T("Exemple en cours…","Example running…"); }
+        history=[]; resetAnalysis(); document.getElementById("msgs").innerHTML="";
+        const c=currentConfig();
+        const kw=(c.def.escalate&&c.def.escalate[0])||"urgent";
+        const finish=()=>{
+          localStorage.setItem("mwinda_tested","1"); // coche l'étape « tester » de la checklist
+          exampleRunning=false;
+          if(btn){ btn.disabled=false; btn.innerHTML="▶ "+T("Rejouer l'exemple","Replay example"); }
+        };
+        scriptedTurn(L(c.def.sample), ()=>setTimeout(()=>
+          scriptedTurn(T("Oui, c'est bien ça. Pouvez-vous avancer sur ce point cette semaine ?","Yes, exactly. Can you move forward on this point this week, please?"), ()=>setTimeout(()=>
+            scriptedTurn(T(`Dernière chose, un sujet sensible : ${kw}… Je préfère en parler à un humain.`,`One last thing, please — a sensitive topic: ${kw}… I would rather discuss it with a human.`), finish)
+          , 900))
+        , 900));
       }
 
       // ════════ Init ════════
