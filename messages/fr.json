@@ -1,0 +1,554 @@
+{
+  "meta": {
+    "siteName": "Mwinda Digital — AI Agents Agency",
+    "home": {
+      "title": "Mwinda Digital — Agents IA pour cabinets de services professionnels",
+      "description": "Nous capturons les clients que vous perdez. Agent Réception Client 24/7 bilingue FR/EN pour préparateurs d'impôts, avocats d'immigration et agents d'assurance."
+    },
+    "how": {
+      "title": "Comment ça marche — Mwinda Digital",
+      "description": "5 étapes, des garde-fous stricts, et une journalisation complète. Découvrez comment votre Agent Réception Client 24/7 fonctionne."
+    },
+    "pricing": {
+      "title": "Tarifs — Mwinda Digital",
+      "description": "Diagnostic 750 $, Installation 2 500 $, abonnement dès 500 $/mois. Trois paliers : Essentiel, Pro, Cabinet."
+    },
+    "verticals": {
+      "title": "Par métier — Mwinda Digital",
+      "description": "Des agents IA configurés pour votre métier : impôts, immigration, assurance."
+    },
+    "contact": {
+      "title": "Réserver mon diagnostic — Mwinda Digital",
+      "description": "Réservez votre diagnostic à 750 $ : nous chiffrons ce que les demandes manquées vous coûtent et livrons un plan d'action."
+    },
+    "sandbox": {
+      "title": "Espace de test — Mwinda Digital",
+      "description": "Testez l'Agent Réception Client 24/7 en conditions réelles : conversation, score de qualification, action recommandée."
+    }
+  },
+  "nav": {
+    "home": "Accueil",
+    "how": "Comment ça marche",
+    "pricing": "Tarifs",
+    "verticals": "Par métier",
+    "sandbox": "Espace de test",
+    "contact": "Contact",
+    "cta": "Réserver mon diagnostic"
+  },
+  "footer": {
+    "tagline": "« Mwinda » signifie lumière en lingala. Nous éclairons les demandes que votre cabinet laisse dans l'ombre.",
+    "company": "Mwinda Group LLC — Seattle, WA",
+    "linksTitle": "Navigation",
+    "verticalsTitle": "Par métier",
+    "legalTitle": "Engagements",
+    "privacy": "Aucune donnée client n'est utilisée pour entraîner un quelconque modèle d'IA.",
+    "rights": "Tous droits réservés."
+  },
+  "langSwitcher": {
+    "label": "Langue",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Agents IA pour cabinets de services professionnels",
+      "title": "Nous capturons les clients que vous perdez.",
+      "subtitle": "Votre cabinet reçoit des demandes le soir, le week-end, en pleine saison fiscale. Chaque demande sans réponse est un client qui signe chez un concurrent. Notre Agent Réception Client 24/7 répond en français et en anglais, qualifie, propose un rendez-vous — et vous transmet les cas complexes avec un résumé.",
+      "cta": "Réserver mon diagnostic",
+      "ctaSecondary": "Voir l'agent en action"
+    },
+    "painCalc": {
+      "title": "Combien vous coûte le silence ?",
+      "subtitle": "Faites le calcul avec vos propres chiffres.",
+      "missedLabel": "Leads manqués par semaine",
+      "ticketLabel": "Panier moyen ($)",
+      "resultPrefix": "Perte estimée par an",
+      "resultNote": "Hypothèse prudente : un lead manqué sur deux aurait signé. Même à 25 %, le manque à gagner dépasse largement le coût d'un agent.",
+      "perYear": "$ / an"
+    },
+    "flow": {
+      "title": "Du premier message au rendez-vous, sans vous",
+      "steps": {
+        "inquiry": { "title": "Demande entrante", "text": "Email, formulaire web — à toute heure, en FR ou EN." },
+        "agent": { "title": "L'agent répond", "text": "Réponse professionnelle en moins de 2 minutes, dans la langue du prospect." },
+        "qualify": { "title": "Qualification", "text": "Besoin, urgence, budget : l'agent pose les bonnes questions et calcule un score." },
+        "booking": { "title": "Rendez-vous proposé", "text": "Créneau proposé directement dans votre calendrier." },
+        "report": { "title": "Résumé pour vous", "text": "Chaque échange est journalisé ; les cas complexes vous sont transmis avec un résumé en 5 lignes." }
+      }
+    },
+    "offer": {
+      "title": "Une offre en trois briques",
+      "subtitle": "Pas d'engagement à l'aveugle : chaque étape prouve sa valeur avant la suivante.",
+      "diagnostic": {
+        "name": "Diagnostic",
+        "price": "750 $",
+        "unit": "unique",
+        "text": "Nous auditons vos canaux entrants, chiffrons ce que vous perdez et livrons un plan d'action précis. Déductible de l'installation si vous continuez."
+      },
+      "install": {
+        "name": "Installation",
+        "price": "2 500 $",
+        "unit": "unique",
+        "text": "Configuration de votre agent : métier, ton, garde-fous, connexion email et calendrier, 2 semaines en mode brouillon supervisé."
+      },
+      "subscription": {
+        "name": "Abonnement",
+        "price": "dès 500 $",
+        "unit": "/ mois",
+        "text": "Votre agent en production : réponses 24/7, rapports mensuels, ajustements continus. Trois paliers selon votre volume."
+      },
+      "cta": "Comparer les paliers"
+    },
+    "testimonials": {
+      "title": "Ils ont arrêté de perdre des clients",
+      "disclaimer": "Témoignages illustratifs de notre programme pilote.",
+      "items": {
+        "t1": {
+          "quote": "Pendant la saison fiscale, je ratais 10 à 15 demandes par semaine. L'agent les prend toutes, en français et en anglais. J'ai signé 9 nouveaux dossiers le premier mois.",
+          "name": "J. Kabongo",
+          "role": "Préparateur d'impôts, Seattle"
+        },
+        "t2": {
+          "quote": "Mes clients écrivent le soir, souvent inquiets. L'agent répond immédiatement, rassure sans jamais donner de conseil juridique, et me transmet un résumé propre. Je gagne 5 heures par semaine.",
+          "name": "M. Diallo",
+          "role": "Avocate d'immigration, Tacoma"
+        },
+        "t3": {
+          "quote": "Le rapport mensuel me dit exactement combien de leads sont arrivés, d'où, et ce qu'ils valent. C'est la première fois que je vois mon pipeline clairement.",
+          "name": "A. Okonkwo",
+          "role": "Agent d'assurance, Renton"
+        }
+      }
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "items": {
+        "q1": {
+          "q": "L'agent donne-t-il des conseils juridiques ou fiscaux ?",
+          "a": "Jamais. C'est un garde-fou non négociable inscrit dans chaque agent : il qualifie la demande et oriente vers vous. Tout conseil professionnel reste entre vos mains."
+        },
+        "q2": {
+          "q": "Que se passe-t-il si l'agent ne sait pas répondre ?",
+          "a": "En cas de doute, il escalade : il prévient le prospect qu'un membre de l'équipe va reprendre le dossier et vous transmet un résumé en 5 lignes avec l'historique complet."
+        },
+        "q3": {
+          "q": "Mes clients sauront-ils qu'ils parlent à un assistant ?",
+          "a": "Oui. L'agent mentionne systématiquement qu'un assistant traite la demande initiale. La transparence protège votre réputation — et elle est obligatoire dans nos configurations."
+        },
+        "q4": {
+          "q": "Et la confidentialité des données ?",
+          "a": "Chaque échange est journalisé et chiffré, chaque cabinet est isolé des autres, et aucune donnée client n'est utilisée pour entraîner quoi que ce soit. Point final."
+        },
+        "q5": {
+          "q": "Combien de temps pour être opérationnel ?",
+          "a": "Diagnostic sous 7 jours, installation en 2 semaines dont une période en mode brouillon où vous validez chaque réponse avant envoi. Vous gardez la main."
+        },
+        "q6": {
+          "q": "Pourquoi commencer par un diagnostic payant ?",
+          "a": "Parce qu'il vous donne un chiffre : ce que les demandes manquées vous coûtent réellement. Si l'agent ne se justifie pas économiquement, nous vous le dirons. Le diagnostic est déduit de l'installation si vous continuez."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Chaque semaine d'attente a un coût. Vous le connaissez maintenant.",
+      "text": "Réservez votre diagnostic : 30 minutes d'audit, un chiffrage précis, un plan d'action. 750 $, déductibles de l'installation.",
+      "cta": "Réserver mon diagnostic"
+    }
+  },
+  "how": {
+    "hero": {
+      "title": "Comment ça marche",
+      "subtitle": "Cinq étapes, des garde-fous stricts, une transparence totale. Voici exactement ce qui se passe quand un prospect écrit à votre cabinet."
+    },
+    "steps": {
+      "title": "Les 5 étapes",
+      "s1": { "title": "Réception", "text": "Une demande arrive par email ou formulaire web. L'agent la lit immédiatement, 24h/24, 7j/7 — y compris le 14 avril à 23h." },
+      "s2": { "title": "Détection de langue et réponse", "text": "L'agent détecte la langue du prospect (français ou anglais) et répond dans cette langue, avec le ton de votre cabinet, en moins de 2 minutes." },
+      "s3": { "title": "Qualification", "text": "Il pose les questions essentielles de votre métier : type de besoin, délai, situation. Chaque conversation reçoit un score de qualification de 0 à 100." },
+      "s4": { "title": "Rendez-vous ou escalade", "text": "Prospect qualifié → créneau proposé dans votre calendrier. Cas complexe, sensible ou douteux → escalade vers vous avec un résumé en 5 lignes." },
+      "s5": { "title": "Journal et rapport", "text": "Chaque échange est journalisé intégralement. Le 1er du mois, vous recevez un rapport : leads, rendez-vous, temps de réponse, valeur estimée capturée." }
+    },
+    "guardrails": {
+      "title": "Les garde-fous — non négociables",
+      "subtitle": "Chaque agent est configuré avec des règles strictes qui protègent votre responsabilité professionnelle.",
+      "g1": { "title": "Jamais de conseil professionnel", "text": "L'agent ne donne jamais de conseil juridique, fiscal ou d'assurance. Il qualifie et oriente. Le conseil, c'est vous." },
+      "g2": { "title": "Jamais de prix ferme ni de promesse", "text": "Aucun tarif définitif, aucune promesse de résultat. Ces conversations sont escaladées vers vous, systématiquement." },
+      "g3": { "title": "Transparence obligatoire", "text": "L'agent mentionne toujours qu'un assistant traite la demande initiale. Vos clients ne sont jamais trompés." },
+      "g4": { "title": "Bilingue par conception", "text": "Détection automatique de la langue du prospect et réponse en français ou en anglais, sans configuration de votre part." },
+      "g5": { "title": "Escalade au moindre doute", "text": "Si l'agent n'est pas certain, il n'invente pas : il escalade vers vous avec un résumé en 5 lignes et l'historique complet." },
+      "g6": { "title": "Mode brouillon les 2 premières semaines", "text": "Au démarrage, aucune réponse ne part sans votre validation. Vous approuvez, modifiez ou rejetez chaque brouillon depuis votre tableau de bord." }
+    },
+    "security": {
+      "title": "Sécurité des données",
+      "s1": { "title": "Journalisation complète", "text": "Chaque message entrant et sortant est horodaté et archivé. Vous pouvez auditer n'importe quelle conversation, n'importe quand." },
+      "s2": { "title": "Isolation par cabinet", "text": "Vos données vivent dans un espace strictement séparé de celui des autres cabinets. Aucun croisement possible." },
+      "s3": { "title": "Zéro entraînement sur vos données", "text": "Aucune donnée client n'est utilisée pour entraîner un quelconque modèle d'IA. C'est contractuel." }
+    },
+    "cta": {
+      "title": "Voyez-le fonctionner avant de décider",
+      "text": "L'espace de test vous permet de converser avec un agent de démonstration configuré pour votre métier.",
+      "ctaPrimary": "Essayer l'espace de test",
+      "ctaSecondary": "Réserver mon diagnostic"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "title": "Des tarifs simples, un retour mesurable",
+      "subtitle": "Un seul rendez-vous signé par mois couvre généralement l'abonnement. Le rapport mensuel vous permet de le vérifier."
+    },
+    "setup": {
+      "title": "Pour démarrer",
+      "diagnostic": { "name": "Diagnostic", "price": "750 $", "text": "Audit de vos canaux entrants + chiffrage des pertes + plan d'action. Déduit de l'installation si vous continuez." },
+      "install": { "name": "Installation", "price": "2 500 $", "text": "Configuration complète de votre agent, connexion email/calendrier, 2 semaines de mode brouillon supervisé." }
+    },
+    "tiers": {
+      "title": "L'abonnement mensuel",
+      "essential": {
+        "name": "Essentiel",
+        "price": "500 $",
+        "unit": "/ mois",
+        "tagline": "Pour les cabinets solo",
+        "cta": "Commencer par le diagnostic"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "900 $",
+        "unit": "/ mois",
+        "tagline": "Pour les cabinets en croissance",
+        "badge": "Le plus choisi",
+        "cta": "Commencer par le diagnostic"
+      },
+      "firm": {
+        "name": "Cabinet",
+        "price": "1 500 $",
+        "unit": "/ mois",
+        "tagline": "Pour les équipes multi-praticiens",
+        "cta": "Commencer par le diagnostic"
+      }
+    },
+    "table": {
+      "feature": "Fonctionnalité",
+      "rows": {
+        "conversations": { "label": "Conversations / mois", "essential": "Jusqu'à 150", "pro": "Jusqu'à 400", "firm": "Illimitées" },
+        "languages": { "label": "Bilingue FR / EN", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "channels": { "label": "Canaux", "essential": "Email + formulaire web", "pro": "Email + formulaire web", "firm": "Email + formulaire + canaux additionnels" },
+        "calendar": { "label": "Prise de rendez-vous calendrier", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "draft": { "label": "Mode brouillon (validation avant envoi)", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "report": { "label": "Rapport mensuel", "essential": "Standard", "pro": "Détaillé + valeur capturée", "firm": "Détaillé + revue trimestrielle" },
+        "seats": { "label": "Utilisateurs du tableau de bord", "essential": "1", "pro": "3", "firm": "Illimités" },
+        "tone": { "label": "Ajustements de ton et de règles", "essential": "Trimestriel", "pro": "Mensuel", "firm": "À la demande" },
+        "support": { "label": "Support", "essential": "Email (48 h)", "pro": "Email prioritaire (24 h)", "firm": "Ligne directe" }
+      }
+    },
+    "guarantee": {
+      "title": "Garantie de démarrage",
+      "text": "Si au bout de 60 jours l'agent n'a pas capturé une valeur estimée au moins équivalente à votre abonnement, nous travaillons gratuitement le mois suivant. Le rapport mensuel fait foi — les chiffres sont les vôtres."
+    },
+    "cta": {
+      "title": "Commencez par savoir ce que vous perdez",
+      "cta": "Réserver mon diagnostic"
+    }
+  },
+  "verticals": {
+    "hero": {
+      "title": "Configuré pour votre métier",
+      "subtitle": "Un agent générique ne connaît pas vos urgences, vos saisons, vos mots. Les nôtres sont configurés par verticale."
+    },
+    "scenarioTitle": "Scénario de démonstration",
+    "scenarioNote": "Extrait d'une conversation type. Testez-la vous-même dans l'espace de test.",
+    "tryCta": "Tester ce scénario",
+    "diagnosticCta": "Réserver mon diagnostic",
+    "tax": {
+      "name": "Préparateurs d'impôts",
+      "title": "Pendant la saison fiscale, chaque heure de silence coûte un dossier",
+      "pain": "De janvier à avril, votre boîte déborde. Les prospects qui n'obtiennent pas de réponse en quelques heures signent chez le concurrent d'à côté. Et les demandes hors saison — ITIN, déclarations tardives, courriers IRS — arrivent quand vous n'êtes pas là.",
+      "value1": { "title": "Tri automatique des urgences", "text": "Courrier IRS, échéance imminente, première déclaration : l'agent identifie l'urgence et la priorise dans votre file." },
+      "value2": { "title": "Collecte des informations de base", "text": "Statut familial, W-2 ou 1099, État de résidence : le dossier arrive pré-qualifié à votre rendez-vous." },
+      "value3": { "title": "Zéro conseil fiscal", "text": "L'agent ne répond jamais à « combien vais-je récupérer ? ». Il qualifie, rassure et oriente vers vous." },
+      "scenario": {
+        "user1": "Bonjour, j'ai reçu une lettre de l'IRS et je ne comprends pas ce qu'ils veulent. C'est grave ?",
+        "agent1": "Bonjour ! Je suis l'assistant du cabinet — je traite votre demande initiale et un préparateur vous répondra personnellement. Une lettre de l'IRS mérite toujours une lecture attentive, mais beaucoup sont de simples demandes d'information. Pour que le cabinet vous aide vite : quel est le code ou l'objet indiqué en haut de la lettre, et quelle date limite mentionne-t-elle ?",
+        "user2": "C'est écrit CP2000, et je dois répondre avant le 28 de ce mois.",
+        "agent2": "Merci, c'est très utile. Un CP2000 avec une échéance proche est exactement le type de dossier que le cabinet traite en priorité. Je vous propose un rendez-vous dès demain : 10 h 30 ou 15 h 00, lequel vous convient ? D'ici là, ne répondez pas à la lettre vous-même — apportez-la simplement au rendez-vous."
+      }
+    },
+    "immigration": {
+      "name": "Avocats d'immigration",
+      "title": "Vos prospects écrivent le soir, inquiets. Répondez avant la nuit blanche.",
+      "pain": "Une demande d'immigration n'attend pas les heures de bureau. Les personnes qui vous contactent sont souvent anxieuses, parfois dans l'urgence d'une convocation ou d'une échéance de visa. Sans réponse rapide, elles multiplient les consultations — et signent ailleurs.",
+      "value1": { "title": "Réponse immédiate et rassurante", "text": "L'agent accuse réception, rassure sur la prise en charge et recueille la situation sans jamais qualifier juridiquement le dossier." },
+      "value2": { "title": "Pré-qualification structurée", "text": "Type de procédure, échéances, documents reçus : votre consultation démarre avec un dossier déjà structuré." },
+      "value3": { "title": "Zéro conseil juridique", "text": "Aucune évaluation de chances, aucune interprétation de la loi. Les questions de fond sont escaladées vers vous avec un résumé." },
+      "scenario": {
+        "user1": "Hello, my work visa expires in 6 weeks and my employer hasn't started the renewal. Can you help?",
+        "agent1": "Hello, and thank you for reaching out. I'm the firm's assistant — I handle initial requests and an attorney will follow up personally. A 6-week window is exactly the kind of situation the firm treats as time-sensitive. May I ask: what type of visa do you currently hold, and has your employer given any indication of their plans?",
+        "user2": "It's an H-1B. They say they want to keep me but HR is slow.",
+        "agent2": "Understood — thank you. I won't speculate on your options; that's for the attorney to assess with you directly. Given the timeline, I'd suggest a consultation this week: Wednesday 2 pm or Thursday 11 am are available. The attorney will review renewal timing and what your employer needs to file. Which slot works best?"
+      }
+    },
+    "insurance": {
+      "name": "Agents d'assurance",
+      "title": "Un devis demandé sans réponse, c'est une police signée ailleurs",
+      "pain": "Les demandes de devis arrivent à toute heure, et la vitesse de réponse fait la vente : le premier agent qui répond gagne la comparaison. Vos renouvellements et vos sinistres, eux, exigent une prise en charge immédiate pour garder la confiance.",
+      "value1": { "title": "Réactivité qui gagne la comparaison", "text": "Réponse en moins de 2 minutes, collecte des informations du devis, rendez-vous proposé — pendant que les concurrents dorment." },
+      "value2": { "title": "Tri devis / sinistre / renouvellement", "text": "L'agent identifie la nature de la demande et applique le bon parcours. Les sinistres sont escaladés en priorité." },
+      "value3": { "title": "Zéro tarif ferme", "text": "L'agent ne s'engage jamais sur un prix ni sur une couverture. Il collecte, qualifie, et vous laisse la proposition." },
+      "scenario": {
+        "user1": "Bonsoir, je viens d'acheter une voiture et il me faut une assurance avant vendredi. Vous pouvez me faire un prix ?",
+        "agent1": "Bonsoir et félicitations pour votre achat ! Je suis l'assistant de l'agence — je prépare votre dossier et l'agent vous confirmera personnellement la proposition. Je ne peux pas annoncer de tarif ferme, mais je peux tout préparer pour que vous ayez votre réponse avant vendredi. Quelques questions : quel est le modèle et l'année du véhicule, et avez-vous déjà été assuré ces 3 dernières années ?",
+        "user2": "Une Toyota RAV4 2022, et oui j'étais assuré chez un autre agent.",
+        "agent2": "Parfait, c'est noté. Avec un historique d'assurance continu, votre dossier est solide. L'agent peut vous appeler demain pour finaliser la proposition : plutôt matin ou après-midi ? Pensez à avoir votre permis et votre relevé d'information à portée de main."
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Réserver mon diagnostic",
+      "subtitle": "750 $, déductibles de l'installation. Vous repartez avec un chiffre — ce que les demandes manquées vous coûtent — et un plan d'action. Remplissez le formulaire, nous vous recontactons sous 24 h ouvrées."
+    },
+    "form": {
+      "name": "Votre nom",
+      "namePlaceholder": "Prénom et nom",
+      "email": "Email professionnel",
+      "emailPlaceholder": "vous@cabinet.com",
+      "phone": "Téléphone (optionnel)",
+      "phonePlaceholder": "+1 (206) …",
+      "firmName": "Nom du cabinet",
+      "firmNamePlaceholder": "Ex. Kabongo Tax Services",
+      "profession": "Votre métier",
+      "professionOptions": {
+        "TAX_PREPARER": "Préparateur d'impôts",
+        "IMMIGRATION_LAWYER": "Avocat d'immigration",
+        "INSURANCE_AGENT": "Agent d'assurance",
+        "ACCOUNTANT": "Comptable",
+        "TRAVEL_AGENCY": "Agence de voyage",
+        "OTHER": "Autre"
+      },
+      "weeklyInquiries": "Demandes entrantes par semaine",
+      "weeklyInquiriesOptions": {
+        "UNDER_10": "Moins de 10",
+        "FROM_10_TO_30": "10 à 30",
+        "FROM_30_TO_75": "30 à 75",
+        "OVER_75": "Plus de 75"
+      },
+      "averageTicket": "Panier moyen par client ($)",
+      "averageTicketPlaceholder": "Ex. 450",
+      "preferredLanguage": "Langue préférée de vos clients",
+      "preferredLanguageOptions": {
+        "FR": "Français",
+        "EN": "Anglais",
+        "BOTH": "Les deux"
+      },
+      "message": "Précisions (optionnel)",
+      "messagePlaceholder": "Contexte, urgence, questions…",
+      "submit": "Envoyer ma demande",
+      "submitting": "Envoi en cours…",
+      "success": {
+        "title": "Demande reçue !",
+        "text": "Merci. Nous revenons vers vous sous 24 h ouvrées pour planifier votre diagnostic."
+      },
+      "error": "Une erreur est survenue. Réessayez ou écrivez-nous directement.",
+      "required": "Champ requis"
+    }
+  },
+  "sandbox": {
+    "hero": {
+      "title": "Espace de test",
+      "subtitle": "Conversez avec l'Agent Réception Client 24/7 comme si vous étiez un prospect. Observez le score de qualification et l'action recommandée se mettre à jour en temps réel — c'est exactement ce que votre tableau de bord affichera."
+    },
+    "config": {
+      "title": "Configuration de l'agent",
+      "profession": "Métier du cabinet",
+      "professionOptions": {
+        "tax": "Préparateur d'impôts",
+        "immigration": "Avocat d'immigration",
+        "insurance": "Agent d'assurance"
+      },
+      "tone": "Ton de l'agent",
+      "toneOptions": {
+        "professional": "Professionnel et chaleureux",
+        "formal": "Formel",
+        "concise": "Direct et concis"
+      },
+      "firmLabel": "Cabinet fictif",
+      "firmValue": "Cabinet Kabongo Tax Services",
+      "reset": "Réinitialiser la conversation",
+      "mockNotice": "Mode simulation : aucune clé API configurée. Les réponses sont pré-écrites mais le flux est identique à la production.",
+      "liveNotice": "Mode production : les réponses sont générées en direct par l'API Anthropic (claude-sonnet-4-6)."
+    },
+    "chat": {
+      "title": "Conversation",
+      "placeholder": "Écrivez comme un prospect… (FR ou EN)",
+      "send": "Envoyer",
+      "thinking": "L'agent rédige…",
+      "empty": "Envoyez un premier message pour démarrer. Essayez par exemple :",
+      "suggestions": {
+        "tax": "J'ai reçu une lettre de l'IRS, c'est grave ?",
+        "immigration": "My visa expires in 6 weeks, can you help?",
+        "insurance": "Il me faut une assurance auto avant vendredi, quel prix ?"
+      },
+      "error": "L'agent n'a pas pu répondre. Réessayez."
+    },
+    "analysis": {
+      "title": "Analyse de l'agent",
+      "subtitle": "Ce que votre tableau de bord affichera pour chaque conversation.",
+      "score": "Score de qualification",
+      "action": "Action recommandée",
+      "actions": {
+        "RESPOND": "Continuer la conversation",
+        "PROPOSE_APPOINTMENT": "Proposer un rendez-vous",
+        "ESCALATE": "Escalader à l'humain"
+      },
+      "language": "Langue détectée",
+      "summary": "Résumé pour l'humain",
+      "guardrails": "Garde-fous actifs",
+      "guardrailsList": {
+        "noAdvice": "Jamais de conseil juridique / fiscal / assurance",
+        "noPricing": "Jamais de prix ferme ni de promesse",
+        "disclosure": "Se présente toujours comme assistant",
+        "language": "Répond dans la langue du prospect",
+        "escalation": "Escalade en cas de doute (résumé en 5 lignes)"
+      },
+      "waiting": "En attente du premier échange…"
+    }
+  },
+  "auth": {
+    "title": "Connexion",
+    "subtitle": "Entrez votre code d'accès. Les cabinets clients reçoivent leur code lors de l'installation.",
+    "codeLabel": "Code d'accès",
+    "codePlaceholder": "Votre code…",
+    "submit": "Se connecter",
+    "errorInvalid": "Code invalide ou compte désactivé.",
+    "errorUnconfigured": "Authentification non configurée sur ce déploiement (AUTH_SECRET manquante).",
+    "logout": "Se déconnecter"
+  },
+  "dash": {
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "conversations": "Conversations",
+      "validation": "File de validation",
+      "reports": "Rapports",
+      "settings": "Paramètres"
+    },
+    "overview": {
+      "title": "Vue d'ensemble",
+      "thisMonth": "Ce mois-ci",
+      "leads": "Leads reçus",
+      "appointments": "RDV proposés",
+      "avgResponse": "Temps de réponse moyen",
+      "capturedValue": "Valeur estimée capturée",
+      "pendingDrafts": "Brouillons en attente",
+      "escalated": "Conversations escaladées",
+      "noTicket": "Renseignez votre panier moyen dans Paramètres pour activer ce calcul.",
+      "seconds": "s",
+      "reviewCta": "Valider les brouillons"
+    },
+    "conversations": {
+      "title": "Boîte de conversations",
+      "empty": "Aucune conversation pour l'instant.",
+      "score": "Score",
+      "statusLabels": {
+        "OPEN": "Ouverte",
+        "APPOINTMENT_PROPOSED": "RDV proposé",
+        "ESCALATED": "Escaladée",
+        "CLOSED": "Clôturée"
+      },
+      "channelLabels": { "EMAIL": "Email", "WEB_FORM": "Formulaire", "SANDBOX": "Sandbox" },
+      "roleLabels": { "PROSPECT": "Prospect", "AGENT": "Agent", "HUMAN": "Vous" },
+      "draftBadge": "Brouillon",
+      "rejectedBadge": "Rejeté",
+      "takeOverTitle": "Reprendre la main",
+      "takeOverPlaceholder": "Votre réponse au prospect…",
+      "takeOverSubmit": "Envoyer et reprendre la main",
+      "close": "Clôturer la conversation",
+      "summaryTitle": "Résumé pour vous",
+      "back": "← Toutes les conversations"
+    },
+    "validation": {
+      "title": "File de validation",
+      "subtitle": "Mode brouillon actif : chaque réponse de l'agent attend votre décision.",
+      "empty": "Aucun brouillon en attente. L'agent n'a rien à faire valider.",
+      "draftFrom": "Brouillon pour",
+      "viewThread": "Voir le fil",
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "editHint": "Vous pouvez modifier le texte avant d'approuver."
+    },
+    "reports": {
+      "title": "Rapports mensuels",
+      "empty": "Aucun rapport généré pour l'instant. Le premier arrive le 1er du mois.",
+      "month": "Mois",
+      "print": "Exporter en PDF (imprimer)",
+      "sentAt": "Envoyé le",
+      "notSent": "Non envoyé"
+    },
+    "settings": {
+      "title": "Paramètres de l'agent",
+      "tone": "Ton de l'agent",
+      "languages": "Langues",
+      "draftMode": "Mode brouillon (validation avant envoi)",
+      "averageTicket": "Panier moyen ($)",
+      "customRules": "Règles personnalisées (injectées après les garde-fous)",
+      "businessHours": "Horaires du cabinet",
+      "calendarUrl": "URL du calendrier connecté",
+      "save": "Enregistrer",
+      "saved": "Paramètres enregistrés.",
+      "billing": "Abonnement",
+      "billingTier": "Palier actuel",
+      "billingNone": "Aucun abonnement actif",
+      "billingManage": "Gérer mon abonnement",
+      "billingSubscribe": "S'abonner"
+    }
+  },
+  "adminUi": {
+    "nav": { "orgs": "Organisations", "onboarding": "Onboarding" },
+    "title": "Back-office Mwinda",
+    "orgs": {
+      "title": "Organisations",
+      "empty": "Aucune organisation. Créez la première via l'onboarding.",
+      "conversations": "conversations",
+      "escalationRate": "taux d'escalade",
+      "pendingDrafts": "brouillons en attente",
+      "inactive": "Désactivée",
+      "draftOn": "Brouillon actif",
+      "newOrg": "+ Nouveau cabinet"
+    },
+    "org": {
+      "title": "Cabinet",
+      "name": "Nom du cabinet",
+      "slug": "Slug (webhooks)",
+      "contactEmail": "Email de contact",
+      "profession": "Métier",
+      "professionLabels": { "TAX": "Impôts", "IMMIGRATION": "Immigration", "INSURANCE": "Assurance" },
+      "tone": "Ton",
+      "toneLabels": { "PROFESSIONAL": "Professionnel", "FORMAL": "Formel", "CONCISE": "Concis" },
+      "languages": "Langues",
+      "languageLabels": { "FR": "Français", "EN": "Anglais", "BOTH": "Les deux" },
+      "draftMode": "Mode brouillon",
+      "active": "Organisation active",
+      "customRules": "Règles personnalisées",
+      "save": "Enregistrer",
+      "token": "Code d'accès dashboard",
+      "tokenHint": "À remettre au cabinet — donne accès à son tableau de bord.",
+      "regenerate": "Régénérer le code",
+      "generateReport": "Générer le rapport du mois écoulé",
+      "webhookHint": "Endpoint d'entrée : POST /api/webhooks/inbound avec organizationSlug"
+    },
+    "onboarding": {
+      "title": "Onboarding d'un nouveau cabinet",
+      "subtitle": "Objectif < 30 minutes : configurer, tester en sandbox, activer.",
+      "step1": "1 · Configuration",
+      "step2": "2 · Test en sandbox",
+      "step2Text": "Le prompt système est généré automatiquement depuis cette configuration. Testez le comportement dans l'espace de test avant d'activer.",
+      "step2Cta": "Ouvrir l'espace de test",
+      "step3": "3 · Activation",
+      "step3Text": "À la création, le cabinet reçoit son code d'accès dashboard. Branchez ensuite le canal email sur le webhook d'entrée.",
+      "create": "Créer le cabinet"
+    }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "text": "Cette page n'existe pas ou a été déplacée.",
+    "back": "Retour à l'accueil"
+  }
+}

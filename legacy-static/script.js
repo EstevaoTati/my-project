@@ -7,7 +7,7 @@
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
-  /* ---------- Loader ---------- */
+  /* ---------- Welcome / boot ---------- */
   // Mark JS as ready so the hero hidden state can apply (CSS only kicks in here)
   document.documentElement.classList.add('js-ready');
 
@@ -20,9 +20,14 @@
     document.body.classList.add('loaded');
     runHeroAnim();
   }
-  window.addEventListener('load', () => setTimeout(boot, 500));
-  // Safety net: never let the loader stick around if 'load' is delayed by a CDN
-  setTimeout(boot, 2500);
+  // Enter the welcome (hero) page as soon as the DOM is parsed — no loader delay.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  // Safety net for edge cases
+  setTimeout(boot, 1500);
 
   /* ---------- Year ---------- */
   const yearEl = document.getElementById('year');
@@ -170,9 +175,10 @@
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href');
-      if (id.length < 2) return;
+      // Bare "#" or empty — block default scroll-to-top
+      if (!id || id.length < 2) { e.preventDefault(); return; }
       const target = document.querySelector(id);
-      if (!target) return;
+      if (!target) { e.preventDefault(); return; }
       e.preventDefault();
       const top = target.getBoundingClientRect().top + window.scrollY - 60;
       window.scrollTo({ top, behavior: 'smooth' });
@@ -185,28 +191,25 @@
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const t = (window.i18n && window.i18n.t) ? window.i18n.t : (k => k);
       const name = form.querySelector('#name').value.trim();
       const email = form.querySelector('#email').value.trim();
       const topic = form.querySelector('#topic').value;
       const message = form.querySelector('#message').value.trim();
       if (!name || !email || !topic || !message) {
-        formNote.textContent = 'Merci de remplir tous les champs.';
+        formNote.textContent = t('form.err.empty');
         formNote.style.color = '#ff8a8a';
         return;
       }
       if (!/^\S+@\S+\.\S+$/.test(email)) {
-        formNote.textContent = 'Adresse email invalide.';
+        formNote.textContent = t('form.err.email');
         formNote.style.color = '#ff8a8a';
         return;
       }
       formNote.style.color = '';
-      formNote.textContent = `Merci ${name.split(' ')[0]}, votre message a bien été envoyé. Nous reviendrons vers vous très vite.`;
+      formNote.textContent = t('form.ok', { name: name.split(' ')[0] });
       form.reset();
     });
-
-    // Force "valid" floating label state after value change for select
-    const sel = form.querySelector('#topic');
-    if (sel) sel.addEventListener('change', () => sel.setAttribute('data-filled', sel.value ? 'true' : ''));
   }
 
   /* ============================================================

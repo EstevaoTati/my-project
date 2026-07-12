@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mwinda Digital — Agents IA par fonction</title>
+    <meta name="description" content="Déployez des agents IA spécialisés (RH, comptabilité, administration, service client, ventes, support IT) dans votre entreprise. Supervisés par Mwinda. Testez-les en direct." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{--night:#0a0f1e;--night-soft:#101731;--night-card:#141c3a;--night-border:#232d52;--amber:#f5a623;--amber-soft:#ffc95e;--warmwhite:#fff6e6;--emerald:#2dd4a7;--ink:#e8ecf8;--ink-muted:#9aa5c6;--red:#f87171;--display:"Fraunces",Georgia,serif;--body:"Inter",system-ui,sans-serif}
+      *{box-sizing:border-box;margin:0;padding:0}
+      html{scroll-behavior:smooth}
+      body{background:var(--night);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.5}
+      .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+      .glow{background:radial-gradient(ellipse 60% 45% at 50% -5%,rgba(245,166,35,.16),transparent 70%),radial-gradient(ellipse 35% 30% at 80% 10%,rgba(255,201,94,.07),transparent 70%)}
+      .gt{background:linear-gradient(105deg,#fff6e6 20%,#ffc95e 55%,#f5a623 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+      h1,h2,h3{font-family:var(--display);font-weight:500;color:var(--warmwhite);letter-spacing:-.01em}
+      header{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(35,45,82,.7);background:rgba(10,15,30,.85);backdrop-filter:blur(12px)}
+      .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px}
+      .logo{font-family:var(--display);font-size:19px;color:var(--warmwhite);display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none}
+      .logo b{color:var(--amber);font-weight:500}
+      .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px rgba(245,166,35,.8);display:inline-block}
+      .nav-links{display:flex;gap:22px}
+      .nav-links button{color:var(--ink-muted);background:none;border:none;font-size:14px;cursor:pointer;font-family:var(--body)}
+      .nav-links button:hover{color:var(--warmwhite)}
+      @media(max-width:820px){.nav-links{display:none}}
+      .header-actions{display:flex;align-items:center;gap:10px}
+      .lang{display:flex;border:1px solid var(--night-border);border-radius:999px;overflow:hidden;font-size:12px;font-weight:600}
+      .lang button{padding:6px 12px;background:none;border:none;color:var(--ink-muted);cursor:pointer;font-family:var(--body)}
+      .lang button.active{background:var(--amber);color:var(--night)}
+      .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;padding:13px 26px;text-decoration:none;cursor:pointer;font-size:15px;transition:box-shadow .3s,transform .2s,border-color .3s;border:none;font-family:var(--body)}
+      .btn-primary{background:linear-gradient(120deg,#f5a623,#ffc95e);color:var(--night)}
+      .btn-primary:hover{box-shadow:0 0 32px rgba(245,166,35,.35);transform:translateY(-1px)}
+      .btn-secondary{border:1px solid var(--night-border);color:var(--ink);background:none}
+      .btn-secondary:hover{border-color:var(--amber);background:rgba(245,166,35,.06)}
+      .btn-sm{padding:9px 18px;font-size:13px}
+      .btn:disabled{opacity:.5;cursor:not-allowed}
+      .view{display:none}
+      .view.active{display:block}
+      .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:56px 0 44px}
+      @media(max-width:900px){.hero{grid-template-columns:1fr;text-align:center}}
+      .eyebrow{color:var(--amber);text-transform:uppercase;letter-spacing:.2em;font-size:13px;font-weight:500}
+      .hero h1{font-size:52px;line-height:1.05;margin:18px 0}
+      @media(max-width:600px){.hero h1{font-size:34px}}
+      .hero p{color:var(--ink-muted);font-size:17px;max-width:600px;margin-bottom:26px}
+      @media(max-width:900px){.hero p{margin:0 auto 26px}}
+      .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+      @media(max-width:900px){.cta-row{justify-content:center}}
+      .orb{position:relative;width:min(280px,72vw);aspect-ratio:1;margin:0 auto;perspective:900px;transform-style:preserve-3d}
+      .orb-halo{position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.22),rgba(45,156,219,.08) 55%,transparent 72%);filter:blur(6px);animation:glow 4s ease-in-out infinite}
+      .orb-core{position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff6e6,#ffc95e 45%,#f5a623 75%);box-shadow:0 0 28px rgba(245,166,35,.85),0 0 90px rgba(245,166,35,.45),0 0 160px rgba(88,199,250,.25);animation:pulse 4s ease-in-out infinite}
+      .ring{position:absolute;inset:6%;border-radius:50%;border:1.5px solid transparent;transform-style:preserve-3d}
+      .ring-a{border-color:rgba(245,166,35,.55);box-shadow:0 0 12px rgba(245,166,35,.25),inset 0 0 12px rgba(245,166,35,.15);animation:spinA 9s linear infinite}
+      .ring-c{inset:2%;border-color:rgba(88,199,250,.45);box-shadow:0 0 12px rgba(88,199,250,.2),inset 0 0 12px rgba(88,199,250,.12);animation:spinB 13s linear infinite}
+      .ring-f{inset:-4%;border-color:rgba(232,236,248,.1);animation:spinC 22s linear infinite}
+      .sat{position:absolute;top:-5px;left:50%;width:10px;height:10px;border-radius:50%}
+      .sat-a{background:#ffc95e;box-shadow:0 0 14px rgba(245,166,35,.9),0 0 34px rgba(245,166,35,.5)}
+      .sat-c{background:#7fd4fb;box-shadow:0 0 14px rgba(88,199,250,.9),0 0 34px rgba(88,199,250,.5)}
+      @keyframes pulse{0%,100%{opacity:.85;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.07)}}
+      @keyframes glow{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+      @keyframes spinA{from{transform:rotateX(64deg) rotateY(-12deg) rotateZ(0)}to{transform:rotateX(64deg) rotateY(-12deg) rotateZ(360deg)}}
+      @keyframes spinB{from{transform:rotateX(-58deg) rotateY(18deg) rotateZ(360deg)}to{transform:rotateX(-58deg) rotateY(18deg) rotateZ(0)}}
+      @keyframes spinC{from{transform:rotateX(74deg) rotateZ(0)}to{transform:rotateX(74deg) rotateZ(-360deg)}}
+      .band{border-top:1px solid var(--night-border);border-bottom:1px solid var(--night-border);background:var(--night-soft)}
+      .sec{padding:52px 0}
+      .sec h2{font-size:32px;text-align:center}
+      .sec .sub{text-align:center;color:var(--ink-muted);margin-top:10px;max-width:640px;margin-left:auto;margin-right:auto}
+      .grid{display:grid;gap:16px;margin-top:32px}
+      .g3{grid-template-columns:repeat(3,1fr)}
+      .g2{grid-template-columns:repeat(2,1fr)}
+      @media(max-width:820px){.g3,.g2{grid-template-columns:1fr}}
+      .card{border:1px solid var(--night-border);border-radius:16px;background:var(--night-card);padding:22px}
+      .agent-card{display:flex;flex-direction:column;gap:8px;position:relative;transition:border-color .2s,transform .2s}
+      .agent-card:hover{border-color:rgba(245,166,35,.45);transform:translateY(-2px)}
+      .agent-ico{font-size:26px}
+      .agent-card h3{font-size:17px}
+      .agent-cat{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--amber)}
+      .agent-tag{color:var(--ink-muted);font-size:13px;margin-top:2px;flex:1}
+      .caps{list-style:none;margin-top:8px;font-size:12px;color:var(--ink-muted)}
+      .caps li{padding:2px 0}
+      .caps li::before{content:"›";color:var(--amber);margin-right:6px}
+      .tag{color:var(--amber);font-size:13px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+      .steps-how{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
+      @media(max-width:820px){.steps-how{grid-template-columns:1fr 1fr}}
+      .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:50%;background:rgba(245,166,35,.15);color:var(--amber);font-family:var(--display);font-size:14px}
+      .badge-mwinda{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--emerald);border:1px solid rgba(45,212,167,.35);background:rgba(45,212,167,.08);border-radius:999px;padding:3px 9px;font-weight:600}
+      /* forms */
+      label.fl{display:block;margin-bottom:15px}
+      label.fl>span{display:block;font-size:13px;color:var(--ink-muted);margin-bottom:6px}
+      .inp{width:100%;border:1px solid var(--night-border);background:var(--night);border-radius:12px;padding:11px 14px;font-size:14px;color:var(--ink);font-family:var(--body)}
+      .inp:focus{outline:none;border-color:var(--amber)}
+      textarea.inp{resize:vertical;min-height:64px}
+      .seg{display:flex;gap:8px;flex-wrap:wrap}
+      .seg label{flex:1;min-width:130px;border:1px solid var(--night-border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;font-size:14px;color:var(--ink-muted);transition:.2s}
+      .seg input{position:absolute;opacity:0;pointer-events:none}
+      .seg label:has(input:checked){border-color:var(--amber);background:rgba(245,166,35,.1);color:var(--amber)}
+      .pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      @media(max-width:520px){.pick{grid-template-columns:1fr}}
+      .pick label{border:1px solid var(--night-border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.2s;display:flex;gap:10px;align-items:flex-start}
+      .pick label:has(input:checked){border-color:var(--amber);background:rgba(245,166,35,.08)}
+      .pick input{margin-top:3px;accent-color:var(--amber)}
+      .pick .pico{font-size:20px}
+      .pick .pt{font-size:14px;color:var(--warmwhite);font-weight:500}
+      .pick .ps{font-size:12px;color:var(--ink-muted)}
+      /* modal */
+      .modal-bg{position:fixed;inset:0;background:rgba(4,7,15,.78);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:34px 16px}
+      .modal-bg.open{display:flex}
+      .modal{width:100%;max-width:600px;background:var(--night-card);border:1px solid var(--night-border);border-radius:20px;padding:26px}
+      .modal h2{font-size:23px}
+      .modal .close{float:right;background:none;border:none;color:var(--ink-muted);font-size:22px;cursor:pointer;line-height:1}
+      .steps{display:flex;gap:6px;margin:14px 0 20px}
+      .steps i{height:4px;flex:1;border-radius:2px;background:var(--night-border)}
+      .steps i.on{background:var(--amber)}
+      .cfg-agent{border:1px solid var(--night-border);border-radius:12px;padding:14px;margin-bottom:12px}
+      .cfg-agent .h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+      .cfg-agent .h .n{font-weight:600;color:var(--warmwhite)}
+      /* workspace */
+      .ws-hd{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;padding:24px 0}
+      .ws-agent{display:flex;flex-direction:column;gap:6px}
+      .ws-agent .st{font-size:12px;color:var(--emerald)}
+      /* chat */
+      .chat-grid{display:grid;grid-template-columns:220px 1fr 300px;gap:16px}
+      @media(max-width:980px){.chat-grid{grid-template-columns:1fr}}
+      .agent-switch{display:flex;flex-direction:column;gap:6px}
+      .agent-switch button{text-align:left;border:1px solid var(--night-border);background:var(--night-card);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--ink-muted);font-family:var(--body);font-size:13px;display:flex;gap:8px;align-items:center}
+      .agent-switch button.active{border-color:var(--amber);color:var(--warmwhite);background:rgba(245,166,35,.08)}
+      .chatbox{border:1px solid var(--night-border);border-radius:16px;background:var(--night-card);display:flex;flex-direction:column;min-height:440px}
+      .chat-hd{border-bottom:1px solid var(--night-border);padding:12px 16px;font-size:14px;color:var(--warmwhite);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+      .msgs{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:440px}
+      .row{display:flex}
+      .row.u{justify-content:flex-end}
+      .bub{max-width:86%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+      .row.u .bub{background:var(--night-border);border-bottom-right-radius:4px}
+      .row.a .bub{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);border-bottom-left-radius:4px}
+      .chat-in{display:flex;gap:8px;border-top:1px solid var(--night-border);padding:12px}
+      .chat-in input{flex:1;border:1px solid var(--night-border);background:var(--night);border-radius:999px;padding:10px 16px;font-size:14px;color:var(--ink);font-family:var(--body)}
+      .chat-in input:focus{outline:none;border-color:var(--amber)}
+      .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-muted)}
+      .score-bar{height:8px;border-radius:999px;background:var(--night);overflow:hidden;margin-top:6px}
+      .score-fill{height:100%;border-radius:999px;transition:width .6s}
+      .chip{display:inline-block;border-radius:999px;border:1px solid;padding:5px 12px;font-size:12px;font-weight:600;margin-top:6px}
+      .empty-hint{color:var(--ink-muted);font-size:13px;text-align:center;margin:auto;padding:20px}
+      .suggestion{border:1px dashed rgba(245,166,35,.4);background:rgba(245,166,35,.05);color:var(--amber-soft);border-radius:12px;padding:10px 14px;font-size:13px;cursor:pointer;margin-top:10px}
+      footer{border-top:1px solid var(--night-border);background:var(--night-soft);padding:34px 0;color:var(--ink-muted);font-size:13px;margin-top:36px}
+      .gdot{width:6px;height:6px;border-radius:50%;background:var(--emerald);display:inline-block;margin-right:6px}
+      .notice{background:rgba(88,199,250,.06);border:1px solid rgba(88,199,250,.25);border-radius:12px;padding:12px 16px;color:#9fd8f5;font-size:13px;margin-top:20px}
+      .notice.amber{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.25);color:var(--amber-soft)}
+      /* trust bar */
+      .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;border-top:1px solid var(--night-border);border-bottom:1px solid var(--night-border);padding:22px 0;margin-top:8px}
+      @media(max-width:820px){.trust{grid-template-columns:1fr 1fr}}
+      .trust div{text-align:center}
+      .trust .tv{font-family:var(--display);font-size:22px;color:var(--warmwhite)}
+      .trust .tk{font-size:12px;color:var(--ink-muted);margin-top:3px}
+      /* testimonials */
+      .quote{display:flex;flex-direction:column;gap:14px}
+      .quote p{color:var(--ink);font-size:14px;line-height:1.65;flex:1}
+      .quote .who{border-top:1px solid var(--night-border);padding-top:12px}
+      .quote .who b{display:block;color:var(--warmwhite);font-weight:600;font-size:13px}
+      .quote .who span{font-size:12px;color:var(--ink-muted)}
+      /* FAQ */
+      details.faq{border:1px solid var(--night-border);border-radius:14px;background:var(--night-card);margin-bottom:10px}
+      details.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;font-size:14px;font-weight:500;color:var(--warmwhite)}
+      details.faq summary::-webkit-details-marker{display:none}
+      details.faq summary::after{content:"+";color:var(--amber);font-size:18px;transition:transform .2s}
+      details.faq[open] summary::after{transform:rotate(45deg)}
+      details.faq .a{border-top:1px solid var(--night-border);padding:14px 18px;font-size:13px;color:var(--ink-muted);line-height:1.65}
+      /* agent lifecycle & connexions */
+      .st-pending{color:var(--amber-soft)!important}
+      .st-deploying{color:#7fd4fb!important}
+      .conn-panel{border-top:1px solid var(--night-border);margin-top:12px;padding-top:12px}
+      .conn-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+      .conn-row .cn{color:var(--ink)}
+      .conn-row .cv{font-size:11px;color:var(--ink-muted);word-break:break-all}
+      .conn-btn{border:1px solid var(--night-border);background:none;color:var(--ink-muted);border-radius:999px;padding:5px 13px;font-size:12px;cursor:pointer;font-family:var(--body);white-space:nowrap}
+      .conn-btn.on{border-color:var(--emerald);color:var(--emerald);background:rgba(45,212,167,.08)}
+      .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(127,212,251,.35);border-top-color:#7fd4fb;border-radius:50%;animation:rot 0.8s linear infinite;vertical-align:-2px}
+      @keyframes rot{to{transform:rotate(360deg)}}
+      .play-btn{border:1px dashed rgba(245,166,35,.45);background:rgba(245,166,35,.06);color:var(--amber-soft);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--body)}
+      .play-btn:disabled{opacity:.5;cursor:wait}
+      /* workspace KPIs & checklist */
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+      @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+      .kpi{border:1px solid var(--night-border);border-radius:14px;background:var(--night-card);padding:15px}
+      .kpi .kv{font-family:var(--display);font-size:24px;color:var(--warmwhite);margin-top:5px}
+      .kpi .kd{font-size:10px;color:var(--ink-muted);margin-top:4px}
+      .check{list-style:none;display:flex;flex-direction:column;gap:9px}
+      .check li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-muted)}
+      .check li.done{color:var(--ink)}
+      .check .ci{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--night-border);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+      .check li.done .ci{border-color:var(--emerald);background:rgba(45,212,167,.12);color:var(--emerald)}
+      /* footer nav */
+      .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+      @media(max-width:720px){.foot-grid{grid-template-columns:1fr}}
+      .foot-grid h4{font-size:13px;color:var(--warmwhite);font-weight:600;margin-bottom:10px;font-family:var(--body)}
+      .foot-grid button{display:block;background:none;border:none;color:var(--ink-muted);font-size:13px;cursor:pointer;padding:3px 0;font-family:var(--body)}
+      .foot-grid button:hover{color:var(--warmwhite)}
+      .step-labels{display:flex;gap:6px;margin:-12px 0 18px;font-size:10px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}
+      .step-labels span{flex:1;text-align:center}
+      .step-labels span.on{color:var(--amber)}
+      [data-en]{display:none!important}
+      body.en [data-fr]{display:none!important}
+      body.en [data-en]{display:inline!important}
+      body.en [data-en].blk{display:block!important}
+      .hide{display:none!important}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <button class="logo" onclick="go('home')"><span class="dot"></span> Mwinda <b>Digital</b></button>
+        <nav class="nav-links">
+          <button onclick="scrollTo2('catalog')" data-fr>Catalogue</button><button onclick="scrollTo2('catalog')" data-en>Catalog</button>
+          <button onclick="scrollTo2('pricing')" data-fr>Tarifs</button><button onclick="scrollTo2('pricing')" data-en>Pricing</button>
+          <button onclick="scrollTo2('control')" data-fr>Votre contrôle</button><button onclick="scrollTo2('control')" data-en>Your control</button>
+          <button onclick="go('test')" data-fr>Espace de test</button><button onclick="go('test')" data-en>Test space</button>
+        </nav>
+        <div class="header-actions">
+          <div class="lang">
+            <button class="active" onclick="setLang('fr',this)">FR</button>
+            <button onclick="setLang('en',this)">EN</button>
+          </div>
+          <button id="accountBtn" class="btn btn-primary btn-sm" onclick="onAccountBtn()"><span data-fr>Ouvrir un compte</span><span data-en>Open an account</span></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ════ ACCUEIL ════ -->
+    <div id="view-home" class="view active">
+      <section class="glow">
+        <div class="wrap hero">
+          <div>
+            <p class="eyebrow"><span data-fr>Agents IA spécialisés, déployés dans votre entreprise</span><span data-en>Specialized AI agents, deployed inside your company</span></p>
+            <h1 class="gt"><span data-fr>Un agent IA pour chaque fonction.</span><span data-en>An AI agent for every function.</span></h1>
+            <p>
+              <span data-fr>RH, comptabilité, administration, service client, ventes, support IT : déployez des agents IA spécialisés qui prennent en charge les tâches répétitives — conçus et supervisés par Mwinda, testables en direct avant déploiement.</span>
+              <span data-en>HR, accounting, administration, customer service, sales, IT support: deploy specialized AI agents that handle repetitive tasks — designed and supervised by Mwinda, testable live before deployment.</span>
+            </p>
+            <div class="cta-row">
+              <button class="btn btn-primary" onclick="onAccountBtn()"><span data-fr>Ouvrir mon compte entreprise</span><span data-en>Open my company account</span></button>
+              <button class="btn btn-secondary" onclick="scrollTo2('catalog')"><span data-fr>Voir le catalogue</span><span data-en>See the catalog</span></button>
+            </div>
+          </div>
+          <div class="orb" aria-hidden="true">
+            <div class="orb-halo"></div><div class="orb-core"></div>
+            <div class="ring ring-a"><span class="sat sat-a"></span></div>
+            <div class="ring ring-c"><span class="sat sat-c"></span></div>
+            <div class="ring ring-f"></div>
+          </div>
+        </div>
+        <div class="wrap trust">
+          <div><div class="tv">6</div><div class="tk"><span data-fr>fonctions couvertes</span><span data-en>functions covered</span></div></div>
+          <div><div class="tv">&lt; 2 min</div><div class="tk"><span data-fr>temps de réponse</span><span data-en>response time</span></div></div>
+          <div><div class="tv">FR · EN</div><div class="tk"><span data-fr>bilingue natif</span><span data-en>natively bilingual</span></div></div>
+          <div><div class="tv">100 %</div><div class="tk"><span data-fr>des cas sensibles escaladés à un humain</span><span data-en>of sensitive cases escalated to a human</span></div></div>
+        </div>
+      </section>
+
+      <!-- Catalogue -->
+      <section class="sec" id="catalog">
+        <div class="wrap">
+          <h2><span data-fr>Le catalogue d'agents Mwinda</span><span data-en>The Mwinda agent catalog</span></h2>
+          <p class="sub"><span data-fr>Choisissez les fonctions à automatiser. Chaque agent a ses capacités et ses garde-fous propres.</span><span data-en>Pick the functions to automate. Each agent has its own capabilities and guardrails.</span></p>
+          <div class="grid g3" id="catalogGrid"></div>
+        </div>
+      </section>
+
+      <!-- Contrôle concepteur -->
+      <section class="band" id="control">
+        <div class="wrap sec">
+          <h2><span data-fr>Vous gardez la main mise</span><span data-en>You keep full control</span></h2>
+          <p class="sub"><span data-fr>Les agents sont des modèles propriété de Mwinda. Vos clients déploient des instances ; vous supervisez et mettez à jour de façon centralisée.</span><span data-en>Agents are Mwinda-owned templates. Your clients deploy instances; you supervise and update them centrally.</span></p>
+          <div class="grid g3">
+            <div class="card"><div class="agent-ico">🛡️</div><h3 style="font-size:16px" data-fr>Modèles propriétaires</h3><h3 style="font-size:16px" data-en>Proprietary templates</h3><p class="agent-tag"><span data-fr>Vous concevez et possédez chaque agent. Les clients ne reçoivent que des instances configurées.</span><span data-en>You design and own each agent. Clients only receive configured instances.</span></p></div>
+            <div class="card"><div class="agent-ico">🎚️</div><h3 style="font-size:16px" data-fr>Supervision & mode brouillon</h3><h3 style="font-size:16px" data-en>Supervision & draft mode</h3><p class="agent-tag"><span data-fr>Chaque agent démarre en mode supervisé : les réponses sensibles passent par une validation avant envoi.</span><span data-en>Each agent starts supervised: sensitive replies go through approval before sending.</span></p></div>
+            <div class="card"><div class="agent-ico">🔄</div><h3 style="font-size:16px" data-fr>Mises à jour centralisées</h3><h3 style="font-size:16px" data-en>Centralized updates</h3><p class="agent-tag"><span data-fr>Améliorez un modèle une fois ; tous les déploiements clients en bénéficient. Vous pouvez suspendre à tout moment.</span><span data-en>Improve a template once; all client deployments benefit. You can pause anytime.</span></p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comment ça marche -->
+      <section class="sec">
+        <div class="wrap">
+          <h2><span data-fr>De l'ouverture de compte au déploiement</span><span data-en>From account opening to deployment</span></h2>
+          <div class="steps-how">
+            <div class="card"><span class="num">1</span><h3 style="margin-top:12px;font-size:16px" data-fr>Profil entreprise</h3><h3 style="margin-top:12px;font-size:16px" data-en>Company profile</h3><p class="agent-tag"><span data-fr>Secteur, taille, langue.</span><span data-en>Sector, size, language.</span></p></div>
+            <div class="card"><span class="num">2</span><h3 style="margin-top:12px;font-size:16px" data-fr>Choix des agents</h3><h3 style="margin-top:12px;font-size:16px" data-en>Choose agents</h3><p class="agent-tag"><span data-fr>Les fonctions à automatiser.</span><span data-en>The functions to automate.</span></p></div>
+            <div class="card"><span class="num">3</span><h3 style="margin-top:12px;font-size:16px" data-fr>Configuration</h3><h3 style="margin-top:12px;font-size:16px" data-en>Configuration</h3><p class="agent-tag"><span data-fr>Nom, ton, périmètre de chaque agent.</span><span data-en>Name, tone, scope per agent.</span></p></div>
+            <div class="card"><span class="num">4</span><h3 style="margin-top:12px;font-size:16px" data-fr>Test & déploiement</h3><h3 style="margin-top:12px;font-size:16px" data-en>Test & deploy</h3><p class="agent-tag"><span data-fr>Essayez, puis activez sous supervision.</span><span data-en>Try, then activate under supervision.</span></p></div>
+          </div>
+          <p class="notice" style="text-align:center"><span data-fr>Démo interactive : compte et agents tournent dans votre navigateur (données locales). L'application complète est une app Next.js 15 avec base de données et API Anthropic.</span><span data-en>Interactive demo: account and agents run in your browser (local data). The full app is a Next.js 15 application with a database and the Anthropic API.</span></p>
+        </div>
+      </section>
+
+      <!-- Bénéfices / ROI -->
+      <section class="band">
+        <div class="wrap sec">
+          <h2><span data-fr>Un agent IA, pas un logiciel de plus</span><span data-en>An AI agent, not just more software</span></h2>
+          <p class="sub"><span data-fr>Chaque agent prend en charge une fonction entière — pour une fraction du coût d'un recrutement.</span><span data-en>Each agent takes over an entire function — for a fraction of the cost of a hire.</span></p>
+          <div class="grid g3" style="margin-top:28px">
+            <div class="card"><div class="agent-ico">🕐</div><h3 style="font-size:16px" data-fr>Disponible 24/7</h3><h3 style="font-size:16px" data-en>Available 24/7</h3><p class="agent-tag"><span data-fr>Répond en moins de 2 minutes, jour et nuit, week-ends compris.</span><span data-en>Replies in under 2 minutes, day and night, weekends included.</span></p></div>
+            <div class="card"><div class="agent-ico">💸</div><h3 style="font-size:16px" data-fr>~90 % moins cher qu'un poste</h3><h3 style="font-size:16px" data-en>~90% cheaper than a hire</h3><p class="agent-tag"><span data-fr>Dès 290 $/mois par agent, contre des milliers pour un mi-temps.</span><span data-en>From $290/mo per agent, versus thousands for a part-timer.</span></p></div>
+            <div class="card"><div class="agent-ico">🌍</div><h3 style="font-size:16px" data-fr>Bilingue FR / EN natif</h3><h3 style="font-size:16px" data-en>Native FR / EN bilingual</h3><p class="agent-tag"><span data-fr>Détecte la langue et répond dans celle de l'interlocuteur.</span><span data-en>Detects the language and replies in the counterpart's language.</span></p></div>
+            <div class="card"><div class="agent-ico">⚡</div><h3 style="font-size:16px" data-fr>Déployé en quelques jours</h3><h3 style="font-size:16px" data-en>Deployed in days</h3><p class="agent-tag"><span data-fr>Choisissez, configurez, testez, activez. Pas de projet informatique.</span><span data-en>Choose, configure, test, activate. No IT project.</span></p></div>
+            <div class="card"><div class="agent-ico">🛡️</div><h3 style="font-size:16px" data-fr>Supervisé & sans dérapage</h3><h3 style="font-size:16px" data-en>Supervised & safe</h3><p class="agent-tag"><span data-fr>Garde-fous par fonction : les cas sensibles sont escaladés à un humain.</span><span data-en>Per-function guardrails: sensitive cases are escalated to a human.</span></p></div>
+            <div class="card"><div class="agent-ico">📈</div><h3 style="font-size:16px" data-fr>Zéro demande perdue</h3><h3 style="font-size:16px" data-en>Zero missed request</h3><p class="agent-tag"><span data-fr>Chaque échange est qualifié, scoré et journalisé pour votre équipe.</span><span data-en>Every exchange is qualified, scored and logged for your team.</span></p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tarifs -->
+      <section class="sec" id="pricing">
+        <div class="wrap">
+          <h2><span data-fr>Un tarif simple, par agent</span><span data-en>Simple pricing, per agent</span></h2>
+          <p class="sub"><span data-fr>Payez uniquement les fonctions que vous déployez. Sans engagement de volume caché.</span><span data-en>Pay only for the functions you deploy. No hidden volume commitment.</span></p>
+          <div class="grid g3" style="margin-top:30px">
+            <div class="card"><p class="tag" data-fr>Installation</p><p class="tag" data-en>Setup</p><p style="font-family:var(--display);font-size:32px;color:var(--warmwhite);margin:10px 0">750 $ <span style="font-size:14px;color:var(--ink-muted);font-family:var(--body)" data-fr>unique</span><span style="font-size:14px;color:var(--ink-muted);font-family:var(--body)" data-en>one-time</span></p><p class="agent-tag"><span data-fr>Audit, configuration de vos agents, mise sous supervision.</span><span data-en>Audit, agent configuration, supervised launch.</span></p></div>
+            <div class="card pro"><span class="pill" data-fr>Le plus choisi</span><span class="pill" data-en>Most popular</span><p class="tag" data-fr>Par agent</p><p class="tag" data-en>Per agent</p><p style="font-family:var(--display);font-size:32px;color:var(--warmwhite);margin:10px 0">290 $ <span style="font-size:14px;color:var(--ink-muted);font-family:var(--body)">/ <span data-fr>mois</span><span data-en>mo</span></span></p><p class="agent-tag"><span data-fr>Chaque fonction (RH, compta, service client…). Dégressif au volume.</span><span data-en>Each function (HR, accounting, customer service…). Volume discounts.</span></p></div>
+            <div class="card"><p class="tag" data-fr>Annuel</p><p class="tag" data-en>Annual</p><p style="font-family:var(--display);font-size:32px;color:var(--emerald);margin:10px 0">−20 %</p><p class="agent-tag"><span data-fr>Sur l'abonnement, en réglant à l'année. 2 mois offerts.</span><span data-en>On the subscription, billed yearly. 2 months free.</span></p></div>
+          </div>
+          <div class="notice amber" style="text-align:center;margin-top:22px"><span data-fr>💡 Exemple : 3 agents (service client + RH + comptabilité) = 870 $/mois — soit le coût d'une journée de travail, pour trois fonctions couvertes en continu.</span><span data-en>💡 Example: 3 agents (customer service + HR + accounting) = $870/mo — the cost of one working day, for three functions covered around the clock.</span></div>
+        </div>
+      </section>
+
+      <!-- Témoignages -->
+      <section class="band">
+        <div class="wrap sec">
+          <h2><span data-fr>Ils ont déployé leurs premiers agents</span><span data-en>They deployed their first agents</span></h2>
+          <div class="grid g3">
+            <div class="card quote">
+              <p><span data-fr>« Notre agent service client prend toutes les demandes du soir et du week-end. L'équipe arrive le matin avec des dossiers déjà qualifiés et scorés — on a arrêté de perdre des clients. »</span><span data-en>“Our customer service agent takes every evening and weekend request. The team arrives in the morning with files already qualified and scored — we stopped losing clients.”</span></p>
+              <div class="who"><b>J. Kabongo</b><span data-fr>Cabinet de services, Seattle</span><span data-en>Services firm, Seattle</span></div>
+            </div>
+            <div class="card quote">
+              <p><span data-fr>« L'agent RH répond aux questions congés/paie instantanément et escalade les sujets sensibles sans jamais improviser. Mon équipe RH a récupéré une journée par semaine. »</span><span data-en>“The HR agent answers leave/payroll questions instantly and escalates sensitive topics without ever improvising. My HR team got a full day back every week.”</span></p>
+              <div class="who"><b>M. Diallo</b><span data-fr>PME 45 salariés, Tacoma</span><span data-en>45-employee SMB, Tacoma</span></div>
+            </div>
+            <div class="card quote">
+              <p><span data-fr>« Trois agents déployés en une semaine, sans projet informatique. Et Mwinda garde la supervision : quand un agent doute, un humain reprend la main. C'est ce qui m'a décidé. »</span><span data-en>“Three agents deployed in a week, no IT project. And Mwinda keeps supervision: when an agent is unsure, a human takes over. That's what convinced me.”</span></p>
+              <div class="who"><b>A. Okonkwo</b><span data-fr>Agence multi-services, Renton</span><span data-en>Multi-service agency, Renton</span></div>
+            </div>
+          </div>
+          <p style="text-align:center;font-size:11px;color:var(--ink-muted);margin-top:16px"><span data-fr>Témoignages illustratifs de notre programme pilote.</span><span data-en>Illustrative testimonials from our pilot program.</span></p>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="sec">
+        <div class="wrap" style="max-width:760px">
+          <h2><span data-fr>Questions fréquentes</span><span data-en>Frequently asked questions</span></h2>
+          <div style="margin-top:26px">
+            <details class="faq"><summary><span data-fr>L'agent peut-il dire n'importe quoi à mes clients ou salariés ?</span><span data-en>Can the agent say just anything to my clients or employees?</span></summary><div class="a"><span data-fr>Non. Chaque agent a des garde-fous non négociables propres à sa fonction (jamais d'avis juridique/fiscal, jamais de prix ferme, jamais de sujet RH sensible traité seul…). Au moindre doute, il escalade à un humain avec un résumé — c'est vérifiable dans l'espace de test.</span><span data-en>No. Each agent has non-negotiable guardrails specific to its function (never legal/tax advice, never a firm price, never handling a sensitive HR topic alone…). At the slightest doubt it escalates to a human with a summary — verifiable in the test space.</span></div></details>
+            <details class="faq"><summary><span data-fr>Qui contrôle les agents une fois déployés ?</span><span data-en>Who controls the agents once deployed?</span></summary><div class="a"><span data-fr>Mwinda Digital. Les agents sont nos modèles propriétaires : vous déployez des instances configurées pour votre entreprise, nous supervisons, mettons à jour et pouvons suspendre. Vous gardez la main sur la configuration (nom, ton, périmètre) et sur vos données.</span><span data-en>Mwinda Digital. Agents are our proprietary templates: you deploy instances configured for your company; we supervise, update and can pause them. You keep control of the configuration (name, tone, scope) and of your data.</span></div></details>
+            <details class="faq"><summary><span data-fr>Combien de temps pour déployer ?</span><span data-en>How long to deploy?</span></summary><div class="a"><span data-fr>Quelques minutes pour ouvrir le compte et tester ; quelques jours pour brancher vos canaux réels (email, formulaire, outils internes) avec notre accompagnement d'installation.</span><span data-en>Minutes to open the account and test; a few days to connect your real channels (email, forms, internal tools) with our setup support.</span></div></details>
+            <details class="faq"><summary><span data-fr>Et mes données ?</span><span data-en>What about my data?</span></summary><div class="a"><span data-fr>Chaque entreprise est isolée, chaque échange est journalisé et consultable, et aucune donnée client n'est utilisée pour entraîner un quelconque modèle d'IA. C'est contractuel.</span><span data-en>Each company is isolated, every exchange is logged and reviewable, and no client data is ever used to train any AI model. It's contractual.</span></div></details>
+            <details class="faq"><summary><span data-fr>Puis-je ajouter ou retirer des agents plus tard ?</span><span data-en>Can I add or remove agents later?</span></summary><div class="a"><span data-fr>Oui, à tout moment depuis votre espace : la facturation est par agent et par mois, sans engagement caché. L'annuel (−20 %) se résilie à échéance.</span><span data-en>Yes, anytime from your workspace: billing is per agent per month, with no hidden commitment. Annual (−20%) cancels at term.</span></div></details>
+            <details class="faq"><summary><span data-fr>Que se passe-t-il si l'agent ne sait pas répondre ?</span><span data-en>What happens when the agent doesn't know?</span></summary><div class="a"><span data-fr>Il n'invente jamais : il prévient l'interlocuteur qu'un membre de l'équipe reprend le dossier et transmet à l'humain un résumé en 5 lignes avec l'historique complet.</span><span data-en>It never makes things up: it tells the counterpart a team member is taking over and hands the human a 5-line summary with the full history.</span></div></details>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA final -->
+      <section class="glow" style="border-top:1px solid var(--night-border)">
+        <div class="wrap" style="text-align:center;padding:56px 0">
+          <h2 style="font-size:34px"><span data-fr>Déployez votre premier agent aujourd'hui</span><span data-en>Deploy your first agent today</span></h2>
+          <p style="color:var(--ink-muted);margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto"><span data-fr>Testez gratuitement dans votre navigateur, puis ouvrez votre compte en quelques minutes.</span><span data-en>Test it free in your browser, then open your account in minutes.</span></p>
+          <div class="cta-row" style="justify-content:center;margin-top:26px">
+            <button class="btn btn-primary" onclick="onAccountBtn()"><span data-fr>Ouvrir mon compte</span><span data-en>Open my account</span></button>
+            <button class="btn btn-secondary" onclick="go('test')"><span data-fr>Essayer un agent</span><span data-en>Try an agent</span></button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ════ WORKSPACE (client) ════ -->
+    <div id="view-dash" class="view">
+      <div class="wrap">
+        <div id="wsBanner" class="hide" style="margin-top:20px;border:1px solid rgba(45,212,167,.4);background:rgba(45,212,167,.08);border-radius:14px;padding:16px 18px;color:var(--emerald);font-size:14px"></div>
+        <div class="ws-hd">
+          <div>
+            <h1 style="font-size:28px"><span data-fr>Espace de</span><span data-en>Workspace —</span> <span id="wsCompany" class="gt"></span></h1>
+            <p class="k" id="wsSub" style="margin-top:6px"></p>
+            <p id="wsPlan" style="margin-top:8px;font-size:13px;color:var(--ink-muted)"></p>
+          </div>
+          <div class="cta-row">
+            <button class="btn btn-secondary btn-sm" onclick="manageBilling()"><span data-fr>Gérer l'abonnement</span><span data-en>Manage subscription</span></button>
+            <button class="btn btn-secondary btn-sm" onclick="openSignup(true)"><span data-fr>Ajouter / modifier des agents</span><span data-en>Add / edit agents</span></button>
+          </div>
+        </div>
+        <div class="kpis" id="wsKpis"></div>
+        <div class="grid g2" style="margin-bottom:22px;margin-top:0">
+          <div class="card">
+            <p class="k" style="margin-bottom:12px"><span data-fr>Démarrage</span><span data-en>Getting started</span></p>
+            <ul class="check" id="wsChecklist"></ul>
+          </div>
+          <div class="card">
+            <p class="k" style="margin-bottom:12px"><span data-fr>Supervision Mwinda</span><span data-en>Mwinda supervision</span></p>
+            <ul class="check">
+              <li class="done"><span class="ci">✓</span><span data-fr>Garde-fous actifs sur tous les agents</span><span data-en>Guardrails active on all agents</span></li>
+              <li class="done"><span class="ci">✓</span><span data-fr>Escalade humaine systématique en cas de doute</span><span data-en>Systematic human escalation when in doubt</span></li>
+              <li class="done"><span class="ci">✓</span><span data-fr>Journalisation de chaque échange</span><span data-en>Every exchange logged</span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="k" data-fr style="margin-bottom:10px">Agents déployés</p><p class="k" data-en style="margin-bottom:10px">Deployed agents</p>
+        <div class="grid g2" id="wsAgents"></div>
+        <div class="notice amber" style="margin-top:22px"><span data-fr>🛡️ Tous vos agents sont des modèles propriété de Mwinda Digital, déployés sous supervision. Les réponses sensibles sont escaladées ; le concepteur conserve le contrôle et les mises à jour.</span><span data-en>🛡️ All your agents are Mwinda Digital-owned templates, deployed under supervision. Sensitive replies are escalated; the designer keeps control and updates.</span></div>
+      </div>
+    </div>
+
+    <!-- ════ ESPACE DE TEST ════ -->
+    <div id="view-test" class="view">
+      <div class="wrap sec">
+        <h1 style="font-size:28px;text-align:center"><span class="gt" data-fr>Espace de test</span><span class="gt" data-en>Test space</span></h1>
+        <p class="sub" style="margin-bottom:26px"><span data-fr>Écrivez comme un interlocuteur (FR ou EN). L'agent détecte la langue, qualifie et applique ses garde-fous.</span><span data-en>Write as a counterpart (FR or EN). The agent detects the language, qualifies and applies its guardrails.</span></p>
+        <div class="chat-grid">
+          <aside class="agent-switch" id="agentSwitch"></aside>
+          <div class="chatbox">
+            <div class="chat-hd"><span id="chatTitle">—</span><span style="display:flex;gap:8px;align-items:center"><button type="button" class="play-btn" id="playBtn" onclick="playExample()">▶ <span data-fr>Exemple de test</span><span data-en>Example test</span></button><span class="badge-mwinda">🛡️ <span data-fr>Supervisé</span><span data-en>Supervised</span></span></span></div>
+            <div class="msgs" id="msgs"></div>
+            <form class="chat-in" onsubmit="return sendMsg(event)">
+              <input id="chatInput" autocomplete="off" placeholder="…" />
+              <button type="submit" class="btn btn-primary btn-sm"><span data-fr>Envoyer</span><span data-en>Send</span></button>
+            </form>
+          </div>
+          <aside>
+            <div class="card">
+              <div class="k" data-fr>Score de qualification</div><div class="k" data-en>Qualification score</div>
+              <div style="font-family:var(--display);font-size:26px;color:var(--warmwhite)" id="aScore">—</div>
+              <div class="score-bar"><div class="score-fill" id="aScoreBar" style="width:0;background:var(--night-border)"></div></div>
+              <div style="margin-top:14px" class="k" data-fr>Action recommandée</div><div class="k" data-en>Recommended action</div>
+              <div id="aAction">—</div>
+              <div style="margin-top:14px" class="k" data-fr>Langue détectée</div><div class="k" data-en>Detected language</div>
+              <div id="aLang" style="color:var(--warmwhite);font-weight:600;margin-top:4px">—</div>
+              <div style="margin-top:14px" class="k" data-fr>Résumé pour l'humain</div><div class="k" data-en>Summary for the human</div>
+              <div id="aSummary" style="background:var(--night);border-radius:10px;padding:10px;font-size:12px;margin-top:6px;color:var(--ink)">—</div>
+            </div>
+            <div class="card" style="margin-top:12px">
+              <div class="k" style="margin-bottom:8px" data-fr>Garde-fous de cet agent</div><div class="k" style="margin-bottom:8px" data-en>This agent's guardrails</div>
+              <div id="aGuards" style="font-size:12px;color:var(--ink-muted);line-height:1.85"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ MODALE OUVERTURE DE COMPTE ════ -->
+    <div class="modal-bg" id="signupModal">
+      <div class="modal">
+        <button class="close" onclick="closeSignup()">&times;</button>
+        <h2><span data-fr>Ouvrir un compte</span><span data-en>Open an account</span></h2>
+        <div class="steps"><i class="on" id="s1"></i><i id="s2"></i><i id="s3"></i><i id="s4"></i></div>
+        <div class="step-labels">
+          <span id="sl1" class="on"><span data-fr>Profil</span><span data-en>Profile</span></span>
+          <span id="sl2"><span data-fr>Agents</span><span data-en>Agents</span></span>
+          <span id="sl3"><span data-fr>Configuration</span><span data-en>Setup</span></span>
+          <span id="sl4"><span data-fr>Paiement</span><span data-en>Payment</span></span>
+        </div>
+        <form id="signupForm" onsubmit="return confirmPayment(event)">
+          <!-- Étape 1 : profil -->
+          <div id="step1">
+            <label class="fl"><span data-fr>Type de compte</span><span data-en>Account type</span>
+              <div class="seg">
+                <label><input type="radio" name="profileType" value="company" checked onchange="toggleCompany()"><span data-fr>Entreprise</span><span data-en>Company</span></label>
+                <label><input type="radio" name="profileType" value="individual" onchange="toggleCompany()"><span data-fr>Particulier / Indépendant</span><span data-en>Individual / Freelance</span></label>
+              </div>
+            </label>
+            <label class="fl"><span data-fr>Votre nom</span><span data-en>Your name</span><input class="inp" name="name" required placeholder="Estevao Macumba" /></label>
+            <label class="fl"><span data-fr>Email professionnel</span><span data-en>Work email</span><input class="inp" name="email" type="email" required placeholder="vous@entreprise.com" /></label>
+            <label class="fl" id="companyField"><span data-fr>Nom de l'entreprise</span><span data-en>Company name</span><input class="inp" name="company" placeholder="Mwinda Group LLC" /></label>
+            <div class="pick" style="margin-bottom:15px">
+              <label class="fl" style="margin:0"><span data-fr>Secteur / domaine</span><span data-en>Sector / domain</span><input class="inp" name="sector" placeholder="Services, tech, santé…" /></label>
+              <label class="fl" style="margin:0"><span data-fr>Taille</span><span data-en>Size</span>
+                <select class="inp" name="size"><option>1-10</option><option>11-50</option><option>51-200</option><option>200+</option></select>
+              </label>
+            </div>
+            <div class="pick">
+              <label class="fl" style="margin:0"><span data-fr>Pays</span><span data-en>Country</span><input class="inp" name="country" placeholder="USA, France, RDC…" /></label>
+              <label class="fl" style="margin:0"><span data-fr>Langue principale</span><span data-en>Main language</span>
+                <select class="inp" name="languages"><option value="both" data-l="Français + Anglais|French + English">Français + Anglais</option><option value="fr" data-l="Français|French">Français</option><option value="en" data-l="Anglais|English">Anglais</option></select>
+              </label>
+            </div>
+            <p class="err hide" id="step1Err"><span data-fr>Renseignez votre nom et un email valide.</span><span data-en>Please provide your name and a valid email.</span></p>
+            <button type="button" class="btn btn-primary" style="width:100%;margin-top:6px" onclick="validateStep1()"><span data-fr>Continuer</span><span data-en>Continue</span></button>
+          </div>
+          <!-- Étape 2 : choix des agents -->
+          <div id="step2" class="hide">
+            <p class="k" style="margin-bottom:10px" data-fr>Quels agents voulez-vous déployer ?</p><p class="k" style="margin-bottom:10px" data-en>Which agents do you want to deploy?</p>
+            <div class="pick" id="agentPick"></div>
+            <p class="err hide" id="pickErr" data-fr>Sélectionnez au moins un agent.</p>
+            <div style="display:flex;gap:8px;margin-top:16px">
+              <button type="button" class="btn btn-secondary" onclick="toStep(1)"><span data-fr>Retour</span><span data-en>Back</span></button>
+              <button type="button" class="btn btn-primary" style="flex:1" onclick="toStep(3)"><span data-fr>Configurer</span><span data-en>Configure</span></button>
+            </div>
+          </div>
+          <!-- Étape 3 : configuration de chaque agent -->
+          <div id="step3" class="hide">
+            <p class="k" style="margin-bottom:10px" data-fr>Configuration de vos agents</p><p class="k" style="margin-bottom:10px" data-en>Configure your agents</p>
+            <div id="agentConfigs"></div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button type="button" class="btn btn-secondary" onclick="toStep(2)"><span data-fr>Retour</span><span data-en>Back</span></button>
+              <button type="button" class="btn btn-primary" style="flex:1" onclick="toPayment()"><span data-fr>Continuer vers le paiement</span><span data-en>Continue to payment</span></button>
+            </div>
+          </div>
+          <!-- Étape 4 : paiement -->
+          <div id="step4" class="hide">
+            <p class="k" style="margin-bottom:10px" data-fr>Récapitulatif & paiement</p><p class="k" style="margin-bottom:10px" data-en>Summary & payment</p>
+            <div class="card" style="padding:16px;margin-bottom:14px">
+              <div id="paySummary"></div>
+              <div style="border-top:1px solid var(--night-border);margin-top:12px;padding-top:12px">
+                <label class="fl" style="margin-bottom:10px"><span data-fr>Cycle de facturation</span><span data-en>Billing cycle</span>
+                  <div class="seg">
+                    <label><input type="radio" name="cycle" value="monthly" checked onchange="renderPaySummary()"><span data-fr>Mensuel</span><span data-en>Monthly</span></label>
+                    <label><input type="radio" name="cycle" value="annual" onchange="renderPaySummary()"><span data-fr>Annuel · -20%</span><span data-en>Annual · -20%</span></label>
+                  </div>
+                </label>
+                <div id="payTotal" style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);color:var(--warmwhite)"></div>
+              </div>
+            </div>
+            <p class="k" style="margin-bottom:8px" data-fr>Procédure de paiement</p><p class="k" style="margin-bottom:8px" data-en>Payment procedure</p>
+            <label class="fl" style="margin-bottom:10px"><span data-fr>Nom sur la carte</span><span data-en>Name on card</span><input class="inp" id="ccName" placeholder="Estevao Macumba" /></label>
+            <label class="fl" style="margin-bottom:10px"><span data-fr>Numéro de carte</span><span data-en>Card number</span><input class="inp" id="ccNum" inputmode="numeric" placeholder="4242 4242 4242 4242" oninput="fmtCard(this)" /></label>
+            <div class="pick" style="margin-bottom:6px">
+              <label class="fl" style="margin:0"><span data-fr>Expiration</span><span data-en>Expiry</span><input class="inp" id="ccExp" placeholder="MM/AA" oninput="fmtExp(this)" /></label>
+              <label class="fl" style="margin:0"><span>CVC</span><input class="inp" id="ccCvc" inputmode="numeric" maxlength="4" placeholder="123" oninput="this.value=this.value.replace(/\D/g,'')" /></label>
+            </div>
+            <p class="err hide" id="payErr" data-fr>Veuillez compléter les informations de paiement.</p>
+            <p class="err hide" id="payErrEn" data-en>Please complete the payment details.</p>
+            <p style="font-size:11px;color:var(--ink-muted);margin:8px 0 14px">🔒 <span data-fr>Démonstration : aucun paiement réel n'est effectué et aucune donnée de carte n'est transmise. En production, le paiement passe par Stripe (Checkout sécurisé).</span><span data-en>Demo: no real payment is processed and no card data is transmitted. In production, payment goes through Stripe (secure Checkout).</span></p>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-secondary" onclick="toStep(3)"><span data-fr>Retour</span><span data-en>Back</span></button>
+              <button type="submit" id="payBtn" class="btn btn-primary" style="flex:1"><span data-fr>Confirmer et ouvrir mon compte</span><span data-en>Confirm & open my account</span></button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <div class="wrap foot-grid">
+        <div>
+          <p style="font-family:var(--display);font-size:18px;color:var(--warmwhite)">Mwinda <span style="color:var(--amber)">Digital</span></p>
+          <p style="margin-top:8px;max-width:380px"><span data-fr>« Mwinda » signifie lumière en lingala. Des agents IA spécialisés, supervisés, au service de chaque fonction de l'entreprise.</span><span data-en>"Mwinda" means light in Lingala. Specialized, supervised AI agents serving every business function.</span></p>
+          <p style="margin-top:14px"><span class="gdot"></span><span data-fr>Aucune donnée client n'est utilisée pour entraîner un modèle d'IA.</span><span data-en>No client data is ever used to train any AI model.</span></p>
+        </div>
+        <div>
+          <h4 data-fr>Produit</h4><h4 data-en>Product</h4>
+          <button onclick="scrollTo2('catalog')" data-fr>Catalogue d'agents</button><button onclick="scrollTo2('catalog')" data-en>Agent catalog</button>
+          <button onclick="scrollTo2('pricing')" data-fr>Tarifs</button><button onclick="scrollTo2('pricing')" data-en>Pricing</button>
+          <button onclick="go('test')" data-fr>Espace de test</button><button onclick="go('test')" data-en>Test space</button>
+          <button onclick="onAccountBtn()" data-fr>Ouvrir un compte</button><button onclick="onAccountBtn()" data-en>Open an account</button>
+        </div>
+        <div>
+          <h4 data-fr>Confiance</h4><h4 data-en>Trust</h4>
+          <button onclick="scrollTo2('control')" data-fr>Contrôle concepteur</button><button onclick="scrollTo2('control')" data-en>Designer control</button>
+          <button onclick="scrollTo2('catalog')" data-fr>Garde-fous par fonction</button><button onclick="scrollTo2('catalog')" data-en>Per-function guardrails</button>
+          <p style="margin-top:10px;font-size:12px">contact@mwinda.digital</p>
+        </div>
+      </div>
+      <div class="wrap" style="border-top:1px solid var(--night-border);margin-top:26px;padding-top:16px">
+        <p>© <span id="yr"></span> Mwinda Group LLC — Seattle, WA.</p>
+      </div>
+    </footer>
+
+    <script>
+      // ════════ CATALOGUE D'AGENTS (miroir de src/lib/agent/catalog.ts) ════════
+      const AGENTS = [
+        {
+          id:"customer_service", ico:"💬",
+          name:["Agent Service Client 24/7","24/7 Customer Service Agent"],
+          cat:["Service client","Customer service"],
+          tagline:["Répond, qualifie et oriente les demandes clients à toute heure.","Answers, qualifies and routes client requests around the clock."],
+          caps:[["Informations & suivi de commande","Information & order tracking"],["Réclamations de niveau 1","Tier-1 complaints"],["Prise de rendez-vous","Appointment booking"]],
+          guards:[["Aucune promesse de remboursement/geste sans validation","No refund/goodwill promise without approval"],["Ne reconnaît aucune responsabilité en litige","Never acknowledges liability"]],
+          escalate:["combien","prix","tarif","how much","price","cost","remboursement","refund","remboursez","porter plainte","avocat","lawyer","inacceptable","scandaleux","sue"],
+          greet:["Bonjour ! Je suis l'assistant de {f} — je traite votre demande initiale et un membre de l'équipe suivra personnellement. Votre demande concerne-t-elle une information, une commande en cours, ou une réclamation ?","Hello! I'm {f}'s assistant — I handle your initial request and a team member will follow up personally. Is your request about information, an existing order, or a complaint?"],
+          progress:["Merci, c'est noté. Je peux vous proposer un rappel ou un rendez-vous dès demain : 10 h 30 ou 15 h — lequel vous convient ?","Thank you, noted. I can offer a callback or appointment tomorrow: 10:30 am or 3 pm — which works?"],
+          esc:["Je comprends, et je préfère confier cela à un responsable : je ne peux ni promettre un geste commercial ni reconnaître une responsabilité. Je transmets votre dossier en priorité — un membre de {f} vous répondra très vite. Puis-je noter vos coordonnées ?","I understand, and I'd rather hand this to a manager: I can't promise goodwill or acknowledge liability. I'm forwarding your case as a priority — a member of {f} will reply shortly. May I take your details?"],
+          sample:["J'ai un problème avec ma commande reçue hier.","I have a problem with my order received yesterday."],
+          sum:["Demande client entrante. Nature en cours de qualification. Aucune urgence confirmée.","Demande client qualifiée : besoin identifié. Rappel/RDV proposé.","Réclamation sensible (remboursement/responsabilité/recours). Garde-fou appliqué : aucune promesse. Escaladé en priorité."]
+        },
+        {
+          id:"hr", ico:"👥",
+          name:["Agent Ressources Humaines","Human Resources Agent"],
+          cat:["Ressources humaines","Human resources"],
+          tagline:["Répond aux salariés (congés, paie, documents) et pré-qualifie les candidatures.","Answers employees (leave, payroll, documents) and pre-screens applications."],
+          caps:[["Congés, absences & paie","Leave, absence & payroll"],["Attestations & documents","Certificates & documents"],["Pré-qualification candidats","Candidate pre-screening"]],
+          guards:[["Aucun avis en droit du travail — escalade RH","No labor-law advice — HR escalation"],["Sujets sensibles escaladés confidentiellement","Sensitive topics escalated confidentially"],["Aucune donnée d'un autre salarié","No other employee's data"]],
+          escalate:["harcèlement","harassment","discrimination","licenciement","licencier","fired","termination","conflit","avocat","lawyer","dépression","burnout","syndicat","prud'hommes"],
+          greet:["Bonjour ! Je suis l'assistant RH de {f} — je traite votre demande initiale et l'équipe RH suivra personnellement. Votre question porte-t-elle sur vos congés, votre paie, un document, ou une politique interne ?","Hello! I'm {f}'s HR assistant — I handle your initial request and the HR team will follow up personally. Is your question about leave, payroll, a document, or an internal policy?"],
+          progress:["Merci, c'est clair. Je prépare votre demande pour l'équipe RH et je peux proposer un point : mercredi 14 h ou jeudi 11 h. Quel créneau vous convient ?","Thank you, that's clear. I'm preparing your request for HR and can offer a check-in: Wednesday 2 pm or Thursday 11 am. Which works?"],
+          esc:["Merci de votre confiance — je vais confier ce sujet directement à un membre des RH, il est important qu'un humain qualifié s'en occupe en toute confidentialité. Je transmets immédiatement. Souhaitez-vous être recontacté(e) aujourd'hui ?","Thank you for your trust — I'll hand this directly to HR; it's important a qualified person handles it confidentially. I'm forwarding it immediately. Would you like to be contacted today?"],
+          sample:["Je voudrais poser 3 jours de congés le mois prochain.","I'd like to take 3 days of leave next month."],
+          sum:["Demande salarié (RH). Nature en cours de qualification. Aucune sensibilité détectée.","Demande salarié qualifiée : préparée pour l'équipe RH. Point proposé.","SUJET SENSIBLE RH (harcèlement/licenciement/conflit). Garde-fou appliqué. Escaladé IMMÉDIATEMENT et confidentiellement, priorité haute."]
+        },
+        {
+          id:"accounting", ico:"📊",
+          name:["Agent Comptabilité","Accounting Agent"],
+          cat:["Comptabilité & Finance","Accounting & Finance"],
+          tagline:["Gère factures, notes de frais et échéances, collecte les pièces.","Handles invoices, expenses and deadlines, collects documents."],
+          caps:[["Factures & notes de frais","Invoices & expenses"],["Relances & échéances","Reminders & deadlines"],["Collecte de pièces","Document collection"]],
+          guards:[["Aucun conseil fiscal/comptable — escalade","No tax/accounting advice — escalation"],["Aucun montant ferme ni décision de paiement","No firm amount or payment decision"],["N'initie aucun virement","Never initiates a transfer"]],
+          escalate:["combien","prix","how much","je dois combien","solde","payer maintenant","virement","déductible","fiscal","impôt","tax","redressement","urssaf"],
+          greet:["Bonjour ! Je suis l'assistant comptable de {f} — je prépare votre dossier et le comptable validera personnellement. Votre demande concerne-t-elle une facture, une note de frais, une échéance, ou une pièce à transmettre ?","Hello! I'm {f}'s accounting assistant — I prepare your file and the accountant will validate personally. Is your request about an invoice, an expense report, a deadline, or a document to send?"],
+          progress:["Merci, c'est noté. J'ai réuni les éléments pour le comptable. Souhaitez-vous transmettre les pièces par email aujourd'hui, ou en discuter demain matin ou après-midi ?","Thank you, noted. I've gathered the details for the accountant. Send the documents by email today, or discuss tomorrow morning or afternoon?"],
+          esc:["Bonne question, mais je préfère la confier au comptable : je ne peux ni donner d'avis fiscal, ni confirmer un montant. Je transmets — le comptable de {f} vous répondra précisément. Puis-je noter votre disponibilité ?","Good question, but I'd rather hand it to the accountant: I can't give tax advice or confirm an amount. I'm forwarding it — {f}'s accountant will reply precisely. May I note your availability?"],
+          sample:["Pouvez-vous me dire combien je dois déduire de TVA ?","Can you tell me how much VAT I should deduct?"],
+          sum:["Demande comptable entrante. Nature en cours de qualification. Aucune décision requise.","Demande comptable qualifiée : éléments réunis pour le comptable.","Demande d'avis fiscal ou de montant. Garde-fou appliqué : aucun avis/montant/paiement. Escaladé au comptable."]
+        },
+        {
+          id:"administration", ico:"🗂️",
+          name:["Agent Administration","Administration Agent"],
+          cat:["Administration","Administration"],
+          tagline:["Planifie, réceptionne et route les demandes administratives.","Schedules, receives and routes administrative requests."],
+          caps:[["Prise de rendez-vous","Appointment scheduling"],["Réception & classement de documents","Document intake & filing"],["Orientation vers les services","Routing to departments"]],
+          guards:[["Aucune décision engageant l'organisation","No decision committing the org"],["Aucune info confidentielle sans autorisation","No confidential info without authorization"]],
+          escalate:["signer","signature","engager","valider le contrat","confidentiel","autorisation","avocat","juridique","legal","sign","contract"],
+          greet:["Bonjour ! Je suis l'assistant administratif de {f} — je traite votre demande initiale et le service concerné suivra. Votre demande porte-t-elle sur un rendez-vous, un document à transmettre, ou une information pratique ?","Hello! I'm {f}'s administrative assistant — I handle your initial request and the relevant department will follow up. Is it about an appointment, a document to send, or practical information?"],
+          progress:["Merci, c'est enregistré. Je peux planifier cela : mardi 9 h ou mercredi 16 h, ou orienter votre document vers le bon service. Que préférez-vous ?","Thank you, recorded. I can schedule this: Tuesday 9 am or Wednesday 4 pm, or route your document. What do you prefer?"],
+          esc:["Cette demande engage l'organisation, je préfère la confier à la personne habilitée. Je la transmets au service concerné de {f}. Souhaitez-vous être recontacté(e) aujourd'hui ou demain ?","This request commits the organization, so I'd rather hand it to the authorized person. I'm forwarding it to the relevant department at {f}. Contact you today or tomorrow?"],
+          sample:["J'ai besoin d'un rendez-vous avec le service juridique.","I need an appointment with the legal department."],
+          sum:["Demande administrative entrante. Objet en cours de qualification. Aucune décision requise.","Demande administrative qualifiée : planification/routage en cours.","Demande engageant l'organisation (signature/validation). Garde-fou appliqué. Escaladé au service habilité."]
+        },
+        {
+          id:"sales", ico:"📈",
+          name:["Agent Ventes & Qualification","Sales & Qualification Agent"],
+          cat:["Ventes","Sales"],
+          tagline:["Qualifie les prospects et propose des démonstrations.","Qualifies leads and proposes demos."],
+          caps:[["Qualification (besoin, budget, échéance)","Qualification (need, budget, timeline)"],["Prise de RDV & démonstrations","Demo & meeting booking"],["Transmission au commercial","Handoff to a rep"]],
+          guards:[["Aucun prix ferme/remise/condition — escalade","No firm price/discount/terms — escalation"],["Aucune promesse de fonctionnalité/délai","No feature/delivery promise"]],
+          escalate:["combien","prix","tarif","how much","price","remise","discount","devis ferme","contrat","garantie","guarantee","délai de livraison"],
+          greet:["Bonjour ! Je suis l'assistant commercial de {f} — je prépare votre échange et un commercial confirmera personnellement. Quel est votre besoin principal, et pour quelle échéance envisagez-vous une solution ?","Hello! I'm {f}'s sales assistant — I prepare your inquiry and a rep will confirm personally. What's your main need, and by when are you considering a solution?"],
+          progress:["Merci, votre besoin est clair. Je vous propose une démonstration avec un commercial : jeudi 10 h ou vendredi 15 h. Lequel vous convient ?","Thank you, your need is clear. I can set up a demo with a rep: Thursday 10 am or Friday 3 pm. Which works?"],
+          esc:["Excellente question, mais je préfère laisser un commercial vous répondre : je ne peux ni annoncer de prix ferme ni m'engager sur des conditions. Je transmets — un commercial de {f} reviendra vite vers vous. Puis-je réserver un créneau de démonstration ?","Great question, but I'd rather let a rep answer: I can't quote a firm price or commit to terms. I'm forwarding it — a {f} rep will get back quickly. May I book a demo slot?"],
+          sample:["Quel est votre prix pour 50 utilisateurs ?","What's your price for 50 users?"],
+          sum:["Prospect entrant (ventes). Besoin et échéance en qualification.","Prospect qualifié (ventes) : besoin identifié. Démonstration proposée.","Demande de prix ferme/remise/conditions. Garde-fou appliqué : aucun engagement. Escaladé à un commercial."]
+        },
+        {
+          id:"it_support", ico:"🛠️",
+          name:["Agent Support IT","IT Support Agent"],
+          cat:["Support informatique","IT support"],
+          tagline:["Trie les demandes, propose les résolutions de niveau 1, escalade.","Triages requests, offers tier-1 fixes, escalates."],
+          caps:[["Tri & création de tickets","Triage & ticket creation"],["Dépannage de premier niveau","Tier-1 troubleshooting"],["Escalade technicien","Technician escalation"]],
+          guards:[["Aucune manipulation de mot de passe en clair","No cleartext password handling"],["Aucune action destructrice guidée","No destructive action guided"],["Incident de sécurité escaladé en priorité","Security incident escalated as priority"]],
+          escalate:["pirat","intrusion","fuite","rançongiciel","ransomware","phishing","hack","breach","supprimer","delete","formater","format","mot de passe","password","virus","malware"],
+          greet:["Bonjour ! Je suis l'assistant support IT de {f} — je qualifie votre demande et un technicien prend le relais si besoin. Pouvez-vous décrire le problème, le matériel ou logiciel concerné, et un éventuel message d'erreur ?","Hello! I'm {f}'s IT support assistant — I triage your request and a technician takes over if needed. Can you describe the problem, the device/software, and any error message?"],
+          progress:["Merci, c'est clair. Je crée un ticket avec ces éléments. Un technicien peut vous rappeler : aujourd'hui 14 h ou demain 10 h. Quel créneau préférez-vous ?","Thank you, that's clear. I'm creating a ticket. A technician can call you back: today 2 pm or tomorrow 10 am. Which slot?"],
+          esc:["Je préfère confier cela immédiatement à un technicien : par sécurité, je ne guide aucune manipulation sensible ni ne traite de mot de passe. Je remonte votre demande en priorité auprès de l'équipe de {f}. Restez disponible, on vous recontacte au plus vite.","I'd rather hand this to a technician immediately: for safety I don't guide sensitive actions or handle passwords. I'm escalating as a priority to {f}'s team. Please stay available; we'll get back very soon."],
+          sample:["Je crois que mon poste a été piraté, aidez-moi vite.","I think my computer was hacked, help me fast."],
+          sum:["Demande support IT entrante. Problème en cours de qualification. Aucun incident de sécurité signalé.","Demande support IT qualifiée : ticket créé. Rappel technicien proposé.","INCIDENT SENSIBLE IT (sécurité/mot de passe/action destructrice). Garde-fou appliqué. Escaladé IMMÉDIATEMENT, priorité haute."]
+        }
+      ];
+      const AGENT_BY_ID = Object.fromEntries(AGENTS.map(a => [a.id, a]));
+
+      // ════════ i18n ════════
+      let LANG = "fr";
+      const L = (arr) => (LANG === "en" ? arr[1] : arr[0]);
+      const T = (fr, en) => (LANG === "en" ? en : fr);
+      function setLang(l, btn) {
+        LANG = l;
+        document.body.classList.toggle("en", l === "en");
+        document.documentElement.lang = l;
+        document.querySelectorAll(".lang button").forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        document.querySelectorAll("option[data-l]").forEach(o => { const [fr,en]=o.getAttribute("data-l").split("|"); o.textContent = l==="en"?en:fr; });
+        renderCatalog(); renderWorkspace(); renderAgentSwitch(); refreshChatChrome(); renderAccountBtn();
+      }
+
+      // ════════ Navigation ════════
+      function go(view) {
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        document.getElementById({home:"view-home",dash:"view-dash",test:"view-test"}[view]).classList.add("active");
+        if (view === "dash") renderWorkspace();
+        if (view === "test") startTest();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function scrollTo2(id){ go("home"); setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"}),80); }
+
+      // ════════ Compte (localStorage) ════════
+      const KEY = "mwinda_account_v2";
+      const getAccount = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
+      function renderAccountBtn() {
+        const a = getAccount();
+        document.getElementById("accountBtn").innerHTML = a
+          ? `<span data-fr>Mon espace</span><span data-en>My workspace</span>`
+          : `<span data-fr>Ouvrir un compte</span><span data-en>Open an account</span>`;
+      }
+      function onAccountBtn(){ if (getAccount()) { go("dash"); } else { preselect = []; openSignup(false); } }
+
+      // ════════ Catalogue (accueil) ════════
+      function renderCatalog() {
+        const g = document.getElementById("catalogGrid");
+        g.innerHTML = AGENTS.map(a => `
+          <div class="card agent-card">
+            <div class="agent-ico">${a.ico}</div>
+            <div class="agent-cat">${L(a.cat)}</div>
+            <h3>${L(a.name)}</h3>
+            <p class="agent-tag">${L(a.tagline)}</p>
+            <ul class="caps">${a.caps.map(c=>`<li>${L(c)}</li>`).join("")}</ul>
+            <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="deployFromCatalog('${a.id}')">${T("Déployer cet agent","Deploy this agent")}</button>
+          </div>`).join("");
+      }
+      function deployFromCatalog(id){ preselect = [id]; openSignup(false); }
+
+      // ════════ Modale ════════
+      let preselect = [];
+      function openSignup(prefill) {
+        const f = document.getElementById("signupForm");
+        if (prefill) {
+          const a = getAccount();
+          if (a) {
+            f.name.value=a.name||""; f.email.value=a.email||""; f.company.value=a.company||"";
+            f.sector.value=a.sector||""; f.size.value=a.size||"1-10"; f.country.value=a.country||"";
+            f.languages.value=a.languages||"both";
+            [...f.profileType].forEach(r=>r.checked=r.value===a.profileType);
+            preselect = (a.agents||[]).map(x=>x.id);
+          }
+        } else if (!getAccount()) {
+          f.reset();
+          [...f.profileType].forEach(r=>r.checked=r.value==="company");
+        }
+        // Construire les cases APRÈS un éventuel reset, sinon la présélection est perdue.
+        buildAgentPick();
+        toStep(1);
+        toggleCompany();
+        document.getElementById("signupModal").classList.add("open");
+      }
+      function closeSignup(){ document.getElementById("signupModal").classList.remove("open"); }
+      function toStep(n) {
+        [1,2,3,4].forEach(i=>{
+          document.getElementById("step"+i).classList.toggle("hide", i!==n);
+          document.getElementById("s"+i).classList.toggle("on", n>=i || i===1);
+          document.getElementById("sl"+i).classList.toggle("on", i===n);
+        });
+        if (n===3) buildAgentConfigs();
+      }
+      function validateStep1() {
+        const f = document.getElementById("signupForm");
+        const ok = f.name.value.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim());
+        document.getElementById("step1Err").classList.toggle("hide", ok);
+        if (ok) toStep(2);
+      }
+      function toggleCompany(){
+        const isCo = document.querySelector('input[name="profileType"]:checked').value==="company";
+        document.getElementById("companyField").style.display = isCo ? "block":"none";
+      }
+      function buildAgentPick() {
+        document.getElementById("agentPick").innerHTML = AGENTS.map(a=>`
+          <label>
+            <input type="checkbox" name="pick" value="${a.id}" ${preselect.includes(a.id)?"checked":""} onchange="onPickChange()">
+            <span class="pico">${a.ico}</span>
+            <span><span class="pt">${L(a.name)}</span><br><span class="ps">${L(a.cat)}</span></span>
+          </label>`).join("");
+      }
+      function onPickChange(){ document.getElementById("pickErr").classList.add("hide"); }
+      function selectedAgentIds(){ return [...document.querySelectorAll('input[name="pick"]:checked')].map(i=>i.value); }
+      function buildAgentConfigs() {
+        const ids = selectedAgentIds();
+        const existing = (getAccount()?.agents)||[];
+        document.getElementById("agentConfigs").innerHTML = ids.map(id=>{
+          const a=AGENT_BY_ID[id]; const prev=existing.find(x=>x.id===id)||{};
+          return `<div class="cfg-agent" data-id="${id}">
+            <div class="h"><span>${a.ico}</span><span class="n">${L(a.name)}</span></div>
+            <label class="fl" style="margin-bottom:10px"><span>${T("Nom personnalisé de l'agent","Custom agent name")}</span>
+              <input class="inp cfg-name" value="${prev.customName||L(a.name)}" /></label>
+            <div class="pick">
+              <label class="fl" style="margin:0"><span>${T("Ton","Tone")}</span>
+                <select class="inp cfg-tone">
+                  <option value="professional" ${prev.tone==="professional"?"selected":""}>${T("Professionnel","Professional")}</option>
+                  <option value="formal" ${prev.tone==="formal"?"selected":""}>${T("Formel","Formal")}</option>
+                  <option value="concise" ${prev.tone==="concise"?"selected":""}>${T("Concis","Concise")}</option>
+                </select></label>
+              <label class="fl" style="margin:0"><span>${T("Périmètre (optionnel)","Scope (optional)")}</span>
+                <input class="inp cfg-scope" value="${prev.scope||""}" placeholder="${T("Ex. Clients FR uniquement","E.g. FR clients only")}" /></label>
+            </div>
+          </div>`;
+        }).join("");
+      }
+      // ─── Tarification ───
+      const UNIT = 290;   // $ / agent / mois
+      const SETUP = 750;  // frais d'installation unique (déductible du diagnostic)
+      const money = (n) => new Intl.NumberFormat(LANG==="en"?"en-US":"fr-FR").format(n) + " $";
+      let pendingAccount = null;
+
+      // Capture la config à l'étape 3 -> prépare le paiement (compte NON encore ouvert)
+      function toPayment() {
+        const ids = selectedAgentIds();
+        if (ids.length === 0) { toStep(2); document.getElementById("pickErr").classList.remove("hide"); return; }
+        const f = document.getElementById("signupForm");
+        const agents = [...document.querySelectorAll("#agentConfigs .cfg-agent")].map(d=>({
+          id: d.getAttribute("data-id"),
+          customName: d.querySelector(".cfg-name").value.trim() || L(AGENT_BY_ID[d.getAttribute("data-id")].name),
+          tone: d.querySelector(".cfg-tone").value,
+          scope: d.querySelector(".cfg-scope").value.trim(),
+        }));
+        pendingAccount = {
+          profileType: f.profileType.value, name: f.name.value.trim(), email: f.email.value.trim(),
+          company: f.company.value.trim(), sector: f.sector.value.trim(), size: f.size.value,
+          country: f.country.value.trim(), languages: f.languages.value, agents,
+        };
+        toStep(4); renderPaySummary();
+      }
+      function renderPaySummary() {
+        if (!pendingAccount) return;
+        const list = pendingAccount.agents;
+        document.getElementById("paySummary").innerHTML =
+          `<div class="k" style="margin-bottom:8px">${T("Agents déployés","Deployed agents")} (${list.length})</div>` +
+          list.map(x=>`<div style="display:flex;justify-content:space-between;font-size:14px;padding:3px 0"><span>${AGENT_BY_ID[x.id].ico} ${x.customName}</span><span style="color:var(--ink-muted)">${money(UNIT)}/${T("mois","mo")}</span></div>`).join("");
+        const cycle = (document.querySelector('input[name="cycle"]:checked')||{}).value || "monthly";
+        const monthly = list.length * UNIT;
+        const perMonth = cycle==="annual" ? Math.round(monthly*0.8) : monthly;
+        const label = cycle==="annual"
+          ? `${money(perMonth)} /${T("mois","mo")} · ${money(perMonth*12)} /${T("an","yr")}`
+          : `${money(perMonth)} /${T("mois","mo")}`;
+        document.getElementById("payTotal").innerHTML =
+          `<span style="font-size:14px;color:var(--ink-muted);font-family:var(--body)">${T("Installation unique","One-time setup")} ${money(SETUP)} + ${T("abonnement","subscription")}</span><span style="font-size:22px">${label}</span>`;
+      }
+      function fmtCard(el){ el.value = el.value.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim(); }
+      function fmtExp(el){ let v=el.value.replace(/\D/g,"").slice(0,4); if(v.length>=3) v=v.slice(0,2)+"/"+v.slice(2); el.value=v; }
+
+      // Confirme le paiement -> OUVRE le compte (activation)
+      function confirmPayment(e) {
+        e.preventDefault();
+        if (!pendingAccount) { toStep(1); return false; }
+        const num = (document.getElementById("ccNum").value||"").replace(/\s/g,"");
+        const exp = document.getElementById("ccExp").value||"";
+        const cvc = document.getElementById("ccCvc").value||"";
+        const name = document.getElementById("ccName").value.trim();
+        const ok = name && num.length>=13 && /^\d{2}\/\d{2}$/.test(exp) && cvc.length>=3;
+        if (!ok) { document.getElementById("payErr").classList.remove("hide"); document.getElementById("payErrEn").classList.remove("hide"); return false; }
+
+        const btn = document.getElementById("payBtn");
+        btn.disabled = true;
+        btn.innerHTML = `<span data-fr>Paiement en cours…</span><span data-en>Processing payment…</span>`;
+        // Simulation du traitement sécurisé (Stripe en production)
+        setTimeout(()=>{
+          const cycle = (document.querySelector('input[name="cycle"]:checked')||{}).value || "monthly";
+          const monthly = pendingAccount.agents.length * UNIT;
+          const perMonth = cycle==="annual" ? Math.round(monthly*0.8) : monthly;
+          const acc = {
+            ...pendingAccount,
+            // Chaque agent démarre « à déployer », canaux déconnectés
+            agents: pendingAccount.agents.map(x => ({
+              ...x, status: "pending",
+              channels: { email: false, form: false, api: false },
+            })),
+            paid: true, status: "active",
+            plan: { cycle, agents: pendingAccount.agents.length, perMonth, setup: SETUP },
+            openedAt: new Date().toISOString(),
+            invoiceId: "MW-" + Math.random().toString(36).slice(2,8).toUpperCase(),
+            cardLast4: num.slice(-4),
+          };
+          localStorage.setItem(KEY, JSON.stringify(acc));
+          btn.disabled = false;
+          btn.innerHTML = `<span data-fr>Confirmer et ouvrir mon compte</span><span data-en>Confirm & open my account</span>`;
+          closeSignup(); renderAccountBtn();
+          justOpened = true; go("dash");
+        }, 1300);
+        return false;
+      }
+
+      // ════════ Workspace ════════
+      let justOpened = false;
+      const orgName = (a) => a.company || a.name || "—";
+      const money2 = (n) => new Intl.NumberFormat(LANG==="en"?"en-US":"fr-FR").format(n) + " $";
+      function renderWorkspace() {
+        const a = getAccount(); if (!a) return;
+        document.getElementById("wsCompany").textContent = orgName(a);
+        document.getElementById("wsSub").textContent =
+          [a.profileType==="company"?T("Entreprise","Company"):T("Indépendant","Freelance"), a.sector, a.size, a.country].filter(Boolean).join(" · ");
+        // Bannière de confirmation d'ouverture (après paiement)
+        const banner = document.getElementById("wsBanner");
+        if (justOpened && a.paid) {
+          banner.classList.remove("hide");
+          banner.innerHTML = T(
+            `✅ Compte ouvert et activé. Paiement confirmé (facture ${a.invoiceId||""}, carte •••• ${a.cardLast4||"—"}). Vos ${a.agents.length} agent(s) sont prêts : déployez-les ci-dessous, puis connectez leurs canaux.`,
+            `✅ Account opened and activated. Payment confirmed (invoice ${a.invoiceId||""}, card •••• ${a.cardLast4||"—"}). Your ${a.agents.length} agent(s) are ready: deploy them below, then connect their channels.`);
+          justOpened = false;
+        } else { banner.classList.add("hide"); }
+        // Ligne d'abonnement
+        const plan = a.plan;
+        document.getElementById("wsPlan").innerHTML = plan
+          ? `● ${T("Abonnement actif","Active subscription")} — ${money2(plan.perMonth)}/${T("mois","mo")} · ${plan.cycle==="annual"?T("facturation annuelle","annual billing"):T("mensuel","monthly")} · ${plan.agents} ${T("agent(s)","agent(s)")}`
+          : `<span style="color:var(--amber-soft)">${T("Abonnement en attente de paiement","Subscription pending payment")}</span>`;
+        // KPIs de démonstration — déterministes (compte + jour) pour rester stables
+        const seedStr = (a.email||"") + new Date().toDateString();
+        let h = 0; for (const c of seedStr) h = (h*31 + c.charCodeAt(0)) >>> 0;
+        const rnd = (min,max) => { h = (h*1103515245 + 12345) >>> 0; return min + (h % (max-min+1)); };
+        const n = (a.agents||[]).length || 1;
+        const conv = rnd(14,38)*n, esc = Math.max(1, Math.round(conv*rnd(8,14)/100));
+        const kpi = (kFr,kEn,v,dFr,dEn) => `<div class="kpi"><div class="k">${T(kFr,kEn)}</div><div class="kv">${v}</div><div class="kd">${T(dFr,dEn)}</div></div>`;
+        document.getElementById("wsKpis").innerHTML =
+          kpi("Conversations ce mois","Conversations this month", conv, "données de démonstration","demo data") +
+          kpi("Escalades à l'humain","Human escalations", esc, "cas sensibles transmis","sensitive cases handed off") +
+          kpi("Temps de réponse moyen","Avg response time", rnd(40,110)+" s", "24/7, week-ends compris","24/7, weekends included") +
+          kpi("Heures économisées (est.)","Hours saved (est.)", Math.round(conv*0.2), "≈ 12 min par demande","≈ 12 min per request");
+        // Checklist de démarrage — états réels du cycle de vie
+        const tested = localStorage.getItem("mwinda_tested") === "1";
+        const allDeployed = (a.agents||[]).every(x => (x.status||"active") === "active");
+        const anyConnected = (a.agents||[]).some(x => connCount(x) > 0);
+        const item = (done, fr, en, action) =>
+          `<li class="${done?"done":""}"><span class="ci">${done?"✓":""}</span><span>${T(fr,en)}${!done&&action?` — <button style="background:none;border:none;color:var(--amber);cursor:pointer;font-size:13px;padding:0;font-family:var(--body)" onclick="${action}">${T("faire maintenant","do it now")}</button>`:""}</span></li>`;
+        document.getElementById("wsChecklist").innerHTML =
+          item(true, "Compte ouvert et paiement confirmé", "Account opened and payment confirmed") +
+          item(allDeployed, `Déployer vos ${n} agent(s)`, `Deploy your ${n} agent(s)`, "document.getElementById('wsAgents').scrollIntoView({behavior:'smooth'})") +
+          item(anyConnected, "Connecter au moins un canal (email, formulaire, API)", "Connect at least one channel (email, form, API)", "document.getElementById('wsAgents').scrollIntoView({behavior:'smooth'})") +
+          item(tested, "Tester votre premier agent", "Test your first agent", "go('test')");
+        document.getElementById("wsAgents").innerHTML = (a.agents||[]).map(x=>{
+          const def=AGENT_BY_ID[x.id];
+          const status = x.status || "active"; // rétro-compat comptes existants
+          const stHtml = status === "pending"
+            ? `<div class="st st-pending">◌ ${T("Prêt à déployer","Ready to deploy")}</div>`
+            : status === "deploying"
+              ? `<div class="st st-deploying"><span class="spin"></span> ${T("Déploiement en cours…","Deploying…")}</div>`
+              : `<div class="st">● ${T("Actif — supervisé","Active — supervised")}</div>`;
+          const mainBtn = status === "pending"
+            ? `<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="deployAgent('${x.id}')">🚀 ${T("Déployer cet agent","Deploy this agent")}</button>`
+            : status === "deploying"
+              ? `<button class="btn btn-primary btn-sm" style="margin-top:8px" disabled>${T("Déploiement…","Deploying…")}</button>`
+              : `<div style="display:flex;gap:8px;margin-top:8px">
+                   <button class="btn btn-primary btn-sm" style="flex:1" onclick="testAgent('${x.id}')">${T("Tester","Test")}</button>
+                   <button class="btn btn-secondary btn-sm" style="flex:1" onclick="toggleConn('${x.id}')">${T("Connecter","Connect")} ${connCount(x)?`(${connCount(x)})`:""}</button>
+                 </div>`;
+          return `<div class="card ws-agent" id="wsA-${x.id}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div style="display:flex;gap:10px;align-items:center"><span class="agent-ico">${def.ico}</span>
+                <div><div style="color:var(--warmwhite);font-weight:600">${x.customName}</div><div class="agent-cat">${L(def.cat)}</div></div></div>
+              <span class="badge-mwinda">🛡️ Mwinda</span>
+            </div>
+            ${stHtml}
+            ${mainBtn}
+            ${status==="active" ? connPanel(a, x) : ""}
+          </div>`;
+        }).join("");
+      }
+
+      // ─── Déploiement & connexions ───
+      const slugify = (s) => (s||"entreprise").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30) || "entreprise";
+      const connCount = (x) => Object.values(x.channels||{}).filter(Boolean).length;
+      const openConn = new Set(); // panneaux de connexion ouverts
+
+      function saveAgents(mutate) {
+        const a = getAccount(); if (!a) return null;
+        mutate(a);
+        localStorage.setItem(KEY, JSON.stringify(a));
+        return a;
+      }
+      function deployAgent(id) {
+        // pending -> deploying (provisioning simulé) -> active
+        saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x && (x.status||"active")==="pending") x.status="deploying"; });
+        renderWorkspace();
+        setTimeout(() => {
+          saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x) x.status="active"; });
+          openConn.add(id); // ouvre le panneau de connexion à l'activation
+          renderWorkspace();
+        }, 1400);
+      }
+      function toggleConn(id) { openConn.has(id) ? openConn.delete(id) : openConn.add(id); renderWorkspace(); }
+      function connectChannel(id, ch) {
+        saveAgents(a => { const x=a.agents.find(t=>t.id===id); if (x) { x.channels=x.channels||{email:false,form:false,api:false}; x.channels[ch]=!x.channels[ch]; } });
+        renderWorkspace();
+      }
+      function connPanel(a, x) {
+        if (!openConn.has(x.id)) return "";
+        const dom = slugify(orgName(a));
+        const agentSlug = x.id.replace(/_/g,"-");
+        const ch = x.channels || {};
+        const row = (key, name, value) => `
+          <div class="conn-row">
+            <div><div class="cn">${name}</div><div class="cv">${value}</div></div>
+            <button type="button" class="conn-btn ${ch[key]?"on":""}" onclick="connectChannel('${x.id}','${key}')">${ch[key]?("✓ "+T("Connecté","Connected")):T("Connecter","Connect")}</button>
+          </div>`;
+        return `<div class="conn-panel">
+          <div class="k" style="margin-bottom:6px">${T("Canaux de l'agent","Agent channels")}</div>
+          ${row("email", T("Adresse email dédiée","Dedicated email address"), `${agentSlug}@${dom}.mwinda.digital`)}
+          ${row("form", T("Formulaire web (widget à intégrer)","Web form (embeddable widget)"), `&lt;script src="https://cdn.mwinda.digital/widget.js" data-agent="${dom}/${agentSlug}"&gt;`)}
+          ${row("api", T("Webhook API entrant","Inbound API webhook"), `POST https://api.mwinda.digital/v1/inbound/${dom}/${agentSlug}`)}
+          <p style="font-size:10px;color:var(--ink-muted);margin-top:8px">${T("Démonstration : en production, ces canaux sont provisionnés par l'équipe Mwinda et reliés au webhook /api/webhooks/inbound.","Demo: in production these channels are provisioned by the Mwinda team and wired to the /api/webhooks/inbound endpoint.")}</p>
+        </div>`;
+      }
+
+      function manageBilling() {
+        const a = getAccount(); if (!a) return;
+        const banner = document.getElementById("wsBanner");
+        banner.classList.remove("hide");
+        banner.style.borderColor = "rgba(245,166,35,.4)";
+        banner.style.background = "rgba(245,166,35,.08)";
+        banner.style.color = "var(--amber-soft)";
+        banner.innerHTML = a.plan
+          ? T(`Abonnement ${a.plan.cycle==="annual"?"annuel":"mensuel"} · ${money2(a.plan.perMonth)}/mois · carte •••• ${a.cardLast4||"—"}. En production, ce bouton ouvre le portail Stripe (changer de carte, facture, résiliation).`,
+              `${a.plan.cycle==="annual"?"Annual":"Monthly"} subscription · ${money2(a.plan.perMonth)}/mo · card •••• ${a.cardLast4||"—"}. In production, this button opens the Stripe portal (change card, invoices, cancellation).`)
+          : T("Aucun abonnement actif.","No active subscription.");
+      }
+
+      // ════════ Test / Chat ════════
+      let currentAgentId = null;
+      let history = [];
+      function deployedAgents(){ const a=getAccount(); return (a&&a.agents&&a.agents.length)?a.agents:[{id:"customer_service",customName:L(AGENT_BY_ID.customer_service.name),tone:"professional"}]; }
+      function testAgent(id){ currentAgentId=id; go("test"); }
+      function startTest() {
+        const list = deployedAgents();
+        if (!currentAgentId || !list.find(x=>x.id===currentAgentId)) currentAgentId = list[0].id;
+        history = [];
+        renderAgentSwitch();
+        refreshChatChrome();
+        resetAnalysis();
+        renderEmpty();
+      }
+      function renderAgentSwitch() {
+        const list = deployedAgents();
+        document.getElementById("agentSwitch").innerHTML = list.map(x=>{
+          const def=AGENT_BY_ID[x.id];
+          return `<button class="${x.id===currentAgentId?"active":""}" onclick="switchAgent('${x.id}')"><span>${def.ico}</span><span>${x.customName}</span></button>`;
+        }).join("");
+      }
+      function switchAgent(id){ currentAgentId=id; history=[]; renderAgentSwitch(); refreshChatChrome(); resetAnalysis(); renderEmpty(); }
+      function currentConfig(){
+        const x = deployedAgents().find(a=>a.id===currentAgentId) || deployedAgents()[0];
+        const acc = getAccount();
+        return { def: AGENT_BY_ID[x.id], customName: x.customName, firm: acc?orgName(acc):"votre entreprise" };
+      }
+      function refreshChatChrome() {
+        const c = currentConfig();
+        document.getElementById("chatTitle").textContent = c.customName + " · " + L(c.def.cat);
+        const inp=document.getElementById("chatInput"); if(inp) inp.placeholder=T("Écrivez comme un interlocuteur… (FR ou EN)","Write as a counterpart… (FR or EN)");
+        document.getElementById("aGuards").innerHTML = c.def.guards.map(g=>`<div><span class="gdot"></span>${L(g)}</div>`).join("")
+          + `<div><span class="gdot"></span>${T("Escalade au moindre doute (résumé 5 lignes)","Escalates at the slightest doubt (5-line summary)")}</div>`;
+      }
+      function renderEmpty() {
+        const c = currentConfig();
+        document.getElementById("msgs").innerHTML =
+          `<div class="empty-hint"><span class="blk">${T("Envoyez un premier message. Essayez :","Send a first message. Try:")}</span><div class="suggestion" onclick="useSuggestion()">« ${L(c.def.sample)} »</div></div>`;
+      }
+      function useSuggestion(){ const c=currentConfig(); const i=document.getElementById("chatInput"); i.value=L(c.def.sample); i.focus(); }
+      function addBubble(role, text) {
+        const box=document.getElementById("msgs"); const h=box.querySelector(".empty-hint"); if(h) h.remove();
+        const row=document.createElement("div"); row.className="row "+(role==="user"?"u":"a");
+        row.innerHTML=`<div class="bub">${text.replace(/</g,"&lt;")}</div>`;
+        box.appendChild(row); box.scrollTop=box.scrollHeight;
+      }
+
+      // ════════ Moteur d'agent (mock déterministe, miroir de mock.ts) ════════
+      const EN_HINTS=["hello","hi ","the ","my ","i ","can you","need","help","please","what","how","when","order","problem","password","hacked","price","invoice","leave","payroll"];
+      const FR_HINTS=["bonjour","bonsoir","je ","j'ai","il me faut","vous ","merci","besoin","combien","facture","congé","paie","commande","problème","mot de passe","piraté"];
+      function detectLang(t){ const s=" "+t.toLowerCase()+" "; const en=EN_HINTS.filter(h=>s.includes(h)).length; const fr=FR_HINTS.filter(h=>s.includes(h)).length; return en>fr?"EN":"FR"; }
+      function runAgent(def, firm, hist) {
+        const turns = hist.filter(m=>m.role==="user");
+        const text = turns[turns.length-1]?.content || "";
+        const lang = detectLang(text); const low=text.toLowerCase();
+        const fill = (s)=>s.replaceAll("{f}", firm);
+        if (def.escalate.some(k=>low.includes(k)))
+          return { reply:fill(L(def.esc)), score:55, action:"ESCALATE", lang, summary:def.sum[2] };
+        if (turns.length<=1)
+          return { reply:fill(L(def.greet)), score:35, action:"RESPOND", lang, summary:def.sum[0] };
+        return { reply:fill(L(def.progress)), score:78, action:"PROPOSE_APPOINTMENT", lang, summary:def.sum[1] };
+      }
+      function sendMsg(e){
+        e.preventDefault();
+        const inp=document.getElementById("chatInput"); const text=inp.value.trim(); if(!text) return false;
+        addBubble("user", text); history.push({role:"user",content:text}); inp.value="";
+        localStorage.setItem("mwinda_tested","1"); // coche l'étape « tester » de la checklist
+        setTimeout(()=>{
+          const c=currentConfig();
+          const r=runAgent(c.def, c.firm, history);
+          addBubble("agent", r.reply); history.push({role:"assistant",content:r.reply});
+          updateAnalysis(r);
+        }, 340);
+        return false;
+      }
+      const ACTION_LABEL={RESPOND:["Continuer la conversation","Continue the conversation"],PROPOSE_APPOINTMENT:["Proposer une action / un RDV","Propose an action / appointment"],ESCALATE:["Escalader à l'humain","Escalate to a human"]};
+      function resetAnalysis(){ document.getElementById("aScore").textContent="—"; document.getElementById("aScoreBar").style.width="0"; document.getElementById("aAction").innerHTML="—"; document.getElementById("aLang").textContent="—"; document.getElementById("aSummary").textContent="—"; }
+      function updateAnalysis(r){
+        document.getElementById("aScore").textContent=r.score+" / 100";
+        const bar=document.getElementById("aScoreBar"); bar.style.width=r.score+"%";
+        bar.style.background=r.score>=61?"var(--emerald)":r.score>=31?"var(--amber)":"var(--red)";
+        const col=r.action==="ESCALATE"?"var(--red)":r.action==="PROPOSE_APPOINTMENT"?"var(--emerald)":"var(--amber)";
+        document.getElementById("aAction").innerHTML=`<span class="chip" style="border-color:${col};color:${col}">${L(ACTION_LABEL[r.action])}</span>`;
+        document.getElementById("aLang").textContent=r.lang==="FR"?"Français":"English";
+        document.getElementById("aSummary").textContent=r.summary;
+      }
+
+      // ════════ Exemple de test guidé (auto-play) ════════
+      // Rejoue un scénario complet sur l'agent courant : question type →
+      // qualification → sujet sensible → escalade avec résumé pour l'humain.
+      let exampleRunning = false;
+      function scriptedTurn(text, done){
+        addBubble("user", text); history.push({role:"user",content:text});
+        setTimeout(()=>{
+          const c=currentConfig();
+          const r=runAgent(c.def, c.firm, history);
+          addBubble("agent", r.reply); history.push({role:"assistant",content:r.reply});
+          updateAnalysis(r);
+          if(done) done();
+        }, 620);
+      }
+      function playExample(){
+        if (exampleRunning) return;
+        exampleRunning = true;
+        const btn=document.getElementById("playBtn");
+        if(btn){ btn.disabled=true; btn.innerHTML="⏳ "+T("Exemple en cours…","Example running…"); }
+        history=[]; resetAnalysis(); document.getElementById("msgs").innerHTML="";
+        const c=currentConfig();
+        const kw=(c.def.escalate&&c.def.escalate[0])||"urgent";
+        const finish=()=>{
+          localStorage.setItem("mwinda_tested","1"); // coche l'étape « tester » de la checklist
+          exampleRunning=false;
+          if(btn){ btn.disabled=false; btn.innerHTML="▶ "+T("Rejouer l'exemple","Replay example"); }
+        };
+        scriptedTurn(L(c.def.sample), ()=>setTimeout(()=>
+          scriptedTurn(T("Oui, c'est bien ça. Pouvez-vous avancer sur ce point cette semaine ?","Yes, exactly. Can you move forward on this point this week, please?"), ()=>setTimeout(()=>
+            scriptedTurn(T(`Dernière chose, un sujet sensible : ${kw}… Je préfère en parler à un humain.`,`One last thing, please — a sensitive topic: ${kw}… I would rather discuss it with a human.`), finish)
+          , 900))
+        , 900));
+      }
+
+      // ════════ Init ════════
+      document.getElementById("yr").textContent=new Date().getFullYear();
+      renderCatalog(); renderAccountBtn(); toggleCompany();
+    </script>
+  </body>
+</html>

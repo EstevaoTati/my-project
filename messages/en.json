@@ -1,0 +1,554 @@
+{
+  "meta": {
+    "siteName": "Mwinda Digital — AI Agents Agency",
+    "home": {
+      "title": "Mwinda Digital — AI Agents for Professional Service Firms",
+      "description": "We capture the clients you're losing. A bilingual FR/EN 24/7 Client Reception Agent for tax preparers, immigration lawyers and insurance agents."
+    },
+    "how": {
+      "title": "How It Works — Mwinda Digital",
+      "description": "5 steps, strict guardrails, and complete logging. See exactly how your 24/7 Client Reception Agent operates."
+    },
+    "pricing": {
+      "title": "Pricing — Mwinda Digital",
+      "description": "$750 Diagnostic, $2,500 Setup, subscription from $500/month. Three tiers: Essential, Pro, Firm."
+    },
+    "verticals": {
+      "title": "By Profession — Mwinda Digital",
+      "description": "AI agents configured for your profession: tax, immigration, insurance."
+    },
+    "contact": {
+      "title": "Book My Diagnostic — Mwinda Digital",
+      "description": "Book your $750 diagnostic: we quantify what missed inquiries cost you and deliver an action plan."
+    },
+    "sandbox": {
+      "title": "Test Space — Mwinda Digital",
+      "description": "Test the 24/7 Client Reception Agent in real conditions: conversation, qualification score, recommended action."
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "how": "How it works",
+    "pricing": "Pricing",
+    "verticals": "By profession",
+    "sandbox": "Test space",
+    "contact": "Contact",
+    "cta": "Book my diagnostic"
+  },
+  "footer": {
+    "tagline": "“Mwinda” means light in Lingala. We shine a light on the inquiries your firm leaves in the dark.",
+    "company": "Mwinda Group LLC — Seattle, WA",
+    "linksTitle": "Navigation",
+    "verticalsTitle": "By profession",
+    "legalTitle": "Commitments",
+    "privacy": "No client data is ever used to train any AI model.",
+    "rights": "All rights reserved."
+  },
+  "langSwitcher": {
+    "label": "Language",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "AI agents for professional service firms",
+      "title": "We capture the clients you're losing.",
+      "subtitle": "Your firm gets inquiries at night, on weekends, at the peak of tax season. Every unanswered inquiry is a client signing with a competitor. Our 24/7 Client Reception Agent replies in French and English, qualifies, proposes an appointment — and hands complex cases to you with a summary.",
+      "cta": "Book my diagnostic",
+      "ctaSecondary": "See the agent in action"
+    },
+    "painCalc": {
+      "title": "What is silence costing you?",
+      "subtitle": "Run the numbers with your own figures.",
+      "missedLabel": "Missed leads per week",
+      "ticketLabel": "Average ticket ($)",
+      "resultPrefix": "Estimated loss per year",
+      "resultNote": "Conservative assumption: one in two missed leads would have signed. Even at 25%, the lost revenue far exceeds the cost of an agent.",
+      "perYear": "$ / year"
+    },
+    "flow": {
+      "title": "From first message to booked appointment, without you",
+      "steps": {
+        "inquiry": { "title": "Incoming inquiry", "text": "Email or web form — any hour, in FR or EN." },
+        "agent": { "title": "The agent replies", "text": "A professional response in under 2 minutes, in the prospect's language." },
+        "qualify": { "title": "Qualification", "text": "Need, urgency, budget: the agent asks the right questions and computes a score." },
+        "booking": { "title": "Appointment proposed", "text": "A slot offered directly from your calendar." },
+        "report": { "title": "Summary for you", "text": "Every exchange is logged; complex cases reach you with a 5-line summary." }
+      }
+    },
+    "offer": {
+      "title": "One offer, three building blocks",
+      "subtitle": "No blind commitment: each step proves its value before the next.",
+      "diagnostic": {
+        "name": "Diagnostic",
+        "price": "$750",
+        "unit": "one-time",
+        "text": "We audit your inbound channels, quantify what you're losing and deliver a precise action plan. Credited toward setup if you continue."
+      },
+      "install": {
+        "name": "Setup",
+        "price": "$2,500",
+        "unit": "one-time",
+        "text": "Your agent configured: profession, tone, guardrails, email and calendar connection, 2 weeks in supervised draft mode."
+      },
+      "subscription": {
+        "name": "Subscription",
+        "price": "from $500",
+        "unit": "/ month",
+        "text": "Your agent in production: 24/7 replies, monthly reports, continuous tuning. Three tiers based on your volume."
+      },
+      "cta": "Compare tiers"
+    },
+    "testimonials": {
+      "title": "They stopped losing clients",
+      "disclaimer": "Illustrative testimonials from our pilot program.",
+      "items": {
+        "t1": {
+          "quote": "During tax season I was missing 10 to 15 inquiries a week. The agent takes them all, in French and in English. I signed 9 new files the first month.",
+          "name": "J. Kabongo",
+          "role": "Tax preparer, Seattle"
+        },
+        "t2": {
+          "quote": "My clients write at night, often anxious. The agent replies immediately, reassures without ever giving legal advice, and sends me a clean summary. I save 5 hours a week.",
+          "name": "M. Diallo",
+          "role": "Immigration lawyer, Tacoma"
+        },
+        "t3": {
+          "quote": "The monthly report tells me exactly how many leads came in, from where, and what they're worth. It's the first time I see my pipeline clearly.",
+          "name": "A. Okonkwo",
+          "role": "Insurance agent, Renton"
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": {
+        "q1": {
+          "q": "Does the agent give legal or tax advice?",
+          "a": "Never. It's a non-negotiable guardrail built into every agent: it qualifies the inquiry and routes it to you. All professional advice stays in your hands."
+        },
+        "q2": {
+          "q": "What happens when the agent doesn't know the answer?",
+          "a": "When in doubt, it escalates: it tells the prospect a team member will take over and sends you a 5-line summary with the full history."
+        },
+        "q3": {
+          "q": "Will my clients know they're talking to an assistant?",
+          "a": "Yes. The agent always discloses that an assistant is handling the initial request. Transparency protects your reputation — and it's mandatory in our configurations."
+        },
+        "q4": {
+          "q": "What about data confidentiality?",
+          "a": "Every exchange is logged and encrypted, every firm is isolated from the others, and no client data is used to train anything. Period."
+        },
+        "q5": {
+          "q": "How long until we're live?",
+          "a": "Diagnostic within 7 days, setup in 2 weeks — including a draft-mode period where you approve every reply before it's sent. You stay in control."
+        },
+        "q6": {
+          "q": "Why start with a paid diagnostic?",
+          "a": "Because it gives you a number: what missed inquiries actually cost you. If an agent isn't economically justified, we'll tell you. The diagnostic is credited toward setup if you continue."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Every week of waiting has a price. Now you know it.",
+      "text": "Book your diagnostic: a 30-minute audit, a precise number, an action plan. $750, credited toward setup.",
+      "cta": "Book my diagnostic"
+    }
+  },
+  "how": {
+    "hero": {
+      "title": "How it works",
+      "subtitle": "Five steps, strict guardrails, total transparency. Here is exactly what happens when a prospect writes to your firm."
+    },
+    "steps": {
+      "title": "The 5 steps",
+      "s1": { "title": "Reception", "text": "An inquiry arrives by email or web form. The agent reads it immediately, 24/7 — including April 14th at 11 pm." },
+      "s2": { "title": "Language detection & reply", "text": "The agent detects the prospect's language (French or English) and replies in that language, in your firm's tone, in under 2 minutes." },
+      "s3": { "title": "Qualification", "text": "It asks the essential questions of your profession: type of need, timeline, situation. Every conversation gets a qualification score from 0 to 100." },
+      "s4": { "title": "Appointment or escalation", "text": "Qualified prospect → slot proposed from your calendar. Complex, sensitive or uncertain case → escalated to you with a 5-line summary." },
+      "s5": { "title": "Log & report", "text": "Every exchange is fully logged. On the 1st of the month you receive a report: leads, appointments, response time, estimated value captured." }
+    },
+    "guardrails": {
+      "title": "The guardrails — non-negotiable",
+      "subtitle": "Every agent is configured with strict rules that protect your professional liability.",
+      "g1": { "title": "Never professional advice", "text": "The agent never gives legal, tax or insurance advice. It qualifies and routes. The advice is yours." },
+      "g2": { "title": "Never a firm price or a promise", "text": "No definitive quote, no promised outcome. Those conversations are escalated to you, systematically." },
+      "g3": { "title": "Mandatory disclosure", "text": "The agent always states that an assistant is handling the initial request. Your clients are never misled." },
+      "g4": { "title": "Bilingual by design", "text": "Automatic detection of the prospect's language and replies in French or English, with zero configuration on your side." },
+      "g5": { "title": "Escalation at the slightest doubt", "text": "If the agent isn't certain, it doesn't improvise: it escalates to you with a 5-line summary and the full history." },
+      "g6": { "title": "Draft mode for the first 2 weeks", "text": "At launch, no reply goes out without your approval. You approve, edit or reject every draft from your dashboard." }
+    },
+    "security": {
+      "title": "Data security",
+      "s1": { "title": "Complete logging", "text": "Every inbound and outbound message is timestamped and archived. You can audit any conversation, any time." },
+      "s2": { "title": "Per-firm isolation", "text": "Your data lives in a space strictly separated from other firms. No crossover possible." },
+      "s3": { "title": "Zero training on your data", "text": "No client data is used to train any AI model. It's contractual." }
+    },
+    "cta": {
+      "title": "See it work before you decide",
+      "text": "The test space lets you converse with a demo agent configured for your profession.",
+      "ctaPrimary": "Try the test space",
+      "ctaSecondary": "Book my diagnostic"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "title": "Simple pricing, measurable return",
+      "subtitle": "A single signed appointment per month typically covers the subscription. The monthly report lets you verify it."
+    },
+    "setup": {
+      "title": "To get started",
+      "diagnostic": { "name": "Diagnostic", "price": "$750", "text": "Audit of your inbound channels + loss quantification + action plan. Credited toward setup if you continue." },
+      "install": { "name": "Setup", "price": "$2,500", "text": "Full agent configuration, email/calendar connection, 2 weeks of supervised draft mode." }
+    },
+    "tiers": {
+      "title": "The monthly subscription",
+      "essential": {
+        "name": "Essential",
+        "price": "$500",
+        "unit": "/ month",
+        "tagline": "For solo practices",
+        "cta": "Start with the diagnostic"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$900",
+        "unit": "/ month",
+        "tagline": "For growing firms",
+        "badge": "Most popular",
+        "cta": "Start with the diagnostic"
+      },
+      "firm": {
+        "name": "Firm",
+        "price": "$1,500",
+        "unit": "/ month",
+        "tagline": "For multi-practitioner teams",
+        "cta": "Start with the diagnostic"
+      }
+    },
+    "table": {
+      "feature": "Feature",
+      "rows": {
+        "conversations": { "label": "Conversations / month", "essential": "Up to 150", "pro": "Up to 400", "firm": "Unlimited" },
+        "languages": { "label": "Bilingual FR / EN", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "channels": { "label": "Channels", "essential": "Email + web form", "pro": "Email + web form", "firm": "Email + form + additional channels" },
+        "calendar": { "label": "Calendar appointment booking", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "draft": { "label": "Draft mode (approval before sending)", "essential": "✓", "pro": "✓", "firm": "✓" },
+        "report": { "label": "Monthly report", "essential": "Standard", "pro": "Detailed + captured value", "firm": "Detailed + quarterly review" },
+        "seats": { "label": "Dashboard users", "essential": "1", "pro": "3", "firm": "Unlimited" },
+        "tone": { "label": "Tone and rule adjustments", "essential": "Quarterly", "pro": "Monthly", "firm": "On demand" },
+        "support": { "label": "Support", "essential": "Email (48 h)", "pro": "Priority email (24 h)", "firm": "Direct line" }
+      }
+    },
+    "guarantee": {
+      "title": "Launch guarantee",
+      "text": "If after 60 days the agent hasn't captured an estimated value at least equal to your subscription, we work the following month for free. The monthly report is the reference — the numbers are yours."
+    },
+    "cta": {
+      "title": "Start by knowing what you're losing",
+      "cta": "Book my diagnostic"
+    }
+  },
+  "verticals": {
+    "hero": {
+      "title": "Configured for your profession",
+      "subtitle": "A generic agent doesn't know your emergencies, your seasons, your words. Ours are configured per vertical."
+    },
+    "scenarioTitle": "Demo scenario",
+    "scenarioNote": "Excerpt from a typical conversation. Try it yourself in the test space.",
+    "tryCta": "Test this scenario",
+    "diagnosticCta": "Book my diagnostic",
+    "tax": {
+      "name": "Tax preparers",
+      "title": "During tax season, every silent hour costs you a file",
+      "pain": "From January to April, your inbox overflows. Prospects who don't get an answer within hours sign with the competitor next door. And off-season requests — ITIN, late filings, IRS letters — arrive when you're not there.",
+      "value1": { "title": "Automatic urgency triage", "text": "IRS letter, imminent deadline, first filing: the agent identifies the urgency and prioritizes it in your queue." },
+      "value2": { "title": "Basic information collection", "text": "Filing status, W-2 or 1099, state of residence: the file arrives pre-qualified at your appointment." },
+      "value3": { "title": "Zero tax advice", "text": "The agent never answers “how much will I get back?”. It qualifies, reassures and routes to you." },
+      "scenario": {
+        "user1": "Hi, I received a letter from the IRS and I don't understand what they want. Is it serious?",
+        "agent1": "Hello! I'm the firm's assistant — I handle your initial request and a preparer will reply to you personally. An IRS letter always deserves a careful read, but many are simple information requests. So the firm can help you quickly: what code or subject is shown at the top of the letter, and what deadline does it mention?",
+        "user2": "It says CP2000, and I have to reply before the 28th of this month.",
+        "agent2": "Thank you, that's very helpful. A CP2000 with a close deadline is exactly the type of file the firm treats as a priority. I can offer you an appointment as early as tomorrow: 10:30 am or 3:00 pm — which works for you? In the meantime, don't reply to the letter yourself — just bring it to the appointment."
+      }
+    },
+    "immigration": {
+      "name": "Immigration lawyers",
+      "title": "Your prospects write at night, worried. Reply before the sleepless night.",
+      "pain": "An immigration matter doesn't wait for office hours. The people contacting you are often anxious, sometimes facing a summons or a visa deadline. Without a fast answer, they shop around — and sign elsewhere.",
+      "value1": { "title": "Immediate, reassuring response", "text": "The agent acknowledges, reassures about next steps and collects the situation without ever legally assessing the case." },
+      "value2": { "title": "Structured pre-qualification", "text": "Type of procedure, deadlines, documents received: your consultation starts with an already-structured file." },
+      "value3": { "title": "Zero legal advice", "text": "No assessment of chances, no interpretation of the law. Substantive questions are escalated to you with a summary." },
+      "scenario": {
+        "user1": "Hello, my work visa expires in 6 weeks and my employer hasn't started the renewal. Can you help?",
+        "agent1": "Hello, and thank you for reaching out. I'm the firm's assistant — I handle initial requests and an attorney will follow up personally. A 6-week window is exactly the kind of situation the firm treats as time-sensitive. May I ask: what type of visa do you currently hold, and has your employer given any indication of their plans?",
+        "user2": "It's an H-1B. They say they want to keep me but HR is slow.",
+        "agent2": "Understood — thank you. I won't speculate on your options; that's for the attorney to assess with you directly. Given the timeline, I'd suggest a consultation this week: Wednesday 2 pm or Thursday 11 am are available. The attorney will review renewal timing and what your employer needs to file. Which slot works best?"
+      }
+    },
+    "insurance": {
+      "name": "Insurance agents",
+      "title": "An unanswered quote request is a policy signed elsewhere",
+      "pain": "Quote requests come in at all hours, and response speed makes the sale: the first agent to answer wins the comparison. Your renewals and claims, meanwhile, demand immediate handling to keep trust.",
+      "value1": { "title": "Speed that wins the comparison", "text": "Reply in under 2 minutes, quote information collected, appointment proposed — while competitors sleep." },
+      "value2": { "title": "Quote / claim / renewal triage", "text": "The agent identifies the nature of the request and applies the right path. Claims are escalated as a priority." },
+      "value3": { "title": "Zero firm quotes", "text": "The agent never commits to a price or a coverage. It collects, qualifies, and leaves the proposal to you." },
+      "scenario": {
+        "user1": "Good evening, I just bought a car and I need insurance before Friday. Can you give me a price?",
+        "agent1": "Good evening, and congratulations on your purchase! I'm the agency's assistant — I prepare your file and the agent will personally confirm the proposal. I can't quote a firm price, but I can prepare everything so you have your answer before Friday. A few questions: what's the vehicle's model and year, and have you been insured in the last 3 years?",
+        "user2": "A 2022 Toyota RAV4, and yes I was insured with another agent.",
+        "agent2": "Perfect, noted. With a continuous insurance history, your file is strong. The agent can call you tomorrow to finalize the proposal: morning or afternoon? Please have your driver's license and your insurance record handy."
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Book my diagnostic",
+      "subtitle": "$750, credited toward setup. You leave with a number — what missed inquiries cost you — and an action plan. Fill in the form and we'll get back to you within 1 business day."
+    },
+    "form": {
+      "name": "Your name",
+      "namePlaceholder": "First and last name",
+      "email": "Work email",
+      "emailPlaceholder": "you@firm.com",
+      "phone": "Phone (optional)",
+      "phonePlaceholder": "+1 (206) …",
+      "firmName": "Firm name",
+      "firmNamePlaceholder": "E.g. Kabongo Tax Services",
+      "profession": "Your profession",
+      "professionOptions": {
+        "TAX_PREPARER": "Tax preparer",
+        "IMMIGRATION_LAWYER": "Immigration lawyer",
+        "INSURANCE_AGENT": "Insurance agent",
+        "ACCOUNTANT": "Accountant",
+        "TRAVEL_AGENCY": "Travel agency",
+        "OTHER": "Other"
+      },
+      "weeklyInquiries": "Incoming inquiries per week",
+      "weeklyInquiriesOptions": {
+        "UNDER_10": "Fewer than 10",
+        "FROM_10_TO_30": "10 to 30",
+        "FROM_30_TO_75": "30 to 75",
+        "OVER_75": "More than 75"
+      },
+      "averageTicket": "Average ticket per client ($)",
+      "averageTicketPlaceholder": "E.g. 450",
+      "preferredLanguage": "Your clients' preferred language",
+      "preferredLanguageOptions": {
+        "FR": "French",
+        "EN": "English",
+        "BOTH": "Both"
+      },
+      "message": "Details (optional)",
+      "messagePlaceholder": "Context, urgency, questions…",
+      "submit": "Send my request",
+      "submitting": "Sending…",
+      "success": {
+        "title": "Request received!",
+        "text": "Thank you. We'll get back to you within 1 business day to schedule your diagnostic."
+      },
+      "error": "Something went wrong. Try again or write to us directly.",
+      "required": "Required field"
+    }
+  },
+  "sandbox": {
+    "hero": {
+      "title": "Test space",
+      "subtitle": "Chat with the 24/7 Client Reception Agent as if you were a prospect. Watch the qualification score and the recommended action update in real time — exactly what your dashboard will display."
+    },
+    "config": {
+      "title": "Agent configuration",
+      "profession": "Firm's profession",
+      "professionOptions": {
+        "tax": "Tax preparer",
+        "immigration": "Immigration lawyer",
+        "insurance": "Insurance agent"
+      },
+      "tone": "Agent tone",
+      "toneOptions": {
+        "professional": "Professional and warm",
+        "formal": "Formal",
+        "concise": "Direct and concise"
+      },
+      "firmLabel": "Demo firm",
+      "firmValue": "Kabongo Tax Services",
+      "reset": "Reset conversation",
+      "mockNotice": "Simulation mode: no API key configured. Replies are pre-written but the flow is identical to production.",
+      "liveNotice": "Production mode: replies are generated live by the Anthropic API (claude-sonnet-4-6)."
+    },
+    "chat": {
+      "title": "Conversation",
+      "placeholder": "Write as a prospect would… (FR or EN)",
+      "send": "Send",
+      "thinking": "The agent is writing…",
+      "empty": "Send a first message to start. For example, try:",
+      "suggestions": {
+        "tax": "I received a letter from the IRS, is it serious?",
+        "immigration": "My visa expires in 6 weeks, can you help?",
+        "insurance": "I need car insurance before Friday, what's the price?"
+      },
+      "error": "The agent couldn't reply. Please try again."
+    },
+    "analysis": {
+      "title": "Agent analysis",
+      "subtitle": "What your dashboard will display for every conversation.",
+      "score": "Qualification score",
+      "action": "Recommended action",
+      "actions": {
+        "RESPOND": "Continue the conversation",
+        "PROPOSE_APPOINTMENT": "Propose an appointment",
+        "ESCALATE": "Escalate to a human"
+      },
+      "language": "Detected language",
+      "summary": "Summary for the human",
+      "guardrails": "Active guardrails",
+      "guardrailsList": {
+        "noAdvice": "Never legal / tax / insurance advice",
+        "noPricing": "Never a firm price or a promise",
+        "disclosure": "Always discloses being an assistant",
+        "language": "Replies in the prospect's language",
+        "escalation": "Escalates when in doubt (5-line summary)"
+      },
+      "waiting": "Waiting for the first exchange…"
+    }
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Enter your access code. Client firms receive their code during setup.",
+    "codeLabel": "Access code",
+    "codePlaceholder": "Your code…",
+    "submit": "Sign in",
+    "errorInvalid": "Invalid code or deactivated account.",
+    "errorUnconfigured": "Authentication is not configured on this deployment (AUTH_SECRET missing).",
+    "logout": "Sign out"
+  },
+  "dash": {
+    "nav": {
+      "overview": "Overview",
+      "conversations": "Conversations",
+      "validation": "Review queue",
+      "reports": "Reports",
+      "settings": "Settings"
+    },
+    "overview": {
+      "title": "Overview",
+      "thisMonth": "This month",
+      "leads": "Leads received",
+      "appointments": "Appointments proposed",
+      "avgResponse": "Average response time",
+      "capturedValue": "Estimated value captured",
+      "pendingDrafts": "Drafts awaiting review",
+      "escalated": "Escalated conversations",
+      "noTicket": "Set your average ticket in Settings to enable this calculation.",
+      "seconds": "s",
+      "reviewCta": "Review drafts"
+    },
+    "conversations": {
+      "title": "Conversation inbox",
+      "empty": "No conversations yet.",
+      "score": "Score",
+      "statusLabels": {
+        "OPEN": "Open",
+        "APPOINTMENT_PROPOSED": "Appointment proposed",
+        "ESCALATED": "Escalated",
+        "CLOSED": "Closed"
+      },
+      "channelLabels": { "EMAIL": "Email", "WEB_FORM": "Web form", "SANDBOX": "Sandbox" },
+      "roleLabels": { "PROSPECT": "Prospect", "AGENT": "Agent", "HUMAN": "You" },
+      "draftBadge": "Draft",
+      "rejectedBadge": "Rejected",
+      "takeOverTitle": "Take over",
+      "takeOverPlaceholder": "Your reply to the prospect…",
+      "takeOverSubmit": "Send and take over",
+      "close": "Close conversation",
+      "summaryTitle": "Summary for you",
+      "back": "← All conversations"
+    },
+    "validation": {
+      "title": "Review queue",
+      "subtitle": "Draft mode is active: every agent reply awaits your decision.",
+      "empty": "No drafts pending. The agent has nothing awaiting review.",
+      "draftFrom": "Draft for",
+      "viewThread": "View thread",
+      "approve": "Approve",
+      "reject": "Reject",
+      "editHint": "You can edit the text before approving."
+    },
+    "reports": {
+      "title": "Monthly reports",
+      "empty": "No reports generated yet. The first arrives on the 1st of the month.",
+      "month": "Month",
+      "print": "Export as PDF (print)",
+      "sentAt": "Sent on",
+      "notSent": "Not sent"
+    },
+    "settings": {
+      "title": "Agent settings",
+      "tone": "Agent tone",
+      "languages": "Languages",
+      "draftMode": "Draft mode (approval before sending)",
+      "averageTicket": "Average ticket ($)",
+      "customRules": "Custom rules (injected after the guardrails)",
+      "businessHours": "Business hours",
+      "calendarUrl": "Connected calendar URL",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "billing": "Subscription",
+      "billingTier": "Current tier",
+      "billingNone": "No active subscription",
+      "billingManage": "Manage my subscription",
+      "billingSubscribe": "Subscribe"
+    }
+  },
+  "adminUi": {
+    "nav": { "orgs": "Organizations", "onboarding": "Onboarding" },
+    "title": "Mwinda back-office",
+    "orgs": {
+      "title": "Organizations",
+      "empty": "No organizations. Create the first one via onboarding.",
+      "conversations": "conversations",
+      "escalationRate": "escalation rate",
+      "pendingDrafts": "drafts pending",
+      "inactive": "Deactivated",
+      "draftOn": "Draft mode on",
+      "newOrg": "+ New firm"
+    },
+    "org": {
+      "title": "Firm",
+      "name": "Firm name",
+      "slug": "Slug (webhooks)",
+      "contactEmail": "Contact email",
+      "profession": "Profession",
+      "professionLabels": { "TAX": "Tax", "IMMIGRATION": "Immigration", "INSURANCE": "Insurance" },
+      "tone": "Tone",
+      "toneLabels": { "PROFESSIONAL": "Professional", "FORMAL": "Formal", "CONCISE": "Concise" },
+      "languages": "Languages",
+      "languageLabels": { "FR": "French", "EN": "English", "BOTH": "Both" },
+      "draftMode": "Draft mode",
+      "active": "Organization active",
+      "customRules": "Custom rules",
+      "save": "Save",
+      "token": "Dashboard access code",
+      "tokenHint": "Give this to the firm — it grants access to their dashboard.",
+      "regenerate": "Regenerate code",
+      "generateReport": "Generate last month's report",
+      "webhookHint": "Inbound endpoint: POST /api/webhooks/inbound with organizationSlug"
+    },
+    "onboarding": {
+      "title": "Onboard a new firm",
+      "subtitle": "Target < 30 minutes: configure, test in the sandbox, activate.",
+      "step1": "1 · Configuration",
+      "step2": "2 · Sandbox test",
+      "step2Text": "The system prompt is generated automatically from this configuration. Test the behavior in the test space before activating.",
+      "step2Cta": "Open the test space",
+      "step3": "3 · Activation",
+      "step3Text": "On creation, the firm receives its dashboard access code. Then connect the email channel to the inbound webhook.",
+      "create": "Create the firm"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "This page doesn't exist or has been moved.",
+    "back": "Back to home"
+  }
+}

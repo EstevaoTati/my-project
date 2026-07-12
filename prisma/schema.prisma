@@ -1,0 +1,253 @@
+// Mwinda Digital — AI Agents Agency
+// Phase 1 : Lead (formulaire diagnostic) + fondations Phase 2 (SandboxSession)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lead capturé par le formulaire « Réserver mon diagnostic »
+model Lead {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  name              String
+  email             String
+  phone             String?
+  firmName          String
+  profession        Profession
+  weeklyInquiries   InquiryVolume
+  averageTicket     Int? // panier moyen en USD
+  preferredLanguage Language @default(FR)
+  message           String?
+  locale            String   @default("fr") // langue du site au moment de la soumission
+  status            LeadStatus @default(NEW)
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+enum Profession {
+  TAX_PREPARER
+  IMMIGRATION_LAWYER
+  INSURANCE_AGENT
+  ACCOUNTANT
+  TRAVEL_AGENCY
+  OTHER
+}
+
+enum InquiryVolume {
+  UNDER_10
+  FROM_10_TO_30
+  FROM_30_TO_75
+  OVER_75
+}
+
+enum Language {
+  FR
+  EN
+  BOTH
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  DIAGNOSTIC_BOOKED
+  CLIENT
+  LOST
+}
+
+// ════════════════════════════════════════════════════════════
+// Phase 2 — Moteur d'agent
+// ════════════════════════════════════════════════════════════
+
+/// Cabinet client de Mwinda Digital
+model Organization {
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String
+  slug          String         @unique // identifiant public (webhooks, URLs)
+  contactEmail  String
+  active        Boolean        @default(true)
+  /// Mode « brouillon d'abord » : les réponses de l'agent attendent
+  /// une validation humaine avant envoi
+  draftMode     Boolean        @default(true)
+  /// Code d'accès au dashboard client (auth pilote — remis au cabinet)
+  dashboardToken String        @unique @default(cuid())
+  /// Panier moyen du cabinet (USD) — base du calcul de valeur capturée
+  averageTicket  Int?
+  // Abonnement Stripe
+  stripeCustomerId   String?          @unique
+  subscriptionTier   SubscriptionTier?
+  subscriptionStatus String?
+  agentConfig   AgentConfig?
+  conversations Conversation[]
+  reports       MonthlyReport[]
+}
+
+enum SubscriptionTier {
+  ESSENTIAL
+  PRO
+  FIRM
+}
+
+/// Configuration de l'agent d'un cabinet (métier, ton, règles)
+model AgentConfig {
+  id             String           @id @default(cuid())
+  updatedAt      DateTime         @updatedAt
+  organizationId String           @unique
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  profession     AgentProfession
+  /// Type d'agent fonctionnel (RH, comptabilité, service client…). Si présent,
+  /// il pilote le prompt système via le catalogue Mwinda.
+  agentType      AgentType?
+  tone           AgentToneSetting @default(PROFESSIONAL)
+  languages      Language         @default(BOTH)
+  /// Règles additionnelles propres au cabinet, injectées dans le prompt
+  /// système APRÈS les garde-fous non négociables (jamais à leur place)
+  customRules    String?
+  /// Horaires du cabinet (texte libre affiché/injecté dans le prompt)
+  businessHours  String?
+  /// URL du calendrier connecté (Google Calendar, Calendly…)
+  calendarUrl    String?
+}
+
+enum AgentProfession {
+  TAX
+  IMMIGRATION
+  INSURANCE
+}
+
+/// Catalogue des agents IA Mwinda, par fonction métier (voir src/lib/agent/catalog.ts)
+enum AgentType {
+  CUSTOMER_SERVICE
+  HR
+  ACCOUNTING
+  ADMINISTRATION
+  SALES
+  IT_SUPPORT
+}
+
+enum AgentToneSetting {
+  PROFESSIONAL
+  FORMAL
+  CONCISE
+}
+
+/// Fil de conversation avec un prospect d'un cabinet
+model Conversation {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  organizationId     String
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  channel            Channel             @default(EMAIL)
+  prospectName       String?
+  prospectEmail      String?
+  detectedLanguage   Language?
+  /// Dernier score de qualification calculé par l'agent (0-100)
+  qualificationScore Int?
+  recommendedAction  RecommendedAction?
+  /// Résumé en 5 lignes max pour l'humain (toujours en français)
+  summaryForHuman    String?
+  status             ConversationStatus  @default(OPEN)
+  messages           Message[]
+  appointment        Appointment?
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([prospectEmail])
+}
+
+enum Channel {
+  EMAIL
+  WEB_FORM
+  SANDBOX
+}
+
+enum RecommendedAction {
+  RESPOND
+  PROPOSE_APPOINTMENT
+  ESCALATE
+}
+
+enum ConversationStatus {
+  OPEN
+  APPOINTMENT_PROPOSED
+  ESCALATED
+  CLOSED
+}
+
+/// Message journalisé — chaque échange est conservé intégralement
+model Message {
+  id                 String        @id @default(cuid())
+  createdAt          DateTime      @default(now())
+  conversationId     String
+  conversation       Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role               MessageRole
+  content            String
+  /// Cycle de vie en mode brouillon : DRAFT -> APPROVED/REJECTED -> SENT
+  status             MessageStatus @default(SENT)
+  /// Journalisation moteur (messages AGENT uniquement)
+  modelUsed          String?
+  qualificationScore Int?
+
+  @@index([conversationId, createdAt])
+  @@index([status])
+}
+
+enum MessageRole {
+  PROSPECT
+  AGENT
+  HUMAN
+}
+
+enum MessageStatus {
+  DRAFT
+  APPROVED
+  SENT
+  REJECTED
+}
+
+/// Rendez-vous proposé ou confirmé pour une conversation
+model Appointment {
+  id             String            @id @default(cuid())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  conversationId String            @unique
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// Créneaux proposés par l'agent (texte libre, ex. « mer. 14 h / jeu. 11 h »)
+  proposedSlots  String?
+  scheduledAt    DateTime?
+  status         AppointmentStatus @default(PROPOSED)
+}
+
+enum AppointmentStatus {
+  PROPOSED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+/// Rapport mensuel généré pour chaque cabinet (envoyé le 1er du mois)
+model MonthlyReport {
+  id                     String       @id @default(cuid())
+  createdAt              DateTime     @default(now())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  year                   Int
+  month                  Int // 1-12
+  leadsCount             Int          @default(0)
+  appointmentsCount      Int          @default(0)
+  escalationsCount       Int          @default(0)
+  avgResponseSeconds     Int?
+  /// Valeur estimée capturée en USD (leads qualifiés × panier moyen)
+  estimatedValueCaptured Int?
+  sentAt                 DateTime?
+
+  @@unique([organizationId, year, month])
+}
