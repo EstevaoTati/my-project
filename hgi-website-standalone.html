@@ -42,7 +42,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
   background: var(--black);
@@ -113,6 +113,7 @@ ul { list-style: none; }
 .loader-verse {
   font-family: var(--serif); font-style: italic; font-size: 15px;
   color: var(--ink-dim); letter-spacing: .04em;
+  max-width: 86vw; margin-inline: auto;
 }
 
 /* ---------- Background canvas / progress ---------- */
