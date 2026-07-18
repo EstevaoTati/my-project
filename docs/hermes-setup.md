@@ -59,3 +59,36 @@ echo 'ANTHROPIC_API_KEY=sk-ant-...' > ~/.hermes/.env && chmod 600 ~/.hermes/.env
 
 Note: the TUI refuses to start without a real terminal (`hermes-tui: no TTY`),
 so it cannot run inside headless containers — use `-z` one-shot mode there.
+
+## Update 2026-07-18 (later): voice interaction — installed, blocked by sandbox network
+
+Goal: talk to Hermes with voice memos (phone → Telegram → Hermes transcribes
+→ replies, optionally with synthesized speech).
+
+Done in the container (portable via the steps below):
+
+- Installed extras: `uv pip install -e ".[voice,edge-tts,messaging]"`
+  (faster-whisper local STT, Edge TTS, Telegram/Discord/Slack SDKs).
+- Configured `~/.hermes/config.yaml`: `stt.enabled: true`,
+  `stt.provider: local`, `stt.local.model: base`, `tts.enabled: true`,
+  `tts.provider: edge`.
+- TLS through corporate-style proxies: append the proxy CA to the venv's
+  certifi bundle (`cat <ca.crt> >> $(.venv/bin/python -c "import certifi;
+  print(certifi.where())")`) — never disable verification.
+
+Blocked in the Claude Code sandbox (network policy denies all three):
+`speech.platform.bing.com` (Edge TTS), `huggingface.co` (Whisper model
+download), `api.telegram.org` (gateway). Voice therefore cannot run in that
+sandbox; it works anywhere with normal egress.
+
+### To go live with voice (on a VPS or laptop)
+
+1. Reproduce the base install (see above), adding `.[voice,edge-tts,messaging]`.
+2. Create a Telegram bot: message @BotFather → `/newbot` → copy the token.
+3. `hermes gateway` setup: add `TELEGRAM_BOT_TOKEN=...` to `~/.hermes/.env`,
+   then run `hermes gateway` (long-running process; systemd or tmux).
+4. Send the bot a voice memo. Hermes transcribes it locally (Whisper `base`
+   model, downloaded on first use), answers via the configured Claude model,
+   and can reply with Edge TTS audio.
+
+Prerequisite unchanged: Anthropic API credits (see previous update).
