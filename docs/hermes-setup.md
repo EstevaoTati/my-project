@@ -92,3 +92,23 @@ sandbox; it works anywhere with normal egress.
    and can reply with Edge TTS audio.
 
 Prerequisite unchanged: Anthropic API credits (see previous update).
+
+## Update 2026-07-18 (final): LIVE — end-to-end verified with credits
+
+After credits were added, `hermes -z "Reply with exactly: hermes-ok"`
+returned `hermes-ok`. Hermes → Claude API inference is fully operational.
+
+Two final configuration facts learned the hard way:
+
+- The model must be set on the **top-level** `model` key in composite
+  `provider/model` form: `hermes config set model anthropic/claude-sonnet-5`.
+  Setting `agent.model` / `agent.provider` alone leaves the one-shot (`-z`)
+  path with an empty model string ("model: String should have at least 1
+  character" from the API).
+- Flags also work per-invocation: `hermes -m claude-sonnet-5 --provider
+  anthropic -z "..."`.
+
+Working state: provider anthropic, model claude-sonnet-5, key in
+`~/.hermes/.env`, proxy env stripped when running inside the Claude Code
+sandbox. Remaining founder items: rotate both chat-pasted keys; for voice,
+deploy per the voice section above.
