@@ -18,13 +18,31 @@ Working copy lived at `/home/user/hermes-agent`. Completed there:
    containers (the proxy bypasses `*.anthropic.com`); `api.openai.com` is
    blocked by the environment's network policy.
 
+## Update 2026-07-18: connected end-to-end, blocked only on billing
+
+The Anthropic key was added to `~/.hermes/.env` and verified: Hermes reaches
+`api.anthropic.com`, authenticates, and requests `claude-sonnet-5`. The API
+returns "credit balance too low" — the last gate is purchasing credits at
+console.anthropic.com → Plans & Billing.
+
+Two gotchas discovered, both already handled in config:
+
+1. **Proxy bypass**: in Claude Code remote containers, run Hermes with proxy
+   env stripped (`env -u HTTPS_PROXY -u https_proxy -u HTTP_PROXY
+   -u http_proxy -u ALL_PROXY -u all_proxy hermes ...`) — Hermes routes
+   through `HTTPS_PROXY` without honoring the `NO_PROXY` bypass for
+   `anthropic.com`, and the proxy rejects the CONNECT. On a normal machine
+   (no proxy env) this doesn't apply.
+2. **Stray provider keys**: a leftover `OPENAI_API_KEY` in `~/.hermes/.env`
+   made Hermes route via OpenRouter despite `provider: anthropic`. Keep only
+   the key for the active provider.
+
 ## What is pending (owner: founder)
 
-- **Anthropic API key**: create at console.anthropic.com → Settings → API
-  Keys; store as `ANTHROPIC_API_KEY=...` in `~/.hermes/.env` (mode 600).
-- If OpenAI is wanted instead: allow `api.openai.com` in the Claude Code
-  environment network policy (takes effect in new sessions only), and
-  rotate the OpenAI key that was pasted into chat on 2026-07-17.
+- **Buy API credits**: console.anthropic.com → Plans & Billing. Everything
+  else is verified working; after credits, `hermes -z "test"` succeeds.
+- Rotate both keys pasted into chat (OpenAI on 2026-07-17, Anthropic on
+  2026-07-18) once testing is done.
 
 ## To reproduce from scratch (≈10 min on any Linux box)
 
