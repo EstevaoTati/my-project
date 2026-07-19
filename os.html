@@ -270,6 +270,73 @@
   }
   .mem p { margin: 0; font-size: 13.5px; color: var(--mute); }
 
+  /* chat demo */
+  .chat {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .chat-log {
+    padding: 22px 24px;
+    height: 340px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+    scroll-behavior: smooth;
+  }
+  .chat-msg { max-width: 85%; font-size: 14px; line-height: 1.6; }
+  .chat-msg .who {
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--dim); display: block; margin-bottom: 4px;
+  }
+  .chat-msg.user { align-self: flex-end; text-align: right; }
+  .chat-msg.user .bubble {
+    background: rgba(212,175,55,.10);
+    border: 1px solid var(--line);
+  }
+  .chat-msg .bubble {
+    display: inline-block; text-align: left;
+    background: var(--bg-2);
+    border: 1px solid rgba(212,175,55,.10);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .chat-msg.assistant .bubble { color: var(--mute); }
+  .chat-msg.pending .bubble { color: var(--dim); font-family: var(--mono); font-size: 12.5px; }
+  .chat-form {
+    display: flex; gap: 10px;
+    border-top: 1px solid var(--line);
+    padding: 14px 16px;
+    background: var(--bg-2);
+  }
+  .chat-form input {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--sans); font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+  }
+  .chat-form input:focus { border-color: var(--line-strong); }
+  .chat-form button {
+    background: var(--gold-3);
+    border: none; border-radius: 8px;
+    color: #000;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 0 22px;
+    cursor: pointer;
+  }
+  .chat-form button:hover { background: var(--gold-2); }
+  .chat-form button:disabled { background: var(--gold-deep); color: var(--bg); cursor: wait; }
+  .chat-note { font-size: 12px; color: var(--dim); margin: 10px 2px 0; }
+
   /* status board */
   .status {
     margin-top: 66px;
@@ -461,6 +528,30 @@
   </div>
 </section>
 
+<section>
+  <div class="wrap">
+    <div class="layer-head">
+      <span class="layer-tag">LAYER 05</span>
+      <h2>Talk to the <span class="g">OS</span></h2>
+    </div>
+    <p class="lede">A live demo agent, answering from the same system you're reading about. Ask what Mwinda Digital can build for you — in French or English.</p>
+    <div class="chat" id="chat">
+      <div class="chat-log" id="chatLog" aria-live="polite">
+        <div class="chat-msg assistant">
+          <span class="who">Mwinda OS</span>
+          <span class="bubble">Bienvenue. Je suis l'agent de démonstration de MWINDA OS. Posez-moi une question sur Mwinda Digital, nos services, ou ce que l'IA peut faire pour votre projet. / Welcome — ask me anything about Mwinda Digital and what we can build for you.</span>
+        </div>
+      </div>
+      <form class="chat-form" id="chatForm">
+        <input id="chatInput" type="text" maxlength="1500" autocomplete="off"
+               placeholder="Votre question… / Your question…" aria-label="Message" required />
+        <button id="chatSend" type="submit">Send</button>
+      </form>
+    </div>
+    <p class="chat-note">Demo assistant powered by Claude. Conversations are not stored by this site.</p>
+  </div>
+</section>
+
 <section class="status">
   <div class="wrap">
     <div class="layer-head">
@@ -511,5 +602,74 @@
     <span>MWINDA OS v1.0 · kernel → agents → routines → memory</span>
   </div>
 </footer>
+
+<script>
+(() => {
+  'use strict';
+  const log = document.getElementById('chatLog');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('chatInput');
+  const send = document.getElementById('chatSend');
+  if (!log || !form) return;
+
+  const history = []; // {role, content} pairs sent to the function
+  const MAX_TURNS = 12;
+
+  function addMsg(role, text, pending) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg ' + role + (pending ? ' pending' : '');
+    const who = document.createElement('span');
+    who.className = 'who';
+    who.textContent = role === 'user' ? 'You' : 'Mwinda OS';
+    const bubble = document.createElement('span');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    wrap.append(who, bubble);
+    log.appendChild(wrap);
+    log.scrollTop = log.scrollHeight;
+    return wrap;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || send.disabled) return;
+
+    input.value = '';
+    send.disabled = true;
+    addMsg('user', text);
+    history.push({ role: 'user', content: text });
+    while (history.length > MAX_TURNS) history.shift();
+    if (history[0].role !== 'user') history.shift();
+
+    const pending = addMsg('assistant', '…', true);
+    try {
+      const res = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: history }),
+      });
+      const data = await res.json().catch(() => ({}));
+      pending.remove();
+      if (res.ok && data.reply) {
+        addMsg('assistant', data.reply);
+        history.push({ role: 'assistant', content: data.reply });
+      } else {
+        addMsg('assistant', data.error
+          ? 'Indisponible pour le moment (' + data.error + '). Merci de réessayer. / Temporarily unavailable, please retry.'
+          : 'Indisponible pour le moment. / Temporarily unavailable, please retry.');
+        history.pop(); // drop the unanswered user turn
+      }
+    } catch {
+      pending.remove();
+      addMsg('assistant', 'Erreur réseau — merci de réessayer. / Network error, please retry.');
+      history.pop();
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
+  });
+})();
+</script>
 </body>
 </html>

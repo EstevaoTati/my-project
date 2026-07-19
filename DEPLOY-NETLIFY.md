@@ -40,6 +40,21 @@ netlify deploy --prod --dir=.
 | `_headers` | Per-file headers (cache-control, security) |
 | `robots.txt`, `sitemap.xml` | SEO basics |
 
+## Chat widget (os.html → Netlify Function)
+
+The "Talk to the OS" demo chat on `os.html` calls
+`netlify/functions/chat.mjs`, which proxies to the Claude API. Before it
+works in production:
+
+1. Netlify UI → *Site settings → Environment variables*: set
+   `ANTHROPIC_API_KEY` (never commit it). Optional: `CHAT_MODEL`
+   (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable.
+2. console.anthropic.com → *Plans & Billing*: set a hard monthly spend
+   limit — this is the abuse backstop for the public widget.
+3. Note: `package.json` exists only so Netlify bundles the function's
+   `@anthropic-ai/sdk` dependency; the site itself still has no build step.
+   Netlify Drop (Option A) does NOT deploy functions — use Git or CLI.
+
 ## Post-deploy checklist
 
 - [ ] Open the Netlify URL on desktop — verify hero 3D, animations, form

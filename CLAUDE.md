@@ -90,7 +90,13 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   separately or note that it is stale.
 - `demo.html` — side-by-side desktop/mobile preview viewer.
 - `os.html` — MWINDA OS preview page. Fully self-contained (own inline
-  CSS/JS); it does not use `styles.css` or `i18n.js`.
+  CSS/JS); it does not use `styles.css` or `i18n.js`. Hosts the "Talk to
+  the OS" demo chat, which calls `netlify/functions/chat.mjs`.
+- `netlify/functions/chat.mjs` — serverless proxy to the Claude API for the
+  demo chat (scoped system prompt, input caps, `CHAT_ENABLED` kill switch).
+  Needs `ANTHROPIC_API_KEY` in Netlify env vars; `package.json` exists only
+  to bundle its `@anthropic-ai/sdk` dependency — the site itself is still
+  buildless.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.
