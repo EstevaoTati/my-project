@@ -7,14 +7,14 @@
   <!-- SEO — FR par défaut, EN via JS -->
   <title data-i18n="meta.title">Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code</title>
   <meta name="description" data-i18n-attr="content" data-i18n="meta.desc"
-        content="Estevao, fondateur de Mwinda Group. Je construis et je vends des agents IA avec Claude Code. Mwinda signifie lumière en lingala." />
+        content="Estevao, fondateur de Mwinda Group — Agentic Operating System & AI Consultant. Mwinda signifie lumière en lingala." />
   <link rel="alternate" hreflang="fr" href="./" />
   <link rel="alternate" hreflang="en" href="./?lang=en" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Estevao — Mwinda Group. La lumière qui perce l'obscurité." />
-  <meta property="og:description" content="Je construis et je vends des agents IA avec Claude Code. / I build & sell AI agents with Claude Code." />
+  <meta property="og:description" content="Agentic Operating System & AI Consultant — Mwinda, la lumière en lingala." />
   <meta property="og:image" content="assets/hero/og-frame.jpg" />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:locale:alternate" content="en_US" />
@@ -55,6 +55,7 @@
 
     /* ---------- Fond vidéo ambiant (Higgsfield) ---------- */
     .bg-ambient{position:fixed;inset:0;z-index:-1;overflow:hidden}
+    .bg-ambient canvas{position:absolute;inset:0;width:100%;height:100%}
     .bg-ambient video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2.5s ease;filter:saturate(1.15) brightness(.9)}
     .bg-ambient .bg-scrim{position:absolute;inset:0;background:
       radial-gradient(ellipse 120% 90% at 50% 0%,rgba(10,15,30,.5),rgba(10,15,30,.86) 78%),
@@ -137,8 +138,8 @@
     .hero-name{font-family:var(--display);font-weight:900;font-size:clamp(4rem,16vw,15rem);line-height:.9;letter-spacing:.02em;display:flex}
     .hero-name span{opacity:0;transform:translateY(40%) rotateX(60deg);display:inline-block;text-shadow:0 0 60px rgba(245,166,35,.25)}
     .hero-sub{margin-top:1.6rem;font-size:clamp(.65rem,1.4vw,.9rem);letter-spacing:.85em;text-transform:uppercase;color:var(--amber);opacity:0;text-indent:.85em;text-shadow:0 2px 26px rgba(4,7,15,.95),0 0 8px rgba(4,7,15,.7)}
-    .hero-tagline{margin-top:2.2rem;font-size:clamp(.95rem,2vw,1.3rem);color:var(--ink);opacity:0;font-weight:300;max-width:34ch;text-align:center;line-height:1.6;text-shadow:0 2px 26px rgba(4,7,15,.95),0 0 8px rgba(4,7,15,.7)}
-    .hero-tagline em{color:var(--ink);font-style:normal;border-bottom:1px solid var(--amber-line)}
+    .hero-tagline{margin-top:2.2rem;font-size:clamp(.8rem,1.7vw,1.1rem);color:var(--ink);opacity:0;font-weight:400;letter-spacing:.24em;text-indent:.24em;text-align:center;line-height:2;text-shadow:0 2px 26px rgba(4,7,15,.95),0 0 8px rgba(4,7,15,.7)}
+    .hero-tagline em{color:var(--amber);font-style:normal}
     .hero-scrollcue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.8rem;color:var(--ink-dim);font-size:.6rem;letter-spacing:.4em;text-transform:uppercase}
     .hero-scrollcue .line{width:1px;height:56px;background:linear-gradient(var(--amber),transparent);animation:cue 2.2s ease infinite}
     @keyframes cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
@@ -251,7 +252,7 @@
 </head>
 <body>
 
-  <div class="bg-ambient" aria-hidden="true"><div class="bg-scrim"></div></div>
+  <div class="bg-ambient" aria-hidden="true"><canvas id="bgNet"></canvas><div class="bg-scrim"></div></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
   <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
@@ -309,7 +310,7 @@
         </h1>
         <div class="hero-sub" id="heroSub">MWINDA&nbsp;GROUP</div>
         <p class="hero-tagline" id="heroTagline" data-i18n="hero.tagline">
-          Je construis et je vends des <em>agents IA</em> avec Claude&nbsp;Code.
+          AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>
         </p>
       </div>
 
@@ -504,8 +505,8 @@
     const I18N = {
       fr: {
         'meta.title':"Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code",
-        'meta.desc':"Estevao, fondateur de Mwinda Group. Je construis et je vends des agents IA avec Claude Code. Mwinda signifie lumière en lingala.",
-        'hero.tagline':"Je construis et je vends des <em>agents IA</em> avec Claude&nbsp;Code.",
+        'meta.desc':"Estevao, fondateur de Mwinda Group — Agentic Operating System & AI Consultant. Mwinda signifie lumière en lingala.",
+        'hero.tagline':"AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>",
         'hero.scroll':"Défiler",
         'stats.agents':"Agents IA déployés<br/>· à confirmer ·",
         'stats.platforms':"Plateformes livrées<br/>· à confirmer ·",
@@ -541,8 +542,8 @@
       },
       en: {
         'meta.title':"Estevao — Founder, Mwinda Group | AI Agents with Claude Code",
-        'meta.desc':"Estevao, founder of Mwinda Group. I build & sell AI agents with Claude Code. Mwinda means light in Lingala.",
-        'hero.tagline':"I build &amp; sell <em>AI agents</em> with Claude&nbsp;Code.",
+        'meta.desc':"Estevao, founder of Mwinda Group — Agentic Operating System & AI Consultant. Mwinda means light in Lingala.",
+        'hero.tagline':"AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>",
         'hero.scroll':"Scroll",
         'stats.agents':"AI agents deployed<br/>· to confirm ·",
         'stats.platforms':"Platforms shipped<br/>· to confirm ·",
@@ -697,6 +698,52 @@
       })();
     }
 
+    /* ============ Réseau neuronal ambiant — animation permanente du fond ============ */
+    if(!reduced){
+      const nc=document.getElementById('bgNet'), nctx=nc.getContext('2d');
+      let NODES=[];
+      function nsize(){
+        nc.width=innerWidth; nc.height=innerHeight;
+        const count=Math.min(64,Math.max(28,Math.round(innerWidth/26)));
+        NODES=Array.from({length:count},()=>({
+          x:Math.random()*nc.width, y:Math.random()*nc.height,
+          vx:(Math.random()-.5)*.22, vy:(Math.random()-.5)*.22,
+          r:Math.random()*1.7+.9, em:Math.random()<.16, ph:Math.random()*6.28
+        }));
+      }
+      nsize(); addEventListener('resize',nsize);
+      const LINK=Math.min(190,innerWidth*.16);
+      (function net(t){
+        requestAnimationFrame(net);
+        if(document.hidden) return;
+        nctx.clearRect(0,0,nc.width,nc.height);
+        for(const n of NODES){
+          n.x+=n.vx; n.y+=n.vy;
+          if(n.x<-20)n.x=nc.width+20; if(n.x>nc.width+20)n.x=-20;
+          if(n.y<-20)n.y=nc.height+20; if(n.y>nc.height+20)n.y=-20;
+        }
+        for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
+          const a=NODES[i],b=NODES[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+          if(d<LINK){
+            const al=(1-d/LINK)*.32;
+            nctx.beginPath();nctx.moveTo(a.x,a.y);nctx.lineTo(b.x,b.y);
+            nctx.strokeStyle='rgba(245,166,35,'+al+')';nctx.lineWidth=.6;nctx.stroke();
+          }
+        }
+        for(const n of NODES){
+          const pulse=.35+.45*(.5+.5*Math.sin(t/850+n.ph));
+          nctx.beginPath();nctx.arc(n.x,n.y,n.r,0,7);
+          nctx.fillStyle=n.em?'rgba(46,204,143,'+(pulse*.9)+')':'rgba(245,166,35,'+pulse+')';
+          nctx.fill();
+          if(pulse>.7){
+            nctx.beginPath();nctx.arc(n.x,n.y,n.r*3.2,0,7);
+            nctx.fillStyle=(n.em?'rgba(46,204,143,':'rgba(245,166,35,')+(pulse-.7)*.25+')';
+            nctx.fill();
+          }
+        }
+      })(0);
+    }
+
     /* ============ Fond vidéo ambiant (généré via Higgsfield/Seedance) ============ */
     if(!reduced){
       const amb=document.querySelector('.bg-ambient');
@@ -708,7 +755,7 @@
         v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
         v.addEventListener('canplay',()=>{v.style.opacity=.38;v.play().catch(()=>{});});
         v.addEventListener('error',()=>{ if(src===LOCAL) mount(CDN); else v.remove(); });
-        v.src=src; amb.prepend(v);
+        v.src=src; amb.insertBefore(v, amb.querySelector('.bg-scrim'));
       };
       // auto-hébergé si présent, sinon CDN Higgsfield ; sans réseau → dégradés seuls
       fetch(LOCAL,{method:'HEAD'}).then(r=>mount(r.ok?LOCAL:CDN)).catch(()=>mount(CDN));
