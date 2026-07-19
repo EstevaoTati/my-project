@@ -94,6 +94,8 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   the OS" demo chat, which calls `netlify/functions/chat.mjs`.
 - `netlify/functions/chat.mjs` — serverless proxy to the Claude API for the
   demo chat (scoped system prompt, input caps, `CHAT_ENABLED` kill switch).
+  Also serves founder "OS mode": `/os <FOUNDER_KEY>` in the chat swaps in
+  the MWINDA OS kernel prompt with higher limits.
   Needs `ANTHROPIC_API_KEY` in Netlify env vars; `package.json` exists only
   to bundle its `@anthropic-ai/sdk` dependency — the site itself is still
   buildless.

@@ -48,7 +48,11 @@ works in production:
 
 1. Netlify UI → *Site settings → Environment variables*: set
    `ANTHROPIC_API_KEY` (never commit it). Optional: `CHAT_MODEL`
-   (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable.
+   (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable,
+   `FOUNDER_KEY` to enable founder (OS kernel) mode.
+   Founder mode: type `/os <FOUNDER_KEY>` in the chat to talk to the
+   MWINDA OS kernel itself (higher limits, kernel system prompt);
+   `/public` switches back. Without `FOUNDER_KEY` set, OS mode is off.
 2. console.anthropic.com → *Plans & Billing*: set a hard monthly spend
    limit — this is the abuse backstop for the public widget.
 3. Note: `package.json` exists only so Netlify bundles the function's

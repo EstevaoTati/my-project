@@ -615,12 +615,24 @@
   const history = []; // {role, content} pairs sent to the function
   const MAX_TURNS = 12;
 
+  // Founder (OS) mode: type "/os <key>" to speak to the kernel itself;
+  // "/public" returns to the demo persona. The key is checked server-side.
+  const OS_STORE = 'mwinda.os.key';
+  let osKey = sessionStorage.getItem(OS_STORE) || null;
+
+  function applyMode() {
+    input.maxLength = osKey ? 4000 : 1500;
+    input.placeholder = osKey
+      ? 'Directive au kernel… / Directive to the kernel…'
+      : 'Votre question… / Your question…';
+  }
+
   function addMsg(role, text, pending) {
     const wrap = document.createElement('div');
     wrap.className = 'chat-msg ' + role + (pending ? ' pending' : '');
     const who = document.createElement('span');
     who.className = 'who';
-    who.textContent = role === 'user' ? 'You' : 'Mwinda OS';
+    who.textContent = role === 'user' ? 'You' : (osKey ? 'Mwinda OS · Kernel' : 'Mwinda OS');
     const bubble = document.createElement('span');
     bubble.className = 'bubble';
     bubble.textContent = text;
@@ -630,10 +642,31 @@
     return wrap;
   }
 
+  applyMode();
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text || send.disabled) return;
+
+    if (text.toLowerCase().startsWith('/os ')) {
+      osKey = text.slice(4).trim() || null;
+      if (osKey) sessionStorage.setItem(OS_STORE, osKey);
+      applyMode();
+      input.value = '';
+      history.length = 0;
+      addMsg('assistant', 'Kernel mode requested — envoyez une directive pour vérifier la clé. / Send a directive to verify the key.');
+      return;
+    }
+    if (text.toLowerCase() === '/public') {
+      osKey = null;
+      sessionStorage.removeItem(OS_STORE);
+      applyMode();
+      input.value = '';
+      history.length = 0;
+      addMsg('assistant', 'Mode démo public rétabli. / Back to the public demo persona.');
+      return;
+    }
 
     input.value = '';
     send.disabled = true;
@@ -647,13 +680,21 @@
       const res = await fetch('/.netlify/functions/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify(osKey
+          ? { messages: history, mode: 'os', key: osKey }
+          : { messages: history }),
       });
       const data = await res.json().catch(() => ({}));
       pending.remove();
       if (res.ok && data.reply) {
         addMsg('assistant', data.reply);
         history.push({ role: 'assistant', content: data.reply });
+      } else if (res.status === 403 && osKey) {
+        osKey = null;
+        sessionStorage.removeItem(OS_STORE);
+        applyMode();
+        addMsg('assistant', 'Clé invalide — retour au mode démo. / Invalid key — back to demo mode. (/os <key> to retry)');
+        history.pop();
       } else {
         addMsg('assistant', data.error
           ? 'Indisponible pour le moment (' + data.error + '). Merci de réessayer. / Temporarily unavailable, please retry.'

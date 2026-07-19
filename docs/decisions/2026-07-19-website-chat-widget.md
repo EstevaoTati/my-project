@@ -17,6 +17,18 @@ Netlify Function (`netlify/functions/chat.mjs`) that proxies to the Claude API:
 - Spend backstop is the hard monthly limit at console.anthropic.com — the
   stateless function cannot rate-limit per IP without a datastore.
 
+## Addendum (same day): founder OS mode
+
+The founder wanted to test the OS itself from the same platform. Added a
+second mode to the same function: sending `mode: "os"` with a key matching
+the `FOUNDER_KEY` Netlify env var (timing-safe compare) switches the system
+prompt to the MWINDA OS kernel (mirrors CLAUDE.md: role, priorities,
+checklists, communication style) with higher limits (20 turns, 1024 output
+tokens). Unlocked in the UI by typing `/os <key>`; `/public` reverts.
+Honest constraint, stated in the kernel prompt itself: this surface has no
+tools, repo access, or persistence — full execution stays in Claude Code
+and Hermes, and durable conclusions must be recorded in the repo.
+
 ## Rationale
 
 The founder asked to "interact with the OS directly" from the website. The
