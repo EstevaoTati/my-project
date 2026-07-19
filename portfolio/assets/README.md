@@ -53,3 +53,17 @@ ffmpeg -i source.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 26 -preset slow -mo
 - `assets/clips/closer.mp4`    → section 03 · L'Écosystème
 
 Les placeholders disparaissent automatiquement dès que le fichier répond en HTTP 200.
+
+## 4. Fond vidéo ambiant (déjà généré ✓)
+
+Un clip technologique de 4 s (Seedance 1.5, fils de lumière ambre sur nuit
+profonde) a été généré via Higgsfield et est référencé depuis son CDN dans
+`index.html` (couche `.bg-ambient`, opacité 38 % sous un voile dégradé).
+
+Pour l'auto-héberger (recommandé — l'URL CDN peut expirer) :
+
+```bash
+curl -L -o assets/clips/bg-tech.mp4 "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260719_053719_30b17f73-3199-47f6-aaf2-5d2d18699850.mp4"
+```
+
+Le code préfère automatiquement `assets/clips/bg-tech.mp4` s'il existe.

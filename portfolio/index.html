@@ -41,10 +41,10 @@
       --body:'Inter',system-ui,sans-serif;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    html{scroll-behavior:smooth}
+    html{scroll-behavior:smooth;background:var(--night)}
     html.has-gsap{scroll-behavior:auto}
     body{
-      background:var(--night);
+      background:transparent;
       color:var(--ink);
       font-family:var(--body);
       font-weight:300;
@@ -52,6 +52,14 @@
       -webkit-font-smoothing:antialiased;
     }
     ::selection{background:var(--amber);color:var(--night)}
+
+    /* ---------- Fond vidéo ambiant (Higgsfield) ---------- */
+    .bg-ambient{position:fixed;inset:0;z-index:-1;overflow:hidden}
+    .bg-ambient video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2.5s ease;filter:saturate(1.15) brightness(.9)}
+    .bg-ambient .bg-scrim{position:absolute;inset:0;background:
+      radial-gradient(ellipse 120% 90% at 50% 0%,rgba(10,15,30,.5),rgba(10,15,30,.86) 78%),
+      linear-gradient(180deg,rgba(10,15,30,.32),rgba(10,15,30,.66))}
+    @media(prefers-reduced-motion:reduce){.bg-ambient video{display:none}}
 
     /* ---------- Loader ---------- */
     .loader{position:fixed;inset:0;z-index:200;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2rem;transition:opacity .9s ease,visibility .9s}
@@ -72,13 +80,12 @@
     .lang-switch button.active{background:var(--amber);color:var(--night);font-weight:600}
 
     /* ---------- Hero ---------- */
-    .hero{position:relative;height:100vh;background:var(--night)}
+    .hero{position:relative;height:100vh}
     .hero-stage{position:relative;height:100vh;overflow:hidden}
     #heroCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
     .hero-fallback{position:absolute;inset:0;background:
       radial-gradient(ellipse 60% 80% at 68% 45%, rgba(245,166,35,.22), transparent 60%),
-      radial-gradient(ellipse 40% 55% at 30% 70%, rgba(46,204,143,.05), transparent 65%),
-      var(--night)}
+      radial-gradient(ellipse 40% 55% at 30% 70%, rgba(46,204,143,.05), transparent 65%)}
     .hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(4,7,15,.85) 100%);pointer-events:none}
     .hero-dust{position:absolute;inset:0;pointer-events:none}
 
@@ -244,6 +251,7 @@
 </head>
 <body>
 
+  <div class="bg-ambient" aria-hidden="true"><div class="bg-scrim"></div></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
   <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
@@ -687,6 +695,23 @@
         }
         requestAnimationFrame(dust);
       })();
+    }
+
+    /* ============ Fond vidéo ambiant (généré via Higgsfield/Seedance) ============ */
+    if(!reduced){
+      const amb=document.querySelector('.bg-ambient');
+      const LOCAL='assets/clips/bg-tech.mp4';
+      const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260719_053719_30b17f73-3199-47f6-aaf2-5d2d18699850.mp4';
+      const mount=src=>{
+        const v=document.createElement('video');
+        v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;
+        v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
+        v.addEventListener('canplay',()=>{v.style.opacity=.38;v.play().catch(()=>{});});
+        v.addEventListener('error',()=>{ if(src===LOCAL) mount(CDN); else v.remove(); });
+        v.src=src; amb.prepend(v);
+      };
+      // auto-hébergé si présent, sinon CDN Higgsfield ; sans réseau → dégradés seuls
+      fetch(LOCAL,{method:'HEAD'}).then(r=>mount(r.ok?LOCAL:CDN)).catch(()=>mount(CDN));
     }
 
     /* ============ Barre de progression ============ */
