@@ -76,7 +76,7 @@ idea, say so and propose the better path.
 
 ## This repository
 
-Static marketing site for MWINDA GROUP LLC / Mwinda Digital, deployed on
+Static marketing site for MWINDA DIGITAL, deployed on
 Netlify. Plain HTML/CSS/JS — **no build step, no package.json, no tests, no
 linter**. The default branch is `main`; every push to `main` auto-deploys.
 

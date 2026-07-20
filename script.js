@@ -1,5 +1,5 @@
 /* ============================================================
-   MWINDA GROUP LLC — Animations & Interactions
+   MWINDA DIGITAL — Animations & Interactions
    ============================================================ */
 (() => {
   'use strict';
@@ -208,6 +208,12 @@
       }
       formNote.style.color = '';
       formNote.textContent = t('form.ok', { name: name.split(' ')[0] });
+      // Hand the message off to WhatsApp (business line) with everything prefilled.
+      const waText = 'Nouveau message via mwindadigital' + String.fromCharCode(10) +
+        'Nom / Name: ' + name + String.fromCharCode(10) +
+        'Email: ' + email + String.fromCharCode(10) +
+        'Pole: ' + topic + String.fromCharCode(10) + String.fromCharCode(10) + message;
+      window.open('https://wa.me/17065725957?text=' + encodeURIComponent(waText), '_blank', 'noopener');
       form.reset();
     });
   }
