@@ -99,6 +99,10 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   Needs `ANTHROPIC_API_KEY` in Netlify env vars; `package.json` exists only
   to bundle its `@anthropic-ai/sdk` dependency — the site itself is still
   buildless.
+- `netlify/functions/brief.mjs` — key-gated endpoint serving the Monday
+  briefs (`docs/briefs/*.md`, bundled via `included_files`) to the
+  "Founder Briefs" section (Layer 06) on `os.html`. `_redirects` blocks
+  direct public access to `/docs/*`, `/CLAUDE.md`, `/scripts/*`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.

@@ -354,6 +354,58 @@
   .chat-form button:disabled { background: var(--gold-deep); color: var(--bg); cursor: wait; }
   .chat-note { font-size: 12px; color: var(--dim); margin: 10px 2px 0; }
 
+  /* founder briefs */
+  .briefs-gate { display: flex; gap: 10px; max-width: 560px; }
+  .briefs-gate input {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono); font-size: 13px;
+    padding: 11px 14px;
+    outline: none;
+  }
+  .briefs-gate input:focus { border-color: var(--line-strong); }
+  .briefs-gate button {
+    background: var(--gold-3); border: none; border-radius: 8px;
+    color: #000; font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 0 20px; cursor: pointer;
+  }
+  .briefs-gate button:hover { background: var(--gold-2); }
+  .briefs-note { font-size: 12.5px; color: var(--dim); margin-top: 10px; }
+  .briefs-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .briefs-tabs button {
+    background: var(--bg-2); color: var(--gold-1);
+    border: 1px solid var(--line); border-radius: 6px;
+    font-family: var(--mono); font-size: 12px;
+    padding: 7px 12px; cursor: pointer;
+  }
+  .briefs-tabs button.active { border-color: var(--gold-3); color: var(--gold-2); }
+  .brief-doc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 26px 30px;
+    font-size: 14.5px;
+    max-height: 560px; overflow-y: auto;
+  }
+  .brief-doc h1 { font-size: 20px; letter-spacing: .06em; margin: 0 0 14px; }
+  .brief-doc h2 {
+    font-size: 14px; letter-spacing: .18em; color: var(--gold-3);
+    margin: 26px 0 10px; text-transform: uppercase;
+  }
+  .brief-doc p, .brief-doc li { color: var(--mute); line-height: 1.7; }
+  .brief-doc li { margin: 6px 0; }
+  .brief-doc strong { color: var(--text); }
+  .brief-doc em { color: var(--dim); }
+  .brief-doc pre {
+    font-family: var(--mono); font-size: 12.5px; color: var(--mute);
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 16px; overflow-x: auto;
+  }
+
   /* status board */
   .status {
     margin-top: 66px;
@@ -570,6 +622,25 @@
   </div>
 </section>
 
+<section id="briefs">
+  <div class="wrap">
+    <div class="layer-head">
+      <span class="layer-tag">LAYER 06</span>
+      <h2>Founder <span class="g">Briefs</span></h2>
+    </div>
+    <p class="lede">Every Monday, the OS reviews the whole system and writes a priorities brief. This memory is private — unlock it with the founder key.</p>
+    <div class="briefs-gate" id="briefsGate">
+      <input id="briefsKey" type="password" autocomplete="off" placeholder="Founder key…" aria-label="Founder key" />
+      <button id="briefsUnlock" type="button">Unlock</button>
+    </div>
+    <p class="briefs-note" id="briefsNote">Locked. The key is never stored on our servers.</p>
+    <div id="briefsView" hidden>
+      <div class="briefs-tabs" id="briefsTabs"></div>
+      <div class="brief-doc" id="briefDoc"></div>
+    </div>
+  </div>
+</section>
+
 <section class="status">
   <div class="wrap">
     <div class="layer-head">
@@ -733,6 +804,108 @@
       input.focus();
     }
   });
+})();
+
+/* ---------- Founder briefs (Layer 06) ---------- */
+(() => {
+  'use strict';
+  const gate = document.getElementById('briefsGate');
+  const keyInput = document.getElementById('briefsKey');
+  const unlock = document.getElementById('briefsUnlock');
+  const note = document.getElementById('briefsNote');
+  const view = document.getElementById('briefsView');
+  const tabs = document.getElementById('briefsTabs');
+  const doc = document.getElementById('briefDoc');
+  if (!gate) return;
+
+  // Minimal, safe markdown rendering: escape everything first, then apply
+  // a few known patterns. Tables and anything unrecognized stay monospace.
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function inline(s) {
+    return s
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+  function render(md) {
+    const lines = esc(md).split('\n');
+    let html = '', list = false, table = [];
+    const flushList = () => { if (list) { html += '</ul>'; list = false; } };
+    const flushTable = () => {
+      if (table.length) { html += '<pre>' + table.join('\n') + '</pre>'; table = []; }
+    };
+    for (const line of lines) {
+      if (/^\|/.test(line)) { flushList(); table.push(line); continue; }
+      flushTable();
+      if (/^##\s/.test(line)) { flushList(); html += '<h2>' + inline(line.slice(3)) + '</h2>'; }
+      else if (/^#\s/.test(line)) { flushList(); html += '<h1>' + inline(line.slice(2)) + '</h1>'; }
+      else if (/^[-*]\s/.test(line) || /^\d+\.\s/.test(line)) {
+        if (!list) { html += '<ul>'; list = true; }
+        html += '<li>' + inline(line.replace(/^([-*]|\d+\.)\s/, '')) + '</li>';
+      }
+      else if (line.trim() === '') { flushList(); }
+      else { flushList(); html += '<p>' + inline(line) + '</p>'; }
+    }
+    flushList(); flushTable();
+    return html;
+  }
+
+  let briefs = [];
+  function show(i) {
+    doc.innerHTML = render(briefs[i].content);
+    [...tabs.children].forEach((b, j) => b.classList.toggle('active', j === i));
+  }
+
+  async function tryUnlock(key) {
+    note.textContent = 'Unlocking…';
+    try {
+      const res = await fetch('/.netlify/functions/brief', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ key }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        note.textContent = res.status === 403
+          ? 'Invalid key. / Clé invalide.'
+          : 'Unavailable (' + (data.error || res.status) + ').';
+        return;
+      }
+      briefs = data.briefs || [];
+      gate.hidden = true;
+      view.hidden = false;
+      if (!briefs.length) {
+        note.textContent = 'Unlocked — no briefs yet. The first one lands on Monday.';
+        return;
+      }
+      note.textContent = 'Unlocked — ' + briefs.length + ' brief(s), newest first.';
+      tabs.innerHTML = '';
+      briefs.forEach((b, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = b.date;
+        btn.addEventListener('click', () => show(i));
+        tabs.appendChild(btn);
+      });
+      show(0);
+    } catch {
+      note.textContent = 'Network error — please retry.';
+    }
+  }
+
+  unlock.addEventListener('click', () => {
+    const key = keyInput.value.trim();
+    if (key) tryUnlock(key);
+  });
+  keyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); unlock.click(); }
+  });
+
+  // If founder mode is already active in the chat, reuse that key silently.
+  const stored = sessionStorage.getItem('mwinda.os.key');
+  if (stored) { keyInput.value = stored; tryUnlock(stored); }
 })();
 </script>
 </body>
