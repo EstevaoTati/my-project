@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MWINDA GROUP LLC — Bringing Light to Your Ideas. Holding multi-activités : Digital, Consulting, Events, Publishing, Food & Impact Social." />
-  <title>MWINDA GROUP LLC — Bringing Light to Your Ideas</title>
+  <meta name="description" content="MWINDA GROUP LLC — Bringing Light to Your Ideas. Holding multi-activités : Digital, Consulting, Events, Publishing, Food & Impact Social." data-i18n-attr="content" data-i18n="meta.desc" />
+  <title data-i18n="meta.title">MWINDA GROUP LLC — Bringing Light to Your Ideas</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,11 +14,9 @@
 </head>
 <body>
 
-  <!-- Custom Cursor -->
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
 
-  <!-- Page Loader -->
   <div class="loader" id="loader">
     <div class="loader-inner">
       <svg viewBox="0 0 100 100" class="loader-bulb">
@@ -39,13 +37,10 @@
     </div>
   </div>
 
-  <!-- Background canvas (Three.js particles) -->
   <canvas id="bgCanvas"></canvas>
-
-  <!-- Scroll progress -->
   <div class="scroll-progress" id="scrollProgress"></div>
 
-  <!-- Navigation -->
+  <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="#home" class="nav-logo" data-magnetic>
       <span class="nav-logo-bulb">
@@ -54,15 +49,21 @@
       <span class="nav-logo-text">MWINDA<small>GROUP LLC</small></span>
     </a>
     <ul class="nav-links">
-      <li><a href="#home">Accueil</a></li>
-      <li><a href="#about">À propos</a></li>
-      <li><a href="#divisions">Pôles</a></li>
-      <li><a href="#ecosystem">Écosystème</a></li>
-      <li><a href="#impact">Impact</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="#home" data-i18n="nav.home">Accueil</a></li>
+      <li><a href="#about" data-i18n="nav.about">À propos</a></li>
+      <li><a href="#divisions" data-i18n="nav.divisions">Pôles</a></li>
+      <li><a href="#ecosystem" data-i18n="nav.ecosystem">Écosystème</a></li>
+      <li><a href="#impact" data-i18n="nav.impact">Impact</a></li>
+      <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
     </ul>
+
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button data-lang="fr" class="active" aria-label="Français">FR</button>
+      <button data-lang="en" aria-label="English">EN</button>
+    </div>
+
     <a href="#contact" class="nav-cta" data-magnetic>
-      <span>Démarrer un projet</span>
+      <span data-i18n="nav.cta">Démarrer un projet</span>
       <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
     <button class="nav-burger" id="navBurger" aria-label="Menu">
@@ -78,66 +79,65 @@
     <div class="hero-content">
       <div class="hero-tag reveal">
         <span class="dot"></span>
-        <span>Holding entrepreneuriale multi-activités</span>
+        <span data-i18n="hero.tag">Holding entrepreneuriale multi-activités</span>
       </div>
 
       <h1 class="hero-title">
-        <span class="line"><span class="word">Bringing</span></span>
-        <span class="line"><span class="word gold-text">Light</span></span>
-        <span class="line"><span class="word">to Your</span> <span class="word italic">Ideas</span></span>
+        <span class="line"><span class="word" data-i18n="hero.t1">Bringing</span></span>
+        <span class="line"><span class="word gold-text" data-i18n="hero.t2">Light</span></span>
+        <span class="line"><span class="word" data-i18n="hero.t3">to Your</span> <span class="word italic" data-i18n="hero.t4">Ideas</span></span>
       </h1>
 
-      <p class="hero-sub reveal">
+      <p class="hero-sub reveal" data-i18n="hero.sub">
         MWINDA GROUP LLC combine expertise stratégique, technologie et exécution pour transformer les idées en écosystèmes durables — du digital à l'impact social.
       </p>
 
       <div class="hero-actions reveal">
         <a href="#divisions" class="btn btn-primary" data-magnetic>
-          <span>Découvrir nos pôles</span>
+          <span data-i18n="hero.cta1">Découvrir nos pôles</span>
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <a href="#contact" class="btn btn-ghost" data-magnetic>
-          <span>Nous contacter</span>
+          <span data-i18n="hero.cta2">Nous contacter</span>
         </a>
       </div>
 
       <div class="hero-meta reveal">
-        <div><strong>6</strong><span>Pôles d'activité</span></div>
-        <div><strong>1</strong><span>Vision intégrée</span></div>
-        <div><strong>∞</strong><span>Possibilités</span></div>
+        <div><strong>6</strong><span data-i18n="hero.m1">Pôles d'activité</span></div>
+        <div><strong>1</strong><span data-i18n="hero.m2">Vision intégrée</span></div>
+        <div><strong>∞</strong><span data-i18n="hero.m3">Possibilités</span></div>
       </div>
     </div>
 
-    <!-- 3D Bulb -->
     <div class="hero-3d" id="hero3d"></div>
 
     <a href="#about" class="hero-scroll" aria-label="Scroll">
       <span class="mouse"><span></span></span>
-      <span>Scroll</span>
+      <span data-i18n="hero.scroll">Scroll</span>
     </a>
   </section>
 
-  <!-- ABOUT / VISION -->
+  <!-- ABOUT -->
   <section class="about" id="about">
     <div class="container">
       <div class="section-head">
-        <span class="section-eyebrow reveal">À propos</span>
-        <h2 class="section-title reveal">Un <em>écosystème</em> intégré, <br/>une <span class="gold-text">vision</span> commune</h2>
+        <span class="section-eyebrow reveal" data-i18n="about.eyebrow">À propos</span>
+        <h2 class="section-title reveal" data-i18n="about.title" data-i18n-html>Un <em>écosystème</em> intégré, <br/>une <span class="gold-text">vision</span> commune</h2>
       </div>
 
       <div class="about-grid">
         <div class="about-text reveal">
-          <p class="lead">
+          <p class="lead" data-i18n="about.lead" data-i18n-html>
             MWINDA GROUP LLC est structuré comme une <strong>holding de services multi-activités</strong>, avec une orientation forte vers l'innovation, l'impact social et la croissance des entreprises.
           </p>
-          <p>
+          <p data-i18n="about.p2" data-i18n-html>
             Notre cœur repose sur une idée simple : <em>combiner expertise stratégique, technologie et exécution</em> pour accompagner les projets et les organisations vers leur plein potentiel.
           </p>
 
           <ul class="about-pillars">
-            <li><span>01</span><div><h4>Innovation</h4><p>Technologies émergentes et IA au service de l'humain.</p></div></li>
-            <li><span>02</span><div><h4>Impact</h4><p>Une croissance économique alignée sur le bien commun.</p></div></li>
-            <li><span>03</span><div><h4>Excellence</h4><p>Exigence d'exécution sur chacune de nos verticales.</p></div></li>
+            <li><span>01</span><div><h4 data-i18n="about.p1.t">Innovation</h4><p data-i18n="about.p1.d">Technologies émergentes et IA au service de l'humain.</p></div></li>
+            <li><span>02</span><div><h4 data-i18n="about.p2.t">Impact</h4><p data-i18n="about.p2.d">Une croissance économique alignée sur le bien commun.</p></div></li>
+            <li><span>03</span><div><h4 data-i18n="about.p3.t">Excellence</h4><p data-i18n="about.p3.d">Exigence d'exécution sur chacune de nos verticales.</p></div></li>
           </ul>
         </div>
 
@@ -165,115 +165,109 @@
   <section class="divisions" id="divisions">
     <div class="container">
       <div class="section-head">
-        <span class="section-eyebrow reveal">Nos pôles</span>
-        <h2 class="section-title reveal">Six expertises, <span class="gold-text">une seule</span> lumière</h2>
-        <p class="section-sub reveal">Chaque pôle est autonome dans son métier, mais connecté par une même exigence et une même mission : faire grandir vos idées.</p>
+        <span class="section-eyebrow reveal" data-i18n="div.eyebrow">Nos pôles</span>
+        <h2 class="section-title reveal" data-i18n="div.title" data-i18n-html>Six expertises, <span class="gold-text">une seule</span> lumière</h2>
+        <p class="section-sub reveal" data-i18n="div.sub">Chaque pôle est autonome dans son métier, mais connecté par une même exigence et une même mission : faire grandir vos idées.</p>
       </div>
 
       <div class="div-grid">
-        <!-- 1 Mwinda Digital -->
-        <article class="div-card tilt" data-color="#D4AF37">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M50 14l-7 7M21 43l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/></svg>
             </div>
             <h3>Mwinda <span>Digital</span></h3>
-            <p class="div-tag">AI · Web · Technology</p>
-            <p class="div-desc">Développement web, intelligence artificielle et solutions technologiques sur mesure pour transformer vos opérations.</p>
+            <p class="div-tag" data-i18n="d1.tag">AI · Web · Technology</p>
+            <p class="div-desc" data-i18n="d1.desc">Développement web, intelligence artificielle et solutions technologiques sur mesure pour transformer vos opérations.</p>
             <ul class="div-list">
-              <li>Web & Mobile Apps</li>
-              <li>IA & Automatisation</li>
-              <li>Cloud & DevOps</li>
+              <li data-i18n="d1.l1">Web & Mobile Apps</li>
+              <li data-i18n="d1.l2">IA & Automatisation</li>
+              <li data-i18n="d1.l3">Cloud & DevOps</li>
             </ul>
             <span class="div-num">01</span>
           </div>
         </article>
 
-        <!-- 2 Mwinda Consulting -->
-        <article class="div-card tilt" data-color="#E8C547">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="44" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="44" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 26v6h24v-6M32 32v6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M14 14l-3-3M50 14l3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </div>
             <h3>Mwinda <span>Consulting</span></h3>
-            <p class="div-tag">Projects & Ideas Management</p>
-            <p class="div-desc">Gestion de projets, structuration d'idées et accompagnement stratégique pour entrepreneurs et organisations.</p>
+            <p class="div-tag" data-i18n="d2.tag">Projects & Ideas Management</p>
+            <p class="div-desc" data-i18n="d2.desc">Gestion de projets, structuration d'idées et accompagnement stratégique pour entrepreneurs et organisations.</p>
             <ul class="div-list">
-              <li>Stratégie d'entreprise</li>
-              <li>Project Management</li>
-              <li>Business Modeling</li>
+              <li data-i18n="d2.l1">Stratégie d'entreprise</li>
+              <li data-i18n="d2.l2">Project Management</li>
+              <li data-i18n="d2.l3">Business Modeling</li>
             </ul>
             <span class="div-num">02</span>
           </div>
         </article>
 
-        <!-- 3 Mwinda Events -->
-        <article class="div-card tilt" data-color="#F0CB45">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><path d="M16 28l16-12 16 12v20H16V28z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M28 48v-10h8v10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="22" r="2" fill="currentColor"/><path d="M10 28l22-18 22 18" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/></svg>
             </div>
             <h3>Mwinda <span>Events</span></h3>
-            <p class="div-tag">Conferences & Event Planning</p>
-            <p class="div-desc">Organisation de conférences, sommets et événements professionnels mémorables, du concept à l'exécution.</p>
+            <p class="div-tag" data-i18n="d3.tag">Conferences & Event Planning</p>
+            <p class="div-desc" data-i18n="d3.desc">Organisation de conférences, sommets et événements professionnels mémorables, du concept à l'exécution.</p>
             <ul class="div-list">
-              <li>Conférences & Sommets</li>
-              <li>Événements corporate</li>
-              <li>Production scénique</li>
+              <li data-i18n="d3.l1">Conférences & Sommets</li>
+              <li data-i18n="d3.l2">Événements corporate</li>
+              <li data-i18n="d3.l3">Production scénique</li>
             </ul>
             <span class="div-num">03</span>
           </div>
         </article>
 
-        <!-- 4 Les Élites Publishing -->
-        <article class="div-card tilt" data-color="#3a7bd5">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><path d="M10 18c8-4 16-4 22 0v32c-6-4-14-4-22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M54 18c-8-4-16-4-22 0v32c6-4 14-4 22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M44 8l4 14-6-3-3 6-2-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
             </div>
             <h3>Les Élites <span>Publishing House</span></h3>
-            <p class="div-tag">Édition & Publication</p>
-            <p class="div-desc">Maison d'édition dédiée à la publication de livres, médias et contenus à fort impact intellectuel et culturel.</p>
+            <p class="div-tag" data-i18n="d4.tag">Édition & Publication</p>
+            <p class="div-desc" data-i18n="d4.desc">Maison d'édition dédiée à la publication de livres, médias et contenus à fort impact intellectuel et culturel.</p>
             <ul class="div-list">
-              <li>Édition de livres</li>
-              <li>Médias & contenus</li>
-              <li>Diffusion internationale</li>
+              <li data-i18n="d4.l1">Édition de livres</li>
+              <li data-i18n="d4.l2">Médias & contenus</li>
+              <li data-i18n="d4.l3">Diffusion internationale</li>
             </ul>
             <span class="div-num">04</span>
           </div>
         </article>
 
-        <!-- 5 Okam Services Food -->
-        <article class="div-card tilt" data-color="#C99A3B">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><path d="M20 18c0-6 6-10 12-10s12 4 12 10c4 0 6 4 6 8H14c0-4 2-8 6-8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 32h36v6c0 6-4 10-10 10H24c-6 0-10-4-10-10v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M22 18v6M32 14v10M42 18v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </div>
             <h3>Okam <span>Services Food</span></h3>
-            <p class="div-tag">Food & Catering</p>
-            <p class="div-desc">Services alimentaires premium et catering pour événements, entreprises et particuliers — « Your smile, our priority ».</p>
+            <p class="div-tag" data-i18n="d5.tag">Food & Catering</p>
+            <p class="div-desc" data-i18n="d5.desc">Services alimentaires premium et catering pour événements, entreprises et particuliers — « Your smile, our priority ».</p>
             <ul class="div-list">
-              <li>Catering événementiel</li>
-              <li>Restauration corporate</li>
-              <li>Cuisine sur mesure</li>
+              <li data-i18n="d5.l1">Catering événementiel</li>
+              <li data-i18n="d5.l2">Restauration corporate</li>
+              <li data-i18n="d5.l3">Cuisine sur mesure</li>
             </ul>
             <span class="div-num">05</span>
           </div>
         </article>
 
-        <!-- 6 Mwinda Hope Nation -->
-        <article class="div-card tilt" data-color="#E8C547">
+        <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
               <svg viewBox="0 0 64 64"><path d="M32 20c-3-6-13-6-13 4 0 8 13 16 13 16s13-8 13-16c0-10-10-10-13-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 50h36M18 50v-6h6v6M40 50v-6h6v6M28 50v-12h8v12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </div>
             <h3>Mwinda <span>Hope Nation</span></h3>
-            <p class="div-tag">NGO · Soutien aux sans-abri</p>
-            <p class="div-desc">Organisation à but non lucratif engagée dans le soutien, la dignité et la réinsertion des personnes sans-abri.</p>
+            <p class="div-tag" data-i18n="d6.tag">NGO · Soutien aux sans-abri</p>
+            <p class="div-desc" data-i18n="d6.desc">Organisation à but non lucratif engagée dans le soutien, la dignité et la réinsertion des personnes sans-abri.</p>
             <ul class="div-list">
-              <li>Hébergement d'urgence</li>
-              <li>Programmes de réinsertion</li>
-              <li>Sensibilisation publique</li>
+              <li data-i18n="d6.l1">Hébergement d'urgence</li>
+              <li data-i18n="d6.l2">Programmes de réinsertion</li>
+              <li data-i18n="d6.l3">Sensibilisation publique</li>
             </ul>
             <span class="div-num">06</span>
           </div>
@@ -286,9 +280,9 @@
   <section class="ecosystem" id="ecosystem">
     <div class="container">
       <div class="section-head">
-        <span class="section-eyebrow reveal">L'écosystème</span>
-        <h2 class="section-title reveal">Tout est <span class="gold-text">connecté</span>.</h2>
-        <p class="section-sub reveal">Six pôles, une orchestration. Survolez le centre pour voir comment l'expertise circule dans le groupe.</p>
+        <span class="section-eyebrow reveal" data-i18n="eco.eyebrow">L'écosystème</span>
+        <h2 class="section-title reveal" data-i18n="eco.title" data-i18n-html>Tout est <span class="gold-text">connecté</span>.</h2>
+        <p class="section-sub reveal" data-i18n="eco.sub">Six pôles, une orchestration. Survolez le centre pour voir comment l'expertise circule dans le groupe.</p>
       </div>
 
       <div class="eco-stage" id="ecoStage">
@@ -327,37 +321,37 @@
     </div>
   </section>
 
-  <!-- IMPACT / STATS -->
+  <!-- IMPACT -->
   <section class="impact" id="impact">
     <div class="container">
       <div class="section-head">
-        <span class="section-eyebrow reveal">Impact</span>
-        <h2 class="section-title reveal">Notre <span class="gold-text">empreinte</span> en chiffres</h2>
+        <span class="section-eyebrow reveal" data-i18n="impact.eyebrow">Impact</span>
+        <h2 class="section-title reveal" data-i18n="impact.title" data-i18n-html>Notre <span class="gold-text">empreinte</span> en chiffres</h2>
       </div>
 
       <div class="stats">
         <div class="stat reveal">
           <div class="stat-num" data-count="6">0</div>
-          <div class="stat-lbl">Pôles d'activité</div>
+          <div class="stat-lbl" data-i18n="impact.s1">Pôles d'activité</div>
         </div>
         <div class="stat reveal">
           <div class="stat-num" data-count="120">0</div>
-          <div class="stat-lbl">Projets accompagnés</div>
+          <div class="stat-lbl" data-i18n="impact.s2">Projets accompagnés</div>
         </div>
         <div class="stat reveal">
           <div class="stat-num" data-count="40" data-suffix="+">0</div>
-          <div class="stat-lbl">Événements organisés</div>
+          <div class="stat-lbl" data-i18n="impact.s3">Événements organisés</div>
         </div>
         <div class="stat reveal">
           <div class="stat-num" data-count="10000" data-suffix="+">0</div>
-          <div class="stat-lbl">Vies impactées</div>
+          <div class="stat-lbl" data-i18n="impact.s4">Vies impactées</div>
         </div>
       </div>
 
       <div class="quote reveal">
         <svg viewBox="0 0 24 24" width="40" height="40" class="quote-mark"><path d="M9 7H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4M21 7h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Notre vision est de bâtir un écosystème qui répond aux besoins business, technologiques, communicationnels et sociaux — sous une même lumière.
-        <span class="quote-author">— MWINDA GROUP LLC</span>
+        <span data-i18n="impact.quote">Notre vision est de bâtir un écosystème qui répond aux besoins business, technologiques, communicationnels et sociaux — sous une même lumière.</span>
+        <span class="quote-author" data-i18n="impact.author">— MWINDA GROUP LLC</span>
       </div>
     </div>
   </section>
@@ -366,22 +360,22 @@
   <section class="contact" id="contact">
     <div class="container contact-grid">
       <div class="contact-info reveal">
-        <span class="section-eyebrow">Contact</span>
-        <h2 class="section-title">Donnons <span class="gold-text">vie</span> <br/>à votre prochaine idée.</h2>
-        <p>Que vous soyez une organisation, un entrepreneur ou une institution, nos équipes sont prêtes à concevoir avec vous une solution sur mesure.</p>
+        <span class="section-eyebrow" data-i18n="contact.eyebrow">Contact</span>
+        <h2 class="section-title" data-i18n="contact.title" data-i18n-html>Donnons <span class="gold-text">vie</span> <br/>à votre prochaine idée.</h2>
+        <p data-i18n="contact.desc">Que vous soyez une organisation, un entrepreneur ou une institution, nos équipes sont prêtes à concevoir avec vous une solution sur mesure.</p>
 
         <ul class="contact-list">
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 6h16v12H4zM4 6l8 7 8-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
-            <div><strong>Email</strong><a href="mailto:contact@mwindagroup.com">contact@mwindagroup.com</a></div>
+            <div><strong data-i18n="contact.email">Email</strong><a href="mailto:contact@mwindagroup.com">contact@mwindagroup.com</a></div>
           </li>
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M22 16.92V21a1 1 0 0 1-1.1 1A19 19 0 0 1 2 4.1 1 1 0 0 1 3 3h4.09a1 1 0 0 1 1 .75l1 4a1 1 0 0 1-.29 1L7 10.5a16 16 0 0 0 6.5 6.5l1.75-1.8a1 1 0 0 1 1-.29l4 1a1 1 0 0 1 .75 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
-            <div><strong>Téléphone</strong><a href="tel:+10000000000">+1 (000) 000-0000</a></div>
+            <div><strong data-i18n="contact.phone">Téléphone</strong><a href="tel:+10000000000">+1 (000) 000-0000</a></div>
           </li>
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
-            <div><strong>Siège</strong><span>MWINDA GROUP LLC — USA</span></div>
+            <div><strong data-i18n="contact.hq">Siège</strong><span data-i18n="contact.hqv">MWINDA GROUP LLC — USA</span></div>
           </li>
         </ul>
 
@@ -396,12 +390,12 @@
       <form class="contact-form reveal" id="contactForm" novalidate>
         <div class="field">
           <input type="text" id="name" required autocomplete="name" placeholder=" " />
-          <label for="name">Nom complet</label>
+          <label for="name" data-i18n="form.name">Nom complet</label>
           <span class="line-fx"></span>
         </div>
         <div class="field">
           <input type="email" id="email" required autocomplete="email" placeholder=" " />
-          <label for="email">Adresse email</label>
+          <label for="email" data-i18n="form.email">Adresse email</label>
           <span class="line-fx"></span>
         </div>
         <div class="field">
@@ -413,18 +407,18 @@
             <option>Les Élites Publishing</option>
             <option>Okam Services Food</option>
             <option>Mwinda Hope Nation</option>
-            <option>Autre / Partenariat</option>
+            <option data-i18n="form.other">Autre / Partenariat</option>
           </select>
-          <label for="topic">Pôle concerné</label>
+          <label for="topic" data-i18n="form.topic">Pôle concerné</label>
           <span class="line-fx"></span>
         </div>
         <div class="field">
           <textarea id="message" rows="4" required placeholder=" "></textarea>
-          <label for="message">Votre message</label>
+          <label for="message" data-i18n="form.message">Votre message</label>
           <span class="line-fx"></span>
         </div>
         <button type="submit" class="btn btn-primary btn-block" data-magnetic>
-          <span>Envoyer le message</span>
+          <span data-i18n="form.submit">Envoyer le message</span>
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <p class="form-note" id="formNote"></p>
@@ -443,12 +437,12 @@
             </span>
             <span class="nav-logo-text">MWINDA<small>GROUP LLC</small></span>
           </div>
-          <p>Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.</p>
+          <p data-i18n="footer.tagline">Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.</p>
         </div>
 
         <div class="footer-cols">
           <div>
-            <h5>Pôles</h5>
+            <h5 data-i18n="footer.h1">Pôles</h5>
             <a href="#divisions">Mwinda Digital</a>
             <a href="#divisions">Mwinda Consulting</a>
             <a href="#divisions">Mwinda Events</a>
@@ -457,34 +451,33 @@
             <a href="#divisions">Mwinda Hope Nation</a>
           </div>
           <div>
-            <h5>Groupe</h5>
-            <a href="#about">À propos</a>
-            <a href="#ecosystem">Écosystème</a>
-            <a href="#impact">Impact</a>
-            <a href="#contact">Carrières</a>
-            <a href="#contact">Presse</a>
+            <h5 data-i18n="footer.h2">Groupe</h5>
+            <a href="#about" data-i18n="footer.about">À propos</a>
+            <a href="#ecosystem" data-i18n="footer.eco">Écosystème</a>
+            <a href="#impact" data-i18n="footer.impact">Impact</a>
+            <a href="#contact" data-i18n="footer.careers">Carrières</a>
+            <a href="#contact" data-i18n="footer.press">Presse</a>
           </div>
           <div>
-            <h5>Légal</h5>
-            <a href="#">Mentions légales</a>
-            <a href="#">Confidentialité</a>
-            <a href="#">Cookies</a>
-            <a href="#">CGU</a>
+            <h5 data-i18n="footer.h3">Légal</h5>
+            <a href="#" data-i18n="footer.legal1">Mentions légales</a>
+            <a href="#" data-i18n="footer.legal2">Confidentialité</a>
+            <a href="#" data-i18n="footer.legal3">Cookies</a>
+            <a href="#" data-i18n="footer.legal4">CGU</a>
           </div>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© <span id="year"></span> MWINDA GROUP LLC. Tous droits réservés.</span>
-        <span>Crafted with <span class="gold-text">light</span> & precision.</span>
+        <span><span data-i18n="footer.rights1">©</span> <span id="year"></span> <span data-i18n="footer.rights2">MWINDA GROUP LLC. Tous droits réservés.</span></span>
+        <span data-i18n="footer.craft" data-i18n-html>Crafted with <span class="gold-text">light</span> &amp; precision.</span>
       </div>
     </div>
   </footer>
 
-  <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-
+  <script src="i18n.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
