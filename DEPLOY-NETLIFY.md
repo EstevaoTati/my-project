@@ -1,4 +1,4 @@
-# Deploy MWINDA GROUP to Netlify
+# Deploy MWINDA DIGITAL to Netlify
 
 This site is a **static site with no build step** — it is ready to deploy as-is.
 
