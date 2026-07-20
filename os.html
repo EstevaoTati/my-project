@@ -120,6 +120,23 @@
     .boot .cursor { animation: none; }
   }
 
+  /* hero CTA to the chat */
+  .talk-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-top: 26px;
+    background: var(--gold-3); color: #000;
+    border: none; border-bottom: none; border-radius: 8px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 14px 26px;
+    transition: background .25s, transform .25s var(--easing);
+  }
+  .talk-cta:hover { background: var(--gold-2); color: #000; transform: translateY(-2px); border-bottom: none; }
+  .talk-cta .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #0a3; box-shadow: 0 0 8px rgba(125,201,143,.9);
+  }
+
   /* ---------- sections ---------- */
   section { padding: 60px 0 8px; }
   .layer-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 8px; }
@@ -403,6 +420,7 @@
       <div class="boot-line"><span class="t">00.05</span><span>MWINDA OS v1.0 — operator: Founder</span></div>
       <div class="boot-line"><span class="t">&gt;</span><span>awaiting directive <span class="cursor"></span></span></div>
     </div>
+    <a class="talk-cta" href="#talk"><span class="dot"></span>Talk to the OS · Parler au système</a>
   </div>
 </header>
 
@@ -528,7 +546,7 @@
   </div>
 </section>
 
-<section>
+<section id="talk">
   <div class="wrap">
     <div class="layer-head">
       <span class="layer-tag">LAYER 05</span>
@@ -558,7 +576,7 @@
       <span class="layer-tag">SYSTEM STATUS</span>
       <h2>Deployed <span class="g">Today</span></h2>
     </div>
-    <p class="lede">Not a mockup — current state of the live system as of July 17, 2026.</p>
+    <p class="lede">Not a mockup — current state of the live system as of July 20, 2026.</p>
     <div class="table-scroll">
       <table>
         <thead>
@@ -589,6 +607,11 @@
             <td>Memory</td>
             <td class="mono">docs/decisions/ · docs/hermes-setup.md</td>
             <td><span class="pill live">Recording</span></td>
+          </tr>
+          <tr>
+            <td>Talk to the OS</td>
+            <td class="mono">this page · public demo + founder kernel mode</td>
+            <td><span class="pill live">Live</span></td>
           </tr>
         </tbody>
       </table>

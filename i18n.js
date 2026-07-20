@@ -21,6 +21,7 @@
       'nav.ecosystem': "Écosystème",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Démarrer un projet",
 
       'hero.tag': "Holding entrepreneuriale multi-activités",
@@ -105,7 +106,7 @@
 
       'footer.tagline': "Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.",
       'footer.h1': "Pôles", 'footer.h2': "Groupe", 'footer.h3': "Légal",
-      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.impact': "Impact",
+      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Carrières", 'footer.press': "Presse",
       'footer.legal1': "Mentions légales", 'footer.legal2': "Confidentialité",
       'footer.legal3': "Cookies", 'footer.legal4': "CGU",
@@ -123,6 +124,7 @@
       'nav.ecosystem': "Ecosystem",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Start a project",
 
       'hero.tag': "Multi-activity entrepreneurial holding",
@@ -207,7 +209,7 @@
 
       'footer.tagline': "Bringing Light to Your Ideas. A multi-activity holding serving innovation, impact and excellence.",
       'footer.h1': "Divisions", 'footer.h2': "Group", 'footer.h3': "Legal",
-      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.impact': "Impact",
+      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Careers", 'footer.press': "Press",
       'footer.legal1': "Legal Notice", 'footer.legal2': "Privacy",
       'footer.legal3': "Cookies", 'footer.legal4': "Terms",
