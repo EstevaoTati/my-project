@@ -4,6 +4,42 @@
 // limit at console.anthropic.com → Plans & Billing.
 import Anthropic from "@anthropic-ai/sdk";
 import { timingSafeEqual } from "node:crypto";
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+
+// Soft per-IP rate limit for the public persona (per warm function instance —
+// a best-effort brake, not a guarantee; the Anthropic spend cap is the backstop).
+const RATE = { windowMs: 60_000, maxPublic: 8 };
+const hits = new Map(); // ip -> [timestamps]
+function rateLimited(ip) {
+  if (!ip) return false;
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < RATE.windowMs);
+  if (recent.length >= RATE.maxPublic) return true;
+  recent.push(now);
+  hits.set(ip, recent);
+  if (hits.size > 500) hits.clear(); // bound memory on hot instances
+  return false;
+}
+
+// Latest Monday brief (bundled via included_files) — gives the founder-mode
+// kernel awareness of the current week's priorities.
+async function latestBrief() {
+  const candidates = [
+    join(process.cwd(), "docs/briefs"),
+    process.env.LAMBDA_TASK_ROOT && join(process.env.LAMBDA_TASK_ROOT, "docs/briefs"),
+    new URL("../../docs/briefs", import.meta.url).pathname,
+  ].filter(Boolean);
+  for (const dir of candidates) {
+    try {
+      const files = (await readdir(dir)).filter((f) => f.endsWith(".md")).sort();
+      if (!files.length) return null;
+      const text = await readFile(join(dir, files[files.length - 1]), "utf8");
+      return text.slice(0, 6000);
+    } catch { /* try next */ }
+  }
+  return null;
+}
 
 // Public demo limits; OS (founder) mode gets roomier ones.
 const LIMITS = {
@@ -108,23 +144,58 @@ export default async (req) => {
   const validationError = validateMessages(body?.messages, limits);
   if (validationError) return json(400, { error: validationError });
 
+  if (mode === "public" && rateLimited(req.headers.get("x-nf-client-connection-ip"))) {
+    return json(429, { error: "too many requests — please slow down" });
+  }
+
+  // Founder mode: give the kernel the current week's priorities.
+  let system = mode === "os" ? OS_SYSTEM_PROMPT : SYSTEM_PROMPT;
+  if (mode === "os") {
+    const brief = await latestBrief();
+    if (brief) system += `\n\nLatest Monday Priorities Brief (the founder's current context — use it to ground your advice):\n---\n${brief}\n---`;
+  }
+
   const client = new Anthropic(); // ANTHROPIC_API_KEY from Netlify env
+  const REFUSAL_MSG = "Je préfère ne pas répondre à cette demande. / I'd rather not answer that request.";
   try {
-    const response = await client.messages.create({
+    const stream = client.messages.stream({
       model: process.env.CHAT_MODEL || "claude-opus-4-8",
       max_tokens: limits.maxTokens,
-      system: mode === "os" ? OS_SYSTEM_PROMPT : SYSTEM_PROMPT,
+      system,
       messages: body.messages.slice(-limits.turns),
     });
 
-    if (response.stop_reason === "refusal") {
-      return json(200, { reply: "Je préfère ne pas répondre à cette demande. / I'd rather not answer that request." });
-    }
-    const reply = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("");
-    return json(200, { reply });
+    // Stream plain text to the browser as it is generated. Errors that occur
+    // before any output still return JSON (handled by the catch below because
+    // the first iteration rejects); mid-stream problems close the stream.
+    const encoder = new TextEncoder();
+    let started = false;
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of stream) {
+            if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+              started = true;
+              controller.enqueue(encoder.encode(event.delta.text));
+            }
+          }
+          const final = await stream.finalMessage();
+          if (final.stop_reason === "refusal" && !started) {
+            controller.enqueue(encoder.encode(REFUSAL_MSG));
+          }
+        } catch (error) {
+          console.error("stream error", error?.status, error?.message);
+          if (!started) {
+            controller.enqueue(encoder.encode(
+              "Indisponible pour le moment — merci de réessayer. / Temporarily unavailable, please retry."));
+          }
+        }
+        controller.close();
+      },
+    });
+    return new Response(readable, {
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+    });
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) {
       return json(429, { error: "the assistant is busy, please retry in a minute" });
