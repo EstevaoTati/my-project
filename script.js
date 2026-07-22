@@ -213,7 +213,16 @@
         'Nom / Name: ' + name + String.fromCharCode(10) +
         'Email: ' + email + String.fromCharCode(10) +
         'Pole: ' + topic + String.fromCharCode(10) + String.fromCharCode(10) + message;
-      window.open('https://wa.me/17065725957?text=' + encodeURIComponent(waText), '_blank', 'noopener');
+      const waUrl = 'https://wa.me/17065725957?text=' + encodeURIComponent(waText);
+      const waWin = window.open(waUrl, '_blank', 'noopener');
+      if (!waWin) {
+        // Popup blocked: give the visitor a direct link instead.
+        formNote.innerHTML = '';
+        const link = document.createElement('a');
+        link.href = waUrl; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = 'Ouvrir WhatsApp / Open WhatsApp →';
+        formNote.appendChild(link);
+      }
       form.reset();
     });
   }
