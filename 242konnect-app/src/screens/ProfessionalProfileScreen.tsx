@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
-import { formatFcfa, getProfessional } from '../data';
+import { formatFcfa, getProfessional, professionalTrade } from '../data';
+import { ProAvatar } from '../components/Avatar';
 import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -28,7 +29,7 @@ const SLOTS = ["Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Dem
 export function ProfessionalProfileScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const pro = getProfessional(route.params.id);
-  const { isFavorite, toggleFavorite } = useStore();
+  const { isFavorite, toggleFavorite, addBooking, ensureThread } = useStore();
   const [showBooking, setShowBooking] = useState(false);
   const [slot, setSlot] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -46,10 +47,11 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
   }
 
   const profile = pro.profile;
+  const trade = professionalTrade(pro);
   const favorite = isFavorite(pro.id);
 
   const share = async () => {
-    const message = `${pro.name} — ${pro.trade}, ${pro.rating}/5 · ${formatFcfa(pro.hourlyRate)} FCFA/h sur 242Konnect`;
+    const message = `${pro.name} — ${trade?.label ?? ''}, ${pro.rating}/5 · ${formatFcfa(pro.hourlyRate)} FCFA/h sur 242Konnect`;
     try {
       // Web has no RN Share; use the browser's own sheet, and fall back to the
       // clipboard when the browser doesn't offer one either.
@@ -72,7 +74,13 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <Image source={pro.photo} style={styles.heroImage} />
+          {pro.photo ? (
+            <Image source={pro.photo} style={styles.heroImage} />
+          ) : (
+            <View style={styles.heroFallback}>
+              <ProAvatar professional={pro} size={112} rounded={32} />
+            </View>
+          )}
           <LinearGradient
             colors={['transparent', 'transparent', colors.background]}
             style={StyleSheet.absoluteFill}
@@ -124,7 +132,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               </View>
             </View>
             <Text style={styles.heroName}>{pro.name}</Text>
-            <Text style={styles.heroTrade}>{profile?.headline ?? pro.trade}</Text>
+            <Text style={styles.heroTrade}>{profile?.headline ?? trade?.label ?? ''}</Text>
           </View>
         </View>
 
@@ -201,7 +209,22 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(20, insets.bottom) }]}>
         <Pressable
-          onPress={() => navigation.getParent()?.navigate('Messages')}
+          onPress={() => {
+            // Create the thread first, otherwise the Messages tab opens on an
+            // empty list and the tap looks like it did nothing.
+            ensureThread(pro.id);
+            // One getParent(): this screen sits in the Accueil stack, whose
+            // parent is the tab navigator. Two hops lands past the root and
+            // silently does nothing.
+            // `initial: false` keeps Conversations underneath Discussion in the
+            // Messages stack. Without it the thread is the only route there, so
+            // back pops out of the tab instead of returning to the list.
+            navigation.getParent()?.navigate('Messages', {
+              screen: 'Discussion',
+              params: { id: pro.id },
+              initial: false,
+            } as never);
+          }}
           accessibilityRole="button"
           accessibilityLabel={`Envoyer un message à ${pro.name}`}
           style={styles.messageButton}
@@ -235,8 +258,8 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             </View>
             <Text style={styles.confirmTitle}>C'est noté</Text>
             <Text style={styles.confirmBody}>
-              {pro.name} a reçu votre demande pour {slot?.toLowerCase()}. Vous serez notifié dès
-              qu'elle sera acceptée.
+              {pro.name} a reçu votre demande pour {slot?.toLowerCase()}. Retrouvez-la dans
+              l'onglet Missions pour la payer ou l'annuler.
             </Text>
             <Pressable
               onPress={() => setShowBooking(false)}
@@ -276,7 +299,10 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               <Text style={styles.totalValue}>{formatFcfa(pro.hourlyRate)} FCFA/h</Text>
             </View>
             <Pressable
-              onPress={() => setConfirmed(true)}
+              onPress={() => {
+              if (slot) addBooking({ professionalId: pro.id, slot, rate: pro.hourlyRate });
+              setConfirmed(true);
+            }}
               disabled={!slot}
               accessibilityRole="button"
               accessibilityLabel="Confirmer la réservation"
@@ -326,6 +352,13 @@ const styles = StyleSheet.create({
   scroll: {},
   hero: { height: 288 },
   heroImage: { width: '100%', height: '100%' },
+  heroFallback: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.muted,
+  },
   heroActions: {
     position: 'absolute',
     left: 20,

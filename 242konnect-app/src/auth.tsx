@@ -22,7 +22,15 @@ export type Account = {
   phone: string;
   name: string;
   role: AccountRole;
+  /** Profile photo as a data URI. Kept small so it fits in AsyncStorage. */
+  avatar?: string;
+  bio?: string;
+  /** For professionals: which trade they offer, from the catalogue. */
+  tradeId?: string;
 };
+
+/** What someone can change after signing up. The phone number is the identity. */
+export type ProfileEdits = Partial<Pick<Account, 'name' | 'avatar' | 'bio' | 'tradeId'>>;
 
 type StoredAccount = Account & { password: string };
 
@@ -51,6 +59,7 @@ type AuthState = {
   signUp: (input: { name: string; phone: string; password: string; role: AccountRole }) => Promise<void>;
   signIn: (input: { phone: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (edits: ProfileEdits) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -123,9 +132,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => persistSession(null), [persistSession]);
 
+  const updateProfile = useCallback<AuthState['updateProfile']>(
+    async (edits) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (edits.name !== undefined && edits.name.trim().length < 2)
+        throw new Error('Entrez votre nom complet.');
+
+      const next: Account = { ...account, ...edits, name: edits.name?.trim() ?? account.name };
+      // The stored record also holds the password, so merge into it rather than
+      // replacing the row with a password-less copy — that would lock the user out.
+      const accounts = await readAccounts();
+      await AsyncStorage.setItem(
+        ACCOUNTS_KEY,
+        JSON.stringify(accounts.map((a) => (a.phone === account.phone ? { ...a, ...next } : a)))
+      );
+      await persistSession(next);
+    },
+    [account, persistSession]
+  );
+
   const value = useMemo<AuthState>(
-    () => ({ account, restoring, signUp, signIn, signOut }),
-    [account, restoring, signUp, signIn, signOut]
+    () => ({ account, restoring, signUp, signIn, signOut, updateProfile }),
+    [account, restoring, signUp, signIn, signOut, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

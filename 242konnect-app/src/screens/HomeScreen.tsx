@@ -161,7 +161,11 @@ export function HomeScreen({ navigation }: Props) {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Catégories</Text>
-          <Pressable onPress={() => navigation.navigate('Resultats', {})} accessibilityRole="button">
+          <Pressable
+            onPress={() => navigation.navigate('Metiers')}
+            accessibilityRole="button"
+            accessibilityLabel="Voir tous les métiers"
+          >
             <Text style={styles.sectionAction}>Voir tout</Text>
           </Pressable>
         </View>

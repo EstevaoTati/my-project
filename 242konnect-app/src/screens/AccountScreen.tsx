@@ -1,9 +1,12 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import { formatPhone, useAuth } from '../auth';
 import { useStore } from '../store';
+import { UserAvatar } from '../components/Avatar';
+import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
 /**
@@ -13,23 +16,18 @@ import { colors, fonts, radius, shadow } from '../theme';
  * a setting that silently ignores you reads worse than one labelled as coming.
  */
 const SOON = [
-  { icon: 'solar:calendar-mark-linear', label: 'Historique des missions' },
-  { icon: 'solar:chat-round-dots-linear', label: 'Moyens de paiement' },
   { icon: 'solar:bell-bing-bold-duotone', label: 'Préférences de notification' },
+  { icon: 'solar:shield-check-bold', label: 'Vérification du compte' },
 ] as const;
 
-export function AccountScreen() {
+type Props = NativeStackScreenProps<AccountStackParamList, 'MonCompte'>;
+
+export function AccountScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { account, signOut } = useAuth();
-  const { favoriteCount, city } = useStore();
+  const { favoriteCount, city, bookings, payments } = useStore();
 
   if (!account) return null;
-
-  const initials = account.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('');
 
   return (
     <ScrollView
@@ -40,12 +38,15 @@ export function AccountScreen() {
       <Text style={styles.title}>Profil</Text>
 
       <View style={styles.card}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials || '?'}</Text>
-        </View>
+        <UserAvatar name={account.name} avatar={account.avatar} size={52} />
         <View style={styles.identity}>
           <Text style={styles.name}>{account.name}</Text>
           <Text style={styles.phone}>+242 {formatPhone(account.phone)}</Text>
+          {!!account.bio && (
+            <Text style={styles.bio} numberOfLines={2}>
+              {account.bio}
+            </Text>
+          )}
         </View>
         <View style={[styles.roleChip, account.role === 'pro' && styles.roleChipPro]}>
           <Text style={[styles.roleChipText, account.role === 'pro' && styles.roleChipTextPro]}>
@@ -61,7 +62,7 @@ export function AccountScreen() {
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statValue}>0</Text>
+          <Text style={styles.statValue}>{bookings.length}</Text>
           <Text style={styles.statLabel}>Missions</Text>
         </View>
         <View style={styles.statDivider} />
@@ -73,7 +74,34 @@ export function AccountScreen() {
         </View>
       </View>
 
+      {payments.length > 0 && (
+        <Text style={styles.paymentsLine}>
+          {payments.length} paiement{payments.length > 1 ? 's' : ''} enregistré
+          {payments.length > 1 ? 's' : ''} sur cet appareil
+        </Text>
+      )}
+
       <View style={styles.list}>
+        <Pressable
+          onPress={() => navigation.navigate('ModifierProfil')}
+          accessibilityRole="button"
+          accessibilityLabel="Modifier le profil"
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        >
+          <Icon name="solar:user-rounded-linear" size={20} color={colors.primary} />
+          <Text style={styles.rowLabel}>Modifier le profil</Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate('FAQ')}
+          accessibilityRole="button"
+          accessibilityLabel="Questions fréquentes"
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        >
+          <Icon name="solar:chat-round-dots-linear" size={20} color={colors.primary} />
+          <Text style={styles.rowLabel}>Questions fréquentes</Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+        </Pressable>
         {SOON.map((row) => (
           <View key={row.label} style={styles.row}>
             <Icon name={row.icon} size={20} color={colors.mutedForeground} />
@@ -127,6 +155,7 @@ const styles = StyleSheet.create({
   identity: { flex: 1 },
   name: { fontFamily: fonts.heading, fontSize: 17, color: colors.foreground },
   phone: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
+  bio: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, marginTop: 4 },
   roleChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -170,6 +199,7 @@ const styles = StyleSheet.create({
   },
   rowLabel: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
   rowSoon: { fontFamily: fonts.sansSemibold, fontSize: 11, color: colors.mutedForeground },
+  paymentsLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, textAlign: 'center' },
   signOut: {
     height: 52,
     borderRadius: radius['2xl'],

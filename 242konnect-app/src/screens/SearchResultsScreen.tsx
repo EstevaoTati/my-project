@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { ResultCard } from '../components/ResultCard';
-import { getCategory, searchProfessionals, type Professional } from '../data';
+import { getCategory, getTrade, searchProfessionals, type Professional } from '../data';
 import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -42,17 +42,21 @@ function applySort(list: Professional[], sort: SortId): Professional[] {
 
 export function SearchResultsScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { category, query } = route.params ?? {};
+  const { category, tradeId, query } = route.params ?? {};
   const [sort, setSort] = useState<SortId>('pertinence');
   // Favourites are shared with the profile screen so the two hearts agree.
   const { isFavorite, toggleFavorite } = useStore();
 
   const results = useMemo(
-    () => applySort(searchProfessionals({ category, query }), sort),
-    [category, query, sort]
+    () => applySort(searchProfessionals({ category, tradeId, query }), sort),
+    [category, tradeId, query, sort]
   );
 
-  const title = category ? getCategory(category)?.label ?? 'Résultats' : query || 'Tous les services';
+  const title =
+    (tradeId && getTrade(tradeId)?.label) ||
+    (category && getCategory(category)?.label) ||
+    query ||
+    'Tous les services';
 
   return (
     <View style={styles.root}>

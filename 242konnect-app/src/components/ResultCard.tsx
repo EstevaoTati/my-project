@@ -1,7 +1,8 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from './Icon';
-import { formatFcfa, type Professional } from '../data';
+import { formatFcfa, professionalTrade, type Professional } from '../data';
+import { ProAvatar } from './Avatar';
 import { colors, fonts, radius, shadow } from '../theme';
 
 type Props = {
@@ -21,10 +22,16 @@ export function ResultCard({ professional: pro, favorite, onPress, onToggleFavor
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.media}>
-        <Image
-          source={pro.photo}
-          style={[styles.photo, !pro.verified && styles.photoMuted]}
-        />
+        {pro.photo ? (
+          <Image source={pro.photo} style={[styles.photo, !pro.verified && styles.photoMuted]} />
+        ) : (
+          // No photograph for this professional; show the trade over their
+          // category colour rather than an empty grey box.
+          <View style={styles.placeholder}>
+            <ProAvatar professional={pro} size={56} rounded={16} />
+            <Text style={styles.placeholderLabel}>{professionalTrade(pro)?.label ?? ''}</Text>
+          </View>
+        )}
         <Pressable
           onPress={onToggleFavorite}
           accessibilityRole="button"
@@ -97,6 +104,14 @@ const styles = StyleSheet.create({
   photo: { width: '100%', height: '100%' },
   // The design desaturates unverified listings slightly.
   photoMuted: { opacity: 0.85 },
+  placeholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: colors.muted,
+  },
+  placeholderLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.mutedForeground },
   favorite: {
     position: 'absolute',
     top: 12,

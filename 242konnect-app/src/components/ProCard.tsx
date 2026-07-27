@@ -1,7 +1,8 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from './Icon';
-import { formatFcfa, type Professional } from '../data';
+import { formatFcfa, professionalTrade, type Professional } from '../data';
+import { ProAvatar } from './Avatar';
 import { colors, fonts, radius, shadow } from '../theme';
 
 type Props = {
@@ -11,11 +12,12 @@ type Props = {
 
 /** The compact "Top Professionnels" card on the home screen. */
 export function ProCard({ professional: pro, onPress }: Props) {
+  const trade = professionalTrade(pro);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${pro.name}, ${pro.trade}, ${pro.rating} sur 5`}
+      accessibilityLabel={`${pro.name}, ${trade?.label ?? ''}, ${pro.rating} sur 5`}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       {pro.verified && (
@@ -23,7 +25,7 @@ export function ProCard({ professional: pro, onPress }: Props) {
           <Icon name="solar:shield-check-bold" size={20} color={colors.accent} />
         </View>
       )}
-      <Image source={pro.photo} style={styles.photo} />
+      <ProAvatar professional={pro} size={80} />
       <View style={styles.body}>
         <View style={styles.ratingRow}>
           <Icon name="solar:star-bold" size={16} color={colors.accent} />
@@ -31,7 +33,7 @@ export function ProCard({ professional: pro, onPress }: Props) {
           <Text style={styles.reviews}>({pro.reviewCount} avis)</Text>
         </View>
         <Text style={styles.name}>{pro.name}</Text>
-        <Text style={styles.trade}>{pro.trade}</Text>
+        <Text style={styles.trade}>{trade?.label ?? ''}</Text>
         <View style={styles.footer}>
           <Text style={styles.price}>
             {formatFcfa(pro.hourlyRate)} FCFA

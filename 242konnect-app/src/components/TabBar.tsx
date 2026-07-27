@@ -71,13 +71,26 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         onPress={() => {
           const event = navigation.emit({ type: 'tabPress', target: routeKey, canPreventDefault: true });
           if (event.defaultPrevented) return;
-          const nestedKey = state.routes[index]?.state?.key;
-          if (focused && nestedKey) {
+          const target = state.routes[index];
+          const nested = target?.state;
+          const nestedKey = nested?.key;
+          const nestedName =
+            nested && typeof nested.index === 'number' ? nested.routes[nested.index]?.name : undefined;
+
+          if (focused) {
             // Tapping the tab you're already on returns to its root — what
             // people expect, and the quickest way out of a nested screen.
+            if (nestedKey) navigation.dispatch({ ...StackActions.popToTop(), target: nestedKey });
+            return;
+          }
+
+          navigation.navigate(routeName);
+
+          // If that tab was left on a screen that hides the tab bar, switching
+          // to it would strand you there with no way back to the other tabs.
+          // Return it to its root so the bar is always available.
+          if (nestedKey && nestedName && FULL_BLEED_ROUTES.has(nestedName)) {
             navigation.dispatch({ ...StackActions.popToTop(), target: nestedKey });
-          } else if (!focused) {
-            navigation.navigate(routeName);
           }
         }}
         style={styles.tab}
