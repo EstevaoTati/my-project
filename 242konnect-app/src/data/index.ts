@@ -174,12 +174,6 @@ export const professionals: Professional[] = [
   },
 ];
 
-export const currentUser = {
-  name: 'Estevao Macumba',
-  location: 'Pointe-Noire, Rép. du Congo',
-  avatar: require('../../assets/images/image-YexLQcqSXYd.jpg'),
-};
-
 export const promo = {
   badge: '242Konnect',
   title: 'Chaque problème est un besoin de compétence.',

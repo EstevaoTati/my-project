@@ -15,6 +15,7 @@ import { Outfit_600SemiBold } from '@expo-google-fonts/outfit/600SemiBold';
 import { Outfit_700Bold } from '@expo-google-fonts/outfit/700Bold';
 import { RootNavigator } from './src/navigation';
 import { AppProvider } from './src/store';
+import { AuthProvider } from './src/auth';
 import { colors } from './src/theme';
 
 export default function App() {
@@ -36,12 +37,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AppProvider>
-        <NavigationContainer>
-          <StatusBar style="dark" />
-          <RootNavigator />
-        </NavigationContainer>
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <NavigationContainer>
+            <StatusBar style="dark" />
+            <RootNavigator />
+          </NavigationContainer>
+        </AppProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

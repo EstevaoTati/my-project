@@ -15,7 +15,8 @@ import { Icon } from '../components/Icon';
 import { CategoryChip } from '../components/CategoryChip';
 import { ProCard } from '../components/ProCard';
 import { Sheet } from '../components/Sheet';
-import { categories, currentUser, promo, topProfessionals } from '../data';
+import { categories, promo, topProfessionals } from '../data';
+import { useAuth } from '../auth';
 import { CITIES, useStore, type City } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -50,7 +51,13 @@ export function HomeScreen({ navigation }: Props) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCities, setShowCities] = useState(false);
   const { city, setCity } = useStore();
+  const { account } = useAuth();
   const [readIds, setReadIds] = useState<string[]>([]);
+  const initials = (account?.name ?? '')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
   const unreadCount = NOTIFICATIONS.filter((n) => n.unread && !readIds.includes(n.id)).length;
 
   const openNotifications = () => {
@@ -70,12 +77,14 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.headerRow}>
           <View style={styles.identity}>
             <View>
-              <Image source={currentUser.avatar} style={styles.avatar} />
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
               <View style={styles.presenceDot} />
             </View>
             <View>
               <Text style={styles.greeting}>Bienvenue,</Text>
-              <Text style={styles.name}>{currentUser.name}</Text>
+              <Text style={styles.name}>{account?.name ?? ''}</Text>
             </View>
           </View>
           <Pressable
@@ -246,7 +255,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: 2,
     borderColor: colors.primary,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  avatarText: { fontFamily: fonts.heading, fontSize: 16, color: colors.white },
   presenceDot: {
     position: 'absolute',
     bottom: 0,
