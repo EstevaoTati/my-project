@@ -1,18 +1,38 @@
-import React from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
+import { Sheet } from '../components/Sheet';
 import { formatFcfa, getProfessional } from '../data';
+import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Profil'>;
 
+/** Slots offered in the booking sheet; a real build reads these from the pro. */
+const SLOTS = ["Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+
 export function ProfessionalProfileScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const pro = getProfessional(route.params.id);
+  const { isFavorite, toggleFavorite } = useStore();
+  const [showBooking, setShowBooking] = useState(false);
+  const [slot, setSlot] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   if (!pro) {
     return (
@@ -26,6 +46,24 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
   }
 
   const profile = pro.profile;
+  const favorite = isFavorite(pro.id);
+
+  const share = async () => {
+    const message = `${pro.name} — ${pro.trade}, ${pro.rating}/5 · ${formatFcfa(pro.hourlyRate)} FCFA/h sur 242Konnect`;
+    try {
+      // Web has no RN Share; use the browser's own sheet, and fall back to the
+      // clipboard when the browser doesn't offer one either.
+      if (Platform.OS === 'web') {
+        const nav = globalThis.navigator as Navigator | undefined;
+        if (nav?.share) await nav.share({ title: pro.name, text: message });
+        else await nav?.clipboard?.writeText(message);
+        return;
+      }
+      await Share.share({ message });
+    } catch {
+      // Dismissing the share sheet rejects on some platforms; not an error.
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -49,15 +87,26 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.white} />
             </Pressable>
             <View style={styles.heroActionsRight}>
-              <Pressable accessibilityRole="button" accessibilityLabel="Partager" style={styles.glassButton}>
+              <Pressable
+                onPress={share}
+                accessibilityRole="button"
+                accessibilityLabel="Partager"
+                style={styles.glassButton}
+              >
                 <Icon name="solar:share-linear" size={24} color={colors.white} />
               </Pressable>
               <Pressable
+                onPress={() => toggleFavorite(pro.id)}
                 accessibilityRole="button"
-                accessibilityLabel="Ajouter aux favoris"
+                accessibilityLabel={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                accessibilityState={{ selected: favorite }}
                 style={styles.glassButton}
               >
-                <Icon name="solar:heart-linear" size={24} color={colors.white} />
+                <Icon
+                  name={favorite ? 'solar:heart-bold' : 'solar:heart-linear'}
+                  size={24}
+                  color={favorite ? colors.destructive : colors.white}
+                />
               </Pressable>
             </View>
           </View>
@@ -120,7 +169,11 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Portfolio</Text>
-                  <Pressable accessibilityRole="button">
+                  <Pressable
+                    onPress={() => setViewerIndex(0)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Voir tout le portfolio"
+                  >
                     <Text style={styles.sectionAction}>Voir tout</Text>
                   </Pressable>
                 </View>
@@ -130,7 +183,14 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
                   contentContainerStyle={styles.portfolio}
                 >
                   {profile.portfolio.map((image, i) => (
-                    <Image key={i} source={image} style={styles.portfolioImage} />
+                    <Pressable
+                      key={i}
+                      onPress={() => setViewerIndex(i)}
+                      accessibilityRole="imagebutton"
+                      accessibilityLabel={`Photo ${i + 1} sur ${profile.portfolio.length}`}
+                    >
+                      <Image source={image} style={styles.portfolioImage} />
+                    </Pressable>
                   ))}
                 </ScrollView>
               </View>
@@ -140,14 +200,120 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(20, insets.bottom) }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Envoyer un message" style={styles.messageButton}>
+        <Pressable
+          onPress={() => navigation.getParent()?.navigate('Messages')}
+          accessibilityRole="button"
+          accessibilityLabel={`Envoyer un message à ${pro.name}`}
+          style={styles.messageButton}
+        >
           <Icon name="solar:chat-round-dots-bold" size={24} color={colors.secondaryForeground} />
         </Pressable>
-        <Pressable accessibilityRole="button" style={styles.bookButton}>
+        <Pressable
+          onPress={() => {
+            setConfirmed(false);
+            setSlot(null);
+            setShowBooking(true);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`Réserver ${pro.name} maintenant`}
+          style={styles.bookButton}
+        >
           <Text style={styles.bookLabel}>Réserver maintenant</Text>
           <Icon name="solar:arrow-right-bold" size={20} color={colors.primaryForeground} />
         </Pressable>
       </View>
+
+      <Sheet
+        visible={showBooking}
+        title={confirmed ? 'Demande envoyée' : `Réserver ${pro.name}`}
+        onClose={() => setShowBooking(false)}
+      >
+        {confirmed ? (
+          <View style={styles.confirm}>
+            <View style={styles.confirmIcon}>
+              <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
+            </View>
+            <Text style={styles.confirmTitle}>C'est noté</Text>
+            <Text style={styles.confirmBody}>
+              {pro.name} a reçu votre demande pour {slot?.toLowerCase()}. Vous serez notifié dès
+              qu'elle sera acceptée.
+            </Text>
+            <Pressable
+              onPress={() => setShowBooking(false)}
+              accessibilityRole="button"
+              style={styles.confirmButton}
+            >
+              <Text style={styles.bookLabel}>Terminé</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.sheetHint}>Choisissez un créneau</Text>
+            {SLOTS.map((option) => {
+              const selected = slot === option;
+              return (
+                <Pressable
+                  key={option}
+                  onPress={() => setSlot(option)}
+                  accessibilityRole="button"
+                  accessibilityLabel={option}
+                  accessibilityState={{ selected }}
+                  style={[styles.slot, selected && styles.slotSelected]}
+                >
+                  <Icon
+                    name="solar:calendar-mark-linear"
+                    size={20}
+                    color={selected ? colors.primary : colors.mutedForeground}
+                  />
+                  <Text style={[styles.slotLabel, selected && styles.slotLabelSelected]}>
+                    {option}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Tarif horaire</Text>
+              <Text style={styles.totalValue}>{formatFcfa(pro.hourlyRate)} FCFA/h</Text>
+            </View>
+            <Pressable
+              onPress={() => setConfirmed(true)}
+              disabled={!slot}
+              accessibilityRole="button"
+              accessibilityLabel="Confirmer la réservation"
+              accessibilityState={{ disabled: !slot }}
+              style={[styles.confirmButton, !slot && styles.confirmButtonDisabled]}
+            >
+              <Text style={styles.bookLabel}>
+                {slot ? 'Confirmer la réservation' : 'Choisissez un créneau'}
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </Sheet>
+
+      <Modal
+        visible={viewerIndex !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewerIndex(null)}
+      >
+        <Pressable
+          style={styles.viewer}
+          onPress={() => setViewerIndex(null)}
+          accessibilityLabel="Fermer la galerie"
+        >
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.viewerScroll}
+          >
+            {profile?.portfolio.map((image, i) => (
+              <Image key={i} source={image} style={styles.viewerImage} resizeMode="contain" />
+            ))}
+          </ScrollView>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -280,4 +446,66 @@ const styles = StyleSheet.create({
     ...shadow.primaryGlow,
   },
   bookLabel: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.primaryForeground },
+  sheetHint: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginBottom: 12 },
+  slot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  slotSelected: { borderColor: colors.primary, backgroundColor: colors.muted },
+  slotLabel: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
+  slotLabelSelected: { fontFamily: fonts.sansSemibold },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  totalLabel: { fontFamily: fonts.sans, fontSize: 14, color: colors.mutedForeground },
+  totalValue: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.foreground },
+  confirmButton: {
+    height: 56,
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  confirmButtonDisabled: { backgroundColor: colors.mutedForeground, opacity: 0.5 },
+  confirm: { alignItems: 'center', gap: 8, paddingVertical: 8 },
+  confirmIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.full,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  confirmTitle: { fontFamily: fonts.heading, fontSize: 20, color: colors.foreground },
+  confirmBody: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  viewer: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewerScroll: { alignItems: 'center' },
+  viewerImage: { width: 360, height: 480, marginHorizontal: 12 },
 });

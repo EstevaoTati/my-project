@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
+import { Sheet } from './Sheet';
+import { categories } from '../data';
 import type { IconName } from '../icons';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -42,6 +45,8 @@ const FULL_BLEED_ROUTES = new Set(['Profil']);
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const [showPost, setShowPost] = useState(false);
+  const [posted, setPosted] = useState<string | null>(null);
 
   // The professional profile has its own "Réserver maintenant" action bar
   // pinned to the bottom. Leaving the tab bar up stacks two bars on top of each
@@ -65,7 +70,15 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         accessibilityLabel={meta.label}
         onPress={() => {
           const event = navigation.emit({ type: 'tabPress', target: routeKey, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigation.navigate(routeName);
+          if (event.defaultPrevented) return;
+          const nestedKey = state.routes[index]?.state?.key;
+          if (focused && nestedKey) {
+            // Tapping the tab you're already on returns to its root — what
+            // people expect, and the quickest way out of a nested screen.
+            navigation.dispatch({ ...StackActions.popToTop(), target: nestedKey });
+          } else if (!focused) {
+            navigation.navigate(routeName);
+          }
         }}
         style={styles.tab}
       >
@@ -87,21 +100,70 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const routes = state.routes;
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(12, insets.bottom) }]}>
-      {routes.slice(0, 2).map((r, i) => renderTab(r.key, r.name, i))}
+    <>
+      <View style={[styles.bar, { paddingBottom: Math.max(12, insets.bottom) }]}>
+        {routes.slice(0, 2).map((r, i) => renderTab(r.key, r.name, i))}
 
-      <View style={styles.fabSlot}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Publier une demande"
-          style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        >
-          <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
-        </Pressable>
+        <View style={styles.fabSlot}>
+          <Pressable
+            onPress={() => {
+              setPosted(null);
+              setShowPost(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Publier une demande"
+            style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+          >
+            <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
+          </Pressable>
+        </View>
+
+        {routes.slice(2).map((r, i) => renderTab(r.key, r.name, i + 2))}
       </View>
 
-      {routes.slice(2).map((r, i) => renderTab(r.key, r.name, i + 2))}
-    </View>
+      <Sheet
+        visible={showPost}
+        title={posted ? 'Demande publiée' : 'Publier une demande'}
+        onClose={() => setShowPost(false)}
+      >
+        {posted ? (
+          <View style={styles.posted}>
+            <View style={styles.postedIcon}>
+              <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
+            </View>
+            <Text style={styles.postedTitle}>Votre demande est en ligne</Text>
+            <Text style={styles.postedBody}>
+              Les professionnels en {posted.toLowerCase()} près de chez vous vont recevoir votre
+              demande et vous répondre directement.
+            </Text>
+            <Pressable
+              onPress={() => setShowPost(false)}
+              accessibilityRole="button"
+              style={styles.postedButton}
+            >
+              <Text style={styles.postedButtonLabel}>Terminé</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.postHint}>De quel service avez-vous besoin ?</Text>
+            {categories.map((category) => (
+              <Pressable
+                key={category.id}
+                onPress={() => setPosted(category.label)}
+                accessibilityRole="button"
+                accessibilityLabel={`Publier une demande en ${category.label}`}
+                style={styles.postRow}
+              >
+                <Icon name={category.icon} size={24} color={category.color} />
+                <Text style={styles.postLabel}>{category.label}</Text>
+                <Icon name="solar:arrow-right-bold" size={20} color={colors.mutedForeground} />
+              </Pressable>
+            ))}
+          </>
+        )}
+      </Sheet>
+    </>
   );
 }
 
@@ -147,4 +209,46 @@ const styles = StyleSheet.create({
     ...shadow.primaryGlow,
   },
   fabPressed: { opacity: 0.9 },
+  postHint: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginBottom: 12 },
+  postRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  postLabel: { flex: 1, fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
+  posted: { alignItems: 'center', gap: 8, paddingVertical: 8 },
+  postedIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.full,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  postedTitle: { fontFamily: fonts.heading, fontSize: 20, color: colors.foreground },
+  postedBody: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  postedButton: {
+    alignSelf: 'stretch',
+    height: 56,
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  postedButtonLabel: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.primaryForeground },
 });

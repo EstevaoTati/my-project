@@ -14,15 +14,50 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { CategoryChip } from '../components/CategoryChip';
 import { ProCard } from '../components/ProCard';
+import { Sheet } from '../components/Sheet';
 import { categories, currentUser, promo, topProfessionals } from '../data';
+import { CITIES, useStore, type City } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Accueil'>;
 
+/** Stand-in feed until there's a backend pushing real events. */
+const NOTIFICATIONS = [
+  {
+    id: '1',
+    title: 'Jean-Paul K. a accepté votre demande',
+    body: "Intervention prévue aujourd'hui à 14h.",
+    unread: true,
+  },
+  {
+    id: '2',
+    title: 'Nouveau professionnel vérifié',
+    body: 'Un électricien vérifié vient de rejoindre votre quartier.',
+    unread: true,
+  },
+  {
+    id: '3',
+    title: 'Notez votre dernière mission',
+    body: 'Votre avis aide les autres clients à choisir.',
+    unread: false,
+  },
+];
+
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showCities, setShowCities] = useState(false);
+  const { city, setCity } = useStore();
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const unreadCount = NOTIFICATIONS.filter((n) => n.unread && !readIds.includes(n.id)).length;
+
+  const openNotifications = () => {
+    setShowNotifications(true);
+    // Opening the panel is what "seeing" them means, so the dot clears here.
+    setReadIds(NOTIFICATIONS.map((n) => n.id));
+  };
 
   const submitSearch = () => {
     const trimmed = query.trim();
@@ -44,22 +79,26 @@ export function HomeScreen({ navigation }: Props) {
             </View>
           </View>
           <Pressable
+            onPress={openNotifications}
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={
+              unreadCount > 0 ? `Notifications, ${unreadCount} non lues` : 'Notifications'
+            }
             style={styles.bell}
           >
             <Icon name="solar:bell-bing-bold-duotone" size={24} color={colors.foreground} />
-            <View style={styles.bellDot} />
+            {unreadCount > 0 && <View style={styles.bellDot} />}
           </Pressable>
         </View>
 
         <Pressable
+          onPress={() => setShowCities(true)}
           accessibilityRole="button"
-          accessibilityLabel={`Localisation : ${currentUser.location}`}
+          accessibilityLabel={`Localisation : ${city}. Changer de ville`}
           style={styles.locationRow}
         >
           <Icon name="solar:map-point-bold" size={20} color={colors.primary} />
-          <Text style={styles.locationText}>{currentUser.location}</Text>
+          <Text style={styles.locationText}>{city}</Text>
           <Icon name="solar:alt-arrow-down-linear" size={16} color={colors.mutedForeground} />
         </Pressable>
 
@@ -147,6 +186,51 @@ export function HomeScreen({ navigation }: Props) {
           ))}
         </View>
       </ScrollView>
+
+      <Sheet
+        visible={showNotifications}
+        title="Notifications"
+        onClose={() => setShowNotifications(false)}
+      >
+        {NOTIFICATIONS.map((item) => (
+          <View key={item.id} style={styles.notification}>
+            <View style={styles.notificationIcon}>
+              <Icon name="solar:bell-bing-bold-duotone" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.notificationBody}>
+              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationText}>{item.body}</Text>
+            </View>
+          </View>
+        ))}
+      </Sheet>
+
+      <Sheet visible={showCities} title="Votre ville" onClose={() => setShowCities(false)}>
+        {CITIES.map((option) => {
+          const selected = option === city;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => {
+                setCity(option as City);
+                setShowCities(false);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={option}
+              accessibilityState={{ selected }}
+              style={[styles.cityRow, selected && styles.cityRowSelected]}
+            >
+              <Icon
+                name="solar:map-point-bold"
+                size={20}
+                color={selected ? colors.primary : colors.mutedForeground}
+              />
+              <Text style={[styles.cityLabel, selected && styles.cityLabelSelected]}>{option}</Text>
+              {selected && <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />}
+            </Pressable>
+          );
+        })}
+      </Sheet>
     </View>
   );
 }
@@ -265,4 +349,35 @@ const styles = StyleSheet.create({
   sectionAction: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.primary },
   categoryRow: { paddingHorizontal: 20, gap: 16, paddingBottom: 16 },
   proList: { paddingHorizontal: 20, gap: 16 },
+  notification: { flexDirection: 'row', gap: 12, paddingVertical: 12, alignItems: 'flex-start' },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    backgroundColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBody: { flex: 1 },
+  notificationTitle: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
+  notificationText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.mutedForeground,
+    marginTop: 2,
+  },
+  cityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  cityRowSelected: { borderColor: colors.primary, backgroundColor: colors.muted },
+  cityLabel: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
+  cityLabelSelected: { fontFamily: fonts.sansSemibold },
 });

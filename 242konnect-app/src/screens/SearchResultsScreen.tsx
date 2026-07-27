@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { ResultCard } from '../components/ResultCard';
 import { getCategory, searchProfessionals, type Professional } from '../data';
+import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -43,7 +44,8 @@ export function SearchResultsScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { category, query } = route.params ?? {};
   const [sort, setSort] = useState<SortId>('pertinence');
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  // Favourites are shared with the profile screen so the two hearts agree.
+  const { isFavorite, toggleFavorite } = useStore();
 
   const results = useMemo(
     () => applySort(searchProfessionals({ category, query }), sort),
@@ -51,9 +53,6 @@ export function SearchResultsScreen({ route, navigation }: Props) {
   );
 
   const title = category ? getCategory(category)?.label ?? 'Résultats' : query || 'Tous les services';
-
-  const toggleFavorite = (id: string) =>
-    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <View style={styles.root}>
@@ -130,7 +129,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
             <ResultCard
               key={pro.id}
               professional={pro}
-              favorite={!!favorites[pro.id]}
+              favorite={isFavorite(pro.id)}
               onPress={() => navigation.navigate('Profil', { id: pro.id })}
               onToggleFavorite={() => toggleFavorite(pro.id)}
             />
