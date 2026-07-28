@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="242Konnect met en relation particuliers et professionnels verifies a Pointe-Noire : plomberie, electricite, menage, mecanique, IT." />
+    <meta name="theme-color" content="#00a651" />
+    <title>242Konnect — Accueil</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --color-chart-1: var(--chart-1);
+        --color-chart-2: var(--chart-2);
+        --color-chart-3: var(--chart-3);
+        --color-chart-4: var(--chart-4);
+        --color-chart-5: var(--chart-5);
+
+        --font-font-sans: var(--font-sans);
+        --font-font-heading: var(--font-heading);
+        --font-font-serif: var(--font-serif);
+        --font-font-mono: var(--font-mono);
+      }
+
+      @theme {
+        --radius-xs: calc(var(--radius) - 8px);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) + 4px);
+        --radius-2xl: calc(var(--radius) + 8px);
+        --radius-3xl: calc(var(--radius) + 16px);
+        --radius-4xl: calc(var(--radius) + 24px);
+      }
+
+      * {
+        corner-shape: var(--shape, round);
+      }
+
+      .rounded-full, .rounded-none,
+      .rounded-t-full, .rounded-t-none,
+      .rounded-r-full, .rounded-r-none,
+      .rounded-b-full, .rounded-b-none,
+      .rounded-l-full, .rounded-l-none,
+      .rounded-s-full, .rounded-s-none,
+      .rounded-e-full, .rounded-e-none,
+      .rounded-tl-full, .rounded-tl-none,
+      .rounded-tr-full, .rounded-tr-none,
+      .rounded-bl-full, .rounded-bl-none,
+      .rounded-br-full, .rounded-br-none,
+      .rounded-ss-full, .rounded-ss-none,
+      .rounded-se-full, .rounded-se-none,
+      .rounded-es-full, .rounded-es-none,
+      .rounded-ee-full, .rounded-ee-none {
+        corner-shape: round;
+      }
+
+      @utility rounded-* {
+        border-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-t-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-r-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-b-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-l-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tl-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tr-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-bl-* {
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-br-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-s-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-e-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ss-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-se-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-es-* {
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ee-* {
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+
+      :root {
+        --shape: squircle;
+        --shape-multiplier: 1;
+
+          --background: #f8fafc;
+        --foreground: #0f172a;
+        --primary: #00a651;
+        --primary-foreground: #ffffff;
+        --secondary: #1e293b;
+        --secondary-foreground: #ffffff;
+        --muted: #f1f5f9;
+        --muted-foreground: #64748b;
+        --accent: #ffcb05;
+        --accent-foreground: #000000;
+        --destructive: #ed1c24;
+        --card: #ffffff;
+        --card-foreground: #0f172a;
+        --popover: #ffffff;
+        --popover-foreground: #0f172a;
+        --border: #e2e8f0;
+        --input: #f1f5f9;
+        --ring: #00a651;
+        --chart-1: #00a651;
+        --chart-2: #ffcb05;
+        --chart-3: #ed1c24;
+        --chart-4: #3b82f6;
+        --chart-5: #8b5cf6;
+
+        --font-sans: "Plus Jakarta Sans";
+        --font-heading: "Outfit";
+        --font-serif: "Playfair Display";
+        --font-mono: "JetBrains Mono";
+
+        --radius: 0.75rem;
+      }
+
+      @supports (corner-shape: squircle) {
+        :root {
+          --shape-multiplier: 2.5;
+        }
+      }
+
+      /* Hide scrollbars */
+      *,
+      *::before,
+      *::after {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* The export references these two utilities but never defines them. */
+      .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .pb-safe {
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex flex-col min-h-screen bg-background pb-20 font-sans">
+      <header class="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-5 pt-12 pb-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <img
+                alt="Profile"
+                src="images/image-YexLQcqSXYd.jpg"
+                class="w-12 h-12 rounded-full border-2 border-primary object-cover"
+              />
+              <div
+                class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-primary border-2 border-background rounded-full"
+              ></div>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                Bienvenue,
+              </p>
+              <h1 class="text-lg font-heading font-bold text-foreground">Estevao Macumba</h1>
+            </div>
+          </div>
+          <button
+            class="relative p-2 rounded-full bg-card shadow-sm border border-border/50 text-foreground"
+          >
+            <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18.75 9v.704c0 .845.24 1.671.692 2.374l1.108 1.723c1.011 1.574.239 3.713-1.52 4.21a25.8 25.8 0 0 1-14.06 0c-1.759-.497-2.531-2.636-1.52-4.21l1.108-1.723a4.4 4.4 0 0 0 .693-2.374V9c0-3.866 3.022-7 6.749-7s6.75 3.134 6.75 7" opacity=".5"/><path fill="currentColor" d="M12.75 6a.75.75 0 0 0-1.5 0v4a.75.75 0 0 0 1.5 0zM7.243 18.545a5.002 5.002 0 0 0 9.513 0c-3.145.59-6.367.59-9.513 0"/></svg><span class="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full"></span>
+          </button>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <svg class="text-primary" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2c-4.418 0-8 4.003-8 8.5c0 4.462 2.553 9.312 6.537 11.174a3.45 3.45 0 0 0 2.926 0C17.447 19.812 20 14.962 20 10.5C20 6.003 16.418 2 12 2m0 10a2 2 0 1 0 0-4a2 2 0 0 0 0 4" clip-rule="evenodd"/></svg><span class="font-medium">Pointe-Noire, Rép. du Congo</span
+          ><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m19 9l-7 6l-7-6"/></svg>
+        </div>
+        <form class="mt-5 relative" action="search-results.html" method="get" role="search">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11.5" cy="11.5" r="9.5"/><path stroke-linecap="round" d="M18.5 18.5L22 22"/></g></svg><input
+            type="search"
+            name="q"
+            aria-label="Quel service recherchez-vous ?"
+            class="w-full h-14 pl-12 pr-14 bg-card border border-border rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
+            placeholder="Quel service recherchez-vous ?"
+          /><button
+            type="submit"
+            aria-label="Rechercher"
+            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary text-primary-foreground rounded-xl shadow-sm"
+          >
+            <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M10 17.25a1.25 1.25 0 1 1 0-2.5a1.25 1.25 0 0 1 0 2.5M15.25 8a1.25 1.25 0 1 1-2.5 0a1.25 1.25 0 0 1 2.5 0"/><path fill="currentColor" fill-rule="evenodd" d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12m8 6.75a2.75 2.75 0 1 1 0-5.5a2.75 2.75 0 0 1 0 5.5M16.75 8a2.75 2.75 0 1 1-5.5 0a2.75 2.75 0 0 1 5.5 0m-3.5 8a.75.75 0 0 1 .75-.75h5a.75.75 0 0 1 0 1.5h-5a.75.75 0 0 1-.75-.75M10 7.25a.75.75 0 0 1 0 1.5H5a.75.75 0 0 1 0-1.5zM4.25 16a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5H5a.75.75 0 0 1-.75-.75M19 7.25a.75.75 0 0 1 0 1.5h-1a.75.75 0 0 1 0-1.5z" clip-rule="evenodd"/></svg>
+          </button>
+        </form>
+      </header>
+      <main class="flex-1 overflow-y-auto">
+        <section class="px-5 mt-2">
+          <div class="relative w-full h-40 rounded-2xl overflow-hidden shadow-sm">
+            <img
+              alt="Promo"
+              src="images/YJEtDQIira8.jpeg"
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-secondary/90 to-secondary/30"></div>
+            <div class="absolute inset-0 p-5 flex flex-col justify-center">
+              <span
+                class="inline-block px-2.5 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-lg w-max mb-2"
+                >242Konnect</span
+              >
+              <h2 class="text-xl font-heading font-bold text-white leading-tight w-2/3">
+                Chaque problème est un besoin de compétence.
+              </h2>
+              <p class="text-white/80 text-xs mt-2 font-medium">Just One Click.</p>
+            </div>
+          </div>
+        </section>
+        <section class="mt-8">
+          <div class="px-5 flex items-center justify-between mb-4">
+            <h3 class="text-lg font-heading font-bold text-foreground">Catégories</h3>
+            <a href="search-results.html" class="text-sm font-semibold text-primary">Voir tout</a>
+          </div>
+          <div class="px-5 flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+            <a href="search-results.html?cat=Ménage" class="flex flex-col items-center gap-2 min-w-[72px] snap-start group">
+              <div
+                class="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12.204c0-2.289 0-3.433.52-4.381c.518-.949 1.467-1.537 3.364-2.715l2-1.241C9.889 2.622 10.892 2 12 2s2.11.622 4.116 1.867l2 1.241c1.897 1.178 2.846 1.766 3.365 2.715S22 9.915 22 12.203v1.522c0 3.9 0 5.851-1.172 7.063S17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.212S2 17.626 2 13.725z" opacity=".5"/><path fill="currentColor" d="M9.447 15.398a.75.75 0 0 0-.894 1.205A5.77 5.77 0 0 0 12 17.75a5.77 5.77 0 0 0 3.447-1.147a.75.75 0 0 0-.894-1.206A4.27 4.27 0 0 1 12 16.25a4.27 4.27 0 0 1-2.553-.852"/></svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-center text-foreground group-hover:text-primary transition-colors"
+                >Ménage</span
+              ></a
+            ><a href="search-results.html?cat=Plomberie" class="flex flex-col items-center gap-2 min-w-[72px] snap-start group">
+              <div
+                class="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center text-chart-4 group-hover:bg-chart-4 group-hover:text-white transition-colors"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M10 17.833C10 20.134 8.21 22 6 22s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C8.434 14.472 10 16.393 10 17.833"/><path fill="currentColor" d="M22 17.833C22 20.134 20.21 22 18 22s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C20.434 14.472 22 16.393 22 17.833" opacity=".7"/><path fill="currentColor" d="M16 7.833C16 10.134 14.21 12 12 12s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C14.434 4.472 16 6.393 16 7.833" opacity=".4"/></svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-center text-foreground group-hover:text-chart-4 transition-colors"
+                >Plomberie</span
+              ></a
+            ><a href="search-results.html?cat=Électricité" class="flex flex-col items-center gap-2 min-w-[72px] snap-start group">
+              <div
+                class="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-accent-foreground transition-colors"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8.732 5.771L5.67 9.914c-1.285 1.739-1.928 2.608-1.574 3.291l.018.034c.375.673 1.485.673 3.704.673c1.233 0 1.85 0 2.236.363l.02.02l3.872-4.57l-.02-.02c-.379-.371-.379-.963-.379-2.148v-.31c0-3.285 0-4.927-.923-5.21s-1.913 1.056-3.892 3.734" clip-rule="evenodd"/><path fill="currentColor" d="M10.453 16.443v.31c0 3.284 0 4.927.923 5.21s1.913-1.056 3.893-3.734l3.062-4.143c1.284-1.739 1.927-2.608 1.573-3.291l-.018-.034c-.375-.673-1.485-.673-3.704-.673c-1.233 0-1.85 0-2.236-.363l-3.872 4.57c.379.371.379.963.379 2.148" opacity=".5"/></svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-center text-foreground group-hover:text-accent-foreground transition-colors"
+                >Électricité</span
+              ></a
+            ><a href="search-results.html?cat=Mécanique" class="flex flex-col items-center gap-2 min-w-[72px] snap-start group">
+              <div
+                class="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center text-chart-3 group-hover:bg-chart-3 group-hover:text-white transition-colors"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9c-2-2-5-2.4-7.4-1.3L9 6L6 9L1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4"/></svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-center text-foreground group-hover:text-chart-3 transition-colors"
+                >Mécanique</span
+              ></a
+            ><a href="search-results.html?cat=IT+%26+Tech" class="flex flex-col items-center gap-2 min-w-[72px] snap-start group">
+              <div
+                class="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center text-chart-5 group-hover:bg-chart-5 group-hover:text-white transition-colors"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M22 15v3c0 1.886 0 2.828-.586 3.414S19.886 22 18 22s-2.828 0-3.414-.586S14 19.886 14 18v-3c0-1.886 0-2.828.586-3.414S16.114 11 18 11s2.828 0 3.414.586S22 13.114 22 15m-5.75 5a.75.75 0 0 1 .75-.75h2a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1-.75-.75" clip-rule="evenodd"/><path fill="currentColor" d="M8 17c-2.829 0-4.243 0-5.122-.879c-.569-.569-.807-1.363-.878-2.621V13h10.516v.5c-.016.437-.016.912-.016 1.41v3.18c0 .865 0 1.659.086 2.304c.096.711.32 1.463.939 2.08l.025.026H8A.75.75 0 0 1 8 21h3.25v-4z"/><path fill="currentColor" d="M10 2h4c3.771 0 5.657 0 6.828 1.172S22 6.229 22 10v.138c-.508-.333-1.069-.48-1.606-.551C19.75 9.5 18.955 9.5 18.09 9.5h-.18c-.865 0-1.659 0-2.304.087c-.711.095-1.463.32-2.08.938c-.588.588-.82 1.296-.924 1.975v.5H2v-.5c-.007-.45 0-.948 0-1.5v-1c0-3.771 0-5.657 1.172-6.828S6.229 2 10 2" opacity=".5"/></svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-center text-foreground group-hover:text-chart-5 transition-colors"
+                >IT &amp; Tech</span
+              >
+            </a>
+          </div>
+        </section>
+        <section class="mt-4 px-5 pb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-heading font-bold text-foreground">Top Professionnels</h3>
+            <a href="search-results.html" class="text-sm font-semibold text-primary">Voir plus</a>
+          </div>
+          <div class="flex flex-col gap-4">
+            <a
+              href="professional-profile.html"
+              class="bg-card border border-border rounded-2xl p-4 flex gap-4 shadow-sm relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 right-0 w-12 h-12 bg-accent/20 rounded-bl-3xl flex items-start justify-end p-2"
+              >
+                <svg class="text-accent drop-shadow-sm" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3.378 5.082C3 5.62 3 7.22 3 10.417v1.574c0 5.638 4.239 8.375 6.899 9.536c.721.315 1.082.473 2.101.473c1.02 0 1.38-.158 2.101-.473C16.761 20.365 21 17.63 21 11.991v-1.574c0-3.198 0-4.797-.378-5.335c-.377-.537-1.88-1.052-4.887-2.081l-.573-.196C13.595 2.268 12.812 2 12 2s-1.595.268-3.162.805L8.265 3c-3.007 1.03-4.51 1.545-4.887 2.082M15.06 10.5a.75.75 0 0 0-1.12-.999l-3.011 3.374l-.87-.974a.75.75 0 0 0-1.118 1l1.428 1.6a.75.75 0 0 0 1.119 0z" clip-rule="evenodd"/></svg>
+              </div>
+              <img
+                alt="Electrician"
+                src="images/OPHXsqIvD4F.jpeg"
+                class="w-20 h-20 rounded-xl object-cover border border-border"
+              />
+              <div class="flex-1">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-accent mb-1">
+                  <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9.153 5.408C10.42 3.136 11.053 2 12 2s1.58 1.136 2.847 3.408l.328.588c.36.646.54.969.82 1.182s.63.292 1.33.45l.636.144c2.46.557 3.689.835 3.982 1.776c.292.94-.546 1.921-2.223 3.882l-.434.507c-.476.557-.715.836-.822 1.18c-.107.345-.071.717.001 1.46l.066.677c.253 2.617.38 3.925-.386 4.506s-1.918.051-4.22-1.009l-.597-.274c-.654-.302-.981-.452-1.328-.452s-.674.15-1.328.452l-.596.274c-2.303 1.06-3.455 1.59-4.22 1.01c-.767-.582-.64-1.89-.387-4.507l.066-.676c.072-.744.108-1.116 0-1.46c-.106-.345-.345-.624-.821-1.18l-.434-.508c-1.677-1.96-2.515-2.941-2.223-3.882S3.58 8.328 6.04 7.772l.636-.144c.699-.158 1.048-.237 1.329-.45s.46-.536.82-1.182z"/></svg><span>4.9</span><span class="text-muted-foreground font-normal">(124 avis)</span>
+                </div>
+                <h4 class="font-heading font-bold text-foreground text-base">Marcel B.</h4>
+                <p class="text-sm text-muted-foreground font-medium mb-2">Électricien Qualifié</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-foreground"
+                    >15k FCFA<span class="text-xs text-muted-foreground font-normal">/h</span></span
+                  ><span
+                    class="px-4 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded-lg shadow-sm"
+                  >
+                    Réserver
+                  </span>
+                </div>
+              </div>
+            </a>
+            <a
+              href="professional-profile.html"
+              class="bg-card border border-border rounded-2xl p-4 flex gap-4 shadow-sm relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 right-0 w-12 h-12 bg-accent/20 rounded-bl-3xl flex items-start justify-end p-2"
+              >
+                <svg class="text-accent drop-shadow-sm" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3.378 5.082C3 5.62 3 7.22 3 10.417v1.574c0 5.638 4.239 8.375 6.899 9.536c.721.315 1.082.473 2.101.473c1.02 0 1.38-.158 2.101-.473C16.761 20.365 21 17.63 21 11.991v-1.574c0-3.198 0-4.797-.378-5.335c-.377-.537-1.88-1.052-4.887-2.081l-.573-.196C13.595 2.268 12.812 2 12 2s-1.595.268-3.162.805L8.265 3c-3.007 1.03-4.51 1.545-4.887 2.082M15.06 10.5a.75.75 0 0 0-1.12-.999l-3.011 3.374l-.87-.974a.75.75 0 0 0-1.118 1l1.428 1.6a.75.75 0 0 0 1.119 0z" clip-rule="evenodd"/></svg>
+              </div>
+              <img
+                alt="Cleaner"
+                src="images/29VDvpIduPl.jpeg"
+                class="w-20 h-20 rounded-xl object-cover border border-border"
+              />
+              <div class="flex-1">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-accent mb-1">
+                  <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9.153 5.408C10.42 3.136 11.053 2 12 2s1.58 1.136 2.847 3.408l.328.588c.36.646.54.969.82 1.182s.63.292 1.33.45l.636.144c2.46.557 3.689.835 3.982 1.776c.292.94-.546 1.921-2.223 3.882l-.434.507c-.476.557-.715.836-.822 1.18c-.107.345-.071.717.001 1.46l.066.677c.253 2.617.38 3.925-.386 4.506s-1.918.051-4.22-1.009l-.597-.274c-.654-.302-.981-.452-1.328-.452s-.674.15-1.328.452l-.596.274c-2.303 1.06-3.455 1.59-4.22 1.01c-.767-.582-.64-1.89-.387-4.507l.066-.676c.072-.744.108-1.116 0-1.46c-.106-.345-.345-.624-.821-1.18l-.434-.508c-1.677-1.96-2.515-2.941-2.223-3.882S3.58 8.328 6.04 7.772l.636-.144c.699-.158 1.048-.237 1.329-.45s.46-.536.82-1.182z"/></svg><span>4.8</span><span class="text-muted-foreground font-normal">(89 avis)</span>
+                </div>
+                <h4 class="font-heading font-bold text-foreground text-base">Sylvie M.</h4>
+                <p class="text-sm text-muted-foreground font-medium mb-2">Service de Ménage</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-foreground"
+                    >10k FCFA<span class="text-xs text-muted-foreground font-normal">/h</span></span
+                  ><span
+                    class="px-4 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded-lg shadow-sm"
+                  >
+                    Réserver
+                  </span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </section>
+      </main>
+      <nav
+        class="fixed bottom-0 left-0 right-0 bg-card border-t border-border px-6 py-3 pb-safe flex items-center justify-between z-50"
+      >
+        <a
+          href="index.html"
+          aria-current="page"
+          class="flex flex-col items-center gap-1 text-primary w-16"
+        >
+          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.52 7.823C2 8.77 2 9.915 2 12.203v1.522c0 3.9 0 5.851 1.172 7.063S6.229 22 10 22h4c3.771 0 5.657 0 6.828-1.212S22 17.626 22 13.725v-1.521c0-2.289 0-3.433-.52-4.381c-.518-.949-1.467-1.537-3.364-2.715l-2-1.241C14.111 2.622 13.108 2 12 2s-2.11.622-4.116 1.867l-2 1.241C3.987 6.286 3.038 6.874 2.519 7.823M11.25 18a.75.75 0 0 0 1.5 0v-3a.75.75 0 0 0-1.5 0z" clip-rule="evenodd"/></svg><span class="text-[10px] font-bold">Accueil</span></a
+        ><button
+          class="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-16"
+        >
+          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-3.771 0-5.657 1.172-6.828S6.229 4 10 4h4c3.771 0 5.657 0 6.828 1.172S22 8.229 22 12v2c0 3.771 0 5.657-1.172 6.828S17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.172S2 17.771 2 14z"/><path stroke-linecap="round" d="M7 4V2.5M17 4V2.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path stroke-linecap="round" d="M2.5 9h19"/></g></svg><span class="text-[10px] font-medium">Missions</span>
+        </button>
+        <div class="relative -top-5">
+          <button
+            class="w-14 h-14 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/30 border-4 border-background"
+          >
+            <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 22c-4.714 0-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12s0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22m0-13.75a.75.75 0 0 1 .75.75v2.25H15a.75.75 0 0 1 0 1.5h-2.25V15a.75.75 0 0 1-1.5 0v-2.25H9a.75.75 0 0 1 0-1.5h2.25V9a.75.75 0 0 1 .75-.75" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <button
+          class="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-16 relative"
+        >
+          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.009m3.982 0H12m3.991 0H16"/><path stroke-width="1.5" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12c0 1.6.376 3.112 1.043 4.453c.178.356.237.763.134 1.148l-.595 2.226a1.3 1.3 0 0 0 1.591 1.592l2.226-.596a1.63 1.63 0 0 1 1.149.133A9.96 9.96 0 0 0 12 22Z"/></g></svg><span class="text-[10px] font-medium">Messages</span
+          ><span
+            class="absolute top-0 right-3 w-2.5 h-2.5 bg-destructive border-2 border-card rounded-full"
+          ></span></button
+        ><button
+          class="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-16"
+        >
+          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="6" r="4"/><ellipse cx="12" cy="17" rx="7" ry="4"/></g></svg><span class="text-[10px] font-medium">Profil</span>
+        </button>
+      </nav>
+    </div>
+  </body>
+</html>
