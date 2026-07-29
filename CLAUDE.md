@@ -81,3 +81,12 @@ Static marketing site for Mwinda Digital, deployed on Netlify.
 - `netlify.toml`, `_headers`, `_redirects` control deployment; see
   `DEPLOY-NETLIFY.md` for the deploy process.
 - Verify changes by opening the affected page before committing.
+
+## Installed skills
+
+- `.claude/skills/last30days/` — `/last30days`, multi-source research on what
+  people said about a topic in the last 30 days (Reddit, X, YouTube, TikTok,
+  HN, Polymarket, GitHub, web). Vendored third-party, MIT. Needs Python 3.12+;
+  if the default `python3` is older, set `LAST30DAYS_PYTHON`. Runs keyless;
+  ask it to run `doctor` to see which sources are live. Rationale and local
+  patches: `docs/decisions/2026-07-29-install-last30days-skill.md`.
