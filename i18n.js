@@ -1,5 +1,5 @@
 /* ============================================================
-   MWINDA GROUP — i18n (FR / EN)
+   MWINDA DIGITAL — i18n (FR / EN)
    Lightweight, no dependency. Reads data-i18n="key" attributes
    on elements and swaps text. Use data-i18n-html on elements
    that contain inline tags (em/span/br) to allow HTML in the
@@ -12,8 +12,8 @@
 
   const dict = {
     fr: {
-      'meta.title': "MWINDA GROUP LLC — Bringing Light to Your Ideas",
-      'meta.desc' : "MWINDA GROUP LLC — Bringing Light to Your Ideas. Holding multi-activités : Digital, Consulting, Events, Publishing, Food & Impact Social.",
+      'meta.title': "MWINDA DIGITAL — Bringing Light to Your Ideas",
+      'meta.desc' : "MWINDA DIGITAL — écosystème du digital et de l'innovation technologique : systèmes agentiques IA, automatisation, formations IA et incubation digitale.",
 
       'nav.home': "Accueil",
       'nav.about': "À propos",
@@ -21,69 +21,71 @@
       'nav.ecosystem': "Écosystème",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Démarrer un projet",
 
-      'hero.tag': "Holding entrepreneuriale multi-activités",
+      'hero.tag': "Écosystème digital & intelligence artificielle",
       'hero.t1': "Bringing", 'hero.t2': "Light", 'hero.t3': "to Your", 'hero.t4': "Ideas",
-      'hero.sub': "MWINDA GROUP LLC combine expertise stratégique, technologie et exécution pour transformer les idées en écosystèmes durables — du digital à l'impact social.",
+      'hero.sub': "MWINDA DIGITAL conçoit des systèmes agentiques, des automatisations et des solutions IA qui transforment les idées en produits digitaux de classe mondiale.",
       'hero.cta1': "Découvrir nos pôles",
       'hero.cta2': "Nous contacter",
-      'hero.m1': "Pôles d'activité",
+      'hero.m1': "Pôles d'expertise",
       'hero.m2': "Vision intégrée",
       'hero.m3': "Possibilités",
       'hero.scroll': "Scroll",
 
       'about.eyebrow': "À propos",
       'about.title': 'Un <em>écosystème</em> intégré, <br/>une <span class="gold-text">vision</span> commune',
-      'about.lead': "MWINDA GROUP LLC est structuré comme une <strong>holding de services multi-activités</strong>, avec une orientation forte vers l'innovation, l'impact social et la croissance des entreprises.",
-      'about.p2': "Notre cœur repose sur une idée simple : <em>combiner expertise stratégique, technologie et exécution</em> pour accompagner les projets et les organisations vers leur plein potentiel.",
+      'about.lead': "MWINDA DIGITAL est un <strong>écosystème du monde digital et de l'innovation technologique</strong> — dédié à la promotion des NTIC, à l'intelligence artificielle et au déploiement de systèmes agentiques qui travaillent pour vous.",
+      'about.p2': "Notre conviction est simple : <em>l'IA n'est plus un outil, c'est une force de travail</em>. Nous concevons, formons et déployons des intelligences qui exécutent, automatisent et font croître votre organisation — de l'idée à la production.",
       'about.p1.t': "Innovation",
       'about.p1.d': "Technologies émergentes et IA au service de l'humain.",
-      'about.p2.t': "Impact",
-      'about.p2.d': "Une croissance économique alignée sur le bien commun.",
+      'about.p2.t': "Intelligence",
+      'about.p2.d': "L'IA agentique au cœur de chaque produit, de la stratégie à l'exécution.",
       'about.p3.t': "Excellence",
       'about.p3.d': "Exigence d'exécution sur chacune de nos verticales.",
 
       'div.eyebrow': "Nos pôles",
-      'div.title': 'Six expertises, <span class="gold-text">une seule</span> lumière',
-      'div.sub': "Chaque pôle est autonome dans son métier, mais connecté par une même exigence et une même mission : faire grandir vos idées.",
+      'div.title': 'Cinq expertises, <span class="gold-text">une seule</span> lumière',
+      'div.sub': "Cinq pôles 100% digital et IA, connectés par une même exigence et une même mission : transformer vos idées en systèmes qui travaillent.",
 
-      'd1.tag': "AI · Web · Technology",
-      'd1.desc': "Développement web, intelligence artificielle et solutions technologiques sur mesure pour transformer vos opérations.",
-      'd1.l1': "Web & Mobile Apps", 'd1.l2': "IA & Automatisation", 'd1.l3': "Cloud & DevOps",
+      'd1.name': 'Systèmes <span>Agentiques IA</span>',
+      'd1.tag': "Entreprise · B2C",
+      'd1.desc': "Des agents IA autonomes qui travaillent pour votre entreprise et vos clients : opérateurs, assistants et copilotes déployés en production, disponibles 24/7.",
+      'd1.l1': "Agents d'entreprise", 'd1.l2': "Assistants B2C", 'd1.l3': "Orchestration multi-agents",
 
-      'd2.tag': "Projects & Ideas Management",
-      'd2.desc': "Gestion de projets, structuration d'idées et accompagnement stratégique pour entrepreneurs et organisations.",
-      'd2.l1': "Stratégie d'entreprise", 'd2.l2': "Project Management", 'd2.l3': "Business Modeling",
+      'd2.name': "L'<span>Automatisation</span>",
+      'd2.tag': "Workflows · Intégrations",
+      'd2.desc': "Vos processus répétitifs, exécutés par des machines : workflows intelligents, intégrations et opérations qui tournent sans erreur pendant que vous créez de la valeur.",
+      'd2.l1': "Automatisation de processus", 'd2.l2': "Intégrations API & SaaS", 'd2.l3': "Workflows pilotés par l'IA",
 
-      'd3.tag': "Conferences & Event Planning",
-      'd3.desc': "Organisation de conférences, sommets et événements professionnels mémorables, du concept à l'exécution.",
-      'd3.l1': "Conférences & Sommets", 'd3.l2': "Événements corporate", 'd3.l3': "Production scénique",
+      'd3.name': 'Formations <span>IA</span>',
+      'd3.tag': "Talents · Upskilling",
+      'd3.desc': "Nous transformons vos équipes en praticiens de l'IA : ateliers pratiques, programmes sur mesure et accompagnement des dirigeants vers les compétences de demain.",
+      'd3.l1': "Ateliers pratiques", 'd3.l2': "Programmes entreprise", 'd3.l3': "Coaching dirigeants",
 
-      'd4.tag': "Édition & Publication",
-      'd4.desc': "Maison d'édition dédiée à la publication de livres, médias et contenus à fort impact intellectuel et culturel.",
-      'd4.l1': "Édition de livres", 'd4.l2': "Médias & contenus", 'd4.l3': "Diffusion internationale",
+      'd4.name': 'Incubation <span>Digitale</span>',
+      'd4.tag': "Startups · Produits",
+      'd4.desc': "De l'idée au lancement : nous incubons des produits digitaux avec architecture, design et go-to-market — l'IA comme accélérateur à chaque étape.",
+      'd4.l1': "MVP & prototypage", 'd4.l2': "Architecture produit", 'd4.l3': "Go-to-market",
 
-      'd5.tag': "Food & Catering",
-      'd5.desc': "Services alimentaires premium et catering pour événements, entreprises et particuliers — « Your smile, our priority ».",
-      'd5.l1': "Catering événementiel", 'd5.l2': "Restauration corporate", 'd5.l3': "Cuisine sur mesure",
-
-      'd6.tag': "ONG · Soutien aux sans-abri",
-      'd6.desc': "Organisation à but non lucratif engagée dans le soutien, la dignité et la réinsertion des personnes sans-abri.",
-      'd6.l1': "Hébergement d'urgence", 'd6.l2': "Programmes de réinsertion", 'd6.l3': "Sensibilisation publique",
+      'd5.name': 'Intelligence <span>Artificielle</span>',
+      'd5.tag': "Conseil · R&D · Déploiement",
+      'd5.desc': "Stratégie IA de bout en bout : choix des modèles, RAG et données, évaluation, gouvernance et mise en production à coût maîtrisé.",
+      'd5.l1': "Stratégie & audit IA", 'd5.l2': "RAG & données", 'd5.l3': "Déploiement & MLOps",
 
       'eco.eyebrow': "L'écosystème",
       'eco.title': 'Tout est <span class="gold-text">connecté</span>.',
-      'eco.sub': "Six pôles, une orchestration. Survolez le centre pour voir comment l'expertise circule dans le groupe.",
+      'eco.sub': "Cinq pôles, une orchestration. Survolez le centre pour voir comment l'intelligence circule dans l'écosystème.",
 
       'impact.eyebrow': "Impact",
       'impact.title': 'Notre <span class="gold-text">empreinte</span> en chiffres',
-      'impact.s1': "Pôles d'activité",
+      'impact.s1': "Pôles d'expertise",
       'impact.s2': "Projets accompagnés",
-      'impact.s3': "Événements organisés",
-      'impact.s4': "Vies impactées",
-      'impact.quote': "Notre vision est de bâtir un écosystème qui répond aux besoins business, technologiques, communicationnels et sociaux — sous une même lumière.",
-      'impact.author': "— MWINDA GROUP LLC",
+      'impact.s3': "Agents & automatisations déployés",
+      'impact.s4': "Heures de travail automatisées",
+      'impact.quote': "Notre vision : un écosystème où l'intelligence artificielle éclaire chaque idée — et où chaque idée devient un système qui travaille.",
+      'impact.author': "— MWINDA DIGITAL",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Donnons <span class="gold-text">vie</span> <br/>à votre prochaine idée.',
@@ -91,7 +93,7 @@
       'contact.email': "Email",
       'contact.phone': "Téléphone",
       'contact.hq': "Siège",
-      'contact.hqv': "MWINDA GROUP LLC — USA",
+      'contact.hqv': "MWINDA DIGITAL — USA",
 
       'form.name': "Nom complet",
       'form.email': "Adresse email",
@@ -101,21 +103,21 @@
       'form.other': "Autre / Partenariat",
       'form.err.empty': "Merci de remplir tous les champs.",
       'form.err.email': "Adresse email invalide.",
-      'form.ok': "Merci {name}, votre message a bien été envoyé. Nous reviendrons vers vous très vite.",
+      'form.ok': "Merci {name} — WhatsApp s'ouvre avec votre message prêt à envoyer.",
 
-      'footer.tagline': "Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.",
+      'footer.tagline': "Bringing Light to Your Ideas. L'écosystème digital & IA qui transforme les idées en systèmes qui travaillent.",
       'footer.h1': "Pôles", 'footer.h2': "Groupe", 'footer.h3': "Légal",
-      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.impact': "Impact",
+      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Carrières", 'footer.press': "Presse",
       'footer.legal1': "Mentions légales", 'footer.legal2': "Confidentialité",
       'footer.legal3': "Cookies", 'footer.legal4': "CGU",
-      'footer.rights1': "©", 'footer.rights2': "MWINDA GROUP LLC. Tous droits réservés.",
+      'footer.rights1': "©", 'footer.rights2': "MWINDA DIGITAL. Tous droits réservés.",
       'footer.craft': 'Crafted with <span class="gold-text">light</span> &amp; precision.',
     },
 
     en: {
-      'meta.title': "MWINDA GROUP LLC — Bringing Light to Your Ideas",
-      'meta.desc' : "MWINDA GROUP LLC — Bringing Light to Your Ideas. A multi-activity holding: Digital, Consulting, Events, Publishing, Food & Social Impact.",
+      'meta.title': "MWINDA DIGITAL — Bringing Light to Your Ideas",
+      'meta.desc' : "MWINDA DIGITAL — an ecosystem of the digital world and technological innovation: agentic AI systems, automation, AI training and digital incubation.",
 
       'nav.home': "Home",
       'nav.about': "About",
@@ -123,69 +125,71 @@
       'nav.ecosystem': "Ecosystem",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Start a project",
 
-      'hero.tag': "Multi-activity entrepreneurial holding",
+      'hero.tag': "Digital & artificial intelligence ecosystem",
       'hero.t1': "Bringing", 'hero.t2': "Light", 'hero.t3': "to Your", 'hero.t4': "Ideas",
-      'hero.sub': "MWINDA GROUP LLC combines strategic expertise, technology and execution to turn ideas into sustainable ecosystems — from digital to social impact.",
+      'hero.sub': "MWINDA DIGITAL designs agentic systems, automations and AI solutions that turn ideas into world-class digital products.",
       'hero.cta1': "Discover our divisions",
       'hero.cta2': "Get in touch",
-      'hero.m1': "Business divisions",
+      'hero.m1': "Expertise poles",
       'hero.m2': "Integrated vision",
       'hero.m3': "Possibilities",
       'hero.scroll': "Scroll",
 
       'about.eyebrow': "About",
       'about.title': 'An integrated <em>ecosystem</em>, <br/>one shared <span class="gold-text">vision</span>',
-      'about.lead': "MWINDA GROUP LLC is structured as a <strong>multi-activity services holding</strong>, with a strong focus on innovation, social impact and business growth.",
-      'about.p2': "Our core rests on a simple idea: <em>combining strategic expertise, technology and execution</em> to support projects and organizations toward their full potential.",
+      'about.lead': "MWINDA DIGITAL is an <strong>ecosystem of the digital world and technological innovation</strong> — dedicated to advancing ICT, artificial intelligence and the deployment of agentic systems that work for you.",
+      'about.p2': "Our conviction is simple: <em>AI is no longer a tool, it is a workforce</em>. We design, train and deploy intelligences that execute, automate and grow your organization — from idea to production.",
       'about.p1.t': "Innovation",
       'about.p1.d': "Emerging technologies and AI in service of people.",
-      'about.p2.t': "Impact",
-      'about.p2.d': "Economic growth aligned with the common good.",
+      'about.p2.t': "Intelligence",
+      'about.p2.d': "Agentic AI at the heart of every product, from strategy to execution.",
       'about.p3.t': "Excellence",
       'about.p3.d': "Uncompromising execution across every vertical.",
 
       'div.eyebrow': "Our divisions",
-      'div.title': 'Six expertises, <span class="gold-text">one</span> light',
-      'div.sub': "Each division is autonomous in its craft, yet connected by the same standard and the same mission: growing your ideas.",
+      'div.title': 'Five expertises, <span class="gold-text">one</span> light',
+      'div.sub': "Five poles, 100% digital and AI, connected by the same standard and the same mission: turning your ideas into systems that work.",
 
-      'd1.tag': "AI · Web · Technology",
-      'd1.desc': "Web development, artificial intelligence and tailor-made technology solutions to transform your operations.",
-      'd1.l1': "Web & Mobile Apps", 'd1.l2': "AI & Automation", 'd1.l3': "Cloud & DevOps",
+      'd1.name': 'Agentic AI <span>Systems</span>',
+      'd1.tag': "Enterprise · B2C",
+      'd1.desc': "Autonomous AI agents working for your business and your customers: operators, assistants and copilots deployed in production, available 24/7.",
+      'd1.l1': "Enterprise agents", 'd1.l2': "B2C assistants", 'd1.l3': "Multi-agent orchestration",
 
-      'd2.tag': "Projects & Ideas Management",
-      'd2.desc': "Project management, idea structuring and strategic guidance for entrepreneurs and organizations.",
-      'd2.l1': "Business Strategy", 'd2.l2': "Project Management", 'd2.l3': "Business Modeling",
+      'd2.name': '<span>Automation</span>',
+      'd2.tag': "Workflows · Integrations",
+      'd2.desc': "Your repetitive processes, executed by machines: intelligent workflows, integrations and operations running error-free while you create value.",
+      'd2.l1': "Process automation", 'd2.l2': "API & SaaS integrations", 'd2.l3': "AI-driven workflows",
 
-      'd3.tag': "Conferences & Event Planning",
-      'd3.desc': "Memorable conferences, summits and corporate events — from concept to flawless execution.",
-      'd3.l1': "Conferences & Summits", 'd3.l2': "Corporate Events", 'd3.l3': "Stage Production",
+      'd3.name': 'AI <span>Training</span>',
+      'd3.tag': "Talent · Upskilling",
+      'd3.desc': "We turn your teams into AI practitioners: hands-on workshops, tailored programs and executive coaching toward the skills of tomorrow.",
+      'd3.l1': "Hands-on workshops", 'd3.l2': "Company programs", 'd3.l3': "Executive coaching",
 
-      'd4.tag': "Publishing & Editorial",
-      'd4.desc': "A publishing house dedicated to high-impact books, media and content with intellectual and cultural reach.",
-      'd4.l1': "Book Publishing", 'd4.l2': "Media & Content", 'd4.l3': "International Distribution",
+      'd4.name': 'Digital <span>Incubation</span>',
+      'd4.tag': "Startups · Products",
+      'd4.desc': "From idea to launch: we incubate digital products with architecture, design and go-to-market — AI as the accelerator at every step.",
+      'd4.l1': "MVP & prototyping", 'd4.l2': "Product architecture", 'd4.l3': "Go-to-market",
 
-      'd5.tag': "Food & Catering",
-      'd5.desc': "Premium food services and catering for events, businesses and individuals — “Your smile, our priority.”",
-      'd5.l1': "Event Catering", 'd5.l2': "Corporate Dining", 'd5.l3': "Custom Cuisine",
-
-      'd6.tag': "NGO · Supporting the homeless",
-      'd6.desc': "A non-profit organization dedicated to support, dignity and reintegration of homeless people.",
-      'd6.l1': "Emergency Shelter", 'd6.l2': "Reintegration Programs", 'd6.l3': "Public Awareness",
+      'd5.name': 'Artificial <span>Intelligence</span>',
+      'd5.tag': "Consulting · R&D · Deployment",
+      'd5.desc': "End-to-end AI strategy: model selection, RAG and data, evaluation, governance and cost-controlled production deployment.",
+      'd5.l1': "AI strategy & audit", 'd5.l2': "RAG & data", 'd5.l3': "Deployment & MLOps",
 
       'eco.eyebrow': "The ecosystem",
       'eco.title': 'Everything is <span class="gold-text">connected</span>.',
-      'eco.sub': "Six divisions, one orchestration. Hover the center to see how expertise flows through the group.",
+      'eco.sub': "Five poles, one orchestration. Hover the center to see how intelligence flows through the ecosystem.",
 
       'impact.eyebrow': "Impact",
       'impact.title': 'Our <span class="gold-text">footprint</span> in numbers',
-      'impact.s1': "Business divisions",
+      'impact.s1': "Expertise poles",
       'impact.s2': "Projects supported",
-      'impact.s3': "Events organized",
-      'impact.s4': "Lives impacted",
-      'impact.quote': "Our vision is to build an ecosystem that meets business, technology, communication and social needs — under one same light.",
-      'impact.author': "— MWINDA GROUP LLC",
+      'impact.s3': "Agents & automations deployed",
+      'impact.s4': "Working hours automated",
+      'impact.quote': "Our vision: an ecosystem where artificial intelligence lights up every idea — and every idea becomes a system that works.",
+      'impact.author': "— MWINDA DIGITAL",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Let\'s bring <span class="gold-text">life</span> <br/>to your next idea.',
@@ -193,7 +197,7 @@
       'contact.email': "Email",
       'contact.phone': "Phone",
       'contact.hq': "Headquarters",
-      'contact.hqv': "MWINDA GROUP LLC — USA",
+      'contact.hqv': "MWINDA DIGITAL — USA",
 
       'form.name': "Full name",
       'form.email': "Email address",
@@ -203,15 +207,15 @@
       'form.other': "Other / Partnership",
       'form.err.empty': "Please fill in all fields.",
       'form.err.email': "Invalid email address.",
-      'form.ok': "Thank you {name}, your message has been sent. We'll get back to you very soon.",
+      'form.ok': "Thank you {name} — WhatsApp is opening with your message ready to send.",
 
-      'footer.tagline': "Bringing Light to Your Ideas. A multi-activity holding serving innovation, impact and excellence.",
+      'footer.tagline': "Bringing Light to Your Ideas. The digital & AI ecosystem that turns ideas into systems that work.",
       'footer.h1': "Divisions", 'footer.h2': "Group", 'footer.h3': "Legal",
-      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.impact': "Impact",
+      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Careers", 'footer.press': "Press",
       'footer.legal1': "Legal Notice", 'footer.legal2': "Privacy",
       'footer.legal3': "Cookies", 'footer.legal4': "Terms",
-      'footer.rights1': "©", 'footer.rights2': "MWINDA GROUP LLC. All rights reserved.",
+      'footer.rights1': "©", 'footer.rights2': "MWINDA DIGITAL. All rights reserved.",
       'footer.craft': 'Crafted with <span class="gold-text">light</span> &amp; precision.',
     }
   };
@@ -219,8 +223,8 @@
   function detectInitial() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && dict[stored]) return stored;
-    const browser = (navigator.language || 'fr').slice(0, 2).toLowerCase();
-    return dict[browser] ? browser : 'fr';
+    // Default to English unless the visitor explicitly chose a language.
+    return 'en';
   }
 
   function apply(lang) {

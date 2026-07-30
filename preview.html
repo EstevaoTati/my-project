@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MWINDA GROUP LLC — Bringing Light to Your Ideas. Holding multi-activités : Digital, Consulting, Events, Publishing, Food & Impact Social." data-i18n-attr="content" data-i18n="meta.desc" />
-  <title data-i18n="meta.title">MWINDA GROUP LLC — Bringing Light to Your Ideas</title>
+  <meta name="description" content="MWINDA DIGITAL — écosystème du digital et de l'innovation technologique : systèmes agentiques IA, automatisation, formations IA et incubation digitale." data-i18n-attr="content" data-i18n="meta.desc" />
+  <title data-i18n="meta.title">MWINDA DIGITAL — Bringing Light to Your Ideas</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
 
-  <style>/* ============================================================
+  <!-- Inlined styles.css (self-contained preview) -->
+  <style>
+/* ============================================================
    MWINDA GROUP LLC — Premium Black & Gold UI
    ============================================================ */
 
@@ -1134,7 +1136,40 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 @supports (-webkit-touch-callout: none) {
   .hero { min-height: -webkit-fill-available; }
 }
-</style>
+
+/* ===== MWINDA OS floating button ===== */
+.os-fab {
+  position: fixed;
+  right: 22px; bottom: 22px;
+  z-index: 900;
+  display: inline-flex; align-items: center; gap: 9px;
+  background: linear-gradient(135deg, #D4AF37, #FFD700);
+  color: #000;
+  font-weight: 700; font-size: 13px; letter-spacing: .12em;
+  padding: 13px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 8px 30px rgba(212, 175, 55, .35);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.os-fab:hover { transform: translateY(-3px); box-shadow: 0 12px 38px rgba(212, 175, 55, .5); }
+.os-fab-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #0b5c2e;
+  box-shadow: 0 0 0 0 rgba(11, 92, 46, .6);
+  animation: osFabPulse 2s infinite;
+}
+@keyframes osFabPulse {
+  0% { box-shadow: 0 0 0 0 rgba(11, 92, 46, .5); }
+  70% { box-shadow: 0 0 0 9px rgba(11, 92, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(11, 92, 46, 0); }
+}
+@media (max-width: 600px) {
+  .os-fab { right: 14px; bottom: 14px; padding: 11px 16px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .os-fab-dot { animation: none; } }
+
+  </style>
 </head>
 <body>
 
@@ -1156,7 +1191,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <rect x="40" y="84" width="20" height="4" rx="1.5" fill="#A88824"/>
         <rect x="42" y="89" width="16" height="3" rx="1.5" fill="#8a6e1c"/>
       </svg>
-      <div class="loader-text">MWINDA GROUP</div>
+      <div class="loader-text">MWINDA DIGITAL</div>
       <div class="loader-bar"><span></span></div>
     </div>
   </div>
@@ -1170,7 +1205,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       <span class="nav-logo-bulb">
         <svg viewBox="0 0 100 100"><path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="currentColor"/><rect x="38" y="78" width="24" height="5" rx="1.5" fill="currentColor"/><rect x="40" y="84" width="20" height="4" rx="1.5" fill="currentColor" opacity=".8"/><rect x="42" y="89" width="16" height="3" rx="1.5" fill="currentColor" opacity=".6"/></svg>
       </span>
-      <span class="nav-logo-text">MWINDA<small>GROUP LLC</small></span>
+      <span class="nav-logo-text">MWINDA<small>DIGITAL</small></span>
     </a>
     <ul class="nav-links">
       <li><a href="#home" data-i18n="nav.home">Accueil</a></li>
@@ -1178,6 +1213,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       <li><a href="#divisions" data-i18n="nav.divisions">Pôles</a></li>
       <li><a href="#ecosystem" data-i18n="nav.ecosystem">Écosystème</a></li>
       <li><a href="#impact" data-i18n="nav.impact">Impact</a></li>
+      <li><a href="os.html" data-i18n="nav.os">MWINDA OS</a></li>
       <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
     </ul>
 
@@ -1203,7 +1239,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
     <div class="hero-content">
       <div class="hero-tag reveal">
         <span class="dot"></span>
-        <span data-i18n="hero.tag">Holding entrepreneuriale multi-activités</span>
+        <span data-i18n="hero.tag">Écosystème digital &amp; intelligence artificielle</span>
       </div>
 
       <h1 class="hero-title">
@@ -1213,7 +1249,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       </h1>
 
       <p class="hero-sub reveal" data-i18n="hero.sub">
-        MWINDA GROUP LLC combine expertise stratégique, technologie et exécution pour transformer les idées en écosystèmes durables — du digital à l'impact social.
+        MWINDA DIGITAL conçoit des systèmes agentiques, des automatisations et des solutions IA qui transforment les idées en produits digitaux de classe mondiale.
       </p>
 
       <div class="hero-actions reveal">
@@ -1227,7 +1263,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       </div>
 
       <div class="hero-meta reveal">
-        <div><strong>6</strong><span data-i18n="hero.m1">Pôles d'activité</span></div>
+        <div><strong>5</strong><span data-i18n="hero.m1">Pôles d'expertise</span></div>
         <div><strong>1</strong><span data-i18n="hero.m2">Vision intégrée</span></div>
         <div><strong>∞</strong><span data-i18n="hero.m3">Possibilités</span></div>
       </div>
@@ -1252,15 +1288,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       <div class="about-grid">
         <div class="about-text reveal">
           <p class="lead" data-i18n="about.lead" data-i18n-html>
-            MWINDA GROUP LLC est structuré comme une <strong>holding de services multi-activités</strong>, avec une orientation forte vers l'innovation, l'impact social et la croissance des entreprises.
+            MWINDA DIGITAL est un <strong>écosystème du monde digital et de l'innovation technologique</strong> — dédié à la promotion des NTIC, à l'intelligence artificielle et au déploiement de systèmes agentiques qui travaillent pour vous.
           </p>
           <p data-i18n="about.p2" data-i18n-html>
-            Notre cœur repose sur une idée simple : <em>combiner expertise stratégique, technologie et exécution</em> pour accompagner les projets et les organisations vers leur plein potentiel.
+            Notre conviction est simple : <em>l'IA n'est plus un outil, c'est une force de travail</em>. Nous concevons, formons et déployons des intelligences qui exécutent, automatisent et font croître votre organisation — de l'idée à la production.
           </p>
 
           <ul class="about-pillars">
             <li><span>01</span><div><h4 data-i18n="about.p1.t">Innovation</h4><p data-i18n="about.p1.d">Technologies émergentes et IA au service de l'humain.</p></div></li>
-            <li><span>02</span><div><h4 data-i18n="about.p2.t">Impact</h4><p data-i18n="about.p2.d">Une croissance économique alignée sur le bien commun.</p></div></li>
+            <li><span>02</span><div><h4 data-i18n="about.p2.t">Intelligence</h4><p data-i18n="about.p2.d">L'IA agentique au cœur de chaque produit, de la stratégie à l'exécution.</p></div></li>
             <li><span>03</span><div><h4 data-i18n="about.p3.t">Excellence</h4><p data-i18n="about.p3.d">Exigence d'exécution sur chacune de nos verticales.</p></div></li>
           </ul>
         </div>
@@ -1290,23 +1326,23 @@ section { position: relative; padding: 140px 0; z-index: 1; }
     <div class="container">
       <div class="section-head">
         <span class="section-eyebrow reveal" data-i18n="div.eyebrow">Nos pôles</span>
-        <h2 class="section-title reveal" data-i18n="div.title" data-i18n-html>Six expertises, <span class="gold-text">une seule</span> lumière</h2>
-        <p class="section-sub reveal" data-i18n="div.sub">Chaque pôle est autonome dans son métier, mais connecté par une même exigence et une même mission : faire grandir vos idées.</p>
+        <h2 class="section-title reveal" data-i18n="div.title" data-i18n-html>Cinq expertises, <span class="gold-text">une seule</span> lumière</h2>
+        <p class="section-sub reveal" data-i18n="div.sub">Cinq pôles 100% digital et IA, connectés par une même exigence et une même mission : transformer vos idées en systèmes qui travaillent.</p>
       </div>
 
       <div class="div-grid">
         <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
-              <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M50 14l-7 7M21 43l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/></svg>
+              <svg viewBox="0 0 64 64"><circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="44" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="44" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 26v6h24v-6M32 32v6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M14 14l-3-3M50 14l3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </div>
-            <h3>Mwinda <span>Digital</span></h3>
-            <p class="div-tag" data-i18n="d1.tag">AI · Web · Technology</p>
-            <p class="div-desc" data-i18n="d1.desc">Développement web, intelligence artificielle et solutions technologiques sur mesure pour transformer vos opérations.</p>
+            <h3 data-i18n="d1.name" data-i18n-html>Systèmes <span>Agentiques IA</span></h3>
+            <p class="div-tag" data-i18n="d1.tag">Entreprise · B2C</p>
+            <p class="div-desc" data-i18n="d1.desc">Des agents IA autonomes qui travaillent pour votre entreprise et vos clients : opérateurs, assistants et copilotes déployés en production, disponibles 24/7.</p>
             <ul class="div-list">
-              <li data-i18n="d1.l1">Web & Mobile Apps</li>
-              <li data-i18n="d1.l2">IA & Automatisation</li>
-              <li data-i18n="d1.l3">Cloud & DevOps</li>
+              <li data-i18n="d1.l1">Agents d'entreprise</li>
+              <li data-i18n="d1.l2">Assistants B2C</li>
+              <li data-i18n="d1.l3">Orchestration multi-agents</li>
             </ul>
             <span class="div-num">01</span>
           </div>
@@ -1315,15 +1351,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
-              <svg viewBox="0 0 64 64"><circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="44" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="44" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 26v6h24v-6M32 32v6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M14 14l-3-3M50 14l3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M32 6v10M32 48v10M6 32h10M48 32h10M14 14l7 7M43 43l7 7M50 14l-7 7M21 43l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/></svg>
             </div>
-            <h3>Mwinda <span>Consulting</span></h3>
-            <p class="div-tag" data-i18n="d2.tag">Projects & Ideas Management</p>
-            <p class="div-desc" data-i18n="d2.desc">Gestion de projets, structuration d'idées et accompagnement stratégique pour entrepreneurs et organisations.</p>
+            <h3 data-i18n="d2.name" data-i18n-html>L'<span>Automatisation</span></h3>
+            <p class="div-tag" data-i18n="d2.tag">Workflows · Intégrations</p>
+            <p class="div-desc" data-i18n="d2.desc">Vos processus répétitifs, exécutés par des machines : workflows intelligents, intégrations et opérations qui tournent sans erreur pendant que vous créez de la valeur.</p>
             <ul class="div-list">
-              <li data-i18n="d2.l1">Stratégie d'entreprise</li>
-              <li data-i18n="d2.l2">Project Management</li>
-              <li data-i18n="d2.l3">Business Modeling</li>
+              <li data-i18n="d2.l1">Automatisation de processus</li>
+              <li data-i18n="d2.l2">Intégrations API &amp; SaaS</li>
+              <li data-i18n="d2.l3">Workflows pilotés par l'IA</li>
             </ul>
             <span class="div-num">02</span>
           </div>
@@ -1332,15 +1368,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
-              <svg viewBox="0 0 64 64"><path d="M16 28l16-12 16 12v20H16V28z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M28 48v-10h8v10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="22" r="2" fill="currentColor"/><path d="M10 28l22-18 22 18" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/></svg>
+              <svg viewBox="0 0 64 64"><path d="M10 18c8-4 16-4 22 0v32c-6-4-14-4-22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M54 18c-8-4-16-4-22 0v32c6-4 14-4 22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M44 8l4 14-6-3-3 6-2-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
             </div>
-            <h3>Mwinda <span>Events</span></h3>
-            <p class="div-tag" data-i18n="d3.tag">Conferences & Event Planning</p>
-            <p class="div-desc" data-i18n="d3.desc">Organisation de conférences, sommets et événements professionnels mémorables, du concept à l'exécution.</p>
+            <h3 data-i18n="d3.name" data-i18n-html>Formations <span>IA</span></h3>
+            <p class="div-tag" data-i18n="d3.tag">Talents · Upskilling</p>
+            <p class="div-desc" data-i18n="d3.desc">Nous transformons vos équipes en praticiens de l'IA : ateliers pratiques, programmes sur mesure et accompagnement des dirigeants vers les compétences de demain.</p>
             <ul class="div-list">
-              <li data-i18n="d3.l1">Conférences & Sommets</li>
-              <li data-i18n="d3.l2">Événements corporate</li>
-              <li data-i18n="d3.l3">Production scénique</li>
+              <li data-i18n="d3.l1">Ateliers pratiques</li>
+              <li data-i18n="d3.l2">Programmes entreprise</li>
+              <li data-i18n="d3.l3">Coaching dirigeants</li>
             </ul>
             <span class="div-num">03</span>
           </div>
@@ -1349,15 +1385,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
-              <svg viewBox="0 0 64 64"><path d="M10 18c8-4 16-4 22 0v32c-6-4-14-4-22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M54 18c-8-4-16-4-22 0v32c6-4 14-4 22 0V18z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M44 8l4 14-6-3-3 6-2-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              <svg viewBox="0 0 64 64"><path d="M32 8 C21 8 14 17 14 26 C14 33 19 37 21 42 L21 47 L43 47 L43 42 C45 37 50 33 50 26 C50 17 43 8 32 8 Z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="25" y="50" width="14" height="3" rx="1.5" fill="currentColor"/><rect x="27" y="55" width="10" height="3" rx="1.5" fill="currentColor" opacity=".7"/><path d="M32 20v10M27 25h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </div>
-            <h3>Les Élites <span>Publishing House</span></h3>
-            <p class="div-tag" data-i18n="d4.tag">Édition & Publication</p>
-            <p class="div-desc" data-i18n="d4.desc">Maison d'édition dédiée à la publication de livres, médias et contenus à fort impact intellectuel et culturel.</p>
+            <h3 data-i18n="d4.name" data-i18n-html>Incubation <span>Digitale</span></h3>
+            <p class="div-tag" data-i18n="d4.tag">Startups · Produits</p>
+            <p class="div-desc" data-i18n="d4.desc">De l'idée au lancement : nous incubons des produits digitaux avec architecture, design et go-to-market — l'IA comme accélérateur à chaque étape.</p>
             <ul class="div-list">
-              <li data-i18n="d4.l1">Édition de livres</li>
-              <li data-i18n="d4.l2">Médias & contenus</li>
-              <li data-i18n="d4.l3">Diffusion internationale</li>
+              <li data-i18n="d4.l1">MVP &amp; prototypage</li>
+              <li data-i18n="d4.l2">Architecture produit</li>
+              <li data-i18n="d4.l3">Go-to-market</li>
             </ul>
             <span class="div-num">04</span>
           </div>
@@ -1366,34 +1402,17 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <article class="div-card tilt">
           <div class="div-card-inner">
             <div class="div-icon">
-              <svg viewBox="0 0 64 64"><path d="M20 18c0-6 6-10 12-10s12 4 12 10c4 0 6 4 6 8H14c0-4 2-8 6-8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 32h36v6c0 6-4 10-10 10H24c-6 0-10-4-10-10v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M22 18v6M32 14v10M42 18v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg viewBox="0 0 64 64"><rect x="18" y="18" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M26 18V8M38 18V8M26 56V46M38 56V46M18 26H8M18 38H8M56 26H46M56 38H46" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="32" r="5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </div>
-            <h3>Okam <span>Services Food</span></h3>
-            <p class="div-tag" data-i18n="d5.tag">Food & Catering</p>
-            <p class="div-desc" data-i18n="d5.desc">Services alimentaires premium et catering pour événements, entreprises et particuliers — « Your smile, our priority ».</p>
+            <h3 data-i18n="d5.name" data-i18n-html>Intelligence <span>Artificielle</span></h3>
+            <p class="div-tag" data-i18n="d5.tag">Conseil · R&amp;D · Déploiement</p>
+            <p class="div-desc" data-i18n="d5.desc">Stratégie IA de bout en bout : choix des modèles, RAG et données, évaluation, gouvernance et mise en production à coût maîtrisé.</p>
             <ul class="div-list">
-              <li data-i18n="d5.l1">Catering événementiel</li>
-              <li data-i18n="d5.l2">Restauration corporate</li>
-              <li data-i18n="d5.l3">Cuisine sur mesure</li>
+              <li data-i18n="d5.l1">Stratégie &amp; audit IA</li>
+              <li data-i18n="d5.l2">RAG &amp; données</li>
+              <li data-i18n="d5.l3">Déploiement &amp; MLOps</li>
             </ul>
             <span class="div-num">05</span>
-          </div>
-        </article>
-
-        <article class="div-card tilt">
-          <div class="div-card-inner">
-            <div class="div-icon">
-              <svg viewBox="0 0 64 64"><path d="M32 20c-3-6-13-6-13 4 0 8 13 16 13 16s13-8 13-16c0-10-10-10-13-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 50h36M18 50v-6h6v6M40 50v-6h6v6M28 50v-12h8v12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-            </div>
-            <h3>Mwinda <span>Hope Nation</span></h3>
-            <p class="div-tag" data-i18n="d6.tag">NGO · Soutien aux sans-abri</p>
-            <p class="div-desc" data-i18n="d6.desc">Organisation à but non lucratif engagée dans le soutien, la dignité et la réinsertion des personnes sans-abri.</p>
-            <ul class="div-list">
-              <li data-i18n="d6.l1">Hébergement d'urgence</li>
-              <li data-i18n="d6.l2">Programmes de réinsertion</li>
-              <li data-i18n="d6.l3">Sensibilisation publique</li>
-            </ul>
-            <span class="div-num">06</span>
           </div>
         </article>
       </div>
@@ -1406,7 +1425,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       <div class="section-head">
         <span class="section-eyebrow reveal" data-i18n="eco.eyebrow">L'écosystème</span>
         <h2 class="section-title reveal" data-i18n="eco.title" data-i18n-html>Tout est <span class="gold-text">connecté</span>.</h2>
-        <p class="section-sub reveal" data-i18n="eco.sub">Six pôles, une orchestration. Survolez le centre pour voir comment l'expertise circule dans le groupe.</p>
+        <p class="section-sub reveal" data-i18n="eco.sub">Cinq pôles, une orchestration. Survolez le centre pour voir comment l'intelligence circule dans l'écosystème.</p>
       </div>
 
       <div class="eco-stage" id="ecoStage">
@@ -1422,25 +1441,24 @@ section { position: relative; padding: 140px 0; z-index: 1; }
           <line class="eco-line" x1="400" y1="300" x2="640" y2="140" stroke="url(#lineGrad)" stroke-width="1.5"/>
           <line class="eco-line" x1="400" y1="300" x2="120" y2="300" stroke="url(#lineGrad)" stroke-width="1.5"/>
           <line class="eco-line" x1="400" y1="300" x2="680" y2="300" stroke="url(#lineGrad)" stroke-width="1.5"/>
-          <line class="eco-line" x1="400" y1="300" x2="160" y2="460" stroke="url(#lineGrad)" stroke-width="1.5"/>
-          <line class="eco-line" x1="400" y1="300" x2="640" y2="460" stroke="url(#lineGrad)" stroke-width="1.5"/>
+          <line class="eco-line" x1="400" y1="300" x2="240" y2="470" stroke="url(#lineGrad)" stroke-width="1.5"/>
+          <line class="eco-line" x1="400" y1="300" x2="560" y2="470" stroke="url(#lineGrad)" stroke-width="1.5"/>
         </svg>
 
         <div class="eco-center">
           <div class="eco-center-inner">
             <span>MWINDA</span>
-            <small>GROUP LLC</small>
+            <small>DIGITAL</small>
           </div>
           <div class="eco-pulse"></div>
           <div class="eco-pulse" style="animation-delay:1s"></div>
         </div>
 
-        <div class="eco-node n1" style="--x:160px; --y:140px;"><span>Digital</span></div>
-        <div class="eco-node n2" style="--x:640px; --y:140px;"><span>Consulting</span></div>
-        <div class="eco-node n3" style="--x:120px; --y:300px;"><span>Events</span></div>
-        <div class="eco-node n4" style="--x:680px; --y:300px;"><span>Publishing</span></div>
-        <div class="eco-node n5" style="--x:160px; --y:460px;"><span>Okam Food</span></div>
-        <div class="eco-node n6" style="--x:640px; --y:460px;"><span>Hope Nation</span></div>
+        <div class="eco-node n1" style="--x:160px; --y:140px;"><span>Agentic AI</span></div>
+        <div class="eco-node n2" style="--x:640px; --y:140px;"><span>Automation</span></div>
+        <div class="eco-node n3" style="--x:120px; --y:300px;"><span>AI Training</span></div>
+        <div class="eco-node n4" style="--x:680px; --y:300px;"><span>Incubation</span></div>
+        <div class="eco-node n5" style="--x:240px; --y:470px;"><span>AI Consulting</span></div>
       </div>
     </div>
   </section>
@@ -1455,27 +1473,27 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 
       <div class="stats">
         <div class="stat reveal">
-          <div class="stat-num" data-count="6">0</div>
-          <div class="stat-lbl" data-i18n="impact.s1">Pôles d'activité</div>
+          <div class="stat-num" data-count="5">0</div>
+          <div class="stat-lbl" data-i18n="impact.s1">Pôles d'expertise</div>
         </div>
         <div class="stat reveal">
           <div class="stat-num" data-count="120">0</div>
           <div class="stat-lbl" data-i18n="impact.s2">Projets accompagnés</div>
         </div>
         <div class="stat reveal">
-          <div class="stat-num" data-count="40" data-suffix="+">0</div>
-          <div class="stat-lbl" data-i18n="impact.s3">Événements organisés</div>
+          <div class="stat-num" data-count="30" data-suffix="+">0</div>
+          <div class="stat-lbl" data-i18n="impact.s3">Agents &amp; automatisations déployés</div>
         </div>
         <div class="stat reveal">
           <div class="stat-num" data-count="10000" data-suffix="+">0</div>
-          <div class="stat-lbl" data-i18n="impact.s4">Vies impactées</div>
+          <div class="stat-lbl" data-i18n="impact.s4">Heures de travail automatisées</div>
         </div>
       </div>
 
       <div class="quote reveal">
         <svg viewBox="0 0 24 24" width="40" height="40" class="quote-mark"><path d="M9 7H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4M21 7h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span data-i18n="impact.quote">Notre vision est de bâtir un écosystème qui répond aux besoins business, technologiques, communicationnels et sociaux — sous une même lumière.</span>
-        <span class="quote-author" data-i18n="impact.author">— MWINDA GROUP LLC</span>
+        <span data-i18n="impact.quote">Notre vision : un écosystème où l'intelligence artificielle éclaire chaque idée — et où chaque idée devient un système qui travaille.</span>
+        <span class="quote-author" data-i18n="impact.author">— MWINDA DIGITAL</span>
       </div>
     </div>
   </section>
@@ -1491,15 +1509,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <ul class="contact-list">
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 6h16v12H4zM4 6l8 7 8-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
-            <div><strong data-i18n="contact.email">Email</strong><a href="mailto:contact@mwindagroup.com">contact@mwindagroup.com</a></div>
+            <div><strong data-i18n="contact.email">Email</strong><a href="mailto:estevaomacumba@gmail.com">estevaomacumba@gmail.com</a></div>
           </li>
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M22 16.92V21a1 1 0 0 1-1.1 1A19 19 0 0 1 2 4.1 1 1 0 0 1 3 3h4.09a1 1 0 0 1 1 .75l1 4a1 1 0 0 1-.29 1L7 10.5a16 16 0 0 0 6.5 6.5l1.75-1.8a1 1 0 0 1 1-.29l4 1a1 1 0 0 1 .75 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
-            <div><strong data-i18n="contact.phone">Téléphone</strong><a href="tel:+10000000000">+1 (000) 000-0000</a></div>
+            <div><strong data-i18n="contact.phone">Téléphone</strong><a href="tel:+17065725957">+1 (706) 572-5957</a></div>
           </li>
           <li>
             <span class="ico"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
-            <div><strong data-i18n="contact.hq">Siège</strong><span data-i18n="contact.hqv">MWINDA GROUP LLC — USA</span></div>
+            <div><strong data-i18n="contact.hq">Siège</strong><span data-i18n="contact.hqv">MWINDA DIGITAL — USA</span></div>
           </li>
         </ul>
 
@@ -1525,12 +1543,11 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         <div class="field">
           <select id="topic" required>
             <option value="" disabled selected hidden></option>
-            <option>Mwinda Digital</option>
-            <option>Mwinda Consulting</option>
-            <option>Mwinda Events</option>
-            <option>Les Élites Publishing</option>
-            <option>Okam Services Food</option>
-            <option>Mwinda Hope Nation</option>
+            <option>Agentic AI Systems</option>
+            <option>Automation</option>
+            <option>AI Training</option>
+            <option>Digital Incubation</option>
+            <option>AI Consulting</option>
             <option data-i18n="form.other">Autre / Partenariat</option>
           </select>
           <label for="topic" data-i18n="form.topic">Pôle concerné</label>
@@ -1559,25 +1576,25 @@ section { position: relative; padding: 140px 0; z-index: 1; }
             <span class="nav-logo-bulb">
               <svg viewBox="0 0 100 100"><path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="currentColor"/><rect x="38" y="78" width="24" height="5" rx="1.5" fill="currentColor"/><rect x="40" y="84" width="20" height="4" rx="1.5" fill="currentColor" opacity=".8"/><rect x="42" y="89" width="16" height="3" rx="1.5" fill="currentColor" opacity=".6"/></svg>
             </span>
-            <span class="nav-logo-text">MWINDA<small>GROUP LLC</small></span>
+            <span class="nav-logo-text">MWINDA<small>DIGITAL</small></span>
           </div>
-          <p data-i18n="footer.tagline">Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.</p>
+          <p data-i18n="footer.tagline">Bringing Light to Your Ideas. L'écosystème digital &amp; IA qui transforme les idées en systèmes qui travaillent.</p>
         </div>
 
         <div class="footer-cols">
           <div>
             <h5 data-i18n="footer.h1">Pôles</h5>
-            <a href="#divisions">Mwinda Digital</a>
-            <a href="#divisions">Mwinda Consulting</a>
-            <a href="#divisions">Mwinda Events</a>
-            <a href="#divisions">Les Élites Publishing</a>
-            <a href="#divisions">Okam Services Food</a>
-            <a href="#divisions">Mwinda Hope Nation</a>
+            <a href="#divisions">Agentic AI Systems</a>
+            <a href="#divisions">Automation</a>
+            <a href="#divisions">AI Training</a>
+            <a href="#divisions">Digital Incubation</a>
+            <a href="#divisions">AI Consulting</a>
           </div>
           <div>
             <h5 data-i18n="footer.h2">Groupe</h5>
             <a href="#about" data-i18n="footer.about">À propos</a>
             <a href="#ecosystem" data-i18n="footer.eco">Écosystème</a>
+            <a href="os.html" data-i18n="footer.os">MWINDA OS</a>
             <a href="#impact" data-i18n="footer.impact">Impact</a>
             <a href="#contact" data-i18n="footer.careers">Carrières</a>
             <a href="#contact" data-i18n="footer.press">Presse</a>
@@ -1592,17 +1609,23 @@ section { position: relative; padding: 140px 0; z-index: 1; }
         </div>
       </div>
       <div class="footer-bottom">
-        <span><span data-i18n="footer.rights1">©</span> <span id="year"></span> <span data-i18n="footer.rights2">MWINDA GROUP LLC. Tous droits réservés.</span></span>
+        <span><span data-i18n="footer.rights1">©</span> <span id="year"></span> <span data-i18n="footer.rights2">MWINDA DIGITAL. Tous droits réservés.</span></span>
         <span data-i18n="footer.craft" data-i18n-html>Crafted with <span class="gold-text">light</span> &amp; precision.</span>
       </div>
     </div>
   </footer>
 
+  <a href="os.html" class="os-fab" aria-label="MWINDA OS">
+    <span class="os-fab-dot"></span>
+    <span class="os-fab-label">MWINDA&nbsp;OS</span>
+  </a>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script>/* ============================================================
-   MWINDA GROUP — i18n (FR / EN)
+  <script>
+/* ============================================================
+   MWINDA DIGITAL — i18n (FR / EN)
    Lightweight, no dependency. Reads data-i18n="key" attributes
    on elements and swaps text. Use data-i18n-html on elements
    that contain inline tags (em/span/br) to allow HTML in the
@@ -1615,8 +1638,8 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 
   const dict = {
     fr: {
-      'meta.title': "MWINDA GROUP LLC — Bringing Light to Your Ideas",
-      'meta.desc' : "MWINDA GROUP LLC — Bringing Light to Your Ideas. Holding multi-activités : Digital, Consulting, Events, Publishing, Food & Impact Social.",
+      'meta.title': "MWINDA DIGITAL — Bringing Light to Your Ideas",
+      'meta.desc' : "MWINDA DIGITAL — écosystème du digital et de l'innovation technologique : systèmes agentiques IA, automatisation, formations IA et incubation digitale.",
 
       'nav.home': "Accueil",
       'nav.about': "À propos",
@@ -1624,69 +1647,71 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'nav.ecosystem': "Écosystème",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Démarrer un projet",
 
-      'hero.tag': "Holding entrepreneuriale multi-activités",
+      'hero.tag': "Écosystème digital & intelligence artificielle",
       'hero.t1': "Bringing", 'hero.t2': "Light", 'hero.t3': "to Your", 'hero.t4': "Ideas",
-      'hero.sub': "MWINDA GROUP LLC combine expertise stratégique, technologie et exécution pour transformer les idées en écosystèmes durables — du digital à l'impact social.",
+      'hero.sub': "MWINDA DIGITAL conçoit des systèmes agentiques, des automatisations et des solutions IA qui transforment les idées en produits digitaux de classe mondiale.",
       'hero.cta1': "Découvrir nos pôles",
       'hero.cta2': "Nous contacter",
-      'hero.m1': "Pôles d'activité",
+      'hero.m1': "Pôles d'expertise",
       'hero.m2': "Vision intégrée",
       'hero.m3': "Possibilités",
       'hero.scroll': "Scroll",
 
       'about.eyebrow': "À propos",
       'about.title': 'Un <em>écosystème</em> intégré, <br/>une <span class="gold-text">vision</span> commune',
-      'about.lead': "MWINDA GROUP LLC est structuré comme une <strong>holding de services multi-activités</strong>, avec une orientation forte vers l'innovation, l'impact social et la croissance des entreprises.",
-      'about.p2': "Notre cœur repose sur une idée simple : <em>combiner expertise stratégique, technologie et exécution</em> pour accompagner les projets et les organisations vers leur plein potentiel.",
+      'about.lead': "MWINDA DIGITAL est un <strong>écosystème du monde digital et de l'innovation technologique</strong> — dédié à la promotion des NTIC, à l'intelligence artificielle et au déploiement de systèmes agentiques qui travaillent pour vous.",
+      'about.p2': "Notre conviction est simple : <em>l'IA n'est plus un outil, c'est une force de travail</em>. Nous concevons, formons et déployons des intelligences qui exécutent, automatisent et font croître votre organisation — de l'idée à la production.",
       'about.p1.t': "Innovation",
       'about.p1.d': "Technologies émergentes et IA au service de l'humain.",
-      'about.p2.t': "Impact",
-      'about.p2.d': "Une croissance économique alignée sur le bien commun.",
+      'about.p2.t': "Intelligence",
+      'about.p2.d': "L'IA agentique au cœur de chaque produit, de la stratégie à l'exécution.",
       'about.p3.t': "Excellence",
       'about.p3.d': "Exigence d'exécution sur chacune de nos verticales.",
 
       'div.eyebrow': "Nos pôles",
-      'div.title': 'Six expertises, <span class="gold-text">une seule</span> lumière',
-      'div.sub': "Chaque pôle est autonome dans son métier, mais connecté par une même exigence et une même mission : faire grandir vos idées.",
+      'div.title': 'Cinq expertises, <span class="gold-text">une seule</span> lumière',
+      'div.sub': "Cinq pôles 100% digital et IA, connectés par une même exigence et une même mission : transformer vos idées en systèmes qui travaillent.",
 
-      'd1.tag': "AI · Web · Technology",
-      'd1.desc': "Développement web, intelligence artificielle et solutions technologiques sur mesure pour transformer vos opérations.",
-      'd1.l1': "Web & Mobile Apps", 'd1.l2': "IA & Automatisation", 'd1.l3': "Cloud & DevOps",
+      'd1.name': 'Systèmes <span>Agentiques IA</span>',
+      'd1.tag': "Entreprise · B2C",
+      'd1.desc': "Des agents IA autonomes qui travaillent pour votre entreprise et vos clients : opérateurs, assistants et copilotes déployés en production, disponibles 24/7.",
+      'd1.l1': "Agents d'entreprise", 'd1.l2': "Assistants B2C", 'd1.l3': "Orchestration multi-agents",
 
-      'd2.tag': "Projects & Ideas Management",
-      'd2.desc': "Gestion de projets, structuration d'idées et accompagnement stratégique pour entrepreneurs et organisations.",
-      'd2.l1': "Stratégie d'entreprise", 'd2.l2': "Project Management", 'd2.l3': "Business Modeling",
+      'd2.name': "L'<span>Automatisation</span>",
+      'd2.tag': "Workflows · Intégrations",
+      'd2.desc': "Vos processus répétitifs, exécutés par des machines : workflows intelligents, intégrations et opérations qui tournent sans erreur pendant que vous créez de la valeur.",
+      'd2.l1': "Automatisation de processus", 'd2.l2': "Intégrations API & SaaS", 'd2.l3': "Workflows pilotés par l'IA",
 
-      'd3.tag': "Conferences & Event Planning",
-      'd3.desc': "Organisation de conférences, sommets et événements professionnels mémorables, du concept à l'exécution.",
-      'd3.l1': "Conférences & Sommets", 'd3.l2': "Événements corporate", 'd3.l3': "Production scénique",
+      'd3.name': 'Formations <span>IA</span>',
+      'd3.tag': "Talents · Upskilling",
+      'd3.desc': "Nous transformons vos équipes en praticiens de l'IA : ateliers pratiques, programmes sur mesure et accompagnement des dirigeants vers les compétences de demain.",
+      'd3.l1': "Ateliers pratiques", 'd3.l2': "Programmes entreprise", 'd3.l3': "Coaching dirigeants",
 
-      'd4.tag': "Édition & Publication",
-      'd4.desc': "Maison d'édition dédiée à la publication de livres, médias et contenus à fort impact intellectuel et culturel.",
-      'd4.l1': "Édition de livres", 'd4.l2': "Médias & contenus", 'd4.l3': "Diffusion internationale",
+      'd4.name': 'Incubation <span>Digitale</span>',
+      'd4.tag': "Startups · Produits",
+      'd4.desc': "De l'idée au lancement : nous incubons des produits digitaux avec architecture, design et go-to-market — l'IA comme accélérateur à chaque étape.",
+      'd4.l1': "MVP & prototypage", 'd4.l2': "Architecture produit", 'd4.l3': "Go-to-market",
 
-      'd5.tag': "Food & Catering",
-      'd5.desc': "Services alimentaires premium et catering pour événements, entreprises et particuliers — « Your smile, our priority ».",
-      'd5.l1': "Catering événementiel", 'd5.l2': "Restauration corporate", 'd5.l3': "Cuisine sur mesure",
-
-      'd6.tag': "ONG · Soutien aux sans-abri",
-      'd6.desc': "Organisation à but non lucratif engagée dans le soutien, la dignité et la réinsertion des personnes sans-abri.",
-      'd6.l1': "Hébergement d'urgence", 'd6.l2': "Programmes de réinsertion", 'd6.l3': "Sensibilisation publique",
+      'd5.name': 'Intelligence <span>Artificielle</span>',
+      'd5.tag': "Conseil · R&D · Déploiement",
+      'd5.desc': "Stratégie IA de bout en bout : choix des modèles, RAG et données, évaluation, gouvernance et mise en production à coût maîtrisé.",
+      'd5.l1': "Stratégie & audit IA", 'd5.l2': "RAG & données", 'd5.l3': "Déploiement & MLOps",
 
       'eco.eyebrow': "L'écosystème",
       'eco.title': 'Tout est <span class="gold-text">connecté</span>.',
-      'eco.sub': "Six pôles, une orchestration. Survolez le centre pour voir comment l'expertise circule dans le groupe.",
+      'eco.sub': "Cinq pôles, une orchestration. Survolez le centre pour voir comment l'intelligence circule dans l'écosystème.",
 
       'impact.eyebrow': "Impact",
       'impact.title': 'Notre <span class="gold-text">empreinte</span> en chiffres',
-      'impact.s1': "Pôles d'activité",
+      'impact.s1': "Pôles d'expertise",
       'impact.s2': "Projets accompagnés",
-      'impact.s3': "Événements organisés",
-      'impact.s4': "Vies impactées",
-      'impact.quote': "Notre vision est de bâtir un écosystème qui répond aux besoins business, technologiques, communicationnels et sociaux — sous une même lumière.",
-      'impact.author': "— MWINDA GROUP LLC",
+      'impact.s3': "Agents & automatisations déployés",
+      'impact.s4': "Heures de travail automatisées",
+      'impact.quote': "Notre vision : un écosystème où l'intelligence artificielle éclaire chaque idée — et où chaque idée devient un système qui travaille.",
+      'impact.author': "— MWINDA DIGITAL",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Donnons <span class="gold-text">vie</span> <br/>à votre prochaine idée.',
@@ -1694,7 +1719,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'contact.email': "Email",
       'contact.phone': "Téléphone",
       'contact.hq': "Siège",
-      'contact.hqv': "MWINDA GROUP LLC — USA",
+      'contact.hqv': "MWINDA DIGITAL — USA",
 
       'form.name': "Nom complet",
       'form.email': "Adresse email",
@@ -1704,21 +1729,21 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'form.other': "Autre / Partenariat",
       'form.err.empty': "Merci de remplir tous les champs.",
       'form.err.email': "Adresse email invalide.",
-      'form.ok': "Merci {name}, votre message a bien été envoyé. Nous reviendrons vers vous très vite.",
+      'form.ok': "Merci {name} — WhatsApp s'ouvre avec votre message prêt à envoyer.",
 
-      'footer.tagline': "Bringing Light to Your Ideas. Une holding multi-activités au service de l'innovation, de l'impact et de l'excellence.",
+      'footer.tagline': "Bringing Light to Your Ideas. L'écosystème digital & IA qui transforme les idées en systèmes qui travaillent.",
       'footer.h1': "Pôles", 'footer.h2': "Groupe", 'footer.h3': "Légal",
-      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.impact': "Impact",
+      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Carrières", 'footer.press': "Presse",
       'footer.legal1': "Mentions légales", 'footer.legal2': "Confidentialité",
       'footer.legal3': "Cookies", 'footer.legal4': "CGU",
-      'footer.rights1': "©", 'footer.rights2': "MWINDA GROUP LLC. Tous droits réservés.",
+      'footer.rights1': "©", 'footer.rights2': "MWINDA DIGITAL. Tous droits réservés.",
       'footer.craft': 'Crafted with <span class="gold-text">light</span> &amp; precision.',
     },
 
     en: {
-      'meta.title': "MWINDA GROUP LLC — Bringing Light to Your Ideas",
-      'meta.desc' : "MWINDA GROUP LLC — Bringing Light to Your Ideas. A multi-activity holding: Digital, Consulting, Events, Publishing, Food & Social Impact.",
+      'meta.title': "MWINDA DIGITAL — Bringing Light to Your Ideas",
+      'meta.desc' : "MWINDA DIGITAL — an ecosystem of the digital world and technological innovation: agentic AI systems, automation, AI training and digital incubation.",
 
       'nav.home': "Home",
       'nav.about': "About",
@@ -1726,69 +1751,71 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'nav.ecosystem': "Ecosystem",
       'nav.impact': "Impact",
       'nav.contact': "Contact",
+      'nav.os': "MWINDA OS",
       'nav.cta': "Start a project",
 
-      'hero.tag': "Multi-activity entrepreneurial holding",
+      'hero.tag': "Digital & artificial intelligence ecosystem",
       'hero.t1': "Bringing", 'hero.t2': "Light", 'hero.t3': "to Your", 'hero.t4': "Ideas",
-      'hero.sub': "MWINDA GROUP LLC combines strategic expertise, technology and execution to turn ideas into sustainable ecosystems — from digital to social impact.",
+      'hero.sub': "MWINDA DIGITAL designs agentic systems, automations and AI solutions that turn ideas into world-class digital products.",
       'hero.cta1': "Discover our divisions",
       'hero.cta2': "Get in touch",
-      'hero.m1': "Business divisions",
+      'hero.m1': "Expertise poles",
       'hero.m2': "Integrated vision",
       'hero.m3': "Possibilities",
       'hero.scroll': "Scroll",
 
       'about.eyebrow': "About",
       'about.title': 'An integrated <em>ecosystem</em>, <br/>one shared <span class="gold-text">vision</span>',
-      'about.lead': "MWINDA GROUP LLC is structured as a <strong>multi-activity services holding</strong>, with a strong focus on innovation, social impact and business growth.",
-      'about.p2': "Our core rests on a simple idea: <em>combining strategic expertise, technology and execution</em> to support projects and organizations toward their full potential.",
+      'about.lead': "MWINDA DIGITAL is an <strong>ecosystem of the digital world and technological innovation</strong> — dedicated to advancing ICT, artificial intelligence and the deployment of agentic systems that work for you.",
+      'about.p2': "Our conviction is simple: <em>AI is no longer a tool, it is a workforce</em>. We design, train and deploy intelligences that execute, automate and grow your organization — from idea to production.",
       'about.p1.t': "Innovation",
       'about.p1.d': "Emerging technologies and AI in service of people.",
-      'about.p2.t': "Impact",
-      'about.p2.d': "Economic growth aligned with the common good.",
+      'about.p2.t': "Intelligence",
+      'about.p2.d': "Agentic AI at the heart of every product, from strategy to execution.",
       'about.p3.t': "Excellence",
       'about.p3.d': "Uncompromising execution across every vertical.",
 
       'div.eyebrow': "Our divisions",
-      'div.title': 'Six expertises, <span class="gold-text">one</span> light',
-      'div.sub': "Each division is autonomous in its craft, yet connected by the same standard and the same mission: growing your ideas.",
+      'div.title': 'Five expertises, <span class="gold-text">one</span> light',
+      'div.sub': "Five poles, 100% digital and AI, connected by the same standard and the same mission: turning your ideas into systems that work.",
 
-      'd1.tag': "AI · Web · Technology",
-      'd1.desc': "Web development, artificial intelligence and tailor-made technology solutions to transform your operations.",
-      'd1.l1': "Web & Mobile Apps", 'd1.l2': "AI & Automation", 'd1.l3': "Cloud & DevOps",
+      'd1.name': 'Agentic AI <span>Systems</span>',
+      'd1.tag': "Enterprise · B2C",
+      'd1.desc': "Autonomous AI agents working for your business and your customers: operators, assistants and copilots deployed in production, available 24/7.",
+      'd1.l1': "Enterprise agents", 'd1.l2': "B2C assistants", 'd1.l3': "Multi-agent orchestration",
 
-      'd2.tag': "Projects & Ideas Management",
-      'd2.desc': "Project management, idea structuring and strategic guidance for entrepreneurs and organizations.",
-      'd2.l1': "Business Strategy", 'd2.l2': "Project Management", 'd2.l3': "Business Modeling",
+      'd2.name': '<span>Automation</span>',
+      'd2.tag': "Workflows · Integrations",
+      'd2.desc': "Your repetitive processes, executed by machines: intelligent workflows, integrations and operations running error-free while you create value.",
+      'd2.l1': "Process automation", 'd2.l2': "API & SaaS integrations", 'd2.l3': "AI-driven workflows",
 
-      'd3.tag': "Conferences & Event Planning",
-      'd3.desc': "Memorable conferences, summits and corporate events — from concept to flawless execution.",
-      'd3.l1': "Conferences & Summits", 'd3.l2': "Corporate Events", 'd3.l3': "Stage Production",
+      'd3.name': 'AI <span>Training</span>',
+      'd3.tag': "Talent · Upskilling",
+      'd3.desc': "We turn your teams into AI practitioners: hands-on workshops, tailored programs and executive coaching toward the skills of tomorrow.",
+      'd3.l1': "Hands-on workshops", 'd3.l2': "Company programs", 'd3.l3': "Executive coaching",
 
-      'd4.tag': "Publishing & Editorial",
-      'd4.desc': "A publishing house dedicated to high-impact books, media and content with intellectual and cultural reach.",
-      'd4.l1': "Book Publishing", 'd4.l2': "Media & Content", 'd4.l3': "International Distribution",
+      'd4.name': 'Digital <span>Incubation</span>',
+      'd4.tag': "Startups · Products",
+      'd4.desc': "From idea to launch: we incubate digital products with architecture, design and go-to-market — AI as the accelerator at every step.",
+      'd4.l1': "MVP & prototyping", 'd4.l2': "Product architecture", 'd4.l3': "Go-to-market",
 
-      'd5.tag': "Food & Catering",
-      'd5.desc': "Premium food services and catering for events, businesses and individuals — “Your smile, our priority.”",
-      'd5.l1': "Event Catering", 'd5.l2': "Corporate Dining", 'd5.l3': "Custom Cuisine",
-
-      'd6.tag': "NGO · Supporting the homeless",
-      'd6.desc': "A non-profit organization dedicated to support, dignity and reintegration of homeless people.",
-      'd6.l1': "Emergency Shelter", 'd6.l2': "Reintegration Programs", 'd6.l3': "Public Awareness",
+      'd5.name': 'Artificial <span>Intelligence</span>',
+      'd5.tag': "Consulting · R&D · Deployment",
+      'd5.desc': "End-to-end AI strategy: model selection, RAG and data, evaluation, governance and cost-controlled production deployment.",
+      'd5.l1': "AI strategy & audit", 'd5.l2': "RAG & data", 'd5.l3': "Deployment & MLOps",
 
       'eco.eyebrow': "The ecosystem",
       'eco.title': 'Everything is <span class="gold-text">connected</span>.',
-      'eco.sub': "Six divisions, one orchestration. Hover the center to see how expertise flows through the group.",
+      'eco.sub': "Five poles, one orchestration. Hover the center to see how intelligence flows through the ecosystem.",
 
       'impact.eyebrow': "Impact",
       'impact.title': 'Our <span class="gold-text">footprint</span> in numbers',
-      'impact.s1': "Business divisions",
+      'impact.s1': "Expertise poles",
       'impact.s2': "Projects supported",
-      'impact.s3': "Events organized",
-      'impact.s4': "Lives impacted",
-      'impact.quote': "Our vision is to build an ecosystem that meets business, technology, communication and social needs — under one same light.",
-      'impact.author': "— MWINDA GROUP LLC",
+      'impact.s3': "Agents & automations deployed",
+      'impact.s4': "Working hours automated",
+      'impact.quote': "Our vision: an ecosystem where artificial intelligence lights up every idea — and every idea becomes a system that works.",
+      'impact.author': "— MWINDA DIGITAL",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Let\'s bring <span class="gold-text">life</span> <br/>to your next idea.',
@@ -1796,7 +1823,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'contact.email': "Email",
       'contact.phone': "Phone",
       'contact.hq': "Headquarters",
-      'contact.hqv': "MWINDA GROUP LLC — USA",
+      'contact.hqv': "MWINDA DIGITAL — USA",
 
       'form.name': "Full name",
       'form.email': "Email address",
@@ -1806,15 +1833,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       'form.other': "Other / Partnership",
       'form.err.empty': "Please fill in all fields.",
       'form.err.email': "Invalid email address.",
-      'form.ok': "Thank you {name}, your message has been sent. We'll get back to you very soon.",
+      'form.ok': "Thank you {name} — WhatsApp is opening with your message ready to send.",
 
-      'footer.tagline': "Bringing Light to Your Ideas. A multi-activity holding serving innovation, impact and excellence.",
+      'footer.tagline': "Bringing Light to Your Ideas. The digital & AI ecosystem that turns ideas into systems that work.",
       'footer.h1': "Divisions", 'footer.h2': "Group", 'footer.h3': "Legal",
-      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.impact': "Impact",
+      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
       'footer.careers': "Careers", 'footer.press': "Press",
       'footer.legal1': "Legal Notice", 'footer.legal2': "Privacy",
       'footer.legal3': "Cookies", 'footer.legal4': "Terms",
-      'footer.rights1': "©", 'footer.rights2': "MWINDA GROUP LLC. All rights reserved.",
+      'footer.rights1': "©", 'footer.rights2': "MWINDA DIGITAL. All rights reserved.",
       'footer.craft': 'Crafted with <span class="gold-text">light</span> &amp; precision.',
     }
   };
@@ -1822,8 +1849,8 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   function detectInitial() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && dict[stored]) return stored;
-    const browser = (navigator.language || 'fr').slice(0, 2).toLowerCase();
-    return dict[browser] ? browser : 'fr';
+    // Default to English unless the visitor explicitly chose a language.
+    return 'en';
   }
 
   function apply(lang) {
@@ -1890,9 +1917,11 @@ section { position: relative; padding: 140px 0; z-index: 1; }
     init();
   }
 })();
+
 </script>
-  <script>/* ============================================================
-   MWINDA GROUP LLC — Animations & Interactions
+  <script>
+/* ============================================================
+   MWINDA DIGITAL — Animations & Interactions
    ============================================================ */
 (() => {
   'use strict';
@@ -2101,6 +2130,21 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       }
       formNote.style.color = '';
       formNote.textContent = t('form.ok', { name: name.split(' ')[0] });
+      // Hand the message off to WhatsApp (business line) with everything prefilled.
+      const waText = 'Nouveau message via mwindadigital' + String.fromCharCode(10) +
+        'Nom / Name: ' + name + String.fromCharCode(10) +
+        'Email: ' + email + String.fromCharCode(10) +
+        'Pole: ' + topic + String.fromCharCode(10) + String.fromCharCode(10) + message;
+      const waUrl = 'https://wa.me/17065725957?text=' + encodeURIComponent(waText);
+      const waWin = window.open(waUrl, '_blank', 'noopener');
+      if (!waWin) {
+        // Popup blocked: give the visitor a direct link instead.
+        formNote.innerHTML = '';
+        const link = document.createElement('a');
+        link.href = waUrl; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = 'Ouvrir WhatsApp / Open WhatsApp →';
+        formNote.appendChild(link);
+      }
       form.reset();
     });
   }
@@ -2337,6 +2381,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   }
 
 })();
+
 </script>
 </body>
 </html>

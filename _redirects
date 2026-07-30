@@ -1,4 +1,13 @@
-# MWINDA GROUP — Netlify redirects
+# MWINDA DIGITAL — Netlify redirects
 /preview    /preview.html    200
 /demo       /demo.html       200
+/os         /os.html         200
+
+# Internal repo files: never serve publicly (briefs go through the
+# key-gated /.netlify/functions/brief endpoint instead).
+/docs/*        /index.html   200!
+/CLAUDE.md     /index.html   200!
+/scripts/*     /index.html   200!
+/package.json  /index.html   200!
+/.claude/*     /index.html   200!
 /*          /index.html      200

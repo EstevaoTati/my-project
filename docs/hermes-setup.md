@@ -44,6 +44,19 @@ Two gotchas discovered, both already handled in config:
 - Rotate both keys pasted into chat (OpenAI on 2026-07-17, Anthropic on
   2026-07-18) once testing is done.
 
+## One-command deploy (VPS)
+
+`scripts/deploy-hermes.sh` packages everything below — install, config
+(including both gotchas), smoke test, Telegram token, and a systemd service
+for `hermes gateway`. On a fresh Debian/Ubuntu box:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... TELEGRAM_BOT_TOKEN=123:abc ./scripts/deploy-hermes.sh
+```
+
+Re-running is safe; it keeps existing state. The manual steps below remain
+as the reference.
+
 ## To reproduce from scratch (≈10 min on any Linux box)
 
 ```bash

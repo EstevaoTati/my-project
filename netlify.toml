@@ -8,6 +8,15 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Serverless functions (chat proxy). Requires ANTHROPIC_API_KEY set in the
+# Netlify UI (Site settings → Environment variables). Optional: CHAT_MODEL,
+# CHAT_ENABLED=false as a kill switch.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # Monday briefs are bundled with the brief function (key-gated endpoint).
+  included_files = ["docs/briefs/*.md"]
+
 # Pretty URL: serve preview.html-style content from the homepage if you ever
 # want it; default is index.html. Kept here as a reference, commented out.
 # [[redirects]]
