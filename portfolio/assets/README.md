@@ -1,69 +1,67 @@
-# Pipeline d'assets — Portfolio Estevao / Mwinda
+# Assets — Landing page Estevao / Mwinda Group
 
-> **Portrait 3D actuel** : en attendant les clips, le hero anime la photo
-> d'Estevao (`estevao-graded.jpg`, étalonnée nuit/ambre) dans un monolithe 3D
-> qui tourne au scroll et s'incline à la souris. Une fois les 120 frames du
-> clip 1 intégrées, garder ou retirer le bloc `#hero3d` dans `index.html`
-> selon le rendu combiné.
+## 1. Fond animé (en place ✓)
 
-Le site (`portfolio/index.html`) fonctionne dès maintenant avec des placeholders
-élégants. Dès qu'un asset est déposé au bon endroit, il est détecté et intégré
-automatiquement (aucune modification de code nécessaire).
+Le fond du site est composé de **deux couches superposées**, toutes deux
+autonomes et permanentes (elles restent animées pendant tout le scroll,
+la couche étant en `position:fixed`) :
 
-## 1. Génération des 4 clips (Higgsfield · Seedance 2.0)
+1. **Réseau neuronal** — canvas calculé en direct dans la page (nœuds ambre
+   qui dérivent, liens de proximité, points de données émeraude pulsants).
+   Fonctionne partout, sans réseau, sans fichier.
+2. **Vidéo 3D IA** — clip de 8 s généré sur Higgsfield (Seedance 1.5) à
+   partir d'un composite assemblant les trois images de référence
+   (`refs/`) : le portrait au centre, les deux visuels tech en hologrammes
+   d'arrière-plan, tous textes et chiffres supprimés.
+   Jouée en boucle, muette, à 42 % d'opacité sous un voile dégradé.
 
-Paramètres communs : **mode std · 1080p · 16:9 · sans audio · ~8 s**.
-Uploader d'abord la photo d'identité d'Estevao et la passer en **référence
-d'identité sur chaque génération**. Tenue constante : t-shirt noir, surchemise
-sombre, fin liseré ambre (bracelet ou lisière de surchemise) qui capte la lumière.
+Source de la vidéo (CDN Higgsfield) :
 
-| # | Fichier cible | Prompt |
-|---|---|---|
-| 1 | `clips/hero-orbit.mp4` | A man stands upright, arms crossed, in an absolute black studio. A single warm amber light draws him in rim light; fine golden dust particles drift slowly. The camera performs a slow, perfectly fluid 360° orbit around him. Solemn, premium, afro-futurist cathedral-of-technology mood. Black t-shirt, dark overshirt, thin amber trim catching the light. No text, no logos. |
-| 2 | `clips/builder.mp4` | The same man sits at a dark desk surrounded by floating holographic panels: Claude Code terminals, AI agent conversation streams, captured-leads curves — all in amber and emerald on deep night blue. Slow cinematic push-in over his shoulder. Solemn, premium. Same wardrobe: black t-shirt, dark overshirt, thin amber trim. |
-| 3 | `clips/visionary.mp4` | A dark, elegant boardroom. The man stands before a wall of screens showing a glowing map linking Seattle to Kinshasa, Brazzaville, Paris, Montréal — amber lines of light crossing the Atlantic. Slow lateral tracking shot as he points at the map. Deep night blue, amber as the only dramatic light source, emerald data accents. Same wardrobe. |
-| 4 | `clips/closer.mp4` | The man walks toward camera through a dark gallery lined with floating screens showing dashboards, platforms, book covers. He stops in a heroic pose as the screens blaze amber behind him. Cinematic, solemn, premium, afro-futurist. Same wardrobe: black t-shirt, dark overshirt, thin amber trim catching the light. |
-
-## 2. Frames du hero (scrub au scroll, technique Lando Norris)
-
-Extraire ~120 frames WebP du clip 1 :
-
-```bash
-./tools/extract-hero-frames.sh chemin/vers/hero-orbit.mp4
+```
+https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4
 ```
 
-(ou manuellement : `ffmpeg -i hero-orbit.mp4 -vf "fps=15,scale=1280:-2" -c:v libwebp -quality 62 assets/hero/frame_%04d.webp`)
+Composite (image fixe, sert aussi de poster) :
 
-Le site attend `assets/hero/frame_0001.webp` → `frame_0120.webp`.
-S'il y en a plus/moins, ajuster `FRAME_COUNT` dans `index.html`.
-
-Remplacer aussi `assets/hero/og-frame.jpg` par une vraie frame du clip
-(1200×630) pour l'Open Graph.
-
-## 3. Clips des piliers (lazy-loaded)
-
-Déposer, compressés pour le web (~2–4 Mo chacun) :
-
-```bash
-ffmpeg -i source.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 26 -preset slow -movflags +faststart assets/clips/builder.mp4
+```
+https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005304_ae0b54f6-2254-48b0-a99f-b69de3098d1a.png
 ```
 
-- `assets/clips/builder.mp4`   → section 01 · Mwinda Digital
-- `assets/clips/visionary.mp4` → section 02 · Mwinda Consulting
-- `assets/clips/closer.mp4`    → section 03 · L'Écosystème
+### Auto-héberger la vidéo (recommandé)
 
-Les placeholders disparaissent automatiquement dès que le fichier répond en HTTP 200.
-
-## 4. Fond vidéo ambiant (déjà généré ✓)
-
-Un clip technologique de 4 s (Seedance 1.5, fils de lumière ambre sur nuit
-profonde) a été généré via Higgsfield et est référencé depuis son CDN dans
-`index.html` (couche `.bg-ambient`, opacité 38 % sous un voile dégradé).
-
-Pour l'auto-héberger (recommandé — l'URL CDN peut expirer) :
+L'URL CDN peut expirer, et certains hébergeurs à CSP stricte bloquent les
+médias distants. Une seule commande, puis commit :
 
 ```bash
-curl -L -o assets/clips/bg-tech.mp4 "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260719_053719_30b17f73-3199-47f6-aaf2-5d2d18699850.mp4"
+curl -L -o portfolio/assets/clips/bg-tech.mp4 \
+  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4"
 ```
 
-Le code préfère automatiquement `assets/clips/bg-tech.mp4` s'il existe.
+Le site détecte et préfère automatiquement `assets/clips/bg-tech.mp4`
+lorsqu'il existe ; sinon il retombe sur le CDN, puis sur le réseau
+neuronal seul. Compression conseillée si le fichier dépasse ~4 Mo :
+
+```bash
+ffmpeg -i bg-tech.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 27 \
+  -preset slow -movflags +faststart bg-tech-web.mp4
+```
+
+## 2. Typographie
+
+100 % tech, **auto-hébergée** dans `vendor/fonts.css` (woff2 en base64,
+aucune dépendance à un CDN de polices) :
+
+- **Chakra Petch** 400/600/700 — titres, corps de texte
+- **JetBrains Mono** 400/500 — libellés, chiffres, étiquettes
+
+## 3. Images de référence (`refs/`)
+
+Les trois sources fournies par Estevao, conservées pour pouvoir
+régénérer le composite : `estevao-suit.png`, `ref-vr.jpg`, `ref-agency.jpg`.
+Elles ne sont pas nécessaires au site et sont exclues du paquet Netlify.
+
+## 4. Autres fichiers
+
+- `estevao-graded.jpg` — portrait étalonné (nuit + liseré ambre) affiché
+  sur la face avant de la carte 3D du hero.
+- `hero/og-frame.jpg` — image Open Graph 1200×630.

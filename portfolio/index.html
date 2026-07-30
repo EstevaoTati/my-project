@@ -4,284 +4,303 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SEO — FR par défaut, EN via JS -->
-  <title data-i18n="meta.title">Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code</title>
+  <title data-i18n="meta.title">Mwinda Group — Agentic Operating System &amp; AI Consultant</title>
   <meta name="description" data-i18n-attr="content" data-i18n="meta.desc"
-        content="Estevao, fondateur de Mwinda Group — Agentic Operating System & AI Consultant. Mwinda signifie lumière en lingala." />
+        content="J'aide les gens à entrer avec confiance dans le monde de la tech et de l'IA, et à saisir chaque opportunité. Consultant IA, solutions LLM, systèmes agentiques, web et automatisation." />
   <link rel="alternate" hreflang="fr" href="./" />
   <link rel="alternate" hreflang="en" href="./?lang=en" />
 
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Estevao — Mwinda Group. La lumière qui perce l'obscurité." />
-  <meta property="og:description" content="Agentic Operating System & AI Consultant — Mwinda, la lumière en lingala." />
+  <meta property="og:title" content="Mwinda Group — Agentic Operating System &amp; AI Consultant" />
+  <meta property="og:description" content="I help people confidently enter the world of Tech &amp; AI and capitalize on every opportunity." />
   <meta property="og:image" content="assets/hero/og-frame.jpg" />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:locale:alternate" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <meta name="theme-color" content="#0A0F1E" />
+  <meta name="theme-color" content="#070B14" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="vendor/fonts.css" />
 
   <style>
-    /* ============ MWINDA — CATHÉDRALE TECHNOLOGIQUE ============ */
+    /* ============ MWINDA — TECH / AGENTIC OS ============ */
     :root{
-      --night:#0A0F1E;
-      --night-2:#0D1428;
+      --night:#070B14;
+      --night-2:#0C1322;
+      --night-3:#111A2E;
       --amber:#F5A623;
-      --amber-soft:rgba(245,166,35,.14);
-      --amber-line:rgba(245,166,35,.45);
+      --amber-2:#FFD98A;
+      --amber-soft:rgba(245,166,35,.13);
+      --amber-line:rgba(245,166,35,.42);
       --emerald:#2ECC8F;
-      --ink:#E8E4DA;
-      --ink-dim:rgba(232,228,218,.55);
-      --display:'Fraunces',serif;
-      --body:'Inter',system-ui,sans-serif;
+      --ink:#EAE7DF;
+      --ink-dim:rgba(234,231,223,.56);
+      --display:'Chakra Petch',system-ui,sans-serif;
+      --body:'Chakra Petch',system-ui,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
     }
     *{margin:0;padding:0;box-sizing:border-box}
     html{scroll-behavior:smooth;background:var(--night)}
     html.has-gsap{scroll-behavior:auto}
     body{
-      background:transparent;
-      color:var(--ink);
-      font-family:var(--body);
-      font-weight:300;
-      overflow-x:hidden;
-      -webkit-font-smoothing:antialiased;
+      background:transparent;color:var(--ink);
+      font-family:var(--body);font-weight:400;
+      overflow-x:hidden;-webkit-font-smoothing:antialiased;
     }
     ::selection{background:var(--amber);color:var(--night)}
 
-    /* ---------- Fond vidéo ambiant (Higgsfield) ---------- */
-    .bg-ambient{position:fixed;inset:0;z-index:-1;overflow:hidden}
-    .bg-ambient canvas{position:absolute;inset:0;width:100%;height:100%}
-    .bg-ambient video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 2.5s ease;filter:saturate(1.15) brightness(.9)}
+    /* ---------- Fond permanent : réseau neuronal + vidéo IA ---------- */
+    .bg-ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--night)}
+    .bg-ambient canvas,.bg-ambient video{position:absolute;inset:0;width:100%;height:100%}
+    .bg-ambient video{object-fit:cover;opacity:0;transition:opacity 2.6s ease;filter:saturate(1.1) contrast(1.05)}
     .bg-ambient .bg-scrim{position:absolute;inset:0;background:
-      radial-gradient(ellipse 120% 90% at 50% 0%,rgba(10,15,30,.5),rgba(10,15,30,.86) 78%),
-      linear-gradient(180deg,rgba(10,15,30,.32),rgba(10,15,30,.66))}
+      radial-gradient(ellipse 130% 95% at 50% 0%,rgba(7,11,20,.42),rgba(7,11,20,.84) 76%),
+      linear-gradient(180deg,rgba(7,11,20,.3),rgba(7,11,20,.7))}
+    .bg-ambient .bg-mesh{position:absolute;inset:0;opacity:.5;background:
+      repeating-linear-gradient(0deg,transparent 0 64px,rgba(245,166,35,.045) 64px 65px),
+      repeating-linear-gradient(90deg,transparent 0 64px,rgba(245,166,35,.045) 64px 65px)}
     @media(prefers-reduced-motion:reduce){.bg-ambient video{display:none}}
 
-    /* ---------- Loader ---------- */
-    .loader{position:fixed;inset:0;z-index:200;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2rem;transition:opacity .9s ease,visibility .9s}
-    .loader.done{opacity:0;visibility:hidden}
-    .loader-word{font-family:var(--display);font-weight:900;font-size:clamp(2rem,6vw,4rem);letter-spacing:.4em;color:var(--ink)}
-    .loader-word span{opacity:.15;animation:lightUp 1.6s ease infinite alternate}
-    @keyframes lightUp{to{opacity:1;color:var(--amber);text-shadow:0 0 30px rgba(245,166,35,.6)}}
-    .loader-sub{font-size:.7rem;letter-spacing:.5em;text-transform:uppercase;color:var(--ink-dim)}
-
-    /* ---------- Nav ---------- */
-    .nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.4rem clamp(1.2rem,4vw,3rem);mix-blend-mode:normal;transition:background .5s,backdrop-filter .5s}
-    .nav.scrolled{background:rgba(10,15,30,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(245,166,35,.08)}
-    .nav-mark{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}
-    .nav-mark .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
-    .nav-mark strong{font-family:var(--display);font-weight:700;letter-spacing:.28em;font-size:.85rem}
-    .lang-switch{display:flex;gap:.15rem;border:1px solid rgba(232,228,218,.18);border-radius:99px;padding:.2rem}
-    .lang-switch button{background:none;border:none;color:var(--ink-dim);font-family:var(--body);font-size:.68rem;letter-spacing:.15em;padding:.32rem .7rem;border-radius:99px;cursor:pointer;transition:.3s}
-    .lang-switch button.active{background:var(--amber);color:var(--night);font-weight:600}
-
-    /* ---------- Hero ---------- */
-    .hero{position:relative;height:100vh}
-    .hero-stage{position:relative;height:100vh;overflow:hidden}
-    #heroCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-    .hero-fallback{position:absolute;inset:0;background:
-      radial-gradient(ellipse 60% 80% at 68% 45%, rgba(245,166,35,.22), transparent 60%),
-      radial-gradient(ellipse 40% 55% at 30% 70%, rgba(46,204,143,.05), transparent 65%)}
-    .hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(4,7,15,.85) 100%);pointer-events:none}
-    .hero-dust{position:absolute;inset:0;pointer-events:none}
-
-    /* Monolithe 3D — portrait double-face qui tourne au scroll, façon film d'action */
-    .hero-3d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:1200px;z-index:2}
-    .hero-spin{position:relative;transform-style:preserve-3d;will-change:transform;display:flex;align-items:center;justify-content:center}
-    .hero-card{position:relative;width:clamp(280px,32vw,440px);aspect-ratio:1;transform-style:preserve-3d;opacity:0;will-change:transform}
-    .card-face{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;box-shadow:0 60px 140px -40px rgba(0,0,0,.9),0 0 0 1px rgba(245,166,35,.22),0 0 90px -18px rgba(245,166,35,.35)}
-    .card-face img{width:100%;height:100%;object-fit:cover;display:block}
-    .card-sheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 42%,rgba(245,166,35,.16) 50%,transparent 58%);mix-blend-mode:screen;pointer-events:none}
-    .card-back{transform:rotateY(180deg);background:
-      linear-gradient(160deg,#101830 0%,#0A0F1E 60%,#070b16 100%);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem}
-    .card-back::before{content:'';position:absolute;inset:0;background:
-      repeating-linear-gradient(0deg,transparent 0 23px,rgba(245,166,35,.06) 23px 24px),
-      repeating-linear-gradient(90deg,transparent 0 23px,rgba(245,166,35,.06) 23px 24px)}
-    .card-back .back-emblem{font-family:var(--display);font-weight:900;font-size:7rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(245,166,35,.75);text-shadow:0 0 40px rgba(245,166,35,.35)}
-    .card-back .back-text{font-size:.6rem;letter-spacing:.5em;text-transform:uppercase;color:var(--amber);text-indent:.5em}
-    /* anneaux orbitaux */
-    .orbit-ring{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(245,166,35,.28);pointer-events:none;box-shadow:0 0 24px -6px rgba(245,166,35,.35)}
-    .ring-a{width:150%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg)}
-    .ring-b{width:172%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg) rotateY(18deg);border-color:rgba(46,204,143,.18)}
-    .ring-a::after,.ring-b::after{content:'';position:absolute;top:-3px;left:50%;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px 3px rgba(245,166,35,.8)}
-    .ring-b::after{background:var(--emerald);box-shadow:0 0 14px 3px rgba(46,204,143,.7)}
-    .hero-halo{position:absolute;width:min(72vw,760px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.16),transparent 62%);filter:blur(8px);pointer-events:none}
-    @media(max-width:700px){.hero-card{width:66vw}}
-    .reduced .hero-card{opacity:1}
-    @media(prefers-reduced-motion:reduce){.hero-card{opacity:1}}
-
-    /* Cinémascope + grain de pellicule */
-    .cinebar{position:absolute;left:0;right:0;height:0;background:#02040a;z-index:4;pointer-events:none}
-    .cinebar.top{top:0}.cinebar.bottom{bottom:0}
-    .grain{position:fixed;inset:-100%;z-index:90;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+    .grain{position:fixed;inset:-100%;z-index:90;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      animation:grainShift .9s steps(5) infinite}
     @keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-2%,1.4%)}50%{transform:translate(1.6%,-1.2%)}75%{transform:translate(-1.2%,-1.8%)}100%{transform:translate(1.8%,1.2%)}}
-    .grain{animation:grainShift .9s steps(5) infinite}
     @media(prefers-reduced-motion:reduce){.grain{animation:none}}
 
-    /* Barre de progression + curseur custom */
-    .scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:120;background:linear-gradient(90deg,var(--amber),#ffd98a);transform-origin:left;transform:scaleX(0);box-shadow:0 0 12px rgba(245,166,35,.6)}
+    .scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:120;background:linear-gradient(90deg,var(--amber),var(--amber-2));transform-origin:left;transform:scaleX(0);box-shadow:0 0 12px rgba(245,166,35,.6)}
     .cursor-dot,.cursor-ring{position:fixed;top:0;left:0;z-index:150;pointer-events:none;border-radius:50%;opacity:0}
-    .cursor-dot{width:6px;height:6px;background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.8)}
+    .cursor-dot{width:6px;height:6px;background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.85)}
     .cursor-ring{width:34px;height:34px;border:1px solid rgba(245,166,35,.5);transition:width .25s,height .25s,border-color .25s}
-    .cursor-ring.on{width:56px;height:56px;border-color:var(--amber)}
+    .cursor-ring.on{width:58px;height:58px;border-color:var(--amber)}
     @media(pointer:coarse){.cursor-dot,.cursor-ring{display:none}}
-    :is(a,button):focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
+    :is(a,button,input,select,textarea):focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
 
-    .hero-type{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:3}
-    .hero-name{font-family:var(--display);font-weight:900;font-size:clamp(4rem,16vw,15rem);line-height:.9;letter-spacing:.02em;display:flex}
-    .hero-name span{opacity:0;transform:translateY(40%) rotateX(60deg);display:inline-block;text-shadow:0 0 60px rgba(245,166,35,.25)}
-    .hero-sub{margin-top:1.6rem;font-size:clamp(.65rem,1.4vw,.9rem);letter-spacing:.85em;text-transform:uppercase;color:var(--amber);opacity:0;text-indent:.85em;text-shadow:0 2px 26px rgba(4,7,15,.95),0 0 8px rgba(4,7,15,.7)}
-    .hero-tagline{margin-top:2.2rem;font-size:clamp(.8rem,1.7vw,1.1rem);color:var(--ink);opacity:0;font-weight:400;letter-spacing:.24em;text-indent:.24em;text-align:center;line-height:2;text-shadow:0 2px 26px rgba(4,7,15,.95),0 0 8px rgba(4,7,15,.7)}
-    .hero-tagline em{color:var(--amber);font-style:normal}
-    .hero-scrollcue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.8rem;color:var(--ink-dim);font-size:.6rem;letter-spacing:.4em;text-transform:uppercase}
-    .hero-scrollcue .line{width:1px;height:56px;background:linear-gradient(var(--amber),transparent);animation:cue 2.2s ease infinite}
+    /* ---------- Loader ---------- */
+    .loader{position:fixed;inset:0;z-index:200;background:var(--night);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.6rem;transition:opacity .9s ease,visibility .9s}
+    .loader.done{opacity:0;visibility:hidden}
+    .loader-word{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,5vw,3rem);letter-spacing:.42em;text-indent:.42em}
+    .loader-word span{opacity:.14;animation:lightUp 1.6s ease infinite alternate}
+    @keyframes lightUp{to{opacity:1;color:var(--amber);text-shadow:0 0 30px rgba(245,166,35,.6)}}
+    .loader-sub{font-family:var(--mono);font-size:.62rem;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-dim)}
+
+    /* ---------- Nav ---------- */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.2rem clamp(1.1rem,4vw,3rem);transition:background .5s,backdrop-filter .5s,border-color .5s;border-bottom:1px solid transparent}
+    .nav.scrolled{background:rgba(7,11,20,.74);backdrop-filter:blur(14px);border-bottom-color:rgba(245,166,35,.1)}
+    .nav-mark{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--ink)}
+    .nav-mark .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+    .nav-mark strong{font-family:var(--display);font-weight:700;letter-spacing:.3em;font-size:.8rem}
+    .nav-links{display:flex;gap:1.8rem;list-style:none}
+    .nav-links a{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);text-decoration:none;transition:color .3s}
+    .nav-links a:hover{color:var(--amber)}
+    @media(max-width:920px){.nav-links{display:none}}
+    .lang-switch{display:flex;gap:.15rem;border:1px solid rgba(234,231,223,.18);border-radius:99px;padding:.2rem}
+    .lang-switch button{background:none;border:none;color:var(--ink-dim);font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;padding:.32rem .7rem;border-radius:99px;cursor:pointer;transition:.3s}
+    .lang-switch button.active{background:var(--amber);color:var(--night);font-weight:500}
+
+    /* ---------- Hero ---------- */
+    .hero{position:relative;min-height:100vh}
+    .hero-stage{position:relative;min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:clamp(2rem,5vw,5rem);padding:16vh clamp(1.2rem,5vw,5rem) 12vh;overflow:hidden}
+    .hero-copy{position:relative;z-index:3}
+    .hero-eyebrow{display:flex;align-items:center;gap:.8rem;font-family:var(--mono);font-size:.64rem;letter-spacing:.3em;text-transform:uppercase;color:var(--amber);opacity:0}
+    .hero-eyebrow::after{content:'';flex:1;height:1px;max-width:90px;background:linear-gradient(90deg,var(--amber-line),transparent)}
+    h1.hero-title{margin-top:1.6rem;font-family:var(--display);font-weight:700;text-transform:uppercase;
+      font-size:clamp(1.75rem,4.1vw,3.5rem);line-height:1.14;letter-spacing:.005em;text-wrap:balance;
+      text-shadow:0 2px 30px rgba(4,7,15,.9)}
+    h1.hero-title .w{display:inline-block;opacity:0}
+    h1.hero-title em{font-style:normal;color:var(--amber)}
+    .hero-lede{margin-top:1.7rem;max-width:48ch;color:var(--ink-dim);font-size:1rem;line-height:1.8;opacity:0}
+    .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.4rem;opacity:0}
+    .hero-meta{display:flex;gap:1.6rem;flex-wrap:wrap;margin-top:2.6rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);opacity:0}
+    .hero-meta b{color:var(--amber);font-weight:500}
+
+    /* Monolithe 3D — portrait double-face en rotation autonome */
+    .hero-3d{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;perspective:1200px;min-height:min(52vh,460px)}
+    .hero-spin{position:relative;transform-style:preserve-3d;will-change:transform;display:flex;align-items:center;justify-content:center}
+    .hero-card{position:relative;width:clamp(230px,26vw,370px);aspect-ratio:1;transform-style:preserve-3d;opacity:0;will-change:transform}
+    .card-face{position:absolute;inset:0;border-radius:8px;overflow:hidden;backface-visibility:hidden;box-shadow:0 60px 140px -40px rgba(0,0,0,.92),0 0 0 1px rgba(245,166,35,.24),0 0 90px -18px rgba(245,166,35,.34)}
+    .card-face img{width:100%;height:100%;object-fit:cover;display:block}
+    .card-sheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 42%,rgba(245,166,35,.17) 50%,transparent 58%);mix-blend-mode:screen;pointer-events:none}
+    .card-back{transform:rotateY(180deg);background:linear-gradient(160deg,var(--night-3) 0%,var(--night) 62%,#05080f 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+    .card-back::before{content:'';position:absolute;inset:0;background:
+      repeating-linear-gradient(0deg,transparent 0 22px,rgba(245,166,35,.07) 22px 23px),
+      repeating-linear-gradient(90deg,transparent 0 22px,rgba(245,166,35,.07) 22px 23px)}
+    .card-back .back-emblem{font-family:var(--display);font-weight:700;font-size:5.6rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(245,166,35,.8);text-shadow:0 0 40px rgba(245,166,35,.32)}
+    .card-back .back-text{font-family:var(--mono);font-size:.56rem;letter-spacing:.4em;text-transform:uppercase;color:var(--amber);text-indent:.4em}
+    .orbit-ring{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(245,166,35,.26);pointer-events:none;box-shadow:0 0 24px -6px rgba(245,166,35,.34)}
+    .ring-a{width:152%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg)}
+    .ring-b{width:176%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg) rotateY(18deg);border-color:rgba(46,204,143,.18)}
+    .ring-a::after,.ring-b::after{content:'';position:absolute;top:-3px;left:50%;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px 3px rgba(245,166,35,.8)}
+    .ring-b::after{background:var(--emerald);box-shadow:0 0 14px 3px rgba(46,204,143,.7)}
+    .hero-halo{position:absolute;width:min(64vw,660px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.17),transparent 62%);filter:blur(8px);pointer-events:none}
+    .hero-dust{position:absolute;inset:0;pointer-events:none;z-index:1}
+
+    .cinebar{position:absolute;left:0;right:0;height:0;background:#02040a;z-index:4;pointer-events:none}
+    .cinebar.top{top:0}.cinebar.bottom{bottom:0}
+    .hero-scrollcue{position:absolute;bottom:1.6rem;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:.7rem;font-family:var(--mono);color:var(--ink-dim);font-size:.56rem;letter-spacing:.34em;text-transform:uppercase}
+    .hero-scrollcue .line{width:1px;height:48px;background:linear-gradient(var(--amber),transparent);animation:cue 2.2s ease infinite}
     @keyframes cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
-    /* ---------- Manifesto interlude ---------- */
-    .manifesto{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:18vh clamp(1.5rem,8vw,6rem);text-align:center;position:relative}
-    .manifesto p{font-family:var(--display);font-weight:300;font-size:clamp(1.6rem,4.2vw,3.4rem);line-height:1.35;max-width:22ch}
+    @media(max-width:920px){
+      .hero-stage{grid-template-columns:1fr;padding:14vh clamp(1.1rem,5vw,3rem) 14vh;gap:3rem}
+      .hero-3d{order:-1;min-height:auto}
+      .hero-card{width:min(62vw,300px)}
+    }
+
+    /* ---------- Boutons ---------- */
+    .btn{display:inline-flex;align-items:center;gap:.6rem;padding:.95rem 2rem;border-radius:2px;font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;transition:.4s;border:1px solid var(--amber);cursor:pointer}
+    .btn-solid{background:var(--amber);color:var(--night);font-weight:500}
+    .btn-solid:hover{box-shadow:0 0 50px rgba(245,166,35,.45);transform:translateY(-2px)}
+    .btn-ghost{background:transparent;color:var(--amber)}
+    .btn-ghost:hover{background:var(--amber-soft)}
+
+    /* ---------- Sections ---------- */
+    section.band{padding:14vh clamp(1.2rem,5vw,5rem);max-width:1440px;margin:0 auto}
+    .sec-head{margin-bottom:4.5rem;max-width:60ch}
+    .sec-kicker{font-family:var(--mono);font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:.7rem}
+    .sec-kicker::before{content:'';width:22px;height:1px;background:var(--amber)}
+    .sec-head h2{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(1.7rem,4.4vw,3.1rem);line-height:1.1;margin-top:1.1rem;text-wrap:balance}
+    .sec-head p{margin-top:1.2rem;color:var(--ink-dim);line-height:1.85}
+
+    /* Manifesto */
+    .manifesto{min-height:62vh;display:flex;align-items:center;justify-content:center;padding:14vh clamp(1.2rem,8vw,6rem);text-align:center}
+    .manifesto p{font-family:var(--display);font-weight:400;font-size:clamp(1.25rem,3.2vw,2.4rem);line-height:1.45;max-width:26ch;text-transform:uppercase;letter-spacing:.01em}
     .manifesto .word{opacity:.12;transition:opacity .3s}
     .manifesto .word.lit{opacity:1}
     .manifesto .word.amber{color:var(--amber)}
 
-    /* ---------- Stats ---------- */
-    .stats{padding:14vh clamp(1.5rem,6vw,5rem);border-top:1px solid rgba(245,166,35,.1);border-bottom:1px solid rgba(245,166,35,.1);background:linear-gradient(180deg,transparent,rgba(13,20,40,.6) 50%,transparent)}
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:3rem;max-width:1200px;margin:0 auto}
-    .stat{text-align:center}
-    .stat-num{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,5vw,4.2rem);color:var(--amber);display:block;font-variant-numeric:tabular-nums}
-    .stat-num .suffix{font-size:.5em;vertical-align:.35em}
-    .stat-label{margin-top:.6rem;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-dim);line-height:1.8}
-    .stat[data-tbc] .stat-num{color:var(--emerald)}
+    /* Compétences */
+    /* 6 compétences → 3×2 en grand écran, 2×3 en tablette, 1 colonne en mobile */
+    .grid-comp{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,166,35,.12)}
+    @media(max-width:1080px){.grid-comp{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:680px){.grid-comp{grid-template-columns:1fr}}
+    .comp{position:relative;background:rgba(12,19,34,.72);padding:2.6rem 2rem;overflow:hidden;transition:background .5s}
+    .comp::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% -20%,var(--amber-soft),transparent 58%);opacity:0;transition:opacity .6s}
+    .comp:hover{background:rgba(17,26,46,.9)}
+    .comp:hover::before{opacity:1}
+    .comp-id{font-family:var(--mono);font-size:.6rem;letter-spacing:.24em;color:var(--emerald)}
+    .comp h3{font-family:var(--display);font-weight:600;font-size:1.22rem;line-height:1.3;margin:1rem 0 .7rem;text-transform:uppercase;transition:color .4s}
+    .comp:hover h3{color:var(--amber)}
+    .comp p{font-size:.92rem;color:var(--ink-dim);line-height:1.75}
+    .comp-bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:linear-gradient(90deg,var(--amber),transparent);transform:scaleX(0);transform-origin:left;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+    .comp:hover .comp-bar{transform:scaleX(1)}
 
-    /* ---------- Pillars ---------- */
-    .pillar{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(2rem,5vw,5rem);padding:16vh clamp(1.5rem,6vw,6rem);max-width:1500px;margin:0 auto}
-    .pillar:nth-child(even){direction:rtl}
-    .pillar:nth-child(even)>*{direction:ltr}
-    .pillar-media{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:var(--night-2);box-shadow:0 40px 120px -30px rgba(0,0,0,.8),0 0 0 1px rgba(245,166,35,.12)}
-    .pillar-media video,.pillar-media img{width:100%;height:100%;object-fit:cover;display:block}
-    .pillar-media .media-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;background:
-      radial-gradient(ellipse 70% 90% at 60% 30%,rgba(245,166,35,.12),transparent 60%),
-      radial-gradient(ellipse 50% 60% at 25% 80%,rgba(46,204,143,.08),transparent 60%),var(--night-2)}
-    .media-placeholder .glyph{font-family:var(--display);font-size:4rem;font-weight:900;color:rgba(245,166,35,.3)}
-    .media-placeholder .note{font-size:.6rem;letter-spacing:.35em;text-transform:uppercase;color:var(--ink-dim)}
-    .pillar-media .glare{position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(245,166,35,.08) 50%,transparent 70%);opacity:0;transition:opacity .6s}
-    .pillar:hover .glare{opacity:1}
-    .pillar-index{font-family:var(--display);font-size:clamp(4rem,9vw,8rem);font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(245,166,35,.35);line-height:1}
-    .pillar-kicker{margin-top:1rem;font-size:.68rem;letter-spacing:.45em;text-transform:uppercase;color:var(--amber)}
-    .pillar h2{font-family:var(--display);font-weight:700;font-size:clamp(1.9rem,4vw,3.2rem);margin:.9rem 0 1.4rem;line-height:1.1}
-    .pillar p{color:var(--ink-dim);line-height:1.85;max-width:46ch;font-size:1.02rem}
-    .pillar p strong{color:var(--ink);font-weight:500}
-    .pillar-flag{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.6rem;padding:.55rem 1.1rem;border:1px solid var(--amber-line);border-radius:99px;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
-    .pillar-flag .pulse{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald);animation:pulse 2s infinite}
-    @keyframes pulse{50%{opacity:.35}}
+    /* Chiffres */
+    .numbers{border-top:1px solid rgba(245,166,35,.14);border-bottom:1px solid rgba(245,166,35,.14);background:linear-gradient(180deg,transparent,rgba(12,19,34,.6) 50%,transparent)}
+    .grid-num{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:3.2rem}
+    .num{text-align:center}
+    .num-val{font-family:var(--mono);font-weight:500;font-size:clamp(2.8rem,6.6vw,5rem);color:var(--amber);display:block;font-variant-numeric:tabular-nums;line-height:1;text-shadow:0 0 60px rgba(245,166,35,.28)}
+    .num-val .sfx{font-size:.46em;vertical-align:.5em;color:var(--emerald)}
+    .num-label{margin-top:1.1rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim);line-height:1.9}
 
-    /* ---------- Work ---------- */
-    .work{padding:16vh clamp(1.5rem,6vw,6rem);max-width:1500px;margin:0 auto}
-    .section-head{margin-bottom:5rem}
-    .section-head .kicker{font-size:.68rem;letter-spacing:.45em;text-transform:uppercase;color:var(--amber)}
-    .section-head h2{font-family:var(--display);font-weight:900;font-size:clamp(2.6rem,7vw,5.5rem);line-height:1;margin-top:1rem}
-    .work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.6rem}
-    .work-card{position:relative;border:1px solid rgba(232,228,218,.09);border-radius:6px;padding:2.4rem 2rem;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:var(--night-2);transition:transform .5s cubic-bezier(.2,.8,.2,1),border-color .5s;cursor:pointer;text-decoration:none;color:var(--ink)}
+    /* Avec qui */
+    .grid-who{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.4rem}
+    .who{position:relative;border:1px solid rgba(234,231,223,.1);border-left:2px solid var(--amber-line);padding:2.1rem 1.7rem;background:rgba(12,19,34,.55);transition:.5s cubic-bezier(.2,.8,.2,1)}
+    .who:hover{transform:translateY(-6px);border-left-color:var(--amber);background:rgba(17,26,46,.8)}
+    .who-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald);margin-bottom:1.2rem}
+    .who h3{font-family:var(--display);font-weight:600;font-size:1.05rem;line-height:1.45;text-transform:uppercase}
+
+    /* Work */
+    .grid-work{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.4rem}
+    .work-card{position:relative;border:1px solid rgba(234,231,223,.1);padding:2.3rem 1.9rem;min-height:265px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:rgba(12,19,34,.6);transition:transform .5s cubic-bezier(.2,.8,.2,1),border-color .5s;cursor:pointer;text-decoration:none;color:var(--ink)}
     .work-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% -20%,var(--amber-soft),transparent 55%);opacity:0;transition:opacity .6s}
     .work-card:hover{transform:translateY(-8px);border-color:var(--amber-line)}
     .work-card:hover::before{opacity:1}
-    .work-card .wc-tag{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--emerald);margin-bottom:1rem}
-    .work-card h3{font-family:var(--display);font-weight:700;font-size:1.45rem;line-height:1.25;margin-bottom:.7rem;transition:color .4s}
+    .work-card .wc-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--emerald);margin-bottom:1rem}
+    .work-card h3{font-family:var(--display);font-weight:600;font-size:1.28rem;line-height:1.3;margin-bottom:.7rem;text-transform:uppercase;transition:color .4s}
     .work-card:hover h3{color:var(--amber)}
     .work-card p{font-size:.88rem;color:var(--ink-dim);line-height:1.7}
-    .work-card .wc-arrow{position:absolute;top:1.6rem;right:1.6rem;opacity:.25;transition:.4s;color:var(--amber)}
+    .work-card .wc-arrow{position:absolute;top:1.5rem;right:1.5rem;opacity:.25;transition:.4s;color:var(--amber);font-family:var(--mono)}
     .work-card:hover .wc-arrow{opacity:1;transform:translate(4px,-4px)}
 
-    /* ---------- Contact ---------- */
-    .contact{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#05080f;padding:16vh clamp(1.5rem,6vw,4rem);overflow:hidden}
-    .contact-beam{position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--amber) 30%,#ffd98a 50%,var(--amber) 70%,transparent);box-shadow:0 0 40px 2px rgba(245,166,35,.45);transform:scaleX(0)}
-    .contact-inner{position:relative;z-index:2;text-align:center;max-width:760px;width:100%}
-    .contact h2{font-family:var(--display);font-weight:900;font-size:clamp(2.8rem,8vw,6.5rem);line-height:1.02}
-    .contact .sub{margin-top:1.4rem;color:var(--ink-dim);font-size:1.05rem;line-height:1.7}
-    .contact-cta-row{display:flex;gap:1.2rem;justify-content:center;margin-top:3rem;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:.7rem;padding:1rem 2.2rem;border-radius:99px;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:.4s;border:1px solid var(--amber);cursor:pointer;font-family:var(--body)}
-    .btn-solid{background:var(--amber);color:var(--night);font-weight:600}
-    .btn-solid:hover{box-shadow:0 0 50px rgba(245,166,35,.5);transform:translateY(-2px)}
-    .btn-ghost{background:transparent;color:var(--amber)}
-    .btn-ghost:hover{background:var(--amber-soft)}
-
-    .contact-form{margin-top:4.5rem;text-align:left;display:none;gap:1.1rem;grid-template-columns:1fr 1fr}
+    /* Contact */
+    .contact{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:15vh clamp(1.2rem,6vw,4rem);overflow:hidden}
+    .contact-beam{position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--amber) 30%,var(--amber-2) 50%,var(--amber) 70%,transparent);box-shadow:0 0 40px 2px rgba(245,166,35,.45);transform:scaleX(0)}
+    .contact-inner{position:relative;z-index:2;text-align:center;max-width:820px;width:100%}
+    .contact h2{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(1.9rem,5.6vw,4.2rem);line-height:1.08;text-wrap:balance}
+    .contact h2 em{font-style:normal;color:var(--amber)}
+    .contact .sub{margin-top:1.4rem;color:var(--ink-dim);font-size:1.02rem;line-height:1.8}
+    .contact-cta-row{display:flex;gap:1.1rem;justify-content:center;margin-top:2.8rem;flex-wrap:wrap}
+    .contact-form{margin-top:4.2rem;text-align:left;display:none;gap:1.1rem;grid-template-columns:1fr 1fr}
     .contact-form.open{display:grid}
     .contact-form .full{grid-column:1/-1}
-    .contact-form label{display:flex;flex-direction:column;gap:.45rem;font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-dim)}
-    .contact-form input,.contact-form select,.contact-form textarea{background:rgba(232,228,218,.04);border:1px solid rgba(232,228,218,.14);border-radius:4px;color:var(--ink);padding:.9rem 1rem;font-family:var(--body);font-size:.95rem;transition:border-color .3s}
+    .contact-form label{display:flex;flex-direction:column;gap:.45rem;font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim)}
+    .contact-form input,.contact-form select,.contact-form textarea{background:rgba(234,231,223,.04);border:1px solid rgba(234,231,223,.14);border-radius:2px;color:var(--ink);padding:.9rem 1rem;font-family:var(--body);font-size:.95rem;transition:border-color .3s}
     .contact-form input:focus,.contact-form select:focus,.contact-form textarea:focus{outline:none;border-color:var(--amber)}
     .contact-form textarea{resize:vertical;min-height:110px}
-    .contact-form button{justify-self:start}
+    @media(max-width:900px){.contact-form{grid-template-columns:1fr}}
 
-    footer{background:#05080f;padding:3rem clamp(1.5rem,6vw,4rem);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-top:1px solid rgba(245,166,35,.08)}
-    footer .f-mark{font-family:var(--display);letter-spacing:.3em;font-size:.75rem;color:var(--ink-dim)}
-    footer .f-light{font-size:.68rem;color:var(--ink-dim);letter-spacing:.15em}
-    footer .f-light b{color:var(--amber);font-weight:500}
+    footer{padding:3rem clamp(1.2rem,6vw,4rem);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-top:1px solid rgba(245,166,35,.1);font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;color:var(--ink-dim);text-transform:uppercase}
+    footer b{color:var(--amber);font-weight:500}
 
-    /* ---------- Responsive ---------- */
-    @media(max-width:900px){
-      .pillar{grid-template-columns:1fr;min-height:auto;padding:10vh clamp(1.2rem,5vw,3rem)}
-      .pillar:nth-child(even){direction:ltr}
-      .contact-form{grid-template-columns:1fr}
-    }
-
-    /* ---------- Reduced motion : version statique élégante ---------- */
+    /* ---------- Reduced motion ---------- */
     @media(prefers-reduced-motion:reduce){
       *,*::before,*::after{animation:none!important;transition:none!important}
       html{scroll-behavior:auto}
-      .hero{height:100vh}
-      .hero-name span{opacity:1!important;transform:none!important}
-      .hero-sub,.hero-tagline{opacity:1!important}
+      .loader{display:none}
+      .hero-card,.hero-eyebrow,.hero-lede,.hero-cta,.hero-meta{opacity:1!important}
+      h1.hero-title .w{opacity:1!important}
       .manifesto .word{opacity:1}
       .contact-beam{transform:scaleX(1)}
-      .loader{display:none}
     }
-    .reduced .hero-name span{opacity:1;transform:none}
-    .reduced .hero-sub,.reduced .hero-tagline{opacity:1}
+    .reduced .hero-card,.reduced .hero-eyebrow,.reduced .hero-lede,.reduced .hero-cta,.reduced .hero-meta{opacity:1}
+    .reduced h1.hero-title .w{opacity:1}
     .reduced .manifesto .word{opacity:1}
     .reduced .contact-beam{transform:scaleX(1)}
   </style>
 </head>
 <body>
 
-  <div class="bg-ambient" aria-hidden="true"><canvas id="bgNet"></canvas><div class="bg-scrim"></div></div>
+  <div class="bg-ambient" aria-hidden="true">
+    <canvas id="bgNet"></canvas>
+    <div class="bg-mesh"></div>
+    <div class="bg-scrim"></div>
+  </div>
   <div class="grain" aria-hidden="true"></div>
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
   <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
   <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
-  <!-- Loader -->
   <div class="loader" id="loader" aria-hidden="true">
     <div class="loader-word" id="loaderWord"></div>
-    <div class="loader-sub">Mwinda · La lumière</div>
+    <div class="loader-sub">Mwinda · Tech &amp; AI</div>
   </div>
 
-  <!-- Nav -->
   <nav class="nav" id="nav">
-    <a class="nav-mark" href="#top" aria-label="Estevao — Mwinda Group">
-      <span class="dot"></span><strong>ESTEVAO</strong>
+    <a class="nav-mark" href="#top" aria-label="Mwinda Group">
+      <span class="dot"></span><strong>MWINDA</strong>
     </a>
+    <ul class="nav-links">
+      <li><a href="#competences" data-i18n="nav.comp">Compétences</a></li>
+      <li><a href="#numbers" data-i18n="nav.num">Chiffres</a></li>
+      <li><a href="#who" data-i18n="nav.who">Avec qui</a></li>
+      <li><a href="#work" data-i18n="nav.work">Réalisations</a></li>
+      <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+    </ul>
     <div class="lang-switch" role="group" aria-label="Langue / Language">
       <button data-lang="fr" class="active">FR</button>
       <button data-lang="en">EN</button>
     </div>
   </nav>
 
-  <!-- ============ HERO — LA LUMIÈRE ============ -->
-  <section class="hero" id="top" aria-label="Estevao — Mwinda Group">
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
     <div class="hero-stage" id="heroStage">
-      <div class="hero-fallback"></div>
-      <canvas id="heroCanvas"></canvas>
       <canvas class="hero-dust" id="dustCanvas" aria-hidden="true"></canvas>
+
+      <div class="hero-copy">
+        <div class="hero-eyebrow" id="heroEyebrow"><span data-i18n="hero.eyebrow">Mwinda Group — Tech &amp; IA</span></div>
+        <h1 class="hero-title" id="heroTitle" data-i18n="hero.title"></h1>
+        <p class="hero-lede" id="heroLede" data-i18n="hero.lede">Agentic Operating System &amp; AI Consultant — je conçois des agents, des systèmes et des plateformes qui travaillent pour vous.</p>
+        <div class="hero-cta" id="heroCta">
+          <a class="btn btn-solid" href="#contact" data-i18n="hero.cta1">Démarrer un projet</a>
+          <a class="btn btn-ghost" href="#competences" data-i18n="hero.cta2">Mes compétences</a>
+        </div>
+        <div class="hero-meta" id="heroMeta">
+          <span><b>4+</b> <span data-i18n="hero.m1">ans d'expérience</span></span>
+          <span><b>50+</b> <span data-i18n="hero.m2">clients accompagnés</span></span>
+          <span><b>15+</b> <span data-i18n="hero.m3">masterclass</span></span>
+        </div>
+      </div>
 
       <div class="hero-3d" id="hero3d">
         <div class="hero-halo" id="heroHalo"></div>
@@ -290,12 +309,12 @@
           <div class="orbit-ring ring-b" id="ringB"></div>
           <div class="hero-card" id="heroCard">
             <div class="card-face card-front">
-              <img src="assets/estevao-graded.jpg" alt="Estevao, fondateur de Mwinda Group — portrait en lumière ambre" />
+              <img src="assets/estevao-graded.jpg" alt="Estevao — consultant IA, fondateur de Mwinda Group" />
               <div class="card-sheen"></div>
             </div>
             <div class="card-face card-back" aria-hidden="true">
               <div class="back-emblem">M</div>
-              <div class="back-text">Mwinda · La lumière</div>
+              <div class="back-text">Agentic OS</div>
             </div>
           </div>
         </div>
@@ -303,159 +322,142 @@
 
       <div class="cinebar top" aria-hidden="true"></div>
       <div class="cinebar bottom" aria-hidden="true"></div>
-      <div class="hero-vignette"></div>
-
-      <div class="hero-type">
-        <h1 class="hero-name" id="heroName" aria-label="ESTEVAO">
-          <span>E</span><span>S</span><span>T</span><span>E</span><span>V</span><span>A</span><span>O</span>
-        </h1>
-        <div class="hero-sub" id="heroSub">MWINDA&nbsp;GROUP</div>
-        <p class="hero-tagline" id="heroTagline" data-i18n="hero.tagline">
-          AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>
-        </p>
-      </div>
-
       <div class="hero-scrollcue" aria-hidden="true">
-        <span data-i18n="hero.scroll">Défiler</span>
-        <span class="line"></span>
+        <span data-i18n="hero.scroll">Défiler</span><span class="line"></span>
       </div>
     </div>
   </section>
 
   <!-- ============ MANIFESTO ============ -->
   <section class="manifesto" aria-label="Manifesto">
-    <p id="manifestoText" data-i18n="manifesto"
-       data-fr="Mwinda signifie lumière en lingala. Chaque agent que je construis est une lumière allumée dans l'obscurité d'un problème."
-       data-en="Mwinda means light in Lingala. Every agent I build is a light switched on in the darkness of a problem.">
-    </p>
+    <p id="manifestoText"></p>
   </section>
 
-  <!-- ============ STATS ============ -->
-  <section class="stats" aria-label="Chiffres clés">
-    <div class="stats-grid">
-      <div class="stat" data-tbc>
-        <span class="stat-num" data-count="12"><span class="val">0</span><span class="suffix">+</span></span>
-        <span class="stat-label" data-i18n="stats.agents">Agents IA déployés<br/>· à confirmer ·</span>
+  <!-- ============ COMPÉTENCES ============ -->
+  <section class="band" id="competences">
+    <div class="sec-head">
+      <div class="sec-kicker" data-i18n="comp.kicker">Compétences clés</div>
+      <h2 data-i18n="comp.title">Ce que je construis pour vous</h2>
+      <p data-i18n="comp.lede">De la stratégie IA au produit livré : une seule équipe, une seule lumière, du premier atelier à la mise en production.</p>
+    </div>
+    <div class="grid-comp">
+      <article class="comp">
+        <div class="comp-id">AI / 01</div>
+        <h3 data-i18n="c1.t">Expertise de consultant IA</h3>
+        <p data-i18n="c1.d">Diagnostic, feuille de route et arbitrages : où l'IA crée de la valeur chez vous, et où elle n'en crée pas.</p>
+        <span class="comp-bar"></span>
+      </article>
+      <article class="comp">
+        <div class="comp-id">LLM / 02</div>
+        <h3 data-i18n="c2.t">Solutions basées sur les LLM</h3>
+        <p data-i18n="c2.d">Assistants, RAG sur vos documents, extraction et classification — des modèles de langage branchés sur vos données réelles.</p>
+        <span class="comp-bar"></span>
+      </article>
+      <article class="comp">
+        <div class="comp-id">AGENT / 03</div>
+        <h3 data-i18n="c3.t">Systèmes agentiques &amp; opérations</h3>
+        <p data-i18n="c3.d">Des agents qui exécutent, pas seulement qui répondent : réception client 24/7, qualification, relances, orchestration.</p>
+        <span class="comp-bar"></span>
+      </article>
+      <article class="comp">
+        <div class="comp-id">WEB / 04</div>
+        <h3 data-i18n="c4.t">Design &amp; développement web</h3>
+        <p data-i18n="c4.d">Des interfaces qui tiennent la comparaison avec les meilleures : rapides, accessibles, pensées pour convertir.</p>
+        <span class="comp-bar"></span>
+      </article>
+      <article class="comp">
+        <div class="comp-id">APP / 05</div>
+        <h3 data-i18n="c5.t">Apps mobiles, sites, 3D, webapps</h3>
+        <p data-i18n="c5.d">Applications mobiles, webapps, landing pages et animation 3D — du prototype à la boutique d'applications.</p>
+        <span class="comp-bar"></span>
+      </article>
+      <article class="comp">
+        <div class="comp-id">AUTO / 06</div>
+        <h3 data-i18n="c6.t">Automatisation par l'IA</h3>
+        <p data-i18n="c6.d">Vos tâches répétitives câblées de bout en bout : moins de saisie, moins d'oublis, plus de temps sur ce qui compte.</p>
+        <span class="comp-bar"></span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ CHIFFRES ============ -->
+  <section class="band numbers" id="numbers">
+    <div class="grid-num">
+      <div class="num">
+        <span class="num-val" data-count="4"><span class="val">0</span><span class="sfx">+</span></span>
+        <span class="num-label" data-i18n="n1">Années<br/>d'expérience</span>
       </div>
-      <div class="stat" data-tbc>
-        <span class="stat-num" data-count="8"><span class="val">0</span><span class="suffix">+</span></span>
-        <span class="stat-label" data-i18n="stats.platforms">Plateformes livrées<br/>· à confirmer ·</span>
+      <div class="num">
+        <span class="num-val" data-count="50"><span class="val">0</span><span class="sfx">+</span></span>
+        <span class="num-label" data-i18n="n2">Clients<br/>accompagnés</span>
       </div>
-      <div class="stat">
-        <span class="stat-num" data-count="6"><span class="val">0</span></span>
-        <span class="stat-label" data-i18n="stats.divisions">Divisions, 1 groupe :<br/>Mwinda</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num" data-count="3"><span class="val">0</span></span>
-        <span class="stat-label" data-i18n="stats.continents">Continents,<br/>2 langues</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num"><span style="font-size:.7em">FR/EN</span></span>
-        <span class="stat-label" data-i18n="stats.langs">Natif,<br/>3 continents</span>
+      <div class="num">
+        <span class="num-val" data-count="15"><span class="val">0</span><span class="sfx">+</span></span>
+        <span class="num-label" data-i18n="n3">Masterclass &amp;<br/>programmes de formation</span>
       </div>
     </div>
   </section>
 
-  <!-- ============ PILIERS ============ -->
-  <div id="pillars">
-    <section class="pillar" aria-labelledby="p1-title">
-      <div class="pillar-media" data-clip="assets/clips/builder.mp4">
-        <div class="media-placeholder">
-          <span class="glyph">01</span>
-          <span class="note" data-i18n="pillar.placeholder">Clip cinématique — The Builder</span>
-        </div>
-        <div class="glare"></div>
-      </div>
-      <div class="pillar-copy">
-        <div class="pillar-index">01</div>
-        <div class="pillar-kicker" data-i18n="p1.kicker">L'Agence — The Builder</div>
-        <h2 id="p1-title" data-i18n="p1.title">Mwinda Digital</h2>
-        <p data-i18n="p1.body">Agents IA sur mesure pour les cabinets de services. Produit phare : l'<strong>Agent Réception Client 24/7</strong>, bilingue FR/EN, qui capture les clients que vous perdez — la nuit, le week-end, pendant vos rendez-vous.</p>
-        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p1.flag">Agent Réception 24/7 — FR/EN</span></span>
-      </div>
-    </section>
-
-    <section class="pillar" aria-labelledby="p2-title">
-      <div class="pillar-media" data-clip="assets/clips/visionary.mp4">
-        <div class="media-placeholder">
-          <span class="glyph">02</span>
-          <span class="note" data-i18n="pillar.placeholder2">Clip cinématique — The Visionary</span>
-        </div>
-        <div class="glare"></div>
-      </div>
-      <div class="pillar-copy">
-        <div class="pillar-index">02</div>
-        <div class="pillar-kicker" data-i18n="p2.kicker">Le Conseil — The Visionary</div>
-        <h2 id="p2-title" data-i18n="p2.title">Mwinda Consulting</h2>
-        <p data-i18n="p2.body">Stratégie, structuration de projets et transformation IA pour les entreprises de la <strong>diaspora africaine et francophone</strong> aux USA. De Seattle à Kinshasa, Brazzaville, Paris et Montréal — des lignes de lumière au-dessus de l'Atlantique.</p>
-        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p2.flag">Seattle · Kinshasa · Paris · Montréal</span></span>
-      </div>
-    </section>
-
-    <section class="pillar" aria-labelledby="p3-title">
-      <div class="pillar-media" data-clip="assets/clips/closer.mp4">
-        <div class="media-placeholder">
-          <span class="glyph">03</span>
-          <span class="note" data-i18n="pillar.placeholder3">Clip cinématique — The Closer</span>
-        </div>
-        <div class="glare"></div>
-      </div>
-      <div class="pillar-copy">
-        <div class="pillar-index">03</div>
-        <div class="pillar-kicker" data-i18n="p3.kicker">La Lumière — L'Écosystème</div>
-        <h2 id="p3-title" data-i18n="p3.title">L'Écosystème Mwinda</h2>
-        <p data-i18n="p3.body"><strong>Les Élites Publishing</strong> (édition), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. Un groupe au service d'une seule vision : porter la lumière.</p>
-        <span class="pillar-flag"><span class="pulse"></span><span data-i18n="p3.flag">Édition · Impact · Événements</span></span>
-      </div>
-    </section>
-  </div>
+  <!-- ============ AVEC QUI ============ -->
+  <section class="band" id="who">
+    <div class="sec-head">
+      <div class="sec-kicker" data-i18n="who.kicker">Avec qui je travaille</div>
+      <h2 data-i18n="who.title">Ceux qui décident d'avancer</h2>
+    </div>
+    <div class="grid-who">
+      <article class="who"><div class="who-dot"></div><h3 data-i18n="w1">Entrepreneurs prêts à passer à l'échelle</h3></article>
+      <article class="who"><div class="who-dot"></div><h3 data-i18n="w2">Professionnels qui veulent gagner avec l'IA</h3></article>
+      <article class="who"><div class="who-dot"></div><h3 data-i18n="w3">Organisations en transformation digitale</h3></article>
+      <article class="who"><div class="who-dot"></div><h3 data-i18n="w4">Passionnés de tech avides d'apprendre et de grandir</h3></article>
+    </div>
+  </section>
 
   <!-- ============ WORK ============ -->
-  <section class="work" aria-labelledby="work-title">
-    <div class="section-head">
-      <div class="kicker" data-i18n="work.kicker">Réalisations</div>
-      <h2 id="work-title" data-i18n="work.title">Ce que la lumière a déjà bâti</h2>
+  <section class="band" id="work">
+    <div class="sec-head">
+      <div class="sec-kicker" data-i18n="work.kicker">Réalisations</div>
+      <h2 data-i18n="work.title">Ce que la lumière a déjà bâti</h2>
     </div>
-    <div class="work-grid">
+    <div class="grid-work">
       <a class="work-card" href="#contact">
         <span class="wc-arrow">↗</span>
         <span class="wc-tag">SaaS · Mwinda Digital</span>
         <h3>AI Agents Agency</h3>
-        <p data-i18n="work.c1">SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.</p>
+        <p data-i18n="k1">SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.</p>
       </a>
       <a class="work-card" href="#contact">
         <span class="wc-arrow">↗</span>
-        <span class="wc-tag" data-i18n="work.t2">Édition</span>
-        <h3>Les ÉLITES Publishing House</h3>
-        <p data-i18n="work.c2">Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.</p>
+        <span class="wc-tag" data-i18n="k2t">Édition</span>
+        <h3>Les ÉLITES Publishing</h3>
+        <p data-i18n="k2">Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.</p>
       </a>
       <a class="work-card" href="#contact">
         <span class="wc-arrow">↗</span>
-        <span class="wc-tag" data-i18n="work.t3">Site international</span>
+        <span class="wc-tag" data-i18n="k3t">Site international</span>
         <h3>HGI Ministries</h3>
-        <p data-i18n="work.c3">Site cinématique international en 5 langues — une présence mondiale, une seule lumière.</p>
+        <p data-i18n="k3">Site cinématique international en 5 langues — une présence mondiale, une seule lumière.</p>
       </a>
       <a class="work-card" href="#contact">
         <span class="wc-arrow">↗</span>
-        <span class="wc-tag" data-i18n="work.t4">Plateforme IA</span>
+        <span class="wc-tag" data-i18n="k4t">Plateforme IA</span>
         <h3>Stephane Taty Bible</h3>
-        <p data-i18n="work.c4">Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'intelligence artificielle.</p>
+        <p data-i18n="k4">Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'IA.</p>
       </a>
       <a class="work-card" href="#contact">
         <span class="wc-arrow">↗</span>
-        <span class="wc-tag" data-i18n="work.t5">Track record</span>
-        <h3 data-i18n="work.h5">35+ clients · 43 projets</h3>
-        <p data-i18n="work.c5">Plus de 35 clients accompagnés et 43 projets réalisés, de l'agent IA au site international.</p>
+        <span class="wc-tag" data-i18n="k5t">Track record</span>
+        <h3 data-i18n="k5h">43 projets livrés</h3>
+        <p data-i18n="k5">De l'agent IA au site international, en français comme en anglais, sur trois continents.</p>
       </a>
     </div>
   </section>
 
   <!-- ============ CONTACT ============ -->
-  <section class="contact" id="contact" aria-labelledby="contact-title">
+  <section class="contact" id="contact">
     <div class="contact-beam" id="contactBeam"></div>
     <div class="contact-inner">
-      <h2 id="contact-title" data-i18n="contact.title">Travaillons<br/>ensemble.</h2>
-      <p class="sub" data-i18n="contact.sub">Un agent IA à déployer, une plateforme à bâtir, une vision à structurer — parlons-en.</p>
+      <h2 data-i18n="contact.title">Prêt à échanger. Collaborer. <em>Apprendre ?</em></h2>
+      <p class="sub" data-i18n="contact.sub">Un agent IA à déployer, une plateforme à bâtir, une équipe à former — dites-moi où vous en êtes.</p>
       <div class="contact-cta-row">
         <button class="btn btn-solid" id="openForm" data-i18n="contact.cta1">Démarrer un projet</button>
         <a class="btn btn-ghost" href="https://www.linkedin.com/in/estevao-macumba" target="_blank" rel="noopener">LinkedIn ↗</a>
@@ -464,19 +466,20 @@
       <form class="contact-form" id="qualForm" name="portfolio-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="portfolio-contact" />
         <p style="display:none"><label>Ne pas remplir <input name="bot-field" /></label></p>
-        <label><span data-i18n="form.name">Nom</span><input type="text" name="nom" required /></label>
-        <label><span data-i18n="form.email">Email</span><input type="email" name="email" required /></label>
-        <label><span data-i18n="form.company">Entreprise / Cabinet</span><input type="text" name="entreprise" /></label>
-        <label><span data-i18n="form.need">Besoin</span>
+        <label><span data-i18n="f.name">Nom</span><input type="text" name="nom" required /></label>
+        <label><span data-i18n="f.email">Email</span><input type="email" name="email" required /></label>
+        <label><span data-i18n="f.company">Entreprise / Organisation</span><input type="text" name="entreprise" /></label>
+        <label><span data-i18n="f.need">Besoin</span>
           <select name="besoin">
-            <option data-i18n="form.need1">Agent IA sur mesure</option>
-            <option data-i18n="form.need2">Agent Réception Client 24/7</option>
-            <option data-i18n="form.need3">Conseil / transformation IA</option>
-            <option data-i18n="form.need4">Plateforme ou site</option>
-            <option data-i18n="form.need5">Autre</option>
+            <option data-i18n="f.n1">Conseil / stratégie IA</option>
+            <option data-i18n="f.n2">Agent IA sur mesure</option>
+            <option data-i18n="f.n3">Solution LLM sur mes données</option>
+            <option data-i18n="f.n4">Site, webapp ou app mobile</option>
+            <option data-i18n="f.n5">Automatisation</option>
+            <option data-i18n="f.n6">Formation / masterclass</option>
           </select>
         </label>
-        <label class="full"><span data-i18n="form.budget">Budget indicatif</span>
+        <label class="full"><span data-i18n="f.budget">Budget indicatif</span>
           <select name="budget">
             <option>&lt; 2 000 $</option>
             <option>2 000 – 5 000 $</option>
@@ -484,15 +487,15 @@
             <option>15 000 $ +</option>
           </select>
         </label>
-        <label class="full"><span data-i18n="form.msg">Votre projet en quelques lignes</span><textarea name="message"></textarea></label>
-        <button class="btn btn-solid full" type="submit" data-i18n="form.send">Envoyer</button>
+        <label class="full"><span data-i18n="f.msg">Votre projet en quelques lignes</span><textarea name="message"></textarea></label>
+        <button class="btn btn-solid full" type="submit" data-i18n="f.send">Envoyer</button>
       </form>
     </div>
   </section>
 
   <footer>
-    <span class="f-mark">MWINDA GROUP</span>
-    <span class="f-light" data-i18n="footer">Mwinda — <b>la lumière</b> en lingala · © <span id="year"></span> Estevao</span>
+    <span>MWINDA GROUP</span>
+    <span data-i18n="footer">Mwinda — <b>la lumière</b> en lingala · © <span class="yr"></span></span>
   </footer>
 
   <script src="vendor/gsap.min.js"></script>
@@ -500,113 +503,126 @@
   <script>
   (function(){
     'use strict';
-    document.getElementById('year').textContent = new Date().getFullYear();
 
     /* ============ i18n ============ */
     const I18N = {
       fr: {
-        'meta.title':"Estevao — Fondateur, Mwinda Group | Agents IA avec Claude Code",
-        'meta.desc':"Estevao, fondateur de Mwinda Group — Agentic Operating System & AI Consultant. Mwinda signifie lumière en lingala.",
-        'hero.tagline':"AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>",
+        'meta.title':"Mwinda Group — Agentic Operating System & AI Consultant",
+        'meta.desc':"J'aide les gens à entrer avec confiance dans le monde de la tech et de l'IA, et à saisir chaque opportunité. Consultant IA, solutions LLM, systèmes agentiques, web et automatisation.",
+        'nav.comp':"Compétences",'nav.num':"Chiffres",'nav.who':"Avec qui",'nav.work':"Réalisations",'nav.contact':"Contact",
+        'hero.eyebrow':"Mwinda Group — Tech & IA",
+        'hero.title':"J'aide les gens à entrer avec confiance dans le monde de la <em>tech &amp; de l'IA</em> — et à saisir chaque opportunité.",
+        'hero.lede':"Agentic Operating System &amp; AI Consultant — je conçois des agents, des systèmes et des plateformes qui travaillent pour vous.",
+        'hero.cta1':"Démarrer un projet",'hero.cta2':"Mes compétences",
+        'hero.m1':"ans d'expérience",'hero.m2':"clients accompagnés",'hero.m3':"masterclass",
         'hero.scroll':"Défiler",
-        'stats.agents':"Agents IA déployés<br/>· à confirmer ·",
-        'stats.platforms':"Plateformes livrées<br/>· à confirmer ·",
-        'stats.divisions':"Divisions, 1 groupe :<br/>Mwinda",
-        'stats.continents':"Continents,<br/>2 langues",
-        'stats.langs':"Natif,<br/>3 continents",
-        'pillar.placeholder':"Clip cinématique — The Builder",
-        'pillar.placeholder2':"Clip cinématique — The Visionary",
-        'pillar.placeholder3':"Clip cinématique — The Closer",
-        'p1.kicker':"L'Agence — The Builder",'p1.title':"Mwinda Digital",
-        'p1.body':"Agents IA sur mesure pour les cabinets de services. Produit phare : l'<strong>Agent Réception Client 24/7</strong>, bilingue FR/EN, qui capture les clients que vous perdez — la nuit, le week-end, pendant vos rendez-vous.",
-        'p1.flag':"Agent Réception 24/7 — FR/EN",
-        'p2.kicker':"Le Conseil — The Visionary",'p2.title':"Mwinda Consulting",
-        'p2.body':"Stratégie, structuration de projets et transformation IA pour les entreprises de la <strong>diaspora africaine et francophone</strong> aux USA. De Seattle à Kinshasa, Brazzaville, Paris et Montréal — des lignes de lumière au-dessus de l'Atlantique.",
-        'p2.flag':"Seattle · Kinshasa · Paris · Montréal",
-        'p3.kicker':"La Lumière — L'Écosystème",'p3.title':"L'Écosystème Mwinda",
-        'p3.body':"<strong>Les Élites Publishing</strong> (édition), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. Un groupe au service d'une seule vision : porter la lumière.",
-        'p3.flag':"Édition · Impact · Événements",
+        'comp.kicker':"Compétences clés",'comp.title':"Ce que je construis pour vous",
+        'comp.lede':"De la stratégie IA au produit livré : une seule équipe, une seule lumière, du premier atelier à la mise en production.",
+        'c1.t':"Expertise de consultant IA",'c1.d':"Diagnostic, feuille de route et arbitrages : où l'IA crée de la valeur chez vous, et où elle n'en crée pas.",
+        'c2.t':"Solutions basées sur les LLM",'c2.d':"Assistants, RAG sur vos documents, extraction et classification — des modèles de langage branchés sur vos données réelles.",
+        'c3.t':"Systèmes agentiques &amp; opérations",'c3.d':"Des agents qui exécutent, pas seulement qui répondent : réception client 24/7, qualification, relances, orchestration.",
+        'c4.t':"Design &amp; développement web",'c4.d':"Des interfaces qui tiennent la comparaison avec les meilleures : rapides, accessibles, pensées pour convertir.",
+        'c5.t':"Apps mobiles, sites, 3D, webapps",'c5.d':"Applications mobiles, webapps, landing pages et animation 3D — du prototype à la boutique d'applications.",
+        'c6.t':"Automatisation par l'IA",'c6.d':"Vos tâches répétitives câblées de bout en bout : moins de saisie, moins d'oublis, plus de temps sur ce qui compte.",
+        'n1':"Années<br/>d'expérience",'n2':"Clients<br/>accompagnés",'n3':"Masterclass &amp;<br/>programmes de formation",
+        'who.kicker':"Avec qui je travaille",'who.title':"Ceux qui décident d'avancer",
+        'w1':"Entrepreneurs prêts à passer à l'échelle",'w2':"Professionnels qui veulent gagner avec l'IA",
+        'w3':"Organisations en transformation digitale",'w4':"Passionnés de tech avides d'apprendre et de grandir",
         'work.kicker':"Réalisations",'work.title':"Ce que la lumière a déjà bâti",
-        'work.c1':"SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.",
-        'work.t2':"Édition",'work.c2':"Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.",
-        'work.t3':"Site international",'work.c3':"Site cinématique international en 5 langues — une présence mondiale, une seule lumière.",
-        'work.t4':"Plateforme IA",'work.c4':"Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'intelligence artificielle.",
-        'work.t5':"Track record",'work.h5':"35+ clients · 43 projets",
-        'work.c5':"Plus de 35 clients accompagnés et 43 projets réalisés, de l'agent IA au site international.",
-        'contact.title':"Travaillons<br/>ensemble.",
-        'contact.sub':"Un agent IA à déployer, une plateforme à bâtir, une vision à structurer — parlons-en.",
+        'k1':"SaaS d'agents IA — conception, déploiement et vente d'agents construits avec Claude Code.",
+        'k2t':"Édition",'k2':"Maison d'édition — porter les voix et les idées de la diaspora sur trois continents.",
+        'k3t':"Site international",'k3':"Site cinématique international en 5 langues — une présence mondiale, une seule lumière.",
+        'k4t':"Plateforme IA",'k4':"Plateforme biblique IA — manuscrits originaux, 35+ langues, l'Écriture éclairée par l'IA.",
+        'k5t':"Track record",'k5h':"43 projets livrés",'k5':"De l'agent IA au site international, en français comme en anglais, sur trois continents.",
+        'contact.title':"Prêt à échanger. Collaborer. <em>Apprendre ?</em>",
+        'contact.sub':"Un agent IA à déployer, une plateforme à bâtir, une équipe à former — dites-moi où vous en êtes.",
         'contact.cta1':"Démarrer un projet",
-        'form.name':"Nom",'form.email':"Email",'form.company':"Entreprise / Cabinet",'form.need':"Besoin",
-        'form.need1':"Agent IA sur mesure",'form.need2':"Agent Réception Client 24/7",'form.need3':"Conseil / transformation IA",'form.need4':"Plateforme ou site",'form.need5':"Autre",
-        'form.budget':"Budget indicatif",'form.msg':"Votre projet en quelques lignes",'form.send':"Envoyer",
-        'footer':"Mwinda — <b>la lumière</b> en lingala · © <span id='year2'></span> Estevao"
+        'f.name':"Nom",'f.email':"Email",'f.company':"Entreprise / Organisation",'f.need':"Besoin",
+        'f.n1':"Conseil / stratégie IA",'f.n2':"Agent IA sur mesure",'f.n3':"Solution LLM sur mes données",
+        'f.n4':"Site, webapp ou app mobile",'f.n5':"Automatisation",'f.n6':"Formation / masterclass",
+        'f.budget':"Budget indicatif",'f.msg':"Votre projet en quelques lignes",'f.send':"Envoyer",
+        'footer':"Mwinda — <b>la lumière</b> en lingala · © <span class='yr'></span>"
       },
       en: {
-        'meta.title':"Estevao — Founder, Mwinda Group | AI Agents with Claude Code",
-        'meta.desc':"Estevao, founder of Mwinda Group — Agentic Operating System & AI Consultant. Mwinda means light in Lingala.",
-        'hero.tagline':"AGENTIC OPERATING SYSTEM<br/><em>&amp; AI CONSULTANT</em>",
+        'meta.title':"Mwinda Group — Agentic Operating System & AI Consultant",
+        'meta.desc':"I help people confidently enter the world of Tech & AI and capitalize on every opportunity. AI consulting, LLM solutions, agentic systems, web and automation.",
+        'nav.comp':"Competences",'nav.num':"Numbers",'nav.who':"Who I work with",'nav.work':"Work",'nav.contact':"Contact",
+        'hero.eyebrow':"Mwinda Group — Tech & AI",
+        'hero.title':"I help people to confidently enter the world of <em>tech &amp; AI</em> and capitalize on every opportunity.",
+        'hero.lede':"Agentic Operating System &amp; AI Consultant — I build the agents, systems and platforms that work for you.",
+        'hero.cta1':"Start a project",'hero.cta2':"My competences",
+        'hero.m1':"years of experience",'hero.m2':"clients served",'hero.m3':"masterclasses",
         'hero.scroll':"Scroll",
-        'stats.agents':"AI agents deployed<br/>· to confirm ·",
-        'stats.platforms':"Platforms shipped<br/>· to confirm ·",
-        'stats.divisions':"Divisions, 1 group:<br/>Mwinda",
-        'stats.continents':"Continents,<br/>2 languages",
-        'stats.langs':"Native,<br/>3 continents",
-        'pillar.placeholder':"Cinematic clip — The Builder",
-        'pillar.placeholder2':"Cinematic clip — The Visionary",
-        'pillar.placeholder3':"Cinematic clip — The Closer",
-        'p1.kicker':"The Agency — The Builder",'p1.title':"Mwinda Digital",
-        'p1.body':"Custom AI agents for service firms. Flagship product: the <strong>24/7 Client Reception Agent</strong>, bilingual FR/EN, capturing the clients you lose — at night, on weekends, during your meetings.",
-        'p1.flag':"24/7 Reception Agent — FR/EN",
-        'p2.kicker':"The Consultancy — The Visionary",'p2.title':"Mwinda Consulting",
-        'p2.body':"Strategy, project structuring and AI transformation for <strong>African & francophone diaspora</strong> businesses in the USA. From Seattle to Kinshasa, Brazzaville, Paris and Montréal — lines of light across the Atlantic.",
-        'p2.flag':"Seattle · Kinshasa · Paris · Montréal",
-        'p3.kicker':"The Light — The Ecosystem",'p3.title':"The Mwinda Ecosystem",
-        'p3.body':"<strong>Les Élites Publishing</strong> (publishing), <strong>Mwinda Hope Nation</strong> (impact), <strong>Mwinda Events</strong>. One group serving one vision: carrying the light.",
-        'p3.flag':"Publishing · Impact · Events",
-        'work.kicker':"Selected Work",'work.title':"What the light has already built",
-        'work.c1':"AI agents SaaS — designing, deploying and selling agents built with Claude Code.",
-        'work.t2':"Publishing",'work.c2':"Publishing house — carrying diaspora voices and ideas across three continents.",
-        'work.t3':"International site",'work.c3':"International cinematic website in 5 languages — one global presence, one light.",
-        'work.t4':"AI platform",'work.c4':"AI Bible platform — original manuscripts, 35+ languages, Scripture illuminated by AI.",
-        'work.t5':"Track record",'work.h5':"35+ clients · 43 projects",
-        'work.c5':"35+ clients served and 43 projects delivered, from AI agents to international platforms.",
-        'contact.title':"Let's build.",
-        'contact.sub':"An AI agent to deploy, a platform to build, a vision to structure — let's talk.",
+        'comp.kicker':"Core competences",'comp.title':"What I build for you",
+        'comp.lede':"From AI strategy to shipped product: one team, one light, from the first workshop to production.",
+        'c1.t':"AI consultant expertise",'c1.d':"Diagnosis, roadmap and hard calls: where AI creates value in your business — and where it does not.",
+        'c2.t':"LLM based solutions",'c2.d':"Assistants, RAG over your documents, extraction and classification — language models wired to your real data.",
+        'c3.t':"Agentic operating systems",'c3.d':"Agents that act, not just answer: 24/7 client reception, qualification, follow-ups, orchestration.",
+        'c4.t':"Web design &amp; development",'c4.d':"Interfaces that hold up against the best: fast, accessible, built to convert.",
+        'c5.t':"Mobile apps, sites, 3D, webapps",'c5.d':"Mobile apps, webapps, landing pages and 3D animation — from prototype to app store.",
+        'c6.t':"AI automation",'c6.d':"Your repetitive work wired end to end: less data entry, fewer misses, more time on what matters.",
+        'n1':"Years of<br/>experience",'n2':"Clients<br/>served",'n3':"Masterclass &amp;<br/>training programs",
+        'who.kicker':"Who I work with",'who.title':"The ones who decide to move",
+        'w1':"Entrepreneurs ready to scale",'w2':"Professionals who want to earn with AI",
+        'w3':"Organizations embracing digital transformation",'w4':"Tech enthusiasts hungry to learn and grow",
+        'work.kicker':"Selected work",'work.title':"What the light has already built",
+        'k1':"AI agents SaaS — designing, deploying and selling agents built with Claude Code.",
+        'k2t':"Publishing",'k2':"Publishing house — carrying diaspora voices and ideas across three continents.",
+        'k3t':"International site",'k3':"International cinematic website in 5 languages — one global presence, one light.",
+        'k4t':"AI platform",'k4':"AI Bible platform — original manuscripts, 35+ languages, Scripture illuminated by AI.",
+        'k5t':"Track record",'k5h':"43 projects delivered",'k5':"From AI agents to international platforms, in French and English, across three continents.",
+        'contact.title':"Ready to connect. Collaborate. <em>Learn?</em>",
+        'contact.sub':"An AI agent to deploy, a platform to build, a team to train — tell me where you stand.",
         'contact.cta1':"Start a project",
-        'form.name':"Name",'form.email':"Email",'form.company':"Company / Firm",'form.need':"Need",
-        'form.need1':"Custom AI agent",'form.need2':"24/7 Client Reception Agent",'form.need3':"Consulting / AI transformation",'form.need4':"Platform or website",'form.need5':"Other",
-        'form.budget':"Indicative budget",'form.msg':"Your project in a few lines",'form.send':"Send",
-        'footer':"Mwinda — <b>light</b> in Lingala · © <span id='year2'></span> Estevao"
+        'f.name':"Name",'f.email':"Email",'f.company':"Company / Organization",'f.need':"Need",
+        'f.n1':"Consulting / AI strategy",'f.n2':"Custom AI agent",'f.n3':"LLM solution on my data",
+        'f.n4':"Website, webapp or mobile app",'f.n5':"Automation",'f.n6':"Training / masterclass",
+        'f.budget':"Indicative budget",'f.msg':"Your project in a few lines",'f.send':"Send",
+        'footer':"Mwinda — <b>light</b> in Lingala · © <span class='yr'></span>"
       }
     };
     const MANIFESTO = {
-      fr:{text:"Mwinda signifie lumière en lingala. Chaque agent que je construis est une lumière allumée dans l'obscurité d'un problème.",amber:["lumière","lumière"]},
-      en:{text:"Mwinda means light in Lingala. Every agent I build is a light switched on in the darkness of a problem.",amber:["light","light"]}
+      fr:"Mwinda signifie lumière en lingala. Chaque système que je construis est une lumière allumée dans l'obscurité d'un problème.",
+      en:"Mwinda means light in Lingala. Every system I build is a light switched on in the darkness of a problem."
     };
+
     let lang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('mwinda-lang') || 'fr';
     if(!I18N[lang]) lang='fr';
 
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasGSAP = !reduced && window.gsap && window.ScrollTrigger;
+    if(reduced) document.body.classList.add('reduced');
+    if(hasGSAP){ gsap.registerPlugin(ScrollTrigger); document.documentElement.classList.add('has-gsap'); }
+
+    function setYears(){ document.querySelectorAll('.yr').forEach(e=>e.textContent=new Date().getFullYear()); }
+
     function buildManifesto(){
-      const cfg = MANIFESTO[lang];
-      const el = document.getElementById('manifestoText');
-      el.innerHTML = cfg.text.split(' ').map(w=>{
-        const amber = /lumi|light/i.test(w) ? ' amber':'';
-        return '<span class="word'+amber+'">'+w+'</span>';
-      }).join(' ');
+      const el=document.getElementById('manifestoText');
+      el.innerHTML = MANIFESTO[lang].split(' ').map(w=>
+        '<span class="word'+(/lumi|light/i.test(w)?' amber':'')+'">'+w+'</span>').join(' ');
     }
+    // Titre du hero : mot par mot, pour l'animation d'entrée
+    function buildTitle(){
+      const el=document.getElementById('heroTitle');
+      const html=I18N[lang]['hero.title'];
+      // découpe en mots en préservant les balises <em>
+      el.innerHTML = html.replace(/(<em>|<\/em>)|([^\s<]+)/g,(m,tag,word)=>
+        tag ? tag : '<span class="w">'+word+'</span>').replace(/\s+/g,' ');
+    }
+
     function applyLang(){
       document.documentElement.lang = lang;
       const dict = I18N[lang];
       document.querySelectorAll('[data-i18n]').forEach(el=>{
-        const k = el.getAttribute('data-i18n');
-        if(!dict[k]) return;
+        const k=el.getAttribute('data-i18n');
+        if(!dict[k] || k==='hero.title') return;
         if(el.hasAttribute('data-i18n-attr')) el.setAttribute(el.getAttribute('data-i18n-attr'), dict[k].replace(/<[^>]+>/g,''));
         else el.innerHTML = dict[k];
       });
       document.title = dict['meta.title'];
-      document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
-      buildManifesto();
-      const y=document.getElementById('year2'); if(y) y.textContent=new Date().getFullYear();
+      document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+      buildTitle(); buildManifesto(); setYears();
+      if(window.revealTitle) window.revealTitle();
       if(window.initManifestoTrigger) window.initManifestoTrigger();
     }
     document.querySelectorAll('.lang-switch button').forEach(b=>{
@@ -615,105 +631,29 @@
     applyLang();
 
     /* ============ Loader ============ */
-    const lw = document.getElementById('loaderWord');
+    const lw=document.getElementById('loaderWord');
     'MWINDA'.split('').forEach((c,i)=>{
       const s=document.createElement('span'); s.textContent=c; s.style.animationDelay=(i*.12)+'s'; lw.appendChild(s);
     });
+    addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'), reduced?0:800));
+    setTimeout(()=>document.getElementById('loader').classList.add('done'),3200);
 
-    /* ============ Reduced motion ============ */
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const hasGSAP = !reduced && window.gsap && window.ScrollTrigger;
-    if(reduced) document.body.classList.add('reduced');
-    if(hasGSAP){ gsap.registerPlugin(ScrollTrigger); document.documentElement.classList.add('has-gsap'); }
-
-    /* ============ Nav scrolled state ============ */
     addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40),{passive:true});
 
-    /* ============ HERO frame scrub (technique Lando Norris) ============ */
-    const FRAME_COUNT = 120;
-    const framePath = i => 'assets/hero/frame_'+String(i).padStart(4,'0')+'.webp';
-    const canvas = document.getElementById('heroCanvas');
-    const ctx = canvas.getContext('2d');
-    const frames = new Array(FRAME_COUNT);
-    let framesAvailable = false;
-    const state = {frame:0};
-
-    function sizeCanvas(){
-      const dpr = Math.min(devicePixelRatio||1, 2);
-      canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr;
-    }
-    sizeCanvas(); addEventListener('resize',()=>{sizeCanvas(); render();});
-
-    function render(){
-      const img = frames[Math.min(FRAME_COUNT-1, Math.max(0, Math.round(state.frame)))];
-      if(!img || !img.complete || !img.naturalWidth) return;
-      const cw=canvas.width, ch=canvas.height, ir=img.naturalWidth/img.naturalHeight, cr=cw/ch;
-      let dw,dh,dx,dy;
-      if(cr>ir){ dw=cw; dh=cw/ir; dx=0; dy=(ch-dh)/2; } else { dh=ch; dw=ch*ir; dx=(cw-dw)/2; dy=0; }
-      ctx.clearRect(0,0,cw,ch);
-      ctx.drawImage(img,dx,dy,dw,dh);
-    }
-
-    // Progressive loading: first frame, then coarse-to-fine
-    const probe = new Image();
-    probe.onload = ()=>{
-      framesAvailable = true;
-      frames[0]=probe; render();
-      const order=[]; for(let s=8;s>=1;s=s>>1){ for(let i=0;i<FRAME_COUNT;i+=s){ if(!order.includes(i)) order.push(i);} }
-      order.forEach(i=>{ if(frames[i])return; const im=new Image(); im.src=framePath(i+1); im.onload=()=>{frames[i]=im; if(Math.abs(i-state.frame)<2)render();}; });
-      canvas.style.opacity=1;
-    };
-    probe.onerror = ()=>{ canvas.style.display='none'; }; // fallback gradient reste visible
-    probe.src = framePath(1);
-    canvas.style.opacity=0; canvas.style.transition='opacity 1.2s ease';
-
-    /* ============ Dust particles ============ */
-    if(!reduced){
-      const dc=document.getElementById('dustCanvas'), dctx=dc.getContext('2d');
-      let P=[], lastSY=scrollY, sVel=0;
-      function dsize(){ dc.width=innerWidth; dc.height=innerHeight;
-        P=Array.from({length:70},()=>({x:Math.random()*dc.width,y:Math.random()*dc.height,r:Math.random()*1.6+.3,vy:-(Math.random()*.18+.04),vx:(Math.random()-.5)*.08,a:Math.random()*.5+.1}));
-      }
-      dsize(); addEventListener('resize',dsize);
-      (function dust(){
-        // vitesse de scroll lissée → les particules filent en traînées (effet warp)
-        sVel = sVel*.88 + (scrollY-lastSY)*.12; lastSY=scrollY;
-        const streak = Math.min(30, Math.abs(sVel)*.55);
-        dctx.clearRect(0,0,dc.width,dc.height);
-        for(const p of P){
-          p.x+=p.vx; p.y+=p.vy;
-          if(p.y<-34){p.y=dc.height+30;p.x=Math.random()*dc.width;}
-          if(p.y>dc.height+34){p.y=-30;p.x=Math.random()*dc.width;}
-          if(streak>3){
-            dctx.beginPath();
-            dctx.moveTo(p.x,p.y);
-            dctx.lineTo(p.x,p.y+(sVel>0?streak:-streak)*(p.r*.8));
-            dctx.strokeStyle='rgba(245,166,35,'+(p.a*.85)+')';
-            dctx.lineWidth=p.r*.9; dctx.stroke();
-          } else {
-            dctx.beginPath(); dctx.arc(p.x,p.y,p.r,0,7);
-            dctx.fillStyle='rgba(245,166,35,'+p.a+')'; dctx.fill();
-          }
-        }
-        requestAnimationFrame(dust);
-      })();
-    }
-
-    /* ============ Réseau neuronal ambiant — animation permanente du fond ============ */
+    /* ============ Fond : réseau neuronal permanent (canvas) ============ */
     if(!reduced){
       const nc=document.getElementById('bgNet'), nctx=nc.getContext('2d');
-      let NODES=[];
+      let NODES=[], LINK=170;
       function nsize(){
         nc.width=innerWidth; nc.height=innerHeight;
-        const count=Math.min(64,Math.max(28,Math.round(innerWidth/26)));
+        LINK=Math.min(200,innerWidth*.17);
+        const count=Math.min(70,Math.max(30,Math.round(innerWidth/24)));
         NODES=Array.from({length:count},()=>({
-          x:Math.random()*nc.width, y:Math.random()*nc.height,
-          vx:(Math.random()-.5)*.22, vy:(Math.random()-.5)*.22,
-          r:Math.random()*1.7+.9, em:Math.random()<.16, ph:Math.random()*6.28
-        }));
+          x:Math.random()*nc.width,y:Math.random()*nc.height,
+          vx:(Math.random()-.5)*.24,vy:(Math.random()-.5)*.24,
+          r:Math.random()*1.7+.9,em:Math.random()<.16,ph:Math.random()*6.28}));
       }
       nsize(); addEventListener('resize',nsize);
-      const LINK=Math.min(190,innerWidth*.16);
       (function net(t){
         requestAnimationFrame(net);
         if(document.hidden) return;
@@ -724,42 +664,72 @@
           if(n.y<-20)n.y=nc.height+20; if(n.y>nc.height+20)n.y=-20;
         }
         for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
-          const a=NODES[i],b=NODES[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+          const a=NODES[i],b=NODES[j],d=Math.hypot(a.x-b.x,a.y-b.y);
           if(d<LINK){
-            const al=(1-d/LINK)*.32;
             nctx.beginPath();nctx.moveTo(a.x,a.y);nctx.lineTo(b.x,b.y);
-            nctx.strokeStyle='rgba(245,166,35,'+al+')';nctx.lineWidth=.6;nctx.stroke();
+            nctx.strokeStyle='rgba(245,166,35,'+((1-d/LINK)*.3)+')';nctx.lineWidth=.6;nctx.stroke();
           }
         }
         for(const n of NODES){
-          const pulse=.35+.45*(.5+.5*Math.sin(t/850+n.ph));
+          const p=.35+.45*(.5+.5*Math.sin(t/850+n.ph));
           nctx.beginPath();nctx.arc(n.x,n.y,n.r,0,7);
-          nctx.fillStyle=n.em?'rgba(46,204,143,'+(pulse*.9)+')':'rgba(245,166,35,'+pulse+')';
-          nctx.fill();
-          if(pulse>.7){
+          nctx.fillStyle=n.em?'rgba(46,204,143,'+(p*.9)+')':'rgba(245,166,35,'+p+')';nctx.fill();
+          if(p>.7){
             nctx.beginPath();nctx.arc(n.x,n.y,n.r*3.2,0,7);
-            nctx.fillStyle=(n.em?'rgba(46,204,143,':'rgba(245,166,35,')+(pulse-.7)*.25+')';
-            nctx.fill();
+            nctx.fillStyle=(n.em?'rgba(46,204,143,':'rgba(245,166,35,')+((p-.7)*.25)+')';nctx.fill();
           }
         }
       })(0);
     }
 
-    /* ============ Fond vidéo ambiant (généré via Higgsfield/Seedance) ============ */
+    /* ============ Fond : vidéo IA 3D (Higgsfield) — autonome, en boucle ============ */
     if(!reduced){
       const amb=document.querySelector('.bg-ambient');
       const LOCAL='assets/clips/bg-tech.mp4';
-      const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260719_053719_30b17f73-3199-47f6-aaf2-5d2d18699850.mp4';
+      const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4';
       const mount=src=>{
         const v=document.createElement('video');
-        v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;
+        v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.preload='auto';
         v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
-        v.addEventListener('canplay',()=>{v.style.opacity=.38;v.play().catch(()=>{});});
-        v.addEventListener('error',()=>{ if(src===LOCAL) mount(CDN); else v.remove(); });
-        v.src=src; amb.insertBefore(v, amb.querySelector('.bg-scrim'));
+        v.addEventListener('canplay',()=>{v.style.opacity=.42;v.play().catch(()=>{});},{once:true});
+        v.addEventListener('error',()=>{ v.remove(); if(src===LOCAL) mount(CDN); });
+        v.src=src;
+        amb.insertBefore(v, amb.querySelector('.bg-mesh'));
       };
-      // auto-hébergé si présent, sinon CDN Higgsfield ; sans réseau → dégradés seuls
       fetch(LOCAL,{method:'HEAD'}).then(r=>mount(r.ok?LOCAL:CDN)).catch(()=>mount(CDN));
+    }
+
+    /* ============ Poussière + traînées à la vitesse de scroll ============ */
+    if(!reduced){
+      const dc=document.getElementById('dustCanvas'), dctx=dc.getContext('2d');
+      let P=[], lastSY=scrollY, sVel=0;
+      function dsize(){
+        const r=dc.getBoundingClientRect();
+        dc.width=r.width||innerWidth; dc.height=r.height||innerHeight;
+        P=Array.from({length:60},()=>({x:Math.random()*dc.width,y:Math.random()*dc.height,
+          r:Math.random()*1.5+.3,vy:-(Math.random()*.2+.05),vx:(Math.random()-.5)*.09,a:Math.random()*.5+.12}));
+      }
+      dsize(); addEventListener('resize',dsize);
+      (function dust(){
+        requestAnimationFrame(dust);
+        if(document.hidden) return;
+        sVel = sVel*.88 + (scrollY-lastSY)*.12; lastSY=scrollY;
+        const streak=Math.min(30,Math.abs(sVel)*.55);
+        dctx.clearRect(0,0,dc.width,dc.height);
+        for(const p of P){
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.y<-34){p.y=dc.height+30;p.x=Math.random()*dc.width;}
+          if(p.y>dc.height+34){p.y=-30;p.x=Math.random()*dc.width;}
+          if(streak>3){
+            dctx.beginPath();dctx.moveTo(p.x,p.y);
+            dctx.lineTo(p.x,p.y+(sVel>0?streak:-streak)*(p.r*.8));
+            dctx.strokeStyle='rgba(245,166,35,'+(p.a*.85)+')';dctx.lineWidth=p.r*.9;dctx.stroke();
+          } else {
+            dctx.beginPath();dctx.arc(p.x,p.y,p.r,0,7);
+            dctx.fillStyle='rgba(245,166,35,'+p.a+')';dctx.fill();
+          }
+        }
+      })();
     }
 
     /* ============ Barre de progression ============ */
@@ -769,171 +739,131 @@
       progressEl.style.transform='scaleX('+(max>0?scrollY/max:0)+')';
     },{passive:true});
 
-    /* ============ Curseur custom + boutons magnétiques ============ */
-    if(matchMedia('(pointer:fine)').matches && !reduced && hasGSAP){
-      const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
-      gsap.set([dot,ring],{xPercent:-50,yPercent:-50});
-      const dx=gsap.quickTo(dot,'x',{duration:.12,ease:'power2.out'}), dy=gsap.quickTo(dot,'y',{duration:.12,ease:'power2.out'});
-      const rx=gsap.quickTo(ring,'x',{duration:.45,ease:'power2.out'}), ry=gsap.quickTo(ring,'y',{duration:.45,ease:'power2.out'});
-      let shown=false;
-      addEventListener('pointermove',e=>{
-        if(!shown){shown=true;gsap.to([dot,ring],{opacity:1,duration:.4});}
-        dx(e.clientX);dy(e.clientY);rx(e.clientX);ry(e.clientY);
-      },{passive:true});
-      document.querySelectorAll('a,button,select,input,textarea').forEach(el=>{
-        el.addEventListener('pointerenter',()=>ring.classList.add('on'));
-        el.addEventListener('pointerleave',()=>ring.classList.remove('on'));
-      });
-      // magnétisme sur les CTA
-      document.querySelectorAll('.btn').forEach(b=>{
-        b.addEventListener('pointermove',e=>{
-          const r=b.getBoundingClientRect();
-          gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.28,y:(e.clientY-r.top-r.height/2)*.28,duration:.4,ease:'power2.out'});
-        });
-        b.addEventListener('pointerleave',()=>gsap.to(b,{x:0,y:0,duration:.6,ease:'elastic.out(1,.5)'}));
-      });
-    }
-
-    /* ============ GSAP timelines ============ */
+    /* ============ Timelines ============ */
     if(hasGSAP){
-      // Hero: pin + scrub frames + type composition
-      const heroTl = gsap.timeline({
-        scrollTrigger:{trigger:'.hero',start:'top top',end:'+=280%',scrub:.6,pin:true,anticipatePin:1}
-      });
-      heroTl.to(state,{frame:FRAME_COUNT-1,ease:'none',duration:10,onUpdate:render},0);
+      // Hero épinglé : cinémascope + sortie du bloc-titre, la carte 3D recule
+      const heroTl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'+=200%',scrub:.6,pin:true,anticipatePin:1}});
+      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:.6},.5);
+      heroTl.fromTo('.cinebar',{height:0},{height:'6vh',duration:1.6,ease:'power2.out'},.4);
+      heroTl.fromTo('#heroCard',{scale:1},{keyframes:[{scale:1.12,z:70,duration:3,ease:'power1.inOut'},{scale:.9,z:-50,duration:4,ease:'power1.in'}],duration:7},0);
+      heroTl.fromTo('.hero-copy',{yPercent:0,opacity:1},{yPercent:-14,opacity:0,duration:2.4,ease:'power2.in'},5.2);
+      heroTl.fromTo('#hero3d',{opacity:1,z:0},{opacity:0,z:-300,duration:2.2,ease:'power2.in'},5.4);
+      heroTl.to('.cinebar',{height:0,duration:1.2,ease:'power2.in'},6.4);
 
-      // Scroll : le cue s'efface, puis le bloc-titre sort en parallaxe.
-      // fromTo rembobinable — au retour en haut, tout est restauré.
-      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:.6},.8);
-      heroTl.fromTo('.hero-type',{yPercent:0,opacity:1},{yPercent:-18,opacity:0,duration:2.6,ease:'power2.in'},7.4);
-
-      // punch-in cinématique : la carte fond sur la caméra puis recule (scrubbé)
-      heroTl.fromTo('#heroCard',{scale:1},{keyframes:[{scale:1.16,z:90,duration:3.2,ease:'power1.inOut'},{scale:1,z:0,duration:3.4,ease:'power1.inOut'},{scale:.84,z:-60,duration:3.4,ease:'power1.in'}],duration:10},0);
-      heroTl.fromTo('#hero3d',{opacity:1,z:0},{opacity:0,z:-320,duration:2.2,ease:'power2.in'},7.6);
-
-      // ===== MOTEUR DE ROTATION AUTONOME + TURBO AU SCROLL =====
-      // La carte tourne seule en continu (un tour ≈ 3,2 s) ; le scroll injecte
-      // un boost angulaire qui s'amortit — accélérations franches, façon film d'action.
+      // Rotation 3D AUTONOME + turbo au scroll
       (function(){
         const spinEl=document.getElementById('heroSpin'),
               haloEl=document.getElementById('heroHalo'),
-              sheenEls=gsap.utils.toArray('.card-sheen');
+              sheens=gsap.utils.toArray('.card-sheen');
         let angle=0, ringAng=0, boost=0, lastY=scrollY;
-        const BASE=112, MAXBOOST=1080; // deg/s
+        const BASE=112, MAXBOOST=1080;
         gsap.ticker.add((t,dtms)=>{
           if(document.hidden) return;
-          if(scrollY>innerHeight*4.5){ lastY=scrollY; return; } // hero hors champ
+          if(scrollY>innerHeight*3.4){ lastY=scrollY; return; }
           const dt=Math.min(dtms,80)/1000;
           const dy=scrollY-lastY; lastY=scrollY;
-          boost=boost*Math.pow(.06,dt)+Math.abs(dy)*3.4; // décharge rapide, charge nerveuse
+          boost=boost*Math.pow(.06,dt)+Math.abs(dy)*3.4;
           const speed=BASE+Math.min(boost,MAXBOOST);
-          angle=(angle+speed*dt)%360;
-          ringAng+=speed*.55*dt;
+          angle=(angle+speed*dt)%360; ringAng+=speed*.55*dt;
           gsap.set(spinEl,{rotationY:angle});
           gsap.set('#ringA',{rotation:-ringAng});
           gsap.set('#ringB',{rotation:ringAng*.72});
-          // flare quand la tranche passe face caméra + reflet suivant l'angle réel
           const s=Math.abs(Math.sin(angle*Math.PI/180));
           gsap.set(haloEl,{opacity:.45+.6*Math.pow(s,7),scale:1+.14*Math.pow(s,7)});
-          sheenEls.forEach(el=>gsap.set(el,{xPercent:Math.sin(angle*Math.PI/180)*70}));
+          sheens.forEach(el=>gsap.set(el,{xPercent:Math.sin(angle*Math.PI/180)*70}));
         });
       })();
-      // cinémascope : les barres se ferment pendant la séquence
-      heroTl.fromTo('.cinebar',{height:0},{height:'6.5vh',duration:1.6,ease:'power2.out'},.6);
-      heroTl.to('.cinebar',{height:0,duration:1.4,ease:'power2.in'},8.2);
 
-      // Chargement : ESTEVAO se compose lettre par lettre, puis sous-titre et tagline
-      gsap.set('#heroName span',{opacity:0,y:'40%',rotateX:60});
-      gsap.to('#heroCard',{opacity:1,duration:1.6,ease:'power2.out',delay:.7});
-      gsap.from('#heroCard',{y:60,duration:1.6,ease:'power3.out',delay:.7});
-      gsap.from(['#ringA','#ringB'],{opacity:0,duration:2.2,stagger:.25,delay:1.2,ease:'power2.out'});
-      gsap.to('#heroName span',{opacity:1,y:'0%',rotateX:0,stagger:.14,duration:1.3,ease:'power3.out',delay:1.15});
-      gsap.to('#heroSub',{opacity:1,duration:1,delay:2.4});
-      gsap.to('#heroTagline',{opacity:1,duration:1,delay:2.8});
+      // Entrée au chargement
+      gsap.fromTo('#heroCard',{opacity:0,y:50},{opacity:1,y:0,duration:1.6,ease:'power3.out',delay:.55});
+      gsap.fromTo(['#ringA','#ringB'],{opacity:0},{opacity:1,duration:2.2,stagger:.25,delay:1,ease:'power2.out'});
+      gsap.to('#heroEyebrow',{opacity:1,duration:1,delay:.75});
+      window.revealTitle=function(){
+        gsap.set('#heroTitle .w',{opacity:0,y:'42%',rotateX:55});
+        gsap.to('#heroTitle .w',{opacity:1,y:'0%',rotateX:0,stagger:.045,duration:.9,ease:'power3.out',delay:.9});
+      };
+      window.revealTitle();
+      gsap.to('#heroLede',{opacity:1,duration:1,delay:1.7});
+      gsap.to('#heroCta',{opacity:1,duration:1,delay:1.95});
+      gsap.to('#heroMeta',{opacity:1,duration:1,delay:2.15});
 
-      // Inclinaison à la souris (desktop) — sur la carte, indépendante du spin scrollé
-      if(matchMedia('(pointer:fine)').matches){
-        const qx=gsap.quickTo('#heroCard','rotationX',{duration:.7,ease:'power2.out'});
-        const qy=gsap.quickTo('#heroCard','rotationY',{duration:.7,ease:'power2.out'});
-        document.getElementById('heroStage').addEventListener('pointermove',e=>{
-          qy(((e.clientX/innerWidth)-.5)*10);
-          qx(((e.clientY/innerHeight)-.5)*-8);
-        });
-      }
-
-      // Manifesto : mots qui s'allument
-      window.initManifestoTrigger = function(){
-        ScrollTrigger.getById('manif') && ScrollTrigger.getById('manif').kill();
-        const words = document.querySelectorAll('#manifestoText .word');
-        ScrollTrigger.create({id:'manif',trigger:'.manifesto',start:'top 75%',end:'bottom 55%',scrub:.4,
-          onUpdate:self=>{ const n=Math.floor(self.progress*words.length);
-            words.forEach((w,i)=>w.classList.toggle('lit',i<=n)); }});
+      // Manifesto
+      window.initManifestoTrigger=function(){
+        const old=ScrollTrigger.getById('manif'); if(old) old.kill();
+        const words=document.querySelectorAll('#manifestoText .word');
+        ScrollTrigger.create({id:'manif',trigger:'.manifesto',start:'top 78%',end:'bottom 55%',scrub:.4,
+          onUpdate:self=>{const n=Math.floor(self.progress*words.length);
+            words.forEach((w,i)=>w.classList.toggle('lit',i<=n));}});
       };
       window.initManifestoTrigger();
 
-      // Stats count-up
-      document.querySelectorAll('.stat-num[data-count]').forEach(el=>{
+      // Compteurs
+      document.querySelectorAll('.num-val[data-count]').forEach(el=>{
         const target=+el.dataset.count, val=el.querySelector('.val');
-        ScrollTrigger.create({trigger:el,start:'top 85%',once:true,onEnter:()=>{
-          gsap.to({n:0},{n:target,duration:1.8,ease:'power2.out',onUpdate:function(){val.textContent=Math.round(this.targets()[0].n);}});
+        ScrollTrigger.create({trigger:el,start:'top 88%',once:true,onEnter:()=>{
+          gsap.to({n:0},{n:target,duration:1.9,ease:'power2.out',
+            onUpdate:function(){val.textContent=Math.round(this.targets()[0].n);}});
         }});
       });
 
-      // Piliers : reveal
-      document.querySelectorAll('.pillar').forEach(p=>{
-        gsap.from(p.querySelector('.pillar-media'),{opacity:0,y:80,scale:.94,duration:1.2,ease:'power3.out',
-          scrollTrigger:{trigger:p,start:'top 70%'}});
-        gsap.from(p.querySelectorAll('.pillar-copy > *'),{opacity:0,y:40,stagger:.12,duration:1,ease:'power3.out',
-          scrollTrigger:{trigger:p,start:'top 65%'}});
-      });
-
-      // Work cards
-      gsap.from('.work-card',{opacity:0,y:60,stagger:.08,duration:.9,ease:'power3.out',
-        scrollTrigger:{trigger:'.work-grid',start:'top 80%'}});
-
-      // Contact beam
+      // Reveals — fromTo explicite : l'état d'arrivée ne dépend jamais du style ambiant,
+      // sinon un élément peut rester bloqué à opacity:0.
+      const reveal=(targets,trigger,start,y,stagger)=>{
+        const els=gsap.utils.toArray(targets);
+        if(!els.length) return;
+        gsap.fromTo(els,{opacity:0,y:y},{opacity:1,y:0,stagger:stagger,duration:.95,ease:'power3.out',
+          overwrite:'auto',scrollTrigger:{trigger:trigger,start:start}});
+      };
+      document.querySelectorAll('.sec-head').forEach(h=>reveal(h.children,h,'top 84%',34,.12));
+      reveal('.comp','.grid-comp','top 84%',52,.08);
+      reveal('.who','.grid-who','top 88%',46,.09);
+      reveal('.work-card','.grid-work','top 86%',56,.08);
+      reveal('.contact-inner > *','.contact','top 58%',46,.14);
       gsap.to('#contactBeam',{scaleX:1,duration:2,ease:'power3.inOut',
-        scrollTrigger:{trigger:'.contact',start:'top 60%'}});
-      gsap.from('.contact-inner > *',{opacity:0,y:50,stagger:.15,duration:1.1,ease:'power3.out',
-        scrollTrigger:{trigger:'.contact',start:'top 55%'}});
+        scrollTrigger:{trigger:'.contact',start:'top 62%'}});
+
+      // Recalage après chargement des polices/images (positions de trigger fiables)
+      addEventListener('load',()=>ScrollTrigger.refresh());
+      if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>ScrollTrigger.refresh());
+
+      // Curseur + CTA magnétiques
+      if(matchMedia('(pointer:fine)').matches){
+        const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
+        gsap.set([dot,ring],{xPercent:-50,yPercent:-50});
+        const dx=gsap.quickTo(dot,'x',{duration:.12,ease:'power2.out'}), dy=gsap.quickTo(dot,'y',{duration:.12,ease:'power2.out'});
+        const rx=gsap.quickTo(ring,'x',{duration:.45,ease:'power2.out'}), ry=gsap.quickTo(ring,'y',{duration:.45,ease:'power2.out'});
+        let shown=false;
+        addEventListener('pointermove',e=>{
+          if(!shown){shown=true;gsap.to([dot,ring],{opacity:1,duration:.4});}
+          dx(e.clientX);dy(e.clientY);rx(e.clientX);ry(e.clientY);
+        },{passive:true});
+        document.querySelectorAll('a,button,select,input,textarea').forEach(el=>{
+          el.addEventListener('pointerenter',()=>ring.classList.add('on'));
+          el.addEventListener('pointerleave',()=>ring.classList.remove('on'));
+        });
+        document.querySelectorAll('.btn').forEach(b=>{
+          b.addEventListener('pointermove',e=>{
+            const r=b.getBoundingClientRect();
+            gsap.to(b,{x:(e.clientX-r.left-r.width/2)*.26,y:(e.clientY-r.top-r.height/2)*.26,duration:.4,ease:'power2.out'});
+          });
+          b.addEventListener('pointerleave',()=>gsap.to(b,{x:0,y:0,duration:.6,ease:'elastic.out(1,.5)'}));
+        });
+        // inclinaison de la carte à la souris
+        const qx=gsap.quickTo('#heroCard','rotationX',{duration:.7,ease:'power2.out'});
+        document.getElementById('heroStage').addEventListener('pointermove',e=>
+          qx(((e.clientY/innerHeight)-.5)*-8));
+      }
     } else {
-      // Statique : tout visible, stats affichées directement
-      document.querySelectorAll('.stat-num[data-count]').forEach(el=>{
-        el.querySelector('.val').textContent = el.dataset.count;
-      });
+      document.querySelectorAll('.num-val[data-count]').forEach(el=>{ el.querySelector('.val').textContent=el.dataset.count; });
       document.querySelectorAll('#manifestoText .word').forEach(w=>w.classList.add('lit'));
-      if(framesAvailable) state.frame=0;
     }
 
-    /* ============ Lazy-load clips 2-4 ============ */
-    const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries=>{
-      entries.forEach(e=>{
-        if(!e.isIntersecting) return;
-        const holder=e.target, src=holder.dataset.clip;
-        io.unobserve(holder);
-        fetch(src,{method:'HEAD'}).then(r=>{
-          if(!r.ok) return; // clip pas encore intégré : placeholder reste
-          const v=document.createElement('video');
-          v.src=src; v.muted=true; v.loop=true; v.playsInline=true; v.autoplay=!reduced;
-          v.setAttribute('muted',''); v.setAttribute('playsinline','');
-          v.style.opacity=0; v.style.transition='opacity 1s ease';
-          holder.prepend(v);
-          v.addEventListener('canplay',()=>{ v.style.opacity=1; if(!reduced) v.play().catch(()=>{}); const ph=holder.querySelector('.media-placeholder'); if(ph) ph.style.opacity=0; });
-        }).catch(()=>{});
-      });
-    },{rootMargin:'300px'}) : null;
-    if(io) document.querySelectorAll('.pillar-media[data-clip]').forEach(el=>io.observe(el));
-
-    /* ============ Contact form toggle ============ */
+    /* ============ Formulaire ============ */
     document.getElementById('openForm').addEventListener('click',()=>{
       const f=document.getElementById('qualForm');
       f.classList.toggle('open');
       if(f.classList.contains('open')) f.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'});
     });
-
-    /* ============ Loader out ============ */
-    addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'), reduced?0:900));
-    setTimeout(()=>document.getElementById('loader').classList.add('done'),3500); // sécurité
   })();
   </script>
 </body>
