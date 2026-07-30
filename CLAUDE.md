@@ -158,6 +158,12 @@ written in the markup; both `fr` and `en` live in the `dict` object in
 
 - `.claude/agents/{architect,researcher,strategist}.md` — specialized
   subagents, invocable by name.
+- `.claude/skills/last30days/` — `/last30days`, multi-source research on what
+  people said about a topic in the last 30 days (Reddit, X, YouTube, TikTok,
+  HN, Polymarket, GitHub, web). Vendored third-party, MIT. Needs Python 3.12+;
+  if the default `python3` is older, set `LAST30DAYS_PYTHON`. Runs keyless;
+  ask it to run `doctor` to see which sources are live. Rationale and local
+  patches: `docs/decisions/2026-07-29-install-last30days-skill.md`.
 - `docs/decisions/` — decision records (date-prefixed, one file each).
 - `docs/hermes-setup.md` — runbook for the Hermes agent runtime (external to
   this site; verified live end-to-end on the Anthropic API).

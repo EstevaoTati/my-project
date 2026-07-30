@@ -9,4 +9,5 @@
 /CLAUDE.md     /index.html   200!
 /scripts/*     /index.html   200!
 /package.json  /index.html   200!
+/.claude/*     /index.html   200!
 /*          /index.html      200
