@@ -828,17 +828,66 @@
         'assets/clips/bg-tech.mp4',    // fichier local, ou proxy Netlify
         'https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4'
       ];
+      let vid=null, idx=0, lastT=-1, strikes=0;
+
+      // Relance dès que la lecture s'interrompt, pour quelque raison que ce soit.
+      const ensurePlaying=()=>{
+        if(!vid || document.hidden) return;
+        if(vid.ended) vid.currentTime=0;
+        if(vid.paused){ const p=vid.play(); if(p&&p.catch) p.catch(()=>{}); }
+      };
+
       const mount=i=>{
-        if(i>=SOURCES.length) return;                 // aucun média : le canvas suffit
+        if(i>=SOURCES.length){ vid=null; return; }    // aucun média : le canvas suffit
+        idx=i;
         const v=document.createElement('video');
-        v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.preload='auto';
-        v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
-        v.addEventListener('canplay',()=>{v.style.opacity=.62;v.play().catch(()=>{});},{once:true});
-        v.addEventListener('error',()=>{v.remove();mount(i+1);},{once:true});
+        v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
+        v.autoplay=true; v.preload='auto'; v.disablePictureInPicture=true;
+        // attributs en dur : certains navigateurs n'honorent l'autoplay muet que via l'attribut
+        ['muted','playsinline','autoplay','loop'].forEach(a=>v.setAttribute(a,''));
+        v.setAttribute('aria-hidden','true');
+        v.addEventListener('canplay',()=>{ v.style.opacity=.62; ensurePlaying(); },{once:true});
+        v.addEventListener('loadeddata',ensurePlaying);
+        v.addEventListener('pause',ensurePlaying);     // pause système, touche média, économie d'énergie
+        v.addEventListener('ended',ensurePlaying);     // sécurité si loop est ignoré
+        v.addEventListener('stalled',ensurePlaying);
+        v.addEventListener('waiting',ensurePlaying);
+        v.addEventListener('error',()=>{ v.remove(); mount(i+1); },{once:true});
         v.src=SOURCES[i];
+        vid=v;
         amb.insertBefore(v,amb.querySelector('.bg-mesh'));
       };
       mount(0);
+
+      // Retour d'onglet, restauration depuis le cache, dégel de page, reprise de focus
+      document.addEventListener('visibilitychange',()=>{ if(!document.hidden) ensurePlaying(); });
+      addEventListener('pageshow',ensurePlaying);
+      addEventListener('focus',ensurePlaying);
+      document.addEventListener('resume',ensurePlaying);   // Page Lifecycle API
+      // Si l'autoplay a été refusé, la première interaction démarre la lecture
+      ['pointerdown','touchstart','keydown'].forEach(ev=>
+        addEventListener(ev,ensurePlaying,{passive:true}));
+
+      // Chien de garde : la couche vidéo doit être présente, visible et en
+      // progression. Il couvre trois pannes : élément arraché du DOM, flux
+      // figé (paused=false mais temps immobile), et échec de toutes les
+      // sources au chargement (réseau indisponible au premier essai).
+      let retries=0;
+      setInterval(()=>{
+        if(document.hidden) return;
+        if(!vid){                                  // plus aucune source jouable
+          if(retries<10){ retries++; mount(0); }   // nouvelle tentative, bornée
+          return;
+        }
+        if(!vid.isConnected){                      // couche retirée du document
+          const at=idx; vid=null; mount(at); return;
+        }
+        if(vid.paused){ ensurePlaying(); return; }
+        if(vid.currentTime===lastT){
+          if(++strikes>=2){ strikes=0; const at=idx; vid.remove(); vid=null; mount(at); }
+        } else { strikes=0; retries=0; }
+        lastT=vid?vid.currentTime:-1;
+      },3000);
     }
 
     /* ---------- Poussière + traînées de vitesse ---------- */

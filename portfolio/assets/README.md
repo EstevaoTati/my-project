@@ -83,3 +83,34 @@ Elles ne sont pas nécessaires au site et sont exclues du paquet Netlify.
 - `estevao-graded.jpg` — portrait étalonné (nuit + liseré ambre) affiché
   sur la face avant de la carte 3D du hero.
 - `hero/og-frame.jpg` — image Open Graph 1200×630.
+
+## Garantie « toujours animé »
+
+La couche vidéo est conçue pour ne jamais s'arrêter. `index.html` installe :
+
+- une **relance immédiate** sur les événements `pause`, `ended`, `stalled`
+  et `waiting` — une pause système, une touche média ou un mode économie
+  d'énergie ne peut pas figer le fond ;
+- une **reprise** sur `visibilitychange` (retour d'onglet), `pageshow`
+  (restauration depuis le cache de navigation), `focus` et `resume`
+  (dégel de page, Page Lifecycle API) ;
+- un **démarrage à la première interaction** (`pointerdown`, `touchstart`,
+  `keydown`) si le navigateur a refusé l'autoplay ;
+- un **chien de garde toutes les 3 s** qui vérifie que la couche est bien
+  présente dans le document, visible et en progression. Il corrige trois
+  pannes : élément retiré du DOM, flux figé (`paused=false` mais temps
+  immobile), et échec de toutes les sources au chargement — dans ce dernier
+  cas il retente jusqu'à 10 fois, donc la vidéo reprend d'elle-même dès que
+  le réseau revient.
+
+Le chien de garde ne travaille pas quand l'onglet est masqué (aucune
+consommation inutile) et ne crée jamais de second élément vidéo.
+
+Testé au navigateur : pause forcée, 5 pauses en rafale, onglet masqué puis
+revenu, fin de flux, élément arraché du DOM, réseau coupé puis rétabli, et
+un test d'endurance de 60 s avec perturbations — **aucun échantillon en
+pause, un seul élément vidéo, 8 boucles observées**.
+
+Seule exception volontaire : `prefers-reduced-motion: reduce`, où la vidéo
+reste désactivée pour des raisons d'accessibilité (le site reste complet et
+lisible).
