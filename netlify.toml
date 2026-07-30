@@ -15,6 +15,16 @@
 #   to = "/preview.html"
 #   status = 200
 
+# Vidéo de fond de la landing page : servie depuis notre propre domaine.
+# Netlify va chercher le fichier chez Higgsfield et le sert en même origine,
+# donc aucun média distant côté navigateur. force = false : si le fichier
+# portfolio/assets/clips/bg-tech.mp4 est déposé dans le repo, il gagne.
+[[redirects]]
+  from = "/portfolio/assets/clips/bg-tech.mp4"
+  to = "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4"
+  status = 200
+  force = false
+
 # 404 fallback (optional; the site is single-page anchors so usually unused)
 [[redirects]]
   from = "/*"

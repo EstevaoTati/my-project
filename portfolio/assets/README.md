@@ -27,24 +27,42 @@ Composite (image fixe, sert aussi de poster) :
 https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005304_ae0b54f6-2254-48b0-a99f-b69de3098d1a.png
 ```
 
-### Auto-héberger la vidéo (recommandé)
+### Comment la vidéo est servie
 
-L'URL CDN peut expirer, et certains hébergeurs à CSP stricte bloquent les
-médias distants. Une seule commande, puis commit :
+`netlify.toml` déclare un **proxy** sur `/assets/clips/bg-tech.mp4`
+(`status = 200`, `force = false`) : Netlify va chercher le clip chez
+Higgsfield et le renvoie **en même origine**. Le navigateur du visiteur ne
+contacte donc aucun serveur externe, et la vidéo joue dès le déploiement,
+sans configuration.
+
+Ordre des sources tenté par le site (le premier qui charge gagne) :
+
+1. `assets/clips/bg-tech.webm` — variante VP9 si vous en produisez une ;
+2. `assets/clips/bg-tech.mp4` — fichier local, sinon le proxy Netlify ;
+3. l'URL CDN Higgsfield en dernier recours ;
+4. sinon : le réseau neuronal canvas, seul, qui reste toujours animé.
+
+### Auto-héberger la vidéo (recommandé à terme)
+
+L'URL CDN peut expirer. Une commande, puis commit :
 
 ```bash
 curl -L -o portfolio/assets/clips/bg-tech.mp4 \
   "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4"
 ```
 
-Le site détecte et préfère automatiquement `assets/clips/bg-tech.mp4`
-lorsqu'il existe ; sinon il retombe sur le CDN, puis sur le réseau
-neuronal seul. Compression conseillée si le fichier dépasse ~4 Mo :
+Le fichier local est alors servi en priorité sur le proxy, sans toucher au
+code. Compression conseillée au-delà de ~5 Mo :
 
 ```bash
-ffmpeg -i bg-tech.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 27 \
+ffmpeg -i bg-tech.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 28 \
   -preset slow -movflags +faststart bg-tech-web.mp4
+# variante WebM, plus légère, servie en priorité :
+ffmpeg -i bg-tech.mp4 -an -c:v libvpx-vp9 -b:v 700k bg-tech.webm
 ```
+
+L'opacité de la couche vidéo est de **62 %** (`index.html`, événement
+`canplay`) : nettement visible tout en préservant la lisibilité du texte.
 
 ## 2. Typographie
 

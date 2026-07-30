@@ -55,9 +55,11 @@
     .bg-ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--void)}
     .bg-ambient canvas,.bg-ambient video{position:absolute;inset:0;width:100%;height:100%}
     .bg-ambient video{object-fit:cover;opacity:0;transition:opacity 2.6s ease;filter:saturate(1.08) contrast(1.04)}
+    /* Voile assez léger pour laisser voir la vidéo, assez dense pour
+       garder le texte lisible (les sections ont en plus leur propre fond). */
     .bg-ambient .bg-scrim{position:absolute;inset:0;background:
-      radial-gradient(ellipse 130% 95% at 50% 0%,rgba(5,7,14,.4),rgba(5,7,14,.85) 76%),
-      linear-gradient(180deg,rgba(5,7,14,.28),rgba(5,7,14,.72))}
+      radial-gradient(ellipse 130% 95% at 50% 0%,rgba(5,7,14,.26),rgba(5,7,14,.72) 78%),
+      linear-gradient(180deg,rgba(5,7,14,.18),rgba(5,7,14,.58))}
     .bg-ambient .bg-mesh{position:absolute;inset:0;opacity:.45;background:
       repeating-linear-gradient(0deg,transparent 0 68px,rgba(245,166,35,.04) 68px 69px),
       repeating-linear-gradient(90deg,transparent 0 68px,rgba(245,166,35,.04) 68px 69px)}
@@ -814,20 +816,29 @@
       })(0);
     }
 
-    /* ---------- Fond : vidéo 3D IA autonome ---------- */
+    /* ---------- Fond : vidéo 3D IA autonome (Higgsfield) ----------
+       On tente d'abord l'URL de même origine : sur Netlify elle est servie
+       soit par le fichier déposé dans assets/clips/, soit par le proxy
+       déclaré dans netlify.toml. Si elle échoue (dev local, autre hôte),
+       on retombe sur le CDN, puis sur le réseau neuronal seul. */
     if(!reduced){
       const amb=document.querySelector('.bg-ambient');
-      const LOCAL='assets/clips/bg-tech.mp4';
-      const CDN='https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4';
-      const mount=src=>{
+      const SOURCES=[
+        'assets/clips/bg-tech.webm',   // variante VP9 si elle existe (plus légère)
+        'assets/clips/bg-tech.mp4',    // fichier local, ou proxy Netlify
+        'https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4'
+      ];
+      const mount=i=>{
+        if(i>=SOURCES.length) return;                 // aucun média : le canvas suffit
         const v=document.createElement('video');
         v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.preload='auto';
         v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
-        v.addEventListener('canplay',()=>{v.style.opacity=.42;v.play().catch(()=>{});},{once:true});
-        v.addEventListener('error',()=>{v.remove(); if(src===LOCAL) mount(CDN);});
-        v.src=src; amb.insertBefore(v,amb.querySelector('.bg-mesh'));
+        v.addEventListener('canplay',()=>{v.style.opacity=.62;v.play().catch(()=>{});},{once:true});
+        v.addEventListener('error',()=>{v.remove();mount(i+1);},{once:true});
+        v.src=SOURCES[i];
+        amb.insertBefore(v,amb.querySelector('.bg-mesh'));
       };
-      fetch(LOCAL,{method:'HEAD'}).then(r=>mount(r.ok?LOCAL:CDN)).catch(()=>mount(CDN));
+      mount(0);
     }
 
     /* ---------- Poussière + traînées de vitesse ---------- */
