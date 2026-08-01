@@ -1,38 +1,22 @@
-# Netlify configuration — MWINDA GROUP LLC
-# Static site, no build step required.
-
+# Landing page — AI Consultant & Agentic Operating Systems.
+# Site statique, aucun build.
 [build]
   publish = "."
   command = ""
 
-[build.environment]
-  NODE_VERSION = "20"
-
-# Pretty URL: serve preview.html-style content from the homepage if you ever
-# want it; default is index.html. Kept here as a reference, commented out.
-# [[redirects]]
-#   from = "/preview"
-#   to = "/preview.html"
-#   status = 200
-
-# Vidéo de fond de la landing page : servie depuis notre propre domaine.
-# Netlify va chercher le fichier chez Higgsfield et le sert en même origine,
-# donc aucun média distant côté navigateur. force = false : si le fichier
-# portfolio/assets/clips/bg-tech.mp4 est déposé dans le repo, il gagne.
+# ---------------------------------------------------------------------------
+# VIDÉO DE FOND — servie depuis VOTRE domaine.
+# Netlify va chercher le clip 3D généré sur Higgsfield et le renvoie en
+# même origine : le navigateur ne contacte aucun serveur externe.
+# force = false → si vous déposez assets/clips/bg-tech.mp4 dans le dossier,
+# c'est ce fichier local qui est servi (voir fetch-video.sh).
+# ---------------------------------------------------------------------------
 [[redirects]]
-  from = "/portfolio/assets/clips/bg-tech.mp4"
+  from = "/assets/clips/bg-tech.mp4"
   to = "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4"
   status = 200
   force = false
 
-# 404 fallback (optional; the site is single-page anchors so usually unused)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
-
-# ----- Security & performance headers -----
 [[headers]]
   for = "/*"
   [headers.values]
@@ -41,19 +25,24 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    # Allow CDN scripts (Three.js, GSAP) and Google Fonts
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self'; frame-ancestors 'self';"
+    # Tout est auto-hébergé : GSAP, polices woff2 en base64, et la vidéo
+    # passe par le proxy ci-dessus. media-src garde le CDN en secours.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self'; frame-ancestors 'self';"
 
-# Cache static assets aggressively
 [[headers]]
-  for = "/*.css"
+  for = "/vendor/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "/*.js"
+  for = "/assets/clips/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
 
 [[headers]]
   for = "/*.html"

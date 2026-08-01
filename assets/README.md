@@ -1,4 +1,4 @@
-# Assets — Landing page Estevao / Mwinda Group
+# Assets — Landing page AI Consultant &amp; Agentic Operating Systems
 
 ## 1. Fond animé (en place ✓)
 
