@@ -2,6 +2,24 @@
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3B7dQI8vO0VOheSsCtN1mkahG+AmmWvJtGtn65qxWq8=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-VJ2gFfUQR5R8R26JZGV4eBvAmgkN0FPChZxD6H94t8c=' 'sha256-pS7KjmLQzzvmV/z9Inqb2oiPySngNnIaZCWquMkdNME=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests;
+
+/os
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3B7dQI8vO0VOheSsCtN1mkahG+AmmWvJtGtn65qxWq8=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-VJ2gFfUQR5R8R26JZGV4eBvAmgkN0FPChZxD6H94t8c=' 'sha256-W1PJf+9mz17GE36EpDog5jsFme7D1RqjGMTUKEnHB5s=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+
+/os.html
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3B7dQI8vO0VOheSsCtN1mkahG+AmmWvJtGtn65qxWq8=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-VJ2gFfUQR5R8R26JZGV4eBvAmgkN0FPChZxD6H94t8c=' 'sha256-W1PJf+9mz17GE36EpDog5jsFme7D1RqjGMTUKEnHB5s=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+
+/.netlify/functions/*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
 
 /*.css
   Cache-Control: public, max-age=31536000, immutable

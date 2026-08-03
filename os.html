@@ -766,13 +766,24 @@
     const text = input.value.trim();
     if (!text || send.disabled) return;
 
-    if (text.toLowerCase().startsWith('/os ')) {
-      osKey = text.slice(4).trim() || null;
+    // Accept sloppy variants of the unlock command ("os KEY", "/OS  KEY",
+    // stray leading spaces). Without this, a near-miss sends the founder key
+    // to the model as an ordinary chat message and into session storage.
+    const unlock = text.match(/^\/?os\s+(\S.*)$/i);
+    if (unlock) {
+      osKey = unlock[1].trim() || null;
       if (osKey) sessionStorage.setItem(OS_STORE, osKey);
       applyMode();
       input.value = '';
       clearHistory();
       addMsg('assistant', 'Kernel mode requested — envoyez une directive pour vérifier la clé. / Send a directive to verify the key.');
+      return;
+    }
+    // Last-resort guard: never transmit anything shaped like the founder key
+    // as conversation content, whatever the user typed.
+    if (/MWINDA-OS-[0-9a-f]{12,}/i.test(text) || (osKey && text.indexOf(osKey) !== -1)) {
+      input.value = '';
+      addMsg('assistant', 'Message bloqué : il contenait votre clé fondateur. Utilisez « /os <clé> » pour déverrouiller. / Blocked: that message contained your founder key. Use "/os <key>" to unlock.');
       return;
     }
     if (text.toLowerCase() === '/public') {
