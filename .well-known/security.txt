@@ -1,0 +1,11 @@
+# MWINDA DIGITAL — security contact
+Contact: mailto:estevaomacumba@gmail.com
+Preferred-Languages: en, fr
+Canonical: https://polite-cendol-dbf4d6.netlify.app/.well-known/security.txt
+Expires: 2027-01-01T00:00:00.000Z
+Policy: https://polite-cendol-dbf4d6.netlify.app/.well-known/security.txt
+
+# If you have found a vulnerability in this site or its serverless endpoints,
+# please report it privately to the address above before disclosing it.
+# Please do not run automated load or denial-of-service tests: the AI endpoint
+# is metered and abuse costs us money directly.

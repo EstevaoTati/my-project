@@ -4,9 +4,15 @@
 /os         /os.html         200
 
 # Internal repo files: never serve publicly (briefs go through the
-# key-gated /.netlify/functions/brief endpoint instead).
-/docs/*        /index.html   200!
-/CLAUDE.md     /index.html   200!
-/scripts/*     /index.html   200!
-/package.json  /index.html   200!
+# key-gated /.netlify/functions/brief endpoint instead). Mirrored in
+# netlify.toml, which Netlify evaluates first.
+/docs/*             /index.html   404!
+/scripts/*          /index.html   404!
+/netlify/*          /index.html   404!
+/.claude/*          /index.html   404!
+/CLAUDE.md          /index.html   404!
+/package.json       /index.html   404!
+/package-lock.json  /index.html   404!
+/DEPLOY-NETLIFY.md  /index.html   404!
+/mwinda-netlify.zip /index.html   404!
 /*          /index.html      200
