@@ -91,34 +91,102 @@ const BASE_URL = process.env.BASE_URL || null;
   const section = (name) => console.log(`\n── ${name} ──`);
 
   await page.goto(BASE_URL || `http://localhost:${PORT}/`, { waitUntil: "networkidle" });
-  await page.waitForSelector("text=Chaque problème est un besoin", { timeout: 25000 });
-  await page.waitForTimeout(900);
+
+  section("Splash & first launch");
+  // The directives put a 2-3s logo animation before anything else. Assert it is
+  // actually on screen rather than just waiting it out.
+  await check("splash shows the wordmark on black", async () => {
+    const ok = await seen("text=242Konnect");
+    const ground = await page.evaluate(() => {
+      const el = [...document.querySelectorAll("div")].find(
+        (d) => getComputedStyle(d).backgroundColor === "rgb(10, 10, 10)"
+      );
+      return !!el;
+    });
+    return ok && ground;
+  });
+  await page.screenshot({ path: `${OUT}/s0-splash.png` });
+  await check("splash hands off to Commencer on first launch", async () => {
+    await page.waitForSelector("text=Chaque problème est un besoin", { timeout: 25000 });
+    return true;
+  });
+  await page.waitForTimeout(700);
 
   section("Welcome & account");
   await check("welcome screen", () => seen("text=Chaque problème est un besoin"));
+  await check("Découvrir opens the presentation", async () => {
+    await tap('[aria-label="Découvrir 242Konnect"]');
+    return seen("text=Comment ça marche");
+  });
+  await check("presentation states the escrow rule", () => seen("text=jusqu'à ce que vous validiez"));
+  await check("presentation closes", async () => { await tap('[aria-label="Fermer"]'); return seen("text=Créer un compte"); });
   await check("welcome to sign in", async () => { await tap("text=J'ai déjà un compte"); return seen("text=Bon retour"); });
+  await check("sign in accepts phone or e-mail", () => seen('[aria-label="Numéro de téléphone ou e-mail"]'));
   await check("unknown credentials rejected", async () => {
-    await fill('[aria-label="Numéro de téléphone"]', "061234567");
+    await fill('[aria-label="Numéro de téléphone ou e-mail"]', "061234567");
     await fill('[aria-label="Mot de passe"]', "mauvais");
     await tap('[aria-label="Se connecter"]');
-    return seen("text=Numéro ou mot de passe incorrect");
+    return seen("text=Identifiant ou mot de passe incorrect");
   });
   await check("sign in to sign up", async () => { await tap("text=Créer un compte"); return seen("text=Créer votre compte"); });
   await check("submit disabled while incomplete", async () => {
     const el = await visible('[aria-label="Créer mon compte"]');
     return el && (await el.getAttribute("aria-disabled")) === "true";
   });
-  await check("pro role warns space isn't built", async () => {
-    await tap('[aria-label="Je suis professionnel"]');
-    return seen("text=L'espace professionnel arrive bientôt");
+
+  section("Profiles, OTP, uniqueness");
+  await check("three profiles offered", async () =>
+    (await seen('[aria-label="Particulier"]')) &&
+    (await seen('[aria-label="Prestataire"]')) &&
+    (await seen('[aria-label="Business"]')));
+  await check("Prestataire warns its space isn't built", async () => {
+    await tap('[aria-label="Prestataire"]');
+    return seen("text=L'espace Prestataire");
   });
-  await check("back to client role", () => tap('[aria-label="Je cherche un service"]'));
-  await check("create the account", async () => {
+  await check("Business warns its space isn't built", async () => {
+    await tap('[aria-label="Business"]');
+    return seen("text=L'espace Business");
+  });
+  await check("back to Particulier", () => tap('[aria-label="Particulier"]'));
+  await check("OTP channel is selectable", async () => {
+    await tap('[aria-label="Recevoir le code par E-mail"]');
+    await tap('[aria-label="Recevoir le code par SMS"]');
+    return true;
+  });
+  await check("details move to verification", async () => {
     await fill('[aria-label="Nom complet"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
+    await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
     await fill('[aria-label="Mot de passe"]', "motdepasse");
     await tap('[aria-label="Créer mon compte"]');
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(900);
+    return seen("text=Vérification");
+  });
+  await check("no account exists until the code is confirmed", () => seen("text=Aucun SMS ni e-mail"));
+  await page.screenshot({ path: `${OUT}/s1-otp.png` });
+  await check("a wrong code is refused", async () => {
+    await fill('[aria-label="Code de vérification"]', "000000");
+    await page.waitForTimeout(900);
+    // 000000 could legitimately be the generated code; only assert when it isn't.
+    const real = await page.evaluate(() => {
+      const el = [...document.querySelectorAll("*")].find((n) =>
+        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0
+      );
+      return el ? el.textContent.trim() : null;
+    });
+    if (real === "000000") return true;
+    return seen("text=Code incorrect");
+  });
+  await check("the real code creates the account", async () => {
+    const real = await page.evaluate(() => {
+      const el = [...document.querySelectorAll("*")].find((n) =>
+        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0
+      );
+      return el ? el.textContent.trim() : null;
+    });
+    if (!real) throw new Error("demo code not found on screen");
+    await fill('[aria-label="Code de vérification"]', real);
+    await page.waitForTimeout(1500);
     return seen("text=Catégories");
   });
 
@@ -148,7 +216,7 @@ const BASE_URL = process.env.BASE_URL || null;
   await check("back home", async () => { await tap('[aria-label="Retour"]'); return seen("text=Catégories"); });
 
   section("Categories");
-  for (const cat of ["Ménage", "Plomberie", "Électricité", "Mécanique", "IT & Tech"]) {
+  for (const cat of ["Plomberie", "Électricité", "Construction & Bâtiment", "Automobile", "Informatique & Numérique"]) {
     await check(`category ${cat}`, async () => {
       await tap(`[aria-label="Catégorie ${cat}"]`);
       const ok = await seen("text=/professionnels? disponibles?/");
@@ -164,16 +232,16 @@ const BASE_URL = process.env.BASE_URL || null;
   });
   await check("trades are listed", () => seen("text=Débouchage"));
   await check("category chip filters", async () => {
-    await tap('[aria-label="Catégorie Beauté"]');
-    return seen("text=Coiffure à domicile");
+    await tap('[aria-label="Catégorie Beauté & Bien-être"]');
+    return seen("text=Coiffeuse");
   });
   await check("text search filters", async () => {
     await tap('[aria-label="Toutes les catégories"]');
     await fill('[aria-label="Rechercher un métier"]', "clim");
-    return seen("text=Entretien clim");
+    return seen("text=Climatisation");
   });
   await check("a trade opens its professionals", async () => {
-    await tap("text=Installation clim");
+    await tap("text=Climatisation");
     return seen("text=/professionnels? disponibles?/");
   });
   await check("back to catalogue", async () => { await tap('[aria-label="Retour"]'); return seen("text=Tous les métiers"); });
@@ -247,12 +315,15 @@ const BASE_URL = process.env.BASE_URL || null;
     return seen("text=fuite sous l'évier");
   });
 
-  section("Missions & payment");
+  section("Missions, escrow & settlement");
   await check("mission listed", async () => { await tap('[aria-label="Missions"]'); return seen("text=Demain, 09h00"); });
+  await check("the no-direct-payment rule is stated", () => seen("text=Ne remettez jamais d'argent directement"));
   await check("payment opens", async () => {
     await tap('[aria-label^="Payer la mission"]');
-    return seen("text=Choisissez un moyen de paiement");
+    return seen("text=Moyen de paiement");
   });
+  await check("escrow explained before paying", () => seen("text=n'est payé qu'après votre validation"));
+  await check("cash is not offered", async () => !(await seen("text=Espèces")));
   await check("confirm disabled before a method", async () => {
     const el = await visible('[aria-label="Confirmer le paiement"]');
     return el && (await el.getAttribute("aria-disabled")) === "true";
@@ -261,16 +332,54 @@ const BASE_URL = process.env.BASE_URL || null;
     await tap('[aria-label="MTN Mobile Money"]');
     return seen('[aria-label="Numéro de téléphone"]');
   });
-  await check("receipt states no money moved", async () => {
+  await check("card does not ask for a number", async () => {
+    await tap('[aria-label="Carte bancaire"]');
+    return !(await seen('[aria-label="Numéro de téléphone"]'));
+  });
+  await check("paying holds the funds", async () => {
+    await tap('[aria-label="MTN Mobile Money"]');
     await tap('[aria-label="Confirmer le paiement"]');
-    return seen("text=aucun argent n'a été débité");
+    return seen("text=242Konnect conserve ce montant");
   });
   await page.screenshot({ path: `${OUT}/c1-payment.png` });
   await check("receipt closes", async () => { await tap("text=Terminé"); return true; });
-  await check("mission reads as paid", () => seen("text=Payée"));
+  await check("mission now reads as funds held", () => seen("text=Fonds bloqués"));
+
+  await check("validation shows the settlement split", async () => {
+    await tap('[aria-label^="Valider la prestation"]');
+    return (await seen("text=Commission 242Konnect (12 %)")) && (await seen("text=Versé au prestataire"));
+  });
+  await check("express payout changes the fee", async () => {
+    await tap('[aria-label="Versement express"]');
+    return seen("text=Frais de versement (4 %)");
+  });
+  await check("standard payout is 1,25 % over 7 days", async () => {
+    await tap('[aria-label="Versement standard"]');
+    return (await seen("text=Frais de versement (1,25 %)")) && (await seen("text=Sous 7 jours"));
+  });
+  await page.screenshot({ path: `${OUT}/c1b-settlement.png` });
+  await check("validating releases the funds", async () => {
+    await tap('[aria-label="Confirmer la validation"]');
+    return seen("text=versés au prestataire");
+  });
+  await check("settlement closes", async () => { await tap("text=Terminé"); return true; });
+  await check("mission reads as validated", () => seen("text=Validée"));
 
   section("Profile editing");
   await check("open Profil", async () => { await tap('[aria-label="Profil"]'); return seen("text=Se déconnecter"); });
+  await check("one account shows all three profiles", async () =>
+    (await seen('[aria-label="Profil Particulier"]')) &&
+    (await seen('[aria-label="Activer le profil Prestataire"]')));
+  await check("activating a second profile switches to it", async () => {
+    await tap('[aria-label="Activer le profil Prestataire"]');
+    await page.waitForTimeout(700);
+    return (await seen('[aria-label="Profil Prestataire"]')) && (await seen("text=n'est pas encore construit"));
+  });
+  await check("switching back to Particulier works", async () => {
+    await tap('[aria-label="Profil Particulier"]');
+    await page.waitForTimeout(700);
+    return !(await seen("text=n'est pas encore construit"));
+  });
   await check("open the editor", async () => {
     await tap('[aria-label="Modifier le profil"]');
     return seen("text=ne peut pas être modifié");
@@ -316,24 +425,25 @@ const BASE_URL = process.env.BASE_URL || null;
   await check("post-a-job closes", async () => { await tap("text=Terminé"); return true; });
 
   section("Session");
-  await check("survives a reload", async () => {
+  await check("survives a reload (through the splash)", async () => {
     await page.reload({ waitUntil: "networkidle" });
-    await page.waitForTimeout(2200);
-    return seen("text=Estevao M. Macumba");
+    await page.waitForSelector("text=Estevao M. Macumba", { timeout: 25000 });
+    return true;
   });
   await check("data survives too", async () => {
     await tap('[aria-label="Missions"]');
-    return seen("text=Payée");
+    return seen("text=Validée");
   });
-  await check("sign out", async () => {
+  // Not the first launch any more, so this must land on Connexion directly —
+  // the directives route later opens past Commencer.
+  await check("sign out lands on Connexion, not Commencer", async () => {
     await tap('[aria-label="Profil"]');
     await tap('[aria-label="Se déconnecter"]');
-    await page.waitForTimeout(900);
-    return seen("text=Chaque problème est un besoin");
+    await page.waitForTimeout(1200);
+    return (await seen("text=Bon retour")) && !(await seen("text=Just One Click."));
   });
   await check("sign back in", async () => {
-    await tap("text=J'ai déjà un compte");
-    await fill('[aria-label="Numéro de téléphone"]', "061234567");
+    await fill('[aria-label="Numéro de téléphone ou e-mail"]', "061234567");
     await fill('[aria-label="Mot de passe"]', "motdepasse");
     await tap('[aria-label="Se connecter"]');
     await page.waitForTimeout(1400);
@@ -341,7 +451,7 @@ const BASE_URL = process.env.BASE_URL || null;
   });
   await check("account data still there", async () => {
     await tap('[aria-label="Missions"]');
-    return seen("text=Payée");
+    return seen("text=Validée");
   });
 
   console.log(`\n${pass} passed, ${failures.length} failed`);

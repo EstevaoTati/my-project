@@ -28,10 +28,12 @@ MAX_WIDTH = 800
 JPEG_QUALITY = 78
 MIME = {".ttf": "font/ttf", ".png": "image/png", ".jpeg": "image/jpeg", ".jpg": "image/jpeg"}
 
+# The charte's typefaces, used by the page chrome around the phone. They must
+# match src/theme.ts — Manrope for titles, Inter for text.
 CHROME_FONTS = {
-    "Outfit": (700, "outfit/700Bold"),
-    "Jakarta400": (400, "plus-jakarta-sans/400Regular"),
-    "Jakarta600": (600, "plus-jakarta-sans/600SemiBold"),
+    "Manrope": (700, "manrope/700Bold"),
+    "Inter400": (400, "inter/400Regular"),
+    "Inter600": (600, "inter/600SemiBold"),
 }
 
 
@@ -85,7 +87,7 @@ def main():
 
     faces = []
     for family, (weight, fragment) in CHROME_FONTS.items():
-        name = "Outfit" if family == "Outfit" else "Jakarta"
+        name = "Manrope" if family == "Manrope" else "Inter"
         b64 = base64.b64encode(find_font(fragment).read_bytes()).decode()
         faces.append(
             f"@font-face{{font-family:'{name}';font-style:normal;font-weight:{weight};"
@@ -119,7 +121,7 @@ PAGE = r"""<title>242Konnect</title>
 html, body { height: 100%; }
 body {
   margin: 0; background: var(--ground); overflow: hidden;
-  font-family: Jakarta, ui-sans-serif, system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
