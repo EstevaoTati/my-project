@@ -58,10 +58,19 @@ export function WelcomeScreen({ navigation }: Props) {
 
       <View style={[styles.content, { paddingTop: insets.top + 32, paddingBottom: Math.max(24, insets.bottom + 12) }]}>
         <View style={styles.brandRow}>
+          {/* The mark repeats the flag: one stripe per colour, the same order
+              as the splash wordmark. */}
           <View style={styles.brandMark}>
-            <Text style={styles.brandMarkText}>242</Text>
+            <View style={[styles.brandStripe, { backgroundColor: colors.logoGreen }]} />
+            <View style={[styles.brandStripe, { backgroundColor: colors.logoYellow }]} />
+            <View style={[styles.brandStripe, { backgroundColor: colors.logoRed }]} />
           </View>
-          <Text style={styles.brand}>242Konnect</Text>
+          <Text style={styles.brand}>
+            <Text style={{ color: colors.logoGreen }}>2</Text>
+            <Text style={{ color: colors.logoYellow }}>4</Text>
+            <Text style={{ color: colors.logoRed }}>2</Text>
+            <Text style={{ color: colors.white }}>Konnect</Text>
+          </Text>
         </View>
 
         <View style={styles.spacer} />
@@ -165,11 +174,10 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: radius.lg,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    flexDirection: 'column',
   },
-  brandMarkText: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.accentForeground },
+  brandStripe: { flex: 1, width: '100%' },
   brand: { fontFamily: fonts.heading, fontSize: 20, color: colors.white },
   spacer: { flex: 1 },
   headline: { fontFamily: fonts.heading, fontSize: 32, lineHeight: 38, color: colors.white, marginBottom: 12 },

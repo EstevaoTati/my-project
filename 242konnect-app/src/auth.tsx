@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkCode, hasOtpApi, requestCode, type OtpDelivery } from './otpClient';
 
 /**
  * Accounts, stored on the device.
@@ -73,6 +74,9 @@ export const PHONE_LENGTH = 9;
 export const MIN_PASSWORD = 6;
 export const OTP_LENGTH = 6;
 
+/** Re-exported so screens don't need to know where the API lives. */
+export { hasOtpApi };
+
 /** The refusal the spec dictates, quoted rather than paraphrased. */
 export const DUPLICATE_ACCOUNT_MESSAGE =
   'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
@@ -103,11 +107,13 @@ export type PendingSignUp = {
   profile: ProfileKind;
   channel: OtpChannel;
   /**
-   * The code that would have been sent. It is surfaced in the UI behind a
-   * "démonstration" notice: there is no SMS gateway here, and silently
-   * accepting any code would make the verification look real when it isn't.
+   * How the code was delivered. With the API configured this is
+   * `{ mode: 'email' }` and the code exists only in the message — nothing on the
+   * device knows it. Without an API it is `{ mode: 'demo', code }`, shown on
+   * screen behind a notice, because silently accepting any code would make the
+   * verification look real while enforcing nothing.
    */
-  code: string;
+  delivery: OtpDelivery;
 };
 
 type AuthState = {
@@ -128,7 +134,7 @@ type AuthState = {
   /** Creates the account once the code matches. */
   confirmSignUp: (code: string) => Promise<void>;
   /** Issues a fresh code for the pending sign-up. */
-  resendCode: () => void;
+  resendCode: () => Promise<void>;
   cancelSignUp: () => void;
   signIn: (input: { identifier: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
@@ -151,10 +157,6 @@ async function readAccounts(): Promise<StoredAccount[]> {
   } catch {
     return [];
   }
-}
-
-function generateCode(): string {
-  return String(Math.floor(Math.random() * 10 ** OTP_LENGTH)).padStart(OTP_LENGTH, '0');
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -218,6 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (accounts.some((a) => a.phone === digits || a.email === mail))
         throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
 
+      // Asking the API to mail the code can fail (offline, service down); the
+      // sign-up must not look started if no code actually went out.
+      const delivery = await requestCode(digits, mail);
       setPending({
         name: name.trim(),
         phone: digits,
@@ -225,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         profile,
         channel,
-        code: generateCode(),
+        delivery,
       });
     },
     []
@@ -234,8 +239,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const confirmSignUp = useCallback<AuthState['confirmSignUp']>(
     async (code) => {
       if (!pending) throw new Error('Aucune inscription en cours.');
-      if (code.replace(/\D/g, '') !== pending.code)
-        throw new Error('Code incorrect. Vérifiez les chiffres reçus.');
+      // Server-side when an API is configured, so attempts are capped and the
+      // code expires; on-device only in demo mode.
+      await checkCode(pending.phone, code, pending.delivery);
 
       const accounts = await readAccounts();
       // Re-check: another profile could have claimed the number while the code
@@ -260,9 +266,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [pending, persistSession]
   );
 
-  const resendCode = useCallback(() => {
-    setPending((prev) => (prev ? { ...prev, code: generateCode() } : prev));
-  }, []);
+  const resendCode = useCallback(async () => {
+    if (!pending) return;
+    const delivery = await requestCode(pending.phone, pending.email);
+    setPending((prev) => (prev ? { ...prev, delivery } : prev));
+  }, [pending]);
 
   const cancelSignUp = useCallback(() => setPending(null), []);
 

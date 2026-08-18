@@ -17,8 +17,16 @@ import { colors, fonts } from '../theme';
  */
 
 const WORD = '242Konnect';
-/** Where the accent ends and the wordmark's white half begins. */
-const ACCENT_UNTIL = 3;
+
+/**
+ * The mark carries the Congolese flag — green, yellow, red — which is what the
+ * brand is named after. The interface charte (black, grey, yellow) is a
+ * separate palette and is untouched by this.
+ *
+ * "242" takes the three colours one digit each; "Konnect" stays white so the
+ * flag reads as a mark rather than as rainbow text.
+ */
+const DIGIT_COLORS = [colors.logoGreen, colors.logoYellow, colors.logoRed];
 
 const LETTER_STAGGER = 55;
 const LETTER_FADE = 260;
@@ -81,7 +89,9 @@ export function SplashScreen({ onDone }: Props) {
             key={`${letter}-${i}`}
             style={[
               styles.letter,
-              i < ACCENT_UNTIL ? styles.accent : styles.plain,
+              i < DIGIT_COLORS.length
+                ? { color: DIGIT_COLORS[i], textShadowColor: DIGIT_COLORS[i] }
+                : styles.plain,
               {
                 opacity: progress[i],
                 transform: [
@@ -123,6 +133,5 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 18,
   },
-  accent: { color: colors.accent, textShadowColor: 'rgba(255,203,5,0.55)' },
   plain: { color: colors.white, textShadowColor: 'rgba(255,255,255,0.35)' },
 });

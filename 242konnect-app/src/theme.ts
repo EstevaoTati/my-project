@@ -55,6 +55,18 @@ export const colors = {
   black: '#0a0a0a',
 
   /**
+   * Logo palette — the Congolese flag: green, yellow, red.
+   *
+   * Deliberately separate from the interface tokens above. The directives fix
+   * the *interface* charte as black, grey and yellow; the mark carries the
+   * national colours the brand is named after. Keeping them in different
+   * buckets stops the flag colours leaking back into buttons and chips.
+   */
+  logoGreen: '#00a651',
+  logoYellow: '#ffcb05',
+  logoRed: '#ed1c24',
+
+  /**
    * Neutral tones for generated avatars. Varied enough to tell people apart in
    * a list, all within the charte's greyscale rather than inventing colours.
    */

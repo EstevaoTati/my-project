@@ -111,16 +111,29 @@ export function OtpScreen() {
           />
         </View>
 
-        <View style={styles.demo}>
-          <Text style={styles.demoTitle}>Démonstration</Text>
-          <Text style={styles.demoText}>
-            Aucun SMS ni e-mail n'est réellement envoyé : cette version n'a pas encore de passerelle.
-            Votre code est :
-          </Text>
-          <Text style={styles.demoCode} accessibilityLabel={`Code de démonstration ${pending.code}`}>
-            {pending.code}
-          </Text>
-        </View>
+        {pending.delivery.mode === 'demo' ? (
+          <View style={styles.demo}>
+            <Text style={styles.demoTitle}>Démonstration</Text>
+            <Text style={styles.demoText}>
+              Aucun e-mail n'a été envoyé : aucun service de vérification n'est configuré sur cette
+              version. Votre code est :
+            </Text>
+            <Text
+              style={styles.demoCode}
+              accessibilityLabel={`Code de démonstration ${pending.delivery.code}`}
+            >
+              {pending.delivery.code}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.sent}>
+            <Icon name="solar:shield-check-bold" size={18} color={colors.success} />
+            <Text style={styles.sentText}>
+              E-mail envoyé. Le code expire dans {Math.round(pending.delivery.expiresIn / 60)} minutes
+              et ne peut servir qu'une fois.
+            </Text>
+          </View>
+        )}
 
         <FormError message={error} />
         <SubmitButton
@@ -132,10 +145,14 @@ export function OtpScreen() {
         />
 
         <Pressable
-          onPress={() => {
-            resendCode();
+          onPress={async () => {
             setCode('');
             setError(null);
+            try {
+              await resendCode();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Impossible d'envoyer un nouveau code.");
+            }
           }}
           accessibilityRole="button"
           accessibilityLabel="Renvoyer le code"
@@ -214,6 +231,17 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     marginTop: 2,
   },
+  sent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
+    borderRadius: radius.xl,
+    backgroundColor: colors.successSurface,
+    borderWidth: 1,
+    borderColor: 'rgba(21,128,61,0.22)',
+  },
+  sentText: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 12, lineHeight: 18, color: colors.success },
   resend: { alignItems: 'center', paddingVertical: 4 },
   resendText: { fontFamily: fonts.sans, fontSize: 14, color: colors.mutedForeground },
   resendLink: { fontFamily: fonts.sansBold, color: colors.foreground },
