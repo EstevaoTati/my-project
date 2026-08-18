@@ -7,31 +7,46 @@ import { Sheet } from '../components/Sheet';
 import { PhoneField } from '../components/form';
 import { formatFcfaFull, getProfessional, professionalTrade } from '../data';
 import {
+  COMMISSION_RATE,
+  methodNeedsPhone,
   PAYMENT_METHODS,
   paymentMethodLabel,
-  useStore,
-  type Booking,
+  PAYOUT_EXPRESS_RATE,
+  PAYOUT_STANDARD_DELAY_DAYS,
+  PAYOUT_STANDARD_RATE,
+  settle,
   type PaymentMethod,
-} from '../store';
+  type PayoutSpeed,
+  type Settlement,
+} from '../payments';
+import { useStore, type Booking, type MissionStatus } from '../store';
 import { normalizePhone, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
 
-const STATUS: Record<Booking['status'], { label: string; bg: string; fg: string }> = {
-  pending: { label: 'En attente', bg: colors.muted, fg: colors.mutedForeground },
-  confirmed: { label: 'Confirmée', bg: 'rgba(0,166,81,0.12)', fg: colors.primary },
-  paid: { label: 'Payée', bg: 'rgba(0,166,81,0.18)', fg: colors.primary },
-  cancelled: { label: 'Annulée', bg: 'rgba(237,28,36,0.1)', fg: colors.destructive },
+const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
+  confirmee: { label: 'À payer', bg: colors.warningSurface, fg: colors.warning },
+  payee: { label: 'Fonds bloqués', bg: colors.muted, fg: colors.foreground },
+  validee: { label: 'Validée', bg: colors.successSurface, fg: colors.success },
+  litige: { label: 'Litige', bg: colors.destructiveSurface, fg: colors.destructive },
+  annulee: { label: 'Annulée', bg: colors.muted, fg: colors.mutedForeground },
 };
+
+const pct = (r: number) => `${(r * 100).toLocaleString('fr-FR')} %`;
 
 export function MissionsScreen() {
   const insets = useSafeAreaInsets();
-  const { bookings, payments, payBooking, cancelBooking } = useStore();
+  const { bookings, payments, payBooking, cancelBooking, validateMission, disputeMission, totalPaid, heldInEscrow } =
+    useStore();
   const { account } = useAuth();
 
   const [paying, setPaying] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [payPhone, setPayPhone] = useState(account?.phone ?? '');
   const [receipt, setReceipt] = useState<{ reference: string; amount: number; method: PaymentMethod } | null>(null);
+
+  const [validating, setValidating] = useState<Booking | null>(null);
+  const [speed, setSpeed] = useState<PayoutSpeed>('standard');
+  const [settled, setSettled] = useState<Settlement | null>(null);
 
   const openPayment = (booking: Booking) => {
     setPaying(booking);
@@ -46,18 +61,28 @@ export function MissionsScreen() {
     setReceipt({ reference: payment.reference, amount: payment.amount, method });
   };
 
-  // Mobile Money debits a number; cash doesn't need one.
-  const needsPhone = method === 'mtn' || method === 'airtel';
-  const canPay = !!method && (!needsPhone || normalizePhone(payPhone).length === 9);
+  const openValidation = (booking: Booking) => {
+    setValidating(booking);
+    setSpeed('standard');
+    setSettled(null);
+  };
+
+  const confirmValidation = () => {
+    if (!validating) return;
+    setSettled(validateMission(validating.id, speed) ?? null);
+  };
+
+  const canPay = !!method && (!methodNeedsPhone(method) || normalizePhone(payPhone).length === 9);
+  const preview = validating ? settle(validating.rate, speed) : null;
 
   return (
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <Text style={styles.title}>Missions</Text>
-        {payments.length > 0 && (
+        {(totalPaid > 0 || heldInEscrow > 0) && (
           <Text style={styles.subtitle}>
-            {payments.length} paiement{payments.length > 1 ? 's' : ''} ·{' '}
-            {formatFcfaFull(payments.reduce((sum, p) => sum + p.amount, 0))} FCFA
+            {formatFcfaFull(totalPaid)} FCFA payés
+            {heldInEscrow > 0 ? ` · ${formatFcfaFull(heldInEscrow)} FCFA en attente de validation` : ''}
           </Text>
         )}
       </View>
@@ -69,12 +94,21 @@ export function MissionsScreen() {
           </View>
           <Text style={styles.emptyTitle}>Aucune mission</Text>
           <Text style={styles.emptyBody}>
-            Réservez un professionnel depuis son profil : la mission apparaîtra ici, avec le
-            paiement.
+            Réservez un prestataire depuis son profil : la mission apparaîtra ici, avec le paiement.
           </Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          {/* §2.2 and §6.4, stated once at the top rather than buried: the money
+              never goes directly to the prestataire. */}
+          <View style={styles.rule}>
+            <Icon name="solar:shield-check-bold" size={18} color={colors.foreground} />
+            <Text style={styles.ruleText}>
+              Tous les paiements passent par 242Konnect. Ne remettez jamais d'argent directement au
+              prestataire, même en pourboire.
+            </Text>
+          </View>
+
           {bookings.map((booking) => {
             const pro = getProfessional(booking.professionalId);
             if (!pro) return null;
@@ -98,32 +132,78 @@ export function MissionsScreen() {
                     <Icon name="solar:calendar-mark-linear" size={16} color={colors.mutedForeground} />
                     <Text style={styles.metaText}>{booking.slot}</Text>
                   </View>
-                  <Text style={styles.rate}>{formatFcfaFull(booking.rate)} FCFA/h</Text>
+                  <Text style={styles.rate}>{formatFcfaFull(booking.rate)} FCFA</Text>
                 </View>
 
-                {payment && (
-                  <Text style={styles.receiptLine}>
-                    Payé par {paymentMethodLabel(payment.method)} · réf. {payment.reference}
+                {booking.status === 'payee' && (
+                  <Text style={styles.escrowLine}>
+                    242Konnect conserve {formatFcfaFull(booking.rate)} FCFA jusqu'à votre validation.
+                    {payment ? ` Réf. ${payment.reference}.` : ''}
                   </Text>
                 )}
 
-                {booking.status === 'confirmed' && (
+                {booking.status === 'validee' && booking.settlement && (
+                  <View style={styles.breakdown}>
+                    <Text style={styles.breakdownTitle}>Répartition</Text>
+                    <Row label="Montant de la prestation" value={booking.settlement.total} />
+                    <Row label={`Commission 242Konnect (${pct(COMMISSION_RATE)})`} value={-booking.settlement.commission} />
+                    <Row
+                      label={`Frais de versement (${pct(booking.settlement.speed === 'express' ? PAYOUT_EXPRESS_RATE : PAYOUT_STANDARD_RATE)})`}
+                      value={-booking.settlement.payoutFee}
+                    />
+                    <Row label="Versé au prestataire" value={booking.settlement.net} strong />
+                    <Text style={styles.breakdownNote}>
+                      {booking.settlement.speed === 'express'
+                        ? 'Versement express, immédiat.'
+                        : `Versement sous ${booking.settlement.delayDays} jours.`}
+                    </Text>
+                  </View>
+                )}
+
+                {booking.status === 'litige' && (
+                  <Text style={styles.disputeLine}>
+                    Les fonds restent bloqués jusqu'à la décision de 242Konnect.
+                  </Text>
+                )}
+
+                {booking.status === 'confirmee' && (
                   <View style={styles.actions}>
                     <Pressable
                       onPress={() => cancelBooking(booking.id)}
                       accessibilityRole="button"
                       accessibilityLabel={`Annuler la mission avec ${pro.name}`}
-                      style={styles.cancel}
+                      style={styles.ghost}
                     >
-                      <Text style={styles.cancelLabel}>Annuler</Text>
+                      <Text style={styles.ghostLabel}>Annuler</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => openPayment(booking)}
                       accessibilityRole="button"
                       accessibilityLabel={`Payer la mission avec ${pro.name}`}
-                      style={styles.pay}
+                      style={styles.solid}
                     >
-                      <Text style={styles.payLabel}>Payer</Text>
+                      <Text style={styles.solidLabel}>Payer</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {booking.status === 'payee' && (
+                  <View style={styles.actions}>
+                    <Pressable
+                      onPress={() => disputeMission(booking.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Signaler un problème sur la mission avec ${pro.name}`}
+                      style={styles.ghost}
+                    >
+                      <Text style={styles.ghostLabel}>Signaler un problème</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => openValidation(booking)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Valider la prestation de ${pro.name}`}
+                      style={styles.solid}
+                    >
+                      <Text style={styles.solidLabel}>Valider</Text>
                     </Pressable>
                   </View>
                 )}
@@ -133,6 +213,7 @@ export function MissionsScreen() {
         </ScrollView>
       )}
 
+      {/* ---- Payment ---- */}
       <Sheet
         visible={!!paying}
         title={receipt ? 'Paiement enregistré' : 'Payer la mission'}
@@ -141,18 +222,22 @@ export function MissionsScreen() {
         {receipt ? (
           <View style={styles.done}>
             <View style={styles.doneIcon}>
-              <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
+              <Icon name="solar:shield-check-bold" size={32} color={colors.foreground} />
             </View>
             <Text style={styles.doneTitle}>{formatFcfaFull(receipt.amount)} FCFA</Text>
             <Text style={styles.doneBody}>
               {paymentMethodLabel(receipt.method)} · référence {receipt.reference}
             </Text>
-            <Text style={styles.doneWarning}>
-              Démonstration : aucun argent n'a été débité. Un vrai paiement nécessite un compte
-              marchand Mobile Money et un serveur.
+            <Text style={styles.doneEscrow}>
+              242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation
+              de la prestation.
             </Text>
-            <Pressable onPress={() => setPaying(null)} accessibilityRole="button" style={styles.doneButton}>
-              <Text style={styles.payLabel}>Terminé</Text>
+            <Text style={styles.demoNote}>
+              Démonstration : aucun argent n'a été débité. Un paiement réel nécessite un compte
+              marchand et un serveur.
+            </Text>
+            <Pressable onPress={() => setPaying(null)} accessibilityRole="button" style={styles.solidWide}>
+              <Text style={styles.solidLabel}>Terminé</Text>
             </Pressable>
           </View>
         ) : (
@@ -160,7 +245,12 @@ export function MissionsScreen() {
             <Text style={styles.sheetAmount}>
               {paying ? formatFcfaFull(paying.rate) : 0} <Text style={styles.sheetCurrency}>FCFA</Text>
             </Text>
-            <Text style={styles.sheetHint}>Choisissez un moyen de paiement</Text>
+            <Text style={styles.sheetEscrow}>
+              Vous payez 242Konnect maintenant. Le prestataire se met en route une fois le paiement
+              confirmé, et n'est payé qu'après votre validation.
+            </Text>
+
+            <Text style={styles.sheetHint}>Moyen de paiement</Text>
             {PAYMENT_METHODS.map((m) => {
               const selected = method === m.id;
               return (
@@ -173,17 +263,15 @@ export function MissionsScreen() {
                   style={[styles.method, selected && styles.methodSelected]}
                 >
                   <View style={styles.methodBody}>
-                    <Text style={[styles.methodLabel, selected && styles.methodLabelSelected]}>
-                      {m.label}
-                    </Text>
+                    <Text style={[styles.methodLabel, selected && styles.methodLabelSelected]}>{m.label}</Text>
                     <Text style={styles.methodHint}>{m.hint}</Text>
                   </View>
-                  {selected && <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />}
+                  {selected && <Icon name="solar:shield-check-bold" size={20} color={colors.foreground} />}
                 </Pressable>
               );
             })}
 
-            {needsPhone && (
+            {methodNeedsPhone(method) && (
               <View style={styles.payPhone}>
                 <PhoneField value={payPhone} onChangeText={setPayPhone} />
               </View>
@@ -195,15 +283,104 @@ export function MissionsScreen() {
               accessibilityRole="button"
               accessibilityLabel="Confirmer le paiement"
               accessibilityState={{ disabled: !canPay }}
-              style={[styles.doneButton, !canPay && styles.doneButtonOff]}
+              style={[styles.solidWide, !canPay && styles.solidOff]}
             >
-              <Text style={styles.payLabel}>
-                {method === 'especes' ? 'Confirmer (à régler sur place)' : 'Confirmer le paiement'}
-              </Text>
+              <Text style={styles.solidLabel}>Payer à 242Konnect</Text>
             </Pressable>
           </>
         )}
       </Sheet>
+
+      {/* ---- Validation and settlement ---- */}
+      <Sheet
+        visible={!!validating}
+        title={settled ? 'Prestation validée' : 'Valider la prestation'}
+        onClose={() => setValidating(null)}
+      >
+        {settled ? (
+          <View style={styles.done}>
+            <View style={styles.doneIcon}>
+              <Icon name="solar:shield-check-bold" size={32} color={colors.success} />
+            </View>
+            <Text style={styles.doneTitle}>{formatFcfaFull(settled.net)} FCFA</Text>
+            <Text style={styles.doneBody}>
+              versés au prestataire{settled.speed === 'express' ? ' immédiatement' : ` sous ${settled.delayDays} jours`}
+            </Text>
+            <Text style={styles.demoNote}>
+              Démonstration : aucun versement réel n'a lieu.
+            </Text>
+            <Pressable onPress={() => setValidating(null)} accessibilityRole="button" style={styles.solidWide}>
+              <Text style={styles.solidLabel}>Terminé</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.sheetEscrow}>
+              En validant, vous confirmez que la prestation a été réalisée. Les fonds sont alors
+              débloqués et versés au prestataire.
+            </Text>
+
+            <Text style={styles.sheetHint}>Mode de versement au prestataire</Text>
+            {(['standard', 'express'] as PayoutSpeed[]).map((option) => {
+              const selected = speed === option;
+              return (
+                <Pressable
+                  key={option}
+                  onPress={() => setSpeed(option)}
+                  accessibilityRole="button"
+                  accessibilityLabel={option === 'standard' ? 'Versement standard' : 'Versement express'}
+                  accessibilityState={{ selected }}
+                  style={[styles.method, selected && styles.methodSelected]}
+                >
+                  <View style={styles.methodBody}>
+                    <Text style={[styles.methodLabel, selected && styles.methodLabelSelected]}>
+                      {option === 'standard' ? 'Standard' : 'Express'}
+                    </Text>
+                    <Text style={styles.methodHint}>
+                      {option === 'standard'
+                        ? `Sous ${PAYOUT_STANDARD_DELAY_DAYS} jours · frais ${pct(PAYOUT_STANDARD_RATE)}`
+                        : `Immédiat · frais ${pct(PAYOUT_EXPRESS_RATE)}`}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+
+            {preview && (
+              <View style={styles.breakdown}>
+                <Row label="Montant de la prestation" value={preview.total} />
+                <Row label={`Commission 242Konnect (${pct(COMMISSION_RATE)})`} value={-preview.commission} />
+                <Row
+                  label={`Frais de versement (${pct(speed === 'express' ? PAYOUT_EXPRESS_RATE : PAYOUT_STANDARD_RATE)})`}
+                  value={-preview.payoutFee}
+                />
+                <Row label="Versé au prestataire" value={preview.net} strong />
+              </View>
+            )}
+
+            <Pressable
+              onPress={confirmValidation}
+              accessibilityRole="button"
+              accessibilityLabel="Confirmer la validation"
+              style={styles.solidWide}
+            >
+              <Text style={styles.solidLabel}>Valider et débloquer les fonds</Text>
+            </Pressable>
+          </>
+        )}
+      </Sheet>
+    </View>
+  );
+}
+
+function Row({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
+  return (
+    <View style={styles.row}>
+      <Text style={[styles.rowLabel, strong && styles.rowStrong]}>{label}</Text>
+      <Text style={[styles.rowValue, strong && styles.rowStrong]}>
+        {value < 0 ? '−' : ''}
+        {formatFcfaFull(Math.abs(value))} FCFA
+      </Text>
     </View>
   );
 }
@@ -214,6 +391,16 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.heading, fontSize: 24, color: colors.foreground },
   subtitle: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginTop: 2 },
   list: { padding: 20, paddingTop: 4, gap: 14 },
+  rule: {
+    flexDirection: 'row',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.xl,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  ruleText: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 12, lineHeight: 18, color: colors.foreground },
   card: {
     padding: 14,
     gap: 12,
@@ -226,16 +413,38 @@ const styles = StyleSheet.create({
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardIdentity: { flex: 1 },
   cardName: { fontFamily: fonts.heading, fontSize: 15, color: colors.foreground },
-  cardTrade: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.primary },
+  cardTrade: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.mutedForeground },
   status: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.lg },
   statusLabel: { fontFamily: fonts.sansBold, fontSize: 11 },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.foreground },
   rate: { fontFamily: fonts.sansBold, fontSize: 14, color: colors.foreground },
-  receiptLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
+  escrowLine: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.mutedForeground },
+  disputeLine: { fontFamily: fonts.sansMedium, fontSize: 12, lineHeight: 18, color: colors.destructive },
+  breakdown: {
+    padding: 12,
+    gap: 4,
+    borderRadius: radius.xl,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  breakdownTitle: {
+    fontFamily: fonts.sansBold,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.mutedForeground,
+    marginBottom: 2,
+  },
+  breakdownNote: { fontFamily: fonts.sans, fontSize: 11, color: colors.mutedForeground, marginTop: 4 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  rowLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
+  rowValue: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.foreground, fontVariant: ['tabular-nums'] },
+  rowStrong: { fontFamily: fonts.sansBold, color: colors.foreground },
   actions: { flexDirection: 'row', gap: 10 },
-  cancel: {
+  ghost: {
     flex: 1,
     height: 44,
     borderRadius: radius.xl,
@@ -244,8 +453,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.mutedForeground },
-  pay: {
+  ghostLabel: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.mutedForeground },
+  solid: {
     flex: 1,
     height: 44,
     borderRadius: radius.xl,
@@ -253,7 +462,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  payLabel: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.primaryForeground },
+  solidWide: {
+    height: 56,
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  solidOff: { backgroundColor: colors.mutedForeground, opacity: 0.5 },
+  solidLabel: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.primaryForeground },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 32, paddingBottom: 120 },
   emptyIcon: {
     width: 72,
@@ -273,9 +491,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 280,
   },
-  sheetAmount: { fontFamily: fonts.heading, fontSize: 30, color: colors.foreground },
+  sheetAmount: { fontFamily: fonts.headingBold, fontSize: 30, color: colors.foreground },
   sheetCurrency: { fontSize: 16, color: colors.mutedForeground },
-  sheetHint: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginVertical: 12 },
+  sheetEscrow: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.mutedForeground,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  sheetHint: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground, marginBottom: 8 },
   method: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -286,21 +512,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: 8,
   },
-  methodSelected: { borderColor: colors.primary, backgroundColor: colors.muted },
+  methodSelected: { borderColor: colors.foreground, backgroundColor: colors.muted },
   methodBody: { flex: 1 },
   methodLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
-  methodLabelSelected: { color: colors.primary },
+  methodLabelSelected: { color: colors.foreground },
   methodHint: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
   payPhone: { marginBottom: 12 },
-  doneButton: {
-    height: 56,
-    borderRadius: radius['2xl'],
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  doneButtonOff: { backgroundColor: colors.mutedForeground, opacity: 0.5 },
   done: { alignItems: 'center', gap: 8 },
   doneIcon: {
     width: 72,
@@ -310,13 +527,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  doneTitle: { fontFamily: fonts.heading, fontSize: 26, color: colors.foreground },
+  doneTitle: { fontFamily: fonts.headingBold, fontSize: 26, color: colors.foreground },
   doneBody: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.mutedForeground, textAlign: 'center' },
-  doneWarning: {
+  doneEscrow: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.foreground,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  demoNote: {
     fontFamily: fonts.sans,
     fontSize: 12,
     lineHeight: 18,
-    color: colors.mutedForeground,
+    color: colors.warning,
     textAlign: 'center',
     marginTop: 4,
   },

@@ -30,7 +30,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Puis-je annuler une mission ?',
-        a: "Oui, tant qu'elle n'est pas payée : ouvrez l'onglet Missions et appuyez sur « Annuler ». Prévenez aussi le professionnel par message, c'est plus correct.",
+        a: "Oui : ouvrez l'onglet Missions et appuyez sur « Annuler ». Si vous aviez déjà payé, le montant vous est remboursé tant que la prestation n'a pas commencé. Prévenez aussi le prestataire par message, c'est plus correct.",
       },
     ],
   },
@@ -43,16 +43,29 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Quels moyens de paiement acceptez-vous ?',
-        a: 'MTN Mobile Money, Airtel Money, ou espèces directement au professionnel. Vous choisissez au moment de payer la mission.',
+        a: "MTN Mobile Money, Airtel Money, carte bancaire et virement. Tous les paiements passent par 242Konnect : vous ne réglez jamais le prestataire directement, pas même un pourboire.",
+      },
+      {
+        q: 'Pourquoi payer avant la prestation ?',
+        a: "Le paiement confirme la mission et permet au prestataire de se mettre en route. 242Konnect conserve la somme et ne la verse qu'après votre validation du travail. En cas de litige, elle reste bloquée jusqu'à la décision de la plateforme.",
+      },
+      {
+        q: 'Quelle commission prend 242Konnect ?',
+        a: "12 % du montant de la prestation, prélevés automatiquement au moment du versement. Ils couvrent le fonctionnement de la plateforme, la sécurisation des paiements, le support et la maintenance.",
+      },
+      {
+        q: 'Quand le prestataire est-il payé ?',
+        a: "Après votre validation. En versement standard, sous 7 jours, avec 1,25 % de frais de traitement. En versement express, immédiatement, avec 4 % de frais.",
+      },
+      {
+        q: 'Puis-je être remboursé ?',
+        a: "Oui : annulation avant le début du service, litige tranché en votre faveur, paiement effectué par erreur ou service non réalisé.",
       },
       {
         q: 'Le paiement fonctionne-t-il vraiment ?',
-        a: "Non, pas encore. Le parcours complet existe — montant, moyen de paiement, confirmation et reçu avec référence — mais aucun argent n'est débité. Un vrai paiement demande un compte marchand Mobile Money et un serveur pour le traiter.",
+        a: "Non, pas encore. Le parcours complet existe — montant, moyen de paiement, blocage des fonds, validation, commission et versement — mais aucun argent n'est débité ni versé. Un paiement réel demande un compte marchand et un serveur pour le traiter.",
       },
-      {
-        q: '242Konnect prend-il une commission ?',
-        a: "Ce n'est pas encore décidé. Le modèle économique — commission sur mission, abonnement professionnel, ou mise en avant payante — reste à trancher.",
-      },
+
     ],
   },
   {
@@ -71,8 +84,8 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
         a: "Onglet Profil, puis « Modifier le profil ». Vous pouvez changer votre nom, ajouter une photo et écrire quelques mots sur vous. Le numéro de téléphone n'est pas modifiable car il identifie le compte.",
       },
       {
-        q: 'Comment devenir professionnel sur la plateforme ?',
-        a: "À l'inscription, choisissez « Je suis professionnel » et indiquez votre métier dans votre profil. L'espace professionnel — réception des demandes, agenda, facturation — reste à construire.",
+        q: 'Comment devenir prestataire sur la plateforme ?',
+        a: "Depuis l'onglet Profil, activez le profil Prestataire : un seul compte porte vos profils Particulier, Prestataire et Business, avec un seul identifiant. L'espace Prestataire — demandes reçues, agenda, revenus, Score 242K — reste à construire.",
       },
     ],
   },
