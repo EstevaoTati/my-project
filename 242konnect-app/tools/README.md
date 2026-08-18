@@ -60,6 +60,24 @@ EXPO_PUBLIC_API_URL=http://127.0.0.1:8979 npx expo export --platform web --clear
 node tools/verify-email-otp.js
 ```
 
+## `serve-under-site-csp.js` — does the build survive the site's policy?
+
+The repo's landing page sets a strict, fully self-hosted CSP for `/*`, and the
+Netlify site also serves this build at `/242konnect-web/`. A policy that blocks
+something the bundle needs breaks that path silently — nothing here would fail,
+because the local dev server sends no CSP at all.
+
+This serves `242konnect-web/` with the **exact** `/*` policy read out of
+`netlify.toml` (read, not retyped — a copy would drift), so the suite can run
+against it:
+
+```sh
+node tools/serve-under-site-csp.js &
+BASE_URL=http://localhost:8971/index.html node tools/verify-app.js
+```
+
+A CSP violation surfaces as a console error, which the suite already fails on.
+
 ## `build-preview.py` — the shareable single file
 
 Folds the web build into one self-contained HTML file: JS inlined as text,
