@@ -1,123 +1,78 @@
 import type { IconName } from '../icons';
-import { colors } from '../theme';
 
 /**
- * The trades catalogue.
+ * The service catalogue, transcribed from the cahier des charges §4.3.
  *
- * A marketplace is only useful if someone can find the specific thing they
- * need, so categories are broad buckets for browsing and `trades` are what
- * people actually search for — "débouchage", "climatisation", "coiffure". Each
- * trade carries a description and a realistic hourly range in FCFA, because a
- * price a customer can see before contacting anyone is the whole promise of
- * the product.
+ * These are the categories and métiers the spec actually lists — not the
+ * shorter set that was invented while building from the design export. The spec
+ * targets "plus de 100 catégories de services" long term (§1.9); this is the
+ * documented starting set, and the shape supports adding more without touching
+ * any screen (§4.5).
  *
- * Ranges are indicative figures for Pointe-Noire, not quotes. Real pricing has
- * to come from the professionals themselves once there is a backend.
+ * Icons come from the design's Solar/MDI set. Categories deliberately carry no
+ * per-category colour: the charte is black, grey and yellow, so categories are
+ * distinguished by icon and label, with yellow reserved for the selected state.
+ *
+ * Price ranges are indicative hourly figures in FCFA for Pointe-Noire, shown so
+ * a client has an order of magnitude before contacting anyone. They are not
+ * quotes — real pricing is set by each prestataire (§5.4, negotiation).
  */
 
 export type CategoryId =
-  | 'plomberie'
-  | 'electricite'
-  | 'menage'
-  | 'mecanique'
-  | 'it'
   | 'construction'
-  | 'froid'
+  | 'electricite'
+  | 'plomberie'
+  | 'nettoyage'
+  | 'transport'
+  | 'automobile'
+  | 'informatique'
   | 'beaute'
+  | 'sante'
+  | 'education'
+  | 'maison'
+  | 'droit'
   | 'evenementiel'
-  | 'transport';
+  | 'agriculture'
+  | 'autres';
 
 export type Category = {
   id: CategoryId;
   label: string;
   icon: IconName;
-  /** Accent used for the chip and for generated avatars in this category. */
-  color: string;
-  onColor: string;
   blurb: string;
 };
 
 export const categories: Category[] = [
-  {
-    id: 'plomberie',
-    label: 'Plomberie',
-    icon: 'solar:waterdrops-bold-duotone',
-    color: colors.chart4,
-    onColor: colors.white,
-    blurb: 'Fuites, sanitaires, chauffe-eau et débouchage.',
-  },
-  {
-    id: 'electricite',
-    label: 'Électricité',
-    icon: 'solar:bolt-bold-duotone',
-    color: colors.accent,
-    onColor: colors.accentForeground,
-    blurb: 'Installation, dépannage, tableaux et groupes électrogènes.',
-  },
-  {
-    id: 'menage',
-    label: 'Ménage',
-    icon: 'solar:home-smile-bold-duotone',
-    color: colors.primary,
-    onColor: colors.primaryForeground,
-    blurb: 'Entretien régulier, grand nettoyage, repassage.',
-  },
-  {
-    id: 'mecanique',
-    label: 'Mécanique',
-    icon: 'mdi:wrench',
-    color: colors.chart3,
-    onColor: colors.white,
-    blurb: 'Auto, moto, dépannage sur place et diagnostic.',
-  },
-  {
-    id: 'it',
-    label: 'IT & Tech',
-    icon: 'solar:monitor-smartphone-bold-duotone',
-    color: colors.chart5,
-    onColor: colors.white,
-    blurb: 'Ordinateurs, téléphones, réseau et sites web.',
-  },
-  {
-    id: 'construction',
-    label: 'Construction',
-    icon: 'solar:home-2-bold',
-    color: '#b45309',
-    onColor: colors.white,
-    blurb: 'Maçonnerie, peinture, carrelage, menuiserie.',
-  },
-  {
-    id: 'froid',
-    label: 'Froid & Clim',
-    icon: 'solar:waterdrops-bold-duotone',
-    color: '#0891b2',
-    onColor: colors.white,
-    blurb: 'Climatisation, réfrigération, entretien et recharge.',
-  },
-  {
-    id: 'beaute',
-    label: 'Beauté',
-    icon: 'solar:heart-bold',
-    color: '#db2777',
-    onColor: colors.white,
-    blurb: 'Coiffure, esthétique et soins à domicile.',
-  },
-  {
-    id: 'evenementiel',
-    label: 'Événementiel',
-    icon: 'solar:star-bold',
-    color: '#7c3aed',
-    onColor: colors.white,
-    blurb: 'Traiteur, sonorisation, décoration, photo.',
-  },
-  {
-    id: 'transport',
-    label: 'Transport',
-    icon: 'solar:map-point-bold',
-    color: '#0f766e',
-    onColor: colors.white,
-    blurb: 'Déménagement, livraison et chauffeur.',
-  },
+  { id: 'construction', label: 'Construction & Bâtiment', icon: 'solar:home-2-bold',
+    blurb: 'Gros œuvre, finitions et second œuvre.' },
+  { id: 'electricite', label: 'Électricité', icon: 'solar:bolt-bold-duotone',
+    blurb: 'Installation, dépannage, solaire et sécurité.' },
+  { id: 'plomberie', label: 'Plomberie', icon: 'solar:waterdrops-bold-duotone',
+    blurb: 'Sanitaire, fuites, canalisations et chauffe-eau.' },
+  { id: 'nettoyage', label: 'Nettoyage & Hygiène', icon: '242k:sparkles',
+    blurb: 'Entretien, désinfection et espaces verts.' },
+  { id: 'transport', label: 'Transport & Livraison', icon: '242k:truck',
+    blurb: 'Livraison, chauffeur, déménagement et coursier.' },
+  { id: 'automobile', label: 'Automobile', icon: 'mdi:wrench',
+    blurb: 'Mécanique, carrosserie et dépannage.' },
+  { id: 'informatique', label: 'Informatique & Numérique', icon: 'solar:monitor-smartphone-bold-duotone',
+    blurb: 'Développement, réparation, réseau et design.' },
+  { id: 'beaute', label: 'Beauté & Bien-être', icon: '242k:scissors',
+    blurb: 'Coiffure, esthétique et soins.' },
+  { id: 'sante', label: 'Santé & Assistance', icon: '242k:health-cross',
+    blurb: 'Soins à domicile et accompagnement.' },
+  { id: 'education', label: 'Éducation', icon: '242k:book',
+    blurb: 'Cours, formation, traduction et coaching.' },
+  { id: 'maison', label: 'Maison & Services domestiques', icon: 'solar:home-smile-bold-duotone',
+    blurb: 'Ménage, cuisine, garde et couture.' },
+  { id: 'droit', label: 'Droit & Conseil', icon: '242k:briefcase',
+    blurb: 'Juridique, comptable et conseil.' },
+  { id: 'evenementiel', label: 'Événementiel', icon: '242k:camera',
+    blurb: 'Photo, son, décoration et traiteur.' },
+  { id: 'agriculture', label: 'Agriculture', icon: '242k:leaf',
+    blurb: 'Culture, élevage, irrigation et paysage.' },
+  { id: 'autres', label: 'Autres services', icon: 'solar:tuning-square-2-bold',
+    blurb: 'Serrurerie, soudure, climatisation, forage.' },
 ];
 
 export type Trade = {
@@ -130,102 +85,161 @@ export type Trade = {
   maxRate: number;
 };
 
+const t = (
+  id: string,
+  label: string,
+  category: CategoryId,
+  minRate: number,
+  maxRate: number,
+  description: string
+): Trade => ({ id, label, category, minRate, maxRate, description });
+
 export const trades: Trade[] = [
-  // Plomberie
-  { id: 'plombier', label: 'Plombier', category: 'plomberie', minRate: 10000, maxRate: 20000,
-    description: "Installation et réparation de canalisations, robinetterie et sanitaires. Intervention d'urgence en cas de fuite." },
-  { id: 'debouchage', label: 'Débouchage', category: 'plomberie', minRate: 8000, maxRate: 15000,
-    description: "Débouchage d'éviers, douches, WC et canalisations extérieures avec furet ou pompe haute pression." },
-  { id: 'chauffe-eau', label: 'Chauffe-eau', category: 'plomberie', minRate: 12000, maxRate: 25000,
-    description: 'Pose, remplacement et détartrage de chauffe-eau électriques ou à gaz.' },
-  { id: 'forage', label: 'Forage & pompe', category: 'plomberie', minRate: 15000, maxRate: 35000,
-    description: "Installation et entretien de pompes, surpresseurs et réservoirs d'eau." },
+  // Construction & Bâtiment
+  t('macon', 'Maçon', 'construction', 8000, 18000, 'Fondations, murs, chapes et enduits.'),
+  t('coffreur', 'Coffreur', 'construction', 9000, 18000, 'Coffrage de dalles, poteaux et poutres avant coulage.'),
+  t('ferrailleur', 'Ferrailleur', 'construction', 9000, 18000, "Façonnage et pose des armatures d'acier du béton armé."),
+  t('charpentier', 'Charpentier', 'construction', 10000, 20000, 'Charpente, ossature bois et toiture.'),
+  t('carreleur', 'Carreleur', 'construction', 9000, 18000, 'Pose de carrelage sol et mur, faïence et plinthes.'),
+  t('peintre', 'Peintre', 'construction', 7000, 15000, 'Peinture intérieure et extérieure, enduits décoratifs.'),
+  t('platrier', 'Plâtrier', 'construction', 8000, 16000, 'Cloisons, faux plafonds et enduits de plâtre.'),
+  t('etancheur', 'Étancheur', 'construction', 10000, 22000, "Étanchéité des toitures et terrasses contre les infiltrations."),
+  t('facadier', 'Façadier', 'construction', 9000, 20000, 'Ravalement, crépi et traitement des façades.'),
+  t('chef-chantier', 'Chef de chantier', 'construction', 15000, 35000, "Coordination des équipes, planning et suivi d'exécution."),
 
   // Électricité
-  { id: 'electricien', label: 'Électricien', category: 'electricite', minRate: 10000, maxRate: 20000,
-    description: 'Installation de prises, interrupteurs, éclairage et mise aux normes du tableau électrique.' },
-  { id: 'groupe-electrogene', label: 'Groupe électrogène', category: 'electricite', minRate: 15000, maxRate: 30000,
-    description: "Installation, entretien et réparation de groupes électrogènes et d'inverseurs de source." },
-  { id: 'solaire', label: 'Énergie solaire', category: 'electricite', minRate: 18000, maxRate: 40000,
-    description: 'Pose de panneaux solaires, batteries et onduleurs pour pallier les coupures.' },
-  { id: 'domotique', label: 'Vidéosurveillance', category: 'electricite', minRate: 15000, maxRate: 30000,
-    description: 'Installation de caméras, alarmes et interphones, avec accès depuis le téléphone.' },
+  t('electricien-batiment', 'Électricien bâtiment', 'electricite', 10000, 20000, 'Prises, éclairage, tableaux et mise aux normes.'),
+  t('electricien-industriel', 'Électricien industriel', 'electricite', 15000, 30000, 'Armoires, moteurs et installations industrielles.'),
+  t('installateur-solaire', 'Installateur solaire', 'electricite', 18000, 40000, 'Panneaux, batteries et onduleurs pour pallier les coupures.'),
+  t('groupe-electrogene', 'Installateur groupe électrogène', 'electricite', 15000, 30000, "Pose, entretien et inverseurs de source."),
+  t('videosurveillance', 'Installateur vidéosurveillance', 'electricite', 15000, 30000, 'Caméras et accès à distance depuis le téléphone.'),
+  t('alarme', 'Installateur alarme', 'electricite', 12000, 28000, 'Alarmes intrusion, sirènes et détecteurs.'),
+  t('domotique', 'Domotique', 'electricite', 18000, 40000, 'Pilotage de l’éclairage, des accès et de la clim.'),
 
-  // Ménage
-  { id: 'menage-regulier', label: 'Ménage régulier', category: 'menage', minRate: 6000, maxRate: 12000,
-    description: 'Entretien hebdomadaire ou quotidien du domicile : sols, cuisine, sanitaires, poussière.' },
-  { id: 'grand-nettoyage', label: 'Grand nettoyage', category: 'menage', minRate: 10000, maxRate: 20000,
-    description: "Nettoyage en profondeur avant emménagement, après travaux ou en fin de bail." },
-  { id: 'repassage', label: 'Repassage', category: 'menage', minRate: 5000, maxRate: 10000,
-    description: 'Repassage et pliage du linge à domicile, au panier ou à l’heure.' },
-  { id: 'vitres', label: 'Nettoyage de vitres', category: 'menage', minRate: 7000, maxRate: 14000,
-    description: 'Vitres, baies vitrées et vérandas, y compris en hauteur avec perche.' },
+  // Plomberie
+  t('plombier', 'Plombier', 'plomberie', 10000, 20000, 'Installation et réparation de canalisations et robinetterie.'),
+  t('debouchage', 'Débouchage', 'plomberie', 8000, 15000, 'Éviers, douches, WC et canalisations extérieures.'),
+  t('installation-sanitaire', 'Installation sanitaire', 'plomberie', 12000, 25000, 'Pose de WC, lavabos, douches et baignoires.'),
+  t('chauffe-eau', 'Chauffe-eau', 'plomberie', 12000, 25000, 'Pose, remplacement et détartrage.'),
+  t('reparation-fuite', 'Réparation fuite', 'plomberie', 8000, 18000, 'Recherche et réparation de fuites, en urgence si besoin.'),
+  t('canalisation', 'Canalisation', 'plomberie', 10000, 22000, 'Pose et remplacement de réseaux d’évacuation.'),
 
-  // Mécanique
-  { id: 'mecanicien-auto', label: 'Mécanicien auto', category: 'mecanique', minRate: 10000, maxRate: 25000,
-    description: 'Révision, freins, embrayage, distribution et diagnostic électronique.' },
-  { id: 'depannage-route', label: 'Dépannage sur place', category: 'mecanique', minRate: 15000, maxRate: 30000,
-    description: 'Intervention là où le véhicule est immobilisé : batterie, démarrage, crevaison.' },
-  { id: 'carrosserie', label: 'Carrosserie', category: 'mecanique', minRate: 12000, maxRate: 28000,
-    description: 'Débosselage, redressage et peinture de carrosserie.' },
-  { id: 'moto', label: 'Mécanique moto', category: 'mecanique', minRate: 6000, maxRate: 15000,
-    description: 'Entretien et réparation de motos et tricycles, très utilisés en ville.' },
+  // Nettoyage & Hygiène
+  t('nettoyage-maison', 'Nettoyage maison', 'nettoyage', 6000, 12000, 'Entretien du domicile : sols, cuisine, sanitaires.'),
+  t('nettoyage-bureau', 'Nettoyage bureau', 'nettoyage', 8000, 16000, 'Entretien de bureaux et locaux professionnels.'),
+  t('nettoyage-industriel', 'Nettoyage industriel', 'nettoyage', 12000, 28000, 'Sites industriels, entrepôts et machines.'),
+  t('desinfection', 'Désinfection', 'nettoyage', 10000, 22000, 'Traitement désinfectant des locaux.'),
+  t('lavage-vitres', 'Lavage de vitres', 'nettoyage', 7000, 14000, 'Vitres, baies vitrées et vérandas, y compris en hauteur.'),
+  t('espaces-verts', 'Entretien espaces verts', 'nettoyage', 7000, 15000, 'Tonte, taille et entretien des extérieurs.'),
+  t('collecte-dechets', 'Collecte des déchets', 'nettoyage', 8000, 18000, 'Enlèvement et évacuation des déchets.'),
+  t('recyclage', 'Recyclage', 'nettoyage', 8000, 18000, 'Tri et valorisation des déchets recyclables.'),
+  t('desinsectisation', 'Désinsectisation', 'nettoyage', 10000, 20000, 'Traitement contre insectes et nuisibles.'),
+  t('deratisation', 'Dératisation', 'nettoyage', 10000, 20000, 'Traitement et prévention contre les rongeurs.'),
 
-  // IT & Tech
-  { id: 'depannage-info', label: 'Dépannage informatique', category: 'it', minRate: 10000, maxRate: 20000,
-    description: 'Réparation, formatage, sauvegarde de données et suppression de virus.' },
-  { id: 'reparation-tel', label: 'Réparation téléphone', category: 'it', minRate: 8000, maxRate: 20000,
-    description: "Écrans, batteries, connecteurs de charge et déblocage." },
-  { id: 'reseau', label: 'Réseau & WiFi', category: 'it', minRate: 12000, maxRate: 25000,
-    description: 'Installation de box, répéteurs, câblage réseau et partage de connexion.' },
-  { id: 'web', label: 'Site web', category: 'it', minRate: 20000, maxRate: 50000,
-    description: 'Création de sites vitrines, boutiques en ligne et pages pour réseaux sociaux.' },
+  // Transport & Livraison
+  t('livreur', 'Livreur', 'transport', 5000, 12000, 'Livraison de colis et courses en ville.'),
+  t('chauffeur-prive', 'Chauffeur privé', 'transport', 10000, 25000, 'Mise à disposition à l’heure ou à la journée.'),
+  t('taxi', 'Taxi', 'transport', 5000, 15000, 'Course en ville et transferts.'),
+  t('demenagement', 'Déménagement', 'transport', 15000, 40000, 'Transport de meubles avec manutention.'),
+  t('transport-marchandises', 'Transport de marchandises', 'transport', 15000, 45000, 'Acheminement de marchandises et matériaux.'),
+  t('transport-scolaire', 'Transport scolaire', 'transport', 8000, 20000, 'Ramassage et dépose des élèves.'),
+  t('coursier', 'Coursier', 'transport', 5000, 12000, 'Plis, documents et petits colis, à moto.'),
+  t('livraison-express', 'Livraison express', 'transport', 8000, 18000, 'Livraison prioritaire dans la journée.'),
 
-  // Construction
-  { id: 'macon', label: 'Maçon', category: 'construction', minRate: 8000, maxRate: 18000,
-    description: 'Fondations, murs, chapes, enduits et petites extensions.' },
-  { id: 'peintre', label: 'Peintre', category: 'construction', minRate: 7000, maxRate: 15000,
-    description: 'Peinture intérieure et extérieure, enduits décoratifs et reprises.' },
-  { id: 'carreleur', label: 'Carreleur', category: 'construction', minRate: 9000, maxRate: 18000,
-    description: 'Pose de carrelage sol et mur, faïence et plinthes.' },
-  { id: 'menuisier', label: 'Menuisier', category: 'construction', minRate: 10000, maxRate: 22000,
-    description: 'Portes, placards, meubles sur mesure et réparation de bois.' },
-  { id: 'soudure', label: 'Soudure & métal', category: 'construction', minRate: 10000, maxRate: 22000,
-    description: 'Portails, grilles, charpente métallique et réparations en soudure.' },
+  // Automobile
+  t('mecanicien', 'Mécanicien', 'automobile', 10000, 25000, 'Révision, freins, embrayage et diagnostic.'),
+  t('electricien-auto', 'Électricien automobile', 'automobile', 10000, 22000, 'Batterie, alternateur, démarreur et faisceaux.'),
+  t('carrossier', 'Carrossier', 'automobile', 12000, 28000, 'Débosselage et redressage de carrosserie.'),
+  t('peintre-auto', 'Peintre automobile', 'automobile', 12000, 30000, 'Peinture et raccords de teinte.'),
+  t('depannage-auto', 'Dépannage', 'automobile', 15000, 30000, 'Intervention sur place et remorquage.'),
+  t('lavage-auto', 'Lavage automobile', 'automobile', 4000, 10000, 'Lavage intérieur et extérieur, polissage.'),
+  t('vulcanisateur', 'Vulcanisateur', 'automobile', 3000, 8000, 'Réparation de pneus et crevaisons.'),
 
-  // Froid & Clim
-  { id: 'clim-install', label: 'Installation clim', category: 'froid', minRate: 15000, maxRate: 35000,
-    description: 'Pose de split, mono ou multi, avec mise en service et test d’étanchéité.' },
-  { id: 'clim-entretien', label: 'Entretien clim', category: 'froid', minRate: 8000, maxRate: 15000,
-    description: 'Nettoyage des filtres, recharge de gaz et diagnostic de panne.' },
-  { id: 'froid-commercial', label: 'Froid commercial', category: 'froid', minRate: 15000, maxRate: 30000,
-    description: 'Chambres froides, vitrines réfrigérées et congélateurs professionnels.' },
+  // Informatique & Numérique
+  t('dev-web', 'Développeur Web', 'informatique', 20000, 50000, 'Sites vitrines, boutiques en ligne et applications web.'),
+  t('dev-mobile', 'Développeur Mobile', 'informatique', 25000, 60000, 'Applications Android et iOS.'),
+  t('dev-ia', 'Développeur IA', 'informatique', 30000, 70000, 'Automatisations, agents et intégrations IA.'),
+  t('reparation-ordinateur', 'Réparation ordinateur', 'informatique', 10000, 20000, 'Diagnostic, formatage et récupération de données.'),
+  t('reparation-telephone', 'Réparation téléphone', 'informatique', 8000, 20000, 'Écrans, batteries et connecteurs de charge.'),
+  t('reseau-informatique', 'Réseau informatique', 'informatique', 12000, 30000, 'Box, répéteurs, câblage et partage de connexion.'),
+  t('cybersecurite', 'Cybersécurité', 'informatique', 25000, 60000, 'Audit, sécurisation des accès et des données.'),
+  t('graphiste', 'Graphiste', 'informatique', 15000, 40000, 'Logos, identité visuelle et supports de communication.'),
+  t('community-manager', 'Community Manager', 'informatique', 15000, 40000, 'Animation des réseaux sociaux et contenus.'),
+  t('marketing-digital', 'Marketing Digital', 'informatique', 20000, 50000, 'Publicité en ligne, acquisition et campagnes.'),
 
-  // Beauté
-  { id: 'coiffure', label: 'Coiffure à domicile', category: 'beaute', minRate: 5000, maxRate: 15000,
-    description: 'Coupe, tresses, tissage et soins capillaires chez vous.' },
-  { id: 'esthetique', label: 'Esthétique', category: 'beaute', minRate: 6000, maxRate: 15000,
-    description: 'Manucure, pédicure, pose d’ongles et soins du visage.' },
-  { id: 'maquillage', label: 'Maquillage', category: 'beaute', minRate: 10000, maxRate: 30000,
-    description: 'Maquillage mariage, cérémonie et séance photo.' },
+  // Beauté & Bien-être
+  t('coiffeur', 'Coiffeur', 'beaute', 5000, 15000, 'Coupe, entretien et soins capillaires.'),
+  t('coiffeuse', 'Coiffeuse', 'beaute', 5000, 15000, 'Tresses, tissage, défrisage et coiffures d’événement.'),
+  t('barbier', 'Barbier', 'beaute', 3000, 10000, 'Coupe, taille de barbe et rasage.'),
+  t('maquilleuse', 'Maquilleuse', 'beaute', 10000, 30000, 'Maquillage mariage, cérémonie et séance photo.'),
+  t('estheticienne', 'Esthéticienne', 'beaute', 8000, 20000, 'Soins du visage et du corps, épilation.'),
+  t('manucure', 'Manucure', 'beaute', 5000, 12000, 'Soin des ongles et pose.'),
+  t('pedicure', 'Pédicure', 'beaute', 5000, 12000, 'Soin des pieds et des ongles.'),
+  t('massage', 'Massage', 'beaute', 10000, 25000, 'Massage relaxant et de récupération.'),
+  t('spa', 'Spa', 'beaute', 15000, 35000, 'Prestations de bien-être et soins complets.'),
+
+  // Santé & Assistance
+  t('infirmier', 'Infirmier', 'sante', 10000, 25000, 'Soins à domicile, pansements et injections.'),
+  t('aide-soignant', 'Aide-soignant', 'sante', 8000, 18000, 'Aide à la toilette, au lever et aux gestes du quotidien.'),
+  t('garde-malade', 'Garde-malade', 'sante', 8000, 18000, 'Présence et surveillance auprès d’un patient.'),
+  t('ambulance-privee', 'Ambulance privée', 'sante', 25000, 60000, 'Transport sanitaire.'),
+  t('nutritionniste', 'Nutritionniste', 'sante', 15000, 35000, 'Bilan et suivi alimentaire.'),
+  t('kinesitherapeute', 'Kinésithérapeute', 'sante', 15000, 35000, 'Rééducation et séances de kiné à domicile.'),
+
+  // Éducation
+  t('enseignant', 'Enseignant', 'education', 8000, 20000, 'Cours dans les matières du programme scolaire.'),
+  t('repetiteur', 'Répétiteur', 'education', 5000, 15000, 'Soutien scolaire et aide aux devoirs.'),
+  t('formateur', 'Formateur', 'education', 15000, 40000, 'Formation professionnelle et ateliers.'),
+  t('traducteur', 'Traducteur', 'education', 10000, 30000, 'Traduction de documents et interprétariat.'),
+  t('coach-professionnel', 'Coach professionnel', 'education', 20000, 50000, 'Accompagnement de carrière et de projet.'),
+  t('coach-sportif', 'Coach sportif', 'education', 8000, 20000, 'Entraînement personnalisé à domicile.'),
+
+  // Maison & Services domestiques
+  t('femme-menage', 'Femme de ménage', 'maison', 5000, 12000, 'Entretien régulier du domicile.'),
+  t('homme-menage', 'Homme de ménage', 'maison', 5000, 12000, 'Entretien régulier du domicile.'),
+  t('baby-sitter', 'Baby-sitter', 'maison', 5000, 12000, 'Garde d’enfants à domicile.'),
+  t('cuisinier', 'Cuisinier', 'maison', 10000, 25000, 'Préparation de repas à domicile.'),
+  t('jardinier', 'Jardinier', 'maison', 6000, 15000, 'Entretien du jardin et des plantations.'),
+  t('gardien', 'Gardien', 'maison', 6000, 15000, 'Surveillance de domicile ou de site.'),
+  t('repassage', 'Repassage', 'maison', 5000, 10000, 'Repassage et pliage du linge.'),
+  t('couture', 'Couture', 'maison', 5000, 20000, 'Retouches et confection sur mesure.'),
+
+  // Droit & Conseil
+  t('avocat', 'Avocat', 'droit', 30000, 80000, 'Conseil et représentation juridique.'),
+  t('notaire', 'Notaire', 'droit', 30000, 80000, 'Actes authentiques et transactions.'),
+  t('comptable', 'Comptable', 'droit', 20000, 50000, 'Tenue de comptes, bilans et déclarations.'),
+  t('consultant-fiscal', 'Consultant fiscal', 'droit', 25000, 60000, 'Fiscalité, obligations et optimisation.'),
+  t('consultant-rh', 'Consultant RH', 'droit', 25000, 60000, 'Recrutement, contrats et gestion du personnel.'),
+  t('conseiller-juridique', 'Conseiller juridique', 'droit', 20000, 50000, 'Conseil sur contrats et démarches.'),
 
   // Événementiel
-  { id: 'traiteur', label: 'Traiteur', category: 'evenementiel', minRate: 15000, maxRate: 40000,
-    description: 'Cuisine pour mariages, baptêmes et réunions, sur place ou livrée.' },
-  { id: 'sono', label: 'Sonorisation & DJ', category: 'evenementiel', minRate: 20000, maxRate: 50000,
-    description: 'Sono, éclairage et animation musicale pour tout type d’événement.' },
-  { id: 'decoration', label: 'Décoration', category: 'evenementiel', minRate: 15000, maxRate: 40000,
-    description: 'Décoration de salle, bâches, tables et arches florales.' },
-  { id: 'photo', label: 'Photo & vidéo', category: 'evenementiel', minRate: 20000, maxRate: 60000,
-    description: 'Reportage photo et vidéo, montage et livraison des fichiers.' },
+  t('photographe', 'Photographe', 'evenementiel', 20000, 60000, 'Reportage photo et retouche.'),
+  t('videaste', 'Vidéaste', 'evenementiel', 25000, 70000, 'Captation vidéo et montage.'),
+  t('dj', 'DJ', 'evenementiel', 20000, 50000, 'Animation musicale et sonorisation.'),
+  t('animateur', 'Animateur', 'evenementiel', 15000, 40000, 'Animation et présentation d’événement.'),
+  t('decoration', 'Décoration', 'evenementiel', 15000, 40000, 'Décoration de salle, bâches et arches.'),
+  t('location-materiel', 'Location de matériel', 'evenementiel', 10000, 40000, 'Chaises, tables, bâches et sonorisation.'),
+  t('traiteur', 'Traiteur', 'evenementiel', 15000, 40000, 'Cuisine pour mariages, baptêmes et réunions.'),
 
-  // Transport
-  { id: 'demenagement', label: 'Déménagement', category: 'transport', minRate: 15000, maxRate: 40000,
-    description: 'Transport de meubles et cartons, avec manutention et véhicule adapté.' },
-  { id: 'livraison', label: 'Livraison', category: 'transport', minRate: 5000, maxRate: 15000,
-    description: 'Livraison de colis et courses en ville, à moto ou en véhicule.' },
-  { id: 'chauffeur', label: 'Chauffeur', category: 'transport', minRate: 10000, maxRate: 25000,
-    description: 'Mise à disposition d’un chauffeur à l’heure ou à la journée.' },
+  // Agriculture
+  t('agriculteur', 'Agriculteur', 'agriculture', 6000, 15000, 'Travaux de culture et de récolte.'),
+  t('eleveur', 'Éleveur', 'agriculture', 6000, 15000, 'Conduite et soin du cheptel.'),
+  t('irrigation', 'Irrigation', 'agriculture', 10000, 25000, 'Réseaux d’arrosage et pompage.'),
+  t('tractoriste', 'Tractoriste', 'agriculture', 15000, 35000, 'Labour et travaux mécanisés.'),
+  t('jardinage', 'Jardinage', 'agriculture', 6000, 15000, 'Plantation et entretien.'),
+  t('paysagiste', 'Paysagiste', 'agriculture', 12000, 30000, 'Conception et aménagement d’extérieurs.'),
+
+  // Autres services
+  t('serrurier', 'Serrurier', 'autres', 8000, 20000, 'Ouverture, remplacement et blindage de serrures.'),
+  t('vitrier', 'Vitrier', 'autres', 10000, 25000, 'Pose et remplacement de vitrages.'),
+  t('soudeur', 'Soudeur', 'autres', 10000, 22000, 'Portails, grilles et réparations en soudure.'),
+  t('menuisier-alu', 'Menuisier aluminium', 'autres', 12000, 28000, 'Fenêtres, portes et vérandas en aluminium.'),
+  t('menuisier-bois', 'Menuisier bois', 'autres', 10000, 22000, 'Portes, placards et meubles sur mesure.'),
+  t('climatisation', 'Climatisation', 'autres', 15000, 35000, 'Pose, entretien et recharge de climatiseurs.'),
+  t('refrigeration', 'Réfrigération', 'autres', 15000, 30000, 'Chambres froides et vitrines réfrigérées.'),
+  t('piscine', 'Piscine', 'autres', 15000, 40000, 'Construction, entretien et traitement de l’eau.'),
+  t('forage', 'Forage', 'autres', 20000, 60000, 'Forage, pompes et château d’eau.'),
+  t('energie-renouvelable', 'Énergie renouvelable', 'autres', 20000, 50000, 'Solutions solaires et stockage d’énergie.'),
 ];
 
 export function getCategory(id: CategoryId): Category | undefined {
@@ -240,7 +254,7 @@ export function tradesInCategory(id: CategoryId): Trade[] {
   return trades.filter((t) => t.category === id);
 }
 
-/** Matches a free-text query against trade names, descriptions and category. */
+/** Matches free text against trade names, descriptions and their category. */
 export function searchTrades(query: string): Trade[] {
   const q = query.trim().toLowerCase();
   if (!q) return trades;

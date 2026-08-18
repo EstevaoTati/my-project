@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
-import { getCategory, initialsOf, professionalCategory, type Professional } from '../data';
-import { colors, fonts, radius } from '../theme';
+import { initialsOf, type Professional } from '../data';
+import { colors, fonts, radius, toneFor } from '../theme';
 
 type Props = {
   professional: Professional;
@@ -15,8 +15,8 @@ type Props = {
  *
  * Only the four people drawn in the Sleek design have photographs. Rather than
  * borrow a stranger's face for the demo records, the rest get their initials on
- * their category colour — which also makes the list read as a directory instead
- * of a stock-photo grid.
+ * a charte greyscale tone — which also makes the list read as a directory
+ * instead of a stock-photo grid.
  */
 export function ProAvatar({ professional, size, rounded }: Props) {
   const radiusValue = rounded ?? Math.round(size * 0.28);
@@ -30,7 +30,9 @@ export function ProAvatar({ professional, size, rounded }: Props) {
     );
   }
 
-  const tint = getCategory(professionalCategory(professional) ?? 'plomberie')?.color ?? colors.secondary;
+  // Charte greyscale rather than a category colour: varied enough to tell
+  // people apart in a list, without inventing hues the brand doesn't have.
+  const tint = toneFor(professional.id);
   return (
     <View
       style={[

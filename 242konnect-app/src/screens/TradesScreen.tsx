@@ -98,16 +98,10 @@ export function TradesScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={`Catégorie ${category.label}`}
                 accessibilityState={{ selected }}
-                style={[styles.chip, selected && { backgroundColor: category.color, borderColor: category.color }]}
+                style={[styles.chip, selected && styles.chipSelected]}
               >
-                <Icon
-                  name={category.icon}
-                  size={16}
-                  color={selected ? category.onColor : category.color}
-                />
-                <Text style={[styles.chipLabel, selected && { color: category.onColor }]}>
-                  {category.label}
-                </Text>
+                <Icon name={category.icon} size={16} color={colors.foreground} />
+                <Text style={styles.chipLabel}>{category.label}</Text>
               </Pressable>
             );
           })}
@@ -128,7 +122,7 @@ export function TradesScreen({ navigation, route }: Props) {
           return (
             <View key={categoryId} style={styles.group}>
               <View style={styles.groupHeader}>
-                <View style={[styles.groupDot, { backgroundColor: category.color }]} />
+                <View style={styles.groupDot} />
                 <Text style={styles.groupTitle}>{category.label}</Text>
               </View>
               <Text style={styles.groupBlurb}>{category.blurb}</Text>
@@ -213,13 +207,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.card,
   },
-  chipActive: { backgroundColor: colors.secondary, borderColor: colors.secondary },
+  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
   chipLabel: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },
-  chipLabelActive: { color: colors.secondaryForeground },
+  chipLabelActive: { color: colors.accentForeground },
   list: { padding: 20, gap: 24 },
   group: { gap: 8 },
   groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  groupDot: { width: 10, height: 10, borderRadius: 5 },
+  groupDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent },
   groupTitle: { fontFamily: fonts.heading, fontSize: 18, color: colors.foreground },
   groupBlurb: { fontFamily: fonts.sans, fontSize: 13, color: colors.mutedForeground, marginBottom: 4 },
   trade: {

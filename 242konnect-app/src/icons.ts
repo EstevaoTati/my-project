@@ -4,7 +4,13 @@
 // matters for design fidelity, so these are the same SVG sources the design
 // uses rather than a lookalike set. @expo/vector-icons carries neither set.
 //
-// Generated from the export's icons/ folder — do not hand-edit.
+// Generated from the export's icons/ folder — do not hand-edit ABOVE the
+// "in-house" marker. The cahier des charges (§4.3) specifies fifteen service
+// categories; the Sleek export only shipped icons for the handful of screens it
+// drew, and the Iconify API is unreachable from this environment. The icons
+// after the marker are therefore drawn in-house, in the same 24x24 viewBox and
+// using currentColor so they tint and scale identically. They are namespaced
+// `242k:` rather than `solar:` so nobody mistakes them for the licensed set.
 
 export const ICONS = {
   "mdi:wrench": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"m22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9c-2-2-5-2.4-7.4-1.3L9 6L6 9L1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4\"/></svg>",
@@ -32,6 +38,16 @@ export const ICONS = {
   "solar:tuning-square-2-bold": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M10 17.25a1.25 1.25 0 1 1 0-2.5a1.25 1.25 0 0 1 0 2.5M15.25 8a1.25 1.25 0 1 1-2.5 0a1.25 1.25 0 0 1 2.5 0\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12m8 6.75a2.75 2.75 0 1 1 0-5.5a2.75 2.75 0 0 1 0 5.5M16.75 8a2.75 2.75 0 1 1-5.5 0a2.75 2.75 0 0 1 5.5 0m-3.5 8a.75.75 0 0 1 .75-.75h5a.75.75 0 0 1 0 1.5h-5a.75.75 0 0 1-.75-.75M10 7.25a.75.75 0 0 1 0 1.5H5a.75.75 0 0 1 0-1.5zM4.25 16a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5H5a.75.75 0 0 1-.75-.75M19 7.25a.75.75 0 0 1 0 1.5h-1a.75.75 0 0 1 0-1.5z\" clip-rule=\"evenodd\"/></svg>",
   "solar:user-rounded-linear": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"12\" cy=\"6\" r=\"4\"/><ellipse cx=\"12\" cy=\"17\" rx=\"7\" ry=\"4\"/></g></svg>",
   "solar:waterdrops-bold-duotone": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M10 17.833C10 20.134 8.21 22 6 22s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C8.434 14.472 10 16.393 10 17.833\"/><path fill=\"currentColor\" d=\"M22 17.833C22 20.134 20.21 22 18 22s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C20.434 14.472 22 16.393 22 17.833\" opacity=\".7\"/><path fill=\"currentColor\" d=\"M16 7.833C16 10.134 14.21 12 12 12s-4-1.866-4-4.167c0-1.44 1.566-3.361 2.738-4.598a1.724 1.724 0 0 1 2.524 0C14.434 4.472 16 6.393 16 7.833\" opacity=\".4\"/></svg>",
+
+  // ---- in-house (see header) ----
+  "242k:sparkles": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z\"/><path fill=\"currentColor\" d=\"M18.5 14l.9 2.6l2.6.9l-2.6.9l-.9 2.6l-.9-2.6l-2.6-.9l2.6-.9z\"/><path fill=\"currentColor\" d=\"M5.5 15l.6 1.9l1.9.6l-1.9.6l-.6 1.9l-.6-1.9L3 17.5l1.9-.6z\"/></svg>",
+  "242k:truck": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M2 7a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9H8.9a3 3 0 0 0-5.8 0H2z\"/><path fill=\"currentColor\" d=\"M16.5 9H19a2 2 0 0 1 1.6.8l1.5 2a2 2 0 0 1 .4 1.2V16h-1.6a3 3 0 0 0-5.8 0h-.6a1 1 0 0 1-.5-.1V9z\"/><circle cx=\"6\" cy=\"18\" r=\"2.2\" fill=\"currentColor\"/><circle cx=\"18\" cy=\"18\" r=\"2.2\" fill=\"currentColor\"/></svg>",
+  "242k:scissors": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"18\" r=\"3\"/><path d=\"M8.1 15.9L20 4M15.9 15.9L4 4\"/></g></svg>",
+  "242k:health-cross": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M9.5 2h5A1.5 1.5 0 0 1 16 3.5V8h4.5A1.5 1.5 0 0 1 22 9.5v5a1.5 1.5 0 0 1-1.5 1.5H16v4.5a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 8 20.5V16H3.5A1.5 1.5 0 0 1 2 14.5v-5A1.5 1.5 0 0 1 3.5 8H8V3.5A1.5 1.5 0 0 1 9.5 2\"/></svg>",
+  "242k:book": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M4 4.5A2.5 2.5 0 0 1 6.5 2H18a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6.5a.5.5 0 0 0 0 1H19a1 1 0 1 1 0 2H6.5A2.5 2.5 0 0 1 4 19.5z\"/></svg>",
+  "242k:briefcase": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M9 6v-.5A2.5 2.5 0 0 1 11.5 3h1A2.5 2.5 0 0 1 15 5.5V6\"/></svg>",
+  "242k:camera": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M9.4 3a2 2 0 0 0-1.7.9L6.9 5H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-1.9l-.8-1.1A2 2 0 0 0 14.6 3zm2.6 5.5a4 4 0 1 1 0 8a4 4 0 0 1 0-8\" clip-rule=\"evenodd\"/></svg>",
+  "242k:leaf": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M21 3s-1 12-9 12a5 5 0 0 1-4.6-3C6 9 10 4 21 3\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M4 21c2-6 6-10 12-13\"/></svg>",
 } as const;
 
 export type IconName = keyof typeof ICONS;

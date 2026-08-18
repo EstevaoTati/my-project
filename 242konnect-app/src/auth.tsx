@@ -36,6 +36,12 @@ type StoredAccount = Account & { password: string };
 
 const ACCOUNTS_KEY = '242k.accounts';
 const SESSION_KEY = '242k.session';
+/**
+ * Set the first time the app finishes launching. The directives route the very
+ * first open to "Commencer" and every later open straight to Connexion (or the
+ * dashboard), so that distinction has to survive a restart.
+ */
+const LAUNCHED_KEY = '242k.launched';
 
 /** Congolese mobile numbers are nine digits, conventionally starting 0. */
 export const PHONE_LENGTH = 9;
@@ -60,6 +66,9 @@ type AuthState = {
   signIn: (input: { phone: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (edits: ProfileEdits) => Promise<void>;
+  /** True until the app has been opened once on this device. */
+  firstLaunch: boolean;
+  markLaunched: () => void;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -76,12 +85,17 @@ async function readAccounts(): Promise<StoredAccount[]> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [restoring, setRestoring] = useState(true);
+  const [firstLaunch, setFirstLaunch] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(SESSION_KEY);
+        const [raw, launched] = await Promise.all([
+          AsyncStorage.getItem(SESSION_KEY),
+          AsyncStorage.getItem(LAUNCHED_KEY),
+        ]);
         if (raw) setAccount(JSON.parse(raw) as Account);
+        setFirstLaunch(launched === null);
       } catch {
         // A corrupt session is not worth blocking sign-in over; start signed out.
       } finally {
@@ -132,6 +146,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(() => persistSession(null), [persistSession]);
 
+  const markLaunched = useCallback(() => {
+    setFirstLaunch(false);
+    AsyncStorage.setItem(LAUNCHED_KEY, '1').catch(() => {});
+  }, []);
+
   const updateProfile = useCallback<AuthState['updateProfile']>(
     async (edits) => {
       if (!account) throw new Error('Aucun compte connecté.');
@@ -152,8 +171,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<AuthState>(
-    () => ({ account, restoring, signUp, signIn, signOut, updateProfile }),
-    [account, restoring, signUp, signIn, signOut, updateProfile]
+    () => ({ account, restoring, signUp, signIn, signOut, updateProfile, firstLaunch, markLaunched }),
+    [account, restoring, signUp, signIn, signOut, updateProfile, firstLaunch, markLaunched]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

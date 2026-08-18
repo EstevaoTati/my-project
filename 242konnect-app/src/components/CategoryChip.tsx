@@ -7,18 +7,21 @@ import { colors, fonts, radius, shadow } from '../theme';
 type Props = {
   category: Category;
   onPress: () => void;
+  /** Selected chips fill with the brand yellow — the charte's only accent. */
+  selected?: boolean;
 };
 
-export function CategoryChip({ category, onPress }: Props) {
+export function CategoryChip({ category, onPress, selected }: Props) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Catégorie ${category.label}`}
+      accessibilityState={{ selected: !!selected }}
       style={({ pressed }) => [styles.wrap, pressed && styles.pressed]}
     >
-      <View style={styles.tile}>
-        <Icon name={category.icon} size={32} color={category.color} />
+      <View style={[styles.tile, selected && styles.tileSelected]}>
+        <Icon name={category.icon} size={30} color={colors.foreground} />
       </View>
       <Text style={styles.label} numberOfLines={1}>
         {category.label}
@@ -43,6 +46,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadow.sm,
   },
+  tileSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
   label: {
     fontFamily: fonts.sansSemibold,
     fontSize: 12,

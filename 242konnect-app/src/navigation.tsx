@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -16,6 +16,7 @@ import { FaqScreen } from './screens/FaqScreen';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { SignInScreen } from './screens/SignInScreen';
+import { SplashScreen } from './screens/SplashScreen';
 import { useAuth } from './auth';
 import type { CategoryId } from './data';
 import { colors } from './theme';
@@ -97,9 +98,14 @@ function AppTabs() {
   );
 }
 
-function AuthFlow() {
+/**
+ * The directives split the unauthenticated entry point in two: the very first
+ * open lands on "Commencer" (Bienvenue), which introduces the platform; every
+ * later open goes straight to Connexion. Same stack, different starting screen.
+ */
+function AuthFlow({ firstLaunch }: { firstLaunch: boolean }) {
   return (
-    <AuthStack.Navigator screenOptions={hidden}>
+    <AuthStack.Navigator screenOptions={hidden} initialRouteName={firstLaunch ? 'Bienvenue' : 'Connexion'}>
       <AuthStack.Screen name="Bienvenue" component={WelcomeScreen} />
       <AuthStack.Screen name="Inscription" component={SignUpScreen} />
       <AuthStack.Screen name="Connexion" component={SignInScreen} />
@@ -108,12 +114,26 @@ function AuthFlow() {
 }
 
 export function RootNavigator() {
-  const { account, restoring } = useAuth();
+  const { account, restoring, firstLaunch, markLaunched } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
+  // Captured before markLaunched clears it, so the routing decision isn't
+  // changed underneath the navigator by its own side effect.
+  const wasFirstLaunch = useRef(false);
 
-  // Reading the stored session is fast but not instant. Rendering the welcome
-  // screen first and then swapping would flash the sign-up form at someone who
-  // is already signed in, so hold on a blank ground until it's known.
-  if (restoring) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  const finishSplash = useCallback(() => {
+    wasFirstLaunch.current = firstLaunch;
+    markLaunched();
+    setSplashDone(true);
+  }, [firstLaunch, markLaunched]);
 
-  return account ? <AppTabs /> : <AuthFlow />;
+  // The splash runs while the stored session is being read, so the animation
+  // covers the restore instead of adding to it.
+  if (!splashDone) return <SplashScreen onDone={finishSplash} />;
+
+  // Restoring is normally finished by the time the splash ends; if it isn't,
+  // hold on the same black ground rather than flashing the sign-in form at
+  // someone who is already signed in.
+  if (restoring) return <View style={{ flex: 1, backgroundColor: colors.black }} />;
+
+  return account ? <AppTabs /> : <AuthFlow firstLaunch={wasFirstLaunch.current} />;
 }

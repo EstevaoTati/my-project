@@ -168,7 +168,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
                 accessibilityLabel={`Publier une demande en ${category.label}`}
                 style={styles.postRow}
               >
-                <Icon name={category.icon} size={24} color={category.color} />
+                <Icon name={category.icon} size={24} color={colors.foreground} />
                 <Text style={styles.postLabel}>{category.label}</Text>
                 <Icon name="solar:arrow-right-bold" size={20} color={colors.mutedForeground} />
               </Pressable>
