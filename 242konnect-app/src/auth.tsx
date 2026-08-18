@@ -5,32 +5,57 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * Accounts, stored on the device.
  *
  * There is no backend yet, so an account created here lives in AsyncStorage on
- * this device and nowhere else — it survives closing the app, but it does not
+ * this device and nowhere else. It survives closing the app, but it does not
  * exist on any server and cannot be used from a second phone. Everything below
- * is shaped so that swapping in a real API means replacing the three functions
- * that touch storage, not rewriting the screens.
+ * is shaped so that swapping in a real API means replacing the functions that
+ * touch storage, not rewriting the screens.
  *
- * Identity is the phone number, not an email. 242Konnect serves Pointe-Noire,
- * where a mobile number is how people are reached and identified — +242 is
- * Congo-Brazzaville's dialing code, and the product is named after it.
+ * Two rules come straight from the cahier des charges §9.10:
+ *
+ *  - **One account, several profiles.** A person has a single login — one phone
+ *    number, one e-mail — and activates Particulier, Prestataire and/or
+ *    Business on top of it. The spec is explicit that three separate accounts is
+ *    the wrong shape: "l'utilisateur n'a qu'une seule connexion et peut changer
+ *    de profil depuis son espace personnel".
+ *  - **Uniqueness.** A phone number and an e-mail each belong to exactly one
+ *    account, and the refusal message is quoted from the spec.
+ *
+ * The uniqueness check here only sees accounts on this device. Real uniqueness
+ * needs a shared database — see docs/decisions.
  */
 
-export type AccountRole = 'client' | 'pro';
+export type ProfileKind = 'particulier' | 'prestataire' | 'business';
+
+export const PROFILE_LABELS: Record<ProfileKind, string> = {
+  particulier: 'Particulier',
+  prestataire: 'Prestataire',
+  business: 'Business',
+};
 
 export type Account = {
-  /** Local number without the +242 prefix, digits only. */
+  /** Local number without the +242 prefix, digits only. Part of the identity. */
   phone: string;
+  /** The other half of the identity (§2.2 — OTP goes to one or the other). */
+  email: string;
   name: string;
-  role: AccountRole;
   /** Profile photo as a data URI. Kept small so it fits in AsyncStorage. */
   avatar?: string;
   bio?: string;
-  /** For professionals: which trade they offer, from the catalogue. */
+  /** Which profiles this one account has activated (§9.10). */
+  profiles: ProfileKind[];
+  /** The profile currently in use; switched from the Profil tab. */
+  activeProfile: ProfileKind;
+  /** Prestataire profile: which trade they offer. */
   tradeId?: string;
+  /** Business profile: raison sociale (§2.2). */
+  companyName?: string;
+  createdAt: number;
 };
 
-/** What someone can change after signing up. The phone number is the identity. */
-export type ProfileEdits = Partial<Pick<Account, 'name' | 'avatar' | 'bio' | 'tradeId'>>;
+/** What someone can change afterwards. Phone and e-mail are the identity. */
+export type ProfileEdits = Partial<
+  Pick<Account, 'name' | 'avatar' | 'bio' | 'tradeId' | 'companyName'>
+>;
 
 type StoredAccount = Account & { password: string };
 
@@ -46,6 +71,11 @@ const LAUNCHED_KEY = '242k.launched';
 /** Congolese mobile numbers are nine digits, conventionally starting 0. */
 export const PHONE_LENGTH = 9;
 export const MIN_PASSWORD = 6;
+export const OTP_LENGTH = 6;
+
+/** The refusal the spec dictates, quoted rather than paraphrased. */
+export const DUPLICATE_ACCOUNT_MESSAGE =
+  'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
 
 export function normalizePhone(input: string): string {
   return input.replace(/\D/g, '').slice(0, PHONE_LENGTH);
@@ -58,14 +88,55 @@ export function formatPhone(digits: string): string {
   return parts.join(' ');
 }
 
+export function isValidEmail(input: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.trim());
+}
+
+/** Where a verification code was sent, so the OTP screen can say so. */
+export type OtpChannel = 'sms' | 'email';
+
+export type PendingSignUp = {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  profile: ProfileKind;
+  channel: OtpChannel;
+  /**
+   * The code that would have been sent. It is surfaced in the UI behind a
+   * "démonstration" notice: there is no SMS gateway here, and silently
+   * accepting any code would make the verification look real when it isn't.
+   */
+  code: string;
+};
+
 type AuthState = {
   account: Account | null;
-  /** True until the stored session has been read, so we don't flash the welcome screen. */
+  /** True until the stored session has been read, so we don't flash a form. */
   restoring: boolean;
-  signUp: (input: { name: string; phone: string; password: string; role: AccountRole }) => Promise<void>;
-  signIn: (input: { phone: string; password: string }) => Promise<void>;
+  /** Set once sign-up details are accepted and a code is awaiting entry. */
+  pending: PendingSignUp | null;
+  /** Validates the details and issues a code; does not create the account yet. */
+  startSignUp: (input: {
+    name: string;
+    phone: string;
+    email: string;
+    password: string;
+    profile: ProfileKind;
+    channel: OtpChannel;
+  }) => Promise<void>;
+  /** Creates the account once the code matches. */
+  confirmSignUp: (code: string) => Promise<void>;
+  /** Issues a fresh code for the pending sign-up. */
+  resendCode: () => void;
+  cancelSignUp: () => void;
+  signIn: (input: { identifier: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (edits: ProfileEdits) => Promise<void>;
+  /** Switches which profile is in use (§9.10). */
+  switchProfile: (kind: ProfileKind) => Promise<void>;
+  /** Activates an additional profile on the same account. */
+  activateProfile: (kind: ProfileKind) => Promise<void>;
   /** True until the app has been opened once on this device. */
   firstLaunch: boolean;
   markLaunched: () => void;
@@ -82,10 +153,15 @@ async function readAccounts(): Promise<StoredAccount[]> {
   }
 }
 
+function generateCode(): string {
+  return String(Math.floor(Math.random() * 10 ** OTP_LENGTH)).padStart(OTP_LENGTH, '0');
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [restoring, setRestoring] = useState(true);
   const [firstLaunch, setFirstLaunch] = useState(false);
+  const [pending, setPending] = useState<PendingSignUp | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -110,34 +186,99 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     else await AsyncStorage.removeItem(SESSION_KEY);
   }, []);
 
-  const signUp = useCallback<AuthState['signUp']>(
-    async ({ name, phone, password, role }) => {
-      const digits = normalizePhone(phone);
-      if (name.trim().length < 2) throw new Error('Entrez votre nom complet.');
-      if (digits.length !== PHONE_LENGTH) throw new Error(`Le numéro doit contenir ${PHONE_LENGTH} chiffres.`);
-      if (password.length < MIN_PASSWORD)
-        throw new Error(`Le mot de passe doit contenir au moins ${MIN_PASSWORD} caractères.`);
-
+  /** Writes an updated account to both the roster and the live session. */
+  const persistAccount = useCallback(
+    async (next: Account) => {
+      // The stored record also holds the password, so merge into it rather than
+      // replacing the row with a password-less copy — that would lock the user out.
       const accounts = await readAccounts();
-      if (accounts.some((a) => a.phone === digits))
-        throw new Error('Un compte existe déjà avec ce numéro. Connectez-vous.');
-
-      const created: StoredAccount = { phone: digits, name: name.trim(), role, password };
-      await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
-      const { password: _omit, ...safe } = created;
-      await persistSession(safe);
+      await AsyncStorage.setItem(
+        ACCOUNTS_KEY,
+        JSON.stringify(accounts.map((a) => (a.phone === next.phone ? { ...a, ...next } : a)))
+      );
+      await persistSession(next);
     },
     [persistSession]
   );
 
-  const signIn = useCallback<AuthState['signIn']>(
-    async ({ phone, password }) => {
+  const startSignUp = useCallback<AuthState['startSignUp']>(
+    async ({ name, phone, email, password, profile, channel }) => {
       const digits = normalizePhone(phone);
+      const mail = email.trim().toLowerCase();
+
+      if (name.trim().length < 2) throw new Error('Entrez votre nom complet.');
+      if (digits.length !== PHONE_LENGTH)
+        throw new Error(`Le numéro doit contenir ${PHONE_LENGTH} chiffres.`);
+      if (!isValidEmail(mail)) throw new Error('Entrez une adresse e-mail valide.');
+      if (password.length < MIN_PASSWORD)
+        throw new Error(`Le mot de passe doit contenir au moins ${MIN_PASSWORD} caractères.`);
+
+      // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
-      const found = accounts.find((a) => a.phone === digits);
-      // Same message whether the number is unknown or the password is wrong —
+      if (accounts.some((a) => a.phone === digits || a.email === mail))
+        throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+
+      setPending({
+        name: name.trim(),
+        phone: digits,
+        email: mail,
+        password,
+        profile,
+        channel,
+        code: generateCode(),
+      });
+    },
+    []
+  );
+
+  const confirmSignUp = useCallback<AuthState['confirmSignUp']>(
+    async (code) => {
+      if (!pending) throw new Error('Aucune inscription en cours.');
+      if (code.replace(/\D/g, '') !== pending.code)
+        throw new Error('Code incorrect. Vérifiez les chiffres reçus.');
+
+      const accounts = await readAccounts();
+      // Re-check: another profile could have claimed the number while the code
+      // was being entered.
+      if (accounts.some((a) => a.phone === pending.phone || a.email === pending.email))
+        throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+
+      const created: StoredAccount = {
+        phone: pending.phone,
+        email: pending.email,
+        name: pending.name,
+        password: pending.password,
+        profiles: [pending.profile],
+        activeProfile: pending.profile,
+        createdAt: Date.now(),
+      };
+      await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
+      const { password: _omit, ...safe } = created;
+      setPending(null);
+      await persistSession(safe);
+    },
+    [pending, persistSession]
+  );
+
+  const resendCode = useCallback(() => {
+    setPending((prev) => (prev ? { ...prev, code: generateCode() } : prev));
+  }, []);
+
+  const cancelSignUp = useCallback(() => setPending(null), []);
+
+  const signIn = useCallback<AuthState['signIn']>(
+    async ({ identifier, password }) => {
+      // §3.2: sign in with either the phone number or the e-mail address.
+      const raw = identifier.trim().toLowerCase();
+      const digits = normalizePhone(identifier);
+      const accounts = await readAccounts();
+      const found = accounts.find(
+        (a) => (digits.length === PHONE_LENGTH && a.phone === digits) || a.email === raw
+      );
+      // Same message whether the account is unknown or the password is wrong —
       // saying which one is wrong tells an attacker which numbers are registered.
-      if (!found || found.password !== password) throw new Error('Numéro ou mot de passe incorrect.');
+      if (!found || found.password !== password)
+        throw new Error('Identifiant ou mot de passe incorrect.');
       const { password: _omit, ...safe } = found;
       await persistSession(safe);
     },
@@ -156,23 +297,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!account) throw new Error('Aucun compte connecté.');
       if (edits.name !== undefined && edits.name.trim().length < 2)
         throw new Error('Entrez votre nom complet.');
-
-      const next: Account = { ...account, ...edits, name: edits.name?.trim() ?? account.name };
-      // The stored record also holds the password, so merge into it rather than
-      // replacing the row with a password-less copy — that would lock the user out.
-      const accounts = await readAccounts();
-      await AsyncStorage.setItem(
-        ACCOUNTS_KEY,
-        JSON.stringify(accounts.map((a) => (a.phone === account.phone ? { ...a, ...next } : a)))
-      );
-      await persistSession(next);
+      await persistAccount({ ...account, ...edits, name: edits.name?.trim() ?? account.name });
     },
-    [account, persistSession]
+    [account, persistAccount]
+  );
+
+  const switchProfile = useCallback<AuthState['switchProfile']>(
+    async (kind) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account.profiles.includes(kind))
+        throw new Error("Ce profil n'est pas encore activé sur votre compte.");
+      await persistAccount({ ...account, activeProfile: kind });
+    },
+    [account, persistAccount]
+  );
+
+  const activateProfile = useCallback<AuthState['activateProfile']>(
+    async (kind) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (account.profiles.includes(kind)) {
+        await persistAccount({ ...account, activeProfile: kind });
+        return;
+      }
+      await persistAccount({
+        ...account,
+        profiles: [...account.profiles, kind],
+        activeProfile: kind,
+      });
+    },
+    [account, persistAccount]
   );
 
   const value = useMemo<AuthState>(
-    () => ({ account, restoring, signUp, signIn, signOut, updateProfile, firstLaunch, markLaunched }),
-    [account, restoring, signUp, signIn, signOut, updateProfile, firstLaunch, markLaunched]
+    () => ({
+      account,
+      restoring,
+      pending,
+      startSignUp,
+      confirmSignUp,
+      resendCode,
+      cancelSignUp,
+      signIn,
+      signOut,
+      updateProfile,
+      switchProfile,
+      activateProfile,
+      firstLaunch,
+      markLaunched,
+    }),
+    [
+      account,
+      restoring,
+      pending,
+      startSignUp,
+      confirmSignUp,
+      resendCode,
+      cancelSignUp,
+      signIn,
+      signOut,
+      updateProfile,
+      switchProfile,
+      activateProfile,
+      firstLaunch,
+      markLaunched,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

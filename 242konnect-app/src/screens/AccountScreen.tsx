@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import { formatPhone, useAuth } from '../auth';
 import { useStore } from '../store';
+import { PROFILE_LABELS, type ProfileKind } from '../auth';
 import { UserAvatar } from '../components/Avatar';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -24,7 +25,7 @@ type Props = NativeStackScreenProps<AccountStackParamList, 'MonCompte'>;
 
 export function AccountScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { account, signOut } = useAuth();
+  const { account, signOut, switchProfile, activateProfile } = useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
 
   if (!account) return null;
@@ -42,17 +43,50 @@ export function AccountScreen({ navigation }: Props) {
         <View style={styles.identity}>
           <Text style={styles.name}>{account.name}</Text>
           <Text style={styles.phone}>+242 {formatPhone(account.phone)}</Text>
+          <Text style={styles.email} numberOfLines={1}>
+            {account.email}
+          </Text>
           {!!account.bio && (
             <Text style={styles.bio} numberOfLines={2}>
               {account.bio}
             </Text>
           )}
         </View>
-        <View style={[styles.roleChip, account.role === 'pro' && styles.roleChipPro]}>
-          <Text style={[styles.roleChipText, account.role === 'pro' && styles.roleChipTextPro]}>
-            {account.role === 'pro' ? 'Professionnel' : 'Client'}
-          </Text>
+      </View>
+
+      {/* §9.10: one account, several profiles, switched from here — not three
+          separate accounts. Profiles not yet activated can be added in place. */}
+      <View style={styles.profiles}>
+        <Text style={styles.profilesLabel}>Profil actif</Text>
+        <View style={styles.profileRow}>
+          {(Object.keys(PROFILE_LABELS) as ProfileKind[]).map((kind) => {
+            const active = account.activeProfile === kind;
+            const owned = account.profiles.includes(kind);
+            return (
+              <Pressable
+                key={kind}
+                onPress={() => (owned ? switchProfile(kind) : activateProfile(kind))}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  owned ? `Profil ${PROFILE_LABELS[kind]}` : `Activer le profil ${PROFILE_LABELS[kind]}`
+                }
+                accessibilityState={{ selected: active }}
+                style={[styles.profileChip, active && styles.profileChipActive]}
+              >
+                <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
+                  {PROFILE_LABELS[kind]}
+                </Text>
+                {!owned && <Text style={styles.profileChipAdd}>+ activer</Text>}
+              </Pressable>
+            );
+          })}
         </View>
+        {account.activeProfile !== 'particulier' && (
+          <Text style={styles.profilesNote}>
+            L'espace {PROFILE_LABELS[account.activeProfile]} n'est pas encore construit. Vous
+            continuez à utiliser l'application comme particulier.
+          </Text>
+        )}
       </View>
 
       <View style={styles.stats}>
@@ -156,6 +190,38 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.heading, fontSize: 17, color: colors.foreground },
   phone: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
   bio: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, marginTop: 4 },
+  email: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
+  profiles: {
+    padding: 14,
+    gap: 10,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius['2xl'],
+  },
+  profilesLabel: {
+    fontFamily: fonts.sansBold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.mutedForeground,
+  },
+  profileRow: { flexDirection: 'row', gap: 8 },
+  profileChip: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  profileChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  profileChipLabel: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },
+  profileChipLabelActive: { color: colors.accentForeground },
+  profileChipAdd: { fontFamily: fonts.sans, fontSize: 10, color: colors.mutedForeground },
+  profilesNote: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.warning },
   roleChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,

@@ -17,6 +17,7 @@ import { WelcomeScreen } from './screens/WelcomeScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { SignInScreen } from './screens/SignInScreen';
 import { SplashScreen } from './screens/SplashScreen';
+import { OtpScreen } from './screens/OtpScreen';
 import { useAuth } from './auth';
 import type { CategoryId } from './data';
 import { colors } from './theme';
@@ -114,7 +115,7 @@ function AuthFlow({ firstLaunch }: { firstLaunch: boolean }) {
 }
 
 export function RootNavigator() {
-  const { account, restoring, firstLaunch, markLaunched } = useAuth();
+  const { account, restoring, firstLaunch, markLaunched, pending } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
   // Captured before markLaunched clears it, so the routing decision isn't
   // changed underneath the navigator by its own side effect.
@@ -135,5 +136,9 @@ export function RootNavigator() {
   // someone who is already signed in.
   if (restoring) return <View style={{ flex: 1, backgroundColor: colors.black }} />;
 
-  return account ? <AppTabs /> : <AuthFlow firstLaunch={wasFirstLaunch.current} />;
+  if (account) return <AppTabs />;
+  // A pending sign-up owns the screen until the code is entered or cancelled,
+  // so verification can't be skipped by navigating around it.
+  if (pending) return <OtpScreen />;
+  return <AuthFlow firstLaunch={wasFirstLaunch.current} />;
 }

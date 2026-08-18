@@ -49,7 +49,7 @@ export function EditProfileScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   if (!account) return null;
-  const isPro = account.role === 'pro';
+  const isPro = account.profiles.includes('prestataire');
 
   const useResult = (result: ImagePicker.ImagePickerResult) => {
     if (result.canceled) return;

@@ -3,8 +3,8 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
-import { FormError, Field, PhoneField, SubmitButton } from '../components/form';
-import { normalizePhone, useAuth } from '../auth';
+import { FormError, Field, SubmitButton } from '../components/form';
+import { isValidEmail, normalizePhone, useAuth } from '../auth';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -14,7 +14,7 @@ export function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { signIn } = useAuth();
 
-  const [phone, setPhone] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export function SignInScreen({ navigation }: Props) {
     setError(null);
     setBusy(true);
     try {
-      await signIn({ phone, password });
+      await signIn({ identifier, password });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Connexion impossible.');
     } finally {
@@ -31,7 +31,10 @@ export function SignInScreen({ navigation }: Props) {
     }
   };
 
-  const ready = normalizePhone(phone).length === 9 && password.length > 0;
+  // §3.2 allows signing in with either identifier, so accept a full local
+  // number or a valid e-mail.
+  const ready =
+    (normalizePhone(identifier).length === 9 || isValidEmail(identifier)) && password.length > 0;
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -51,10 +54,17 @@ export function SignInScreen({ navigation }: Props) {
         </Pressable>
 
         <Text style={styles.title}>Bon retour</Text>
-        <Text style={styles.lede}>Connectez-vous avec le numéro utilisé à l'inscription.</Text>
+        <Text style={styles.lede}>Connectez-vous avec votre numéro ou votre adresse e-mail.</Text>
 
         <View style={styles.form}>
-          <PhoneField value={phone} onChangeText={setPhone} />
+          <Field
+            label="Numéro de téléphone ou e-mail"
+            value={identifier}
+            onChangeText={setIdentifier}
+            autoCapitalize="none"
+            inputMode="email"
+            placeholder="06 123 45 67 ou vous@exemple.com"
+          />
           <Field
             label="Mot de passe"
             value={password}
