@@ -60,6 +60,26 @@ EXPO_PUBLIC_API_URL=http://127.0.0.1:8979 npx expo export --platform web --clear
 node tools/verify-email-otp.js
 ```
 
+## `verify-flag.js` — is the brand mark actually the flag?
+
+Renders the mark on a blank page, screenshots it and scans the pixels. Reading
+the SVG source back would only re-assert what was typed; this measures what a
+viewer sees.
+
+```sh
+npx expo export --platform web && node tools/verify-flag.js
+```
+
+It checks the colours are `#009739` / `#ffd100` / `#dc241f`, and that the two
+boundaries are **diagonal** — the green/yellow crossing the top edge at 2/3 and
+the yellow/red crossing the bottom edge at 1/3, the proportions measured from
+the reference flag. An earlier version of the mark used horizontal stripes and
+looked plausible at 34 px; the diagonal assertion is what catches that.
+
+Requires `pngjs`. Note that running `npm install` in a directory whose
+`package.json` omits a package **prunes** it — that is how `playwright`
+disappeared from the scratchpad mid-session.
+
 ## `serve-under-site-csp.js` — does the build survive the site's policy?
 
 The repo's landing page sets a strict, fully self-hosted CSP for `/*`, and the

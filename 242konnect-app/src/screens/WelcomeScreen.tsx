@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
+import { FlagMark } from '../components/FlagMark';
 import { promo } from '../data';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -58,13 +59,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
       <View style={[styles.content, { paddingTop: insets.top + 32, paddingBottom: Math.max(24, insets.bottom + 12) }]}>
         <View style={styles.brandRow}>
-          {/* The mark repeats the flag: one stripe per colour, the same order
-              as the splash wordmark. */}
-          <View style={styles.brandMark}>
-            <View style={[styles.brandStripe, { backgroundColor: colors.logoGreen }]} />
-            <View style={[styles.brandStripe, { backgroundColor: colors.logoYellow }]} />
-            <View style={[styles.brandStripe, { backgroundColor: colors.logoRed }]} />
-          </View>
+          <FlagMark width={36} rounded />
           <Text style={styles.brand}>
             <Text style={{ color: colors.logoGreen }}>2</Text>
             <Text style={{ color: colors.logoYellow }}>4</Text>
@@ -170,14 +165,6 @@ const styles = StyleSheet.create({
   hero: { position: 'absolute', top: 0, left: 0, width: '100%', height: '62%' },
   content: { flex: 1, paddingHorizontal: 24 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandMark: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    flexDirection: 'column',
-  },
-  brandStripe: { flex: 1, width: '100%' },
   brand: { fontFamily: fonts.heading, fontSize: 20, color: colors.white },
   spacer: { flex: 1 },
   headline: { fontFamily: fonts.heading, fontSize: 32, lineHeight: 38, color: colors.white, marginBottom: 12 },
