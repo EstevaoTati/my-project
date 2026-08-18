@@ -33,6 +33,33 @@ Two rules it encodes, both learned from false results:
 - **A falsy assertion is a failure.** An early version returned a truthy value
   from a broken path and reported a pass while messaging was entirely dead.
 
+## `verify-preview.js` — layout checks on the single file
+
+Runs the published page from `file://` and asserts it opens straight into the
+app: no network requests at all, no page scroll, the app filling the viewport
+on load, modal portals contained by the phone frame, full-bleed on a phone, and
+both themes honoured.
+
+```sh
+python3 tools/build-preview.py && node tools/verify-preview.js
+```
+
+## `verify-email-otp.js` — the e-mail OTP chain
+
+Proves the code really travels by e-mail: the app asks the API, the API sends,
+and the test reads the code from the API's outbox the way a user reads an
+inbox — then checks it appears nowhere in the app's own page.
+
+```sh
+# terminal 1
+cd ../242konnect-api && ./.venv/bin/uvicorn app.main:app --port 8979 \
+  > /tmp/242konnect-api.log 2>&1
+
+# terminal 2
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8979 npx expo export --platform web --clear
+node tools/verify-email-otp.js
+```
+
 ## `build-preview.py` — the shareable single file
 
 Folds the web build into one self-contained HTML file: JS inlined as text,
