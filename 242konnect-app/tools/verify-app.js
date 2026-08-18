@@ -128,65 +128,109 @@ const BASE_URL = process.env.BASE_URL || null;
     await tap('[aria-label="Se connecter"]');
     return seen("text=Identifiant ou mot de passe incorrect");
   });
-  await check("sign in to sign up", async () => { await tap("text=Créer un compte"); return seen("text=Créer votre compte"); });
-  await check("submit disabled while incomplete", async () => {
-    const el = await visible('[aria-label="Créer mon compte"]');
-    return el && (await el.getAttribute("aria-disabled")) === "true";
-  });
+  // Sign-up now opens on the type step, not a single form.
+  await check("sign in to sign up", async () => { await tap("text=Créer un compte"); return seen("text=Quel type de compte ?"); });
 
-  section("Profiles, OTP, uniqueness");
-  await check("three profiles offered", async () =>
+  section("Three account formats");
+  await check("three types offered", async () =>
     (await seen('[aria-label="Particulier"]')) &&
     (await seen('[aria-label="Prestataire"]')) &&
     (await seen('[aria-label="Business"]')));
-  await check("Prestataire warns its space isn't built", async () => {
+  await check("each type lists different requirements", async () => {
     await tap('[aria-label="Prestataire"]');
-    return seen("text=L'espace Prestataire");
-  });
-  await check("Business warns its space isn't built", async () => {
+    const pro = await seen("text=Une photo de profil (obligatoire)");
     await tap('[aria-label="Business"]');
-    return seen("text=L'espace Business");
+    const biz = (await seen("text=RCCM et NIF")) && !(await seen("text=Une photo de profil (obligatoire)"));
+    await tap('[aria-label="Particulier"]');
+    const part = await seen("text=Adresse complète et un repère");
+    return pro && biz && part;
   });
-  await check("back to Particulier", () => tap('[aria-label="Particulier"]'));
-  await check("OTP channel is selectable", async () => {
-    await tap('[aria-label="Recevoir le code par E-mail"]');
-    await tap('[aria-label="Recevoir le code par SMS"]');
-    return true;
+  await page.screenshot({ path: `${OUT}/s1-types.png` });
+
+  await check("identity step blocks Continuer while empty", async () => {
+    await tap('[aria-label="Business"]');
+    await tap('[aria-label="Continuer"]');
+    const el = await visible('[aria-label="Continuer vers les informations"]');
+    return el && (await el.getAttribute("aria-disabled")) === "true";
   });
-  await check("details move to verification", async () => {
+  await check("Business asks for RCCM, NIF and sector", async () => {
+    await fill('[aria-label="Nom du responsable"]', "Estevao Macumba");
+    await fill('[aria-label="Numéro de téléphone"]', "061234567");
+    await fill('[aria-label="E-mail professionnel"]', "contact@mwinda.cg");
+    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await tap('[aria-label="Continuer vers les informations"]');
+    return (await seen('[aria-label="RCCM"]')) && (await seen('[aria-label="NIF"]')) &&
+           (await seen("text=Votre entreprise"));
+  });
+  await check("Business form has no date of birth", async () => !(await seen('[aria-label="Date de naissance"]')));
+  await page.screenshot({ path: `${OUT}/s2-business.png` });
+
+  await check("back to the type step", async () => {
+    await tap('[aria-label="Retour"]');
+    await tap('[aria-label="Retour"]');
+    return seen("text=Quel type de compte ?");
+  });
+
+  await check("Prestataire requires a photo before continuing", async () => {
+    await tap('[aria-label="Prestataire"]');
+    await tap('[aria-label="Continuer"]');
     await fill('[aria-label="Nom complet"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
     await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
     await fill('[aria-label="Mot de passe"]', "motdepasse");
+    const el = await visible('[aria-label="Continuer vers les informations"]');
+    const blocked = el && (await el.getAttribute("aria-disabled")) === "true";
+    return blocked && (await seen("text=Obligatoire pour un prestataire"));
+  });
+
+  await check("back out to Particulier", async () => {
+    await tap('[aria-label="Retour"]');
+    await tap('[aria-label="Particulier"]');
+    return seen("text=Adresse complète et un repère");
+  });
+
+  section("Particulier sign-up, OTP and uniqueness");
+  await check("identity step", async () => {
+    await tap('[aria-label="Continuer"]');
+    await fill('[aria-label="Nom complet"]', "Estevao Macumba");
+    await fill('[aria-label="Numéro de téléphone"]', "061234567");
+    await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
+    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await tap('[aria-label="Continuer vers les informations"]');
+    return seen("text=Où intervenir ?");
+  });
+  await check("address and reference are required", async () => {
+    const el = await visible('[aria-label="Créer mon compte"]');
+    return el && (await el.getAttribute("aria-disabled")) === "true";
+  });
+  await check("details move to verification", async () => {
+    await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
+    await fill('[aria-label="Référence de l\'adresse"]', "En face du marché");
     await tap('[aria-label="Créer mon compte"]');
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(1000);
     return seen("text=Vérification");
   });
-  await check("no account exists until the code is confirmed", () => seen("text=Aucun SMS ni e-mail"));
-  await page.screenshot({ path: `${OUT}/s1-otp.png` });
+  await check("no account exists until the code is confirmed", () => seen("text=Aucun e-mail n'a été envoyé"));
   await check("a wrong code is refused", async () => {
-    await fill('[aria-label="Code de vérification"]', "000000");
-    await page.waitForTimeout(900);
-    // 000000 could legitimately be the generated code; only assert when it isn't.
     const real = await page.evaluate(() => {
       const el = [...document.querySelectorAll("*")].find((n) =>
-        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0
-      );
+        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0);
       return el ? el.textContent.trim() : null;
     });
     if (real === "000000") return true;
+    await fill('[aria-label="Code de vérification"]', "000000");
+    await page.waitForTimeout(900);
     return seen("text=Code incorrect");
   });
   await check("the real code creates the account", async () => {
     const real = await page.evaluate(() => {
       const el = [...document.querySelectorAll("*")].find((n) =>
-        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0
-      );
+        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0);
       return el ? el.textContent.trim() : null;
     });
-    if (!real) throw new Error("demo code not found on screen");
+    if (!real) throw new Error("demo code not found");
     await fill('[aria-label="Code de vérification"]', real);
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(1600);
     return seen("text=Catégories");
   });
 
@@ -370,17 +414,67 @@ const BASE_URL = process.env.BASE_URL || null;
   await check("one account shows all three profiles", async () =>
     (await seen('[aria-label="Profil Particulier"]')) &&
     (await seen('[aria-label="Activer le profil Prestataire"]')));
-  await check("activating a second profile switches to it", async () => {
+  await check("activating Prestataire switches to it", async () => {
     await tap('[aria-label="Activer le profil Prestataire"]');
     await page.waitForTimeout(700);
-    return (await seen('[aria-label="Profil Prestataire"]')) && (await seen("text=n'est pas encore construit"));
+    return seen('[aria-label="Profil Prestataire"]');
   });
-  await check("switching back to Particulier works", async () => {
+  await check("Accueil now shows the Espace Prestataire", async () => {
+    await tap('[aria-label="Accueil"]');
+    await page.waitForTimeout(800);
+    return (await seen("text=Espace Prestataire")) && (await seen("text=Score 242K"));
+  });
+  await check("it states the payout terms", async () =>
+    (await seen("text=Commission 242Konnect")) && (await seen("text=Versement express")));
+  await page.screenshot({ path: `${OUT}/s3-prestataire.png` });
+
+  await check("activating Business switches to it", async () => {
+    await tap('[aria-label="Profil"]');
+    await tap('[aria-label="Activer le profil Business"]');
+    await page.waitForTimeout(700);
+    await tap('[aria-label="Accueil"]');
+    await page.waitForTimeout(800);
+    return seen("text=Espace Business");
+  });
+  await check("an establishment can actually be added", async () => {
+    await tap('[aria-label="Ajouter un établissement"]');
+    await fill('[aria-label="Nom"]', "Agence Mpaka");
+    await tap('[aria-label="Type Chantier"]');
+    await fill('[aria-label="Adresse"]', "Rue Tiboti");
+    await tap('[aria-label="Enregistrer l\'établissement"]');
+    await page.waitForTimeout(700);
+    return (await seen("text=Agence Mpaka")) && (await seen("text=Chantier"));
+  });
+  await check("a collaborator can be invited with a role", async () => {
+    await tap('[aria-label="Inviter un collaborateur"]');
+    await fill('[aria-label="Nom"]', "Brianna K.");
+    await fill('[aria-label="E-mail"]', "brianna@mwinda.cg");
+    await tap('[aria-label="Rôle Comptable"]');
+    await tap('[aria-label="Envoyer l\'invitation"]');
+    await page.waitForTimeout(700);
+    return (await seen("text=Brianna K.")) && (await seen("text=Comptable"));
+  });
+  await check("an invalid collaborator e-mail is refused", async () => {
+    await tap('[aria-label="Inviter un collaborateur"]');
+    await fill('[aria-label="Nom"]', "Test");
+    await fill('[aria-label="E-mail"]', "pas-un-email");
+    await tap('[aria-label="Envoyer l\'invitation"]');
+    return seen("text=adresse e-mail valide");
+  });
+  await page.screenshot({ path: `${OUT}/s4-business.png` });
+  await check("close the sheet", async () => { await tap('[aria-label="Fermer"]'); return true; });
+
+  await check("switching back to Particulier restores the home feed", async () => {
+    await tap('[aria-label="Profil"]');
     await tap('[aria-label="Profil Particulier"]');
     await page.waitForTimeout(700);
-    return !(await seen("text=n'est pas encore construit"));
+    await tap('[aria-label="Accueil"]');
+    await page.waitForTimeout(800);
+    return (await seen("text=Catégories")) && !(await seen("text=Espace Business"));
   });
   await check("open the editor", async () => {
+    // The previous check ends on Accueil, so come back to the Profil tab.
+    await tap('[aria-label="Profil"]');
     await tap('[aria-label="Modifier le profil"]');
     return seen("text=ne peut pas être modifié");
   });

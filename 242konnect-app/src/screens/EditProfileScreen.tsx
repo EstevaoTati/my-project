@@ -42,7 +42,7 @@ export function EditProfileScreen({ navigation }: Props) {
 
   const [name, setName] = useState(account?.name ?? '');
   const [bio, setBio] = useState(account?.bio ?? '');
-  const [tradeId, setTradeId] = useState(account?.tradeId);
+  const [tradeId, setTradeId] = useState(account?.prestataire?.tradeId);
   const [avatar, setAvatar] = useState(account?.avatar);
   const [showTrades, setShowTrades] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -83,7 +83,16 @@ export function EditProfileScreen({ navigation }: Props) {
     setError(null);
     setBusy(true);
     try {
-      await updateProfile({ name, bio, avatar, tradeId });
+      // The trade lives on the prestataire profile, so merge rather than
+      // replace — otherwise saving the name would wipe the rest of it.
+      await updateProfile({
+        name,
+        bio,
+        avatar,
+        ...(account.prestataire && tradeId
+          ? { prestataire: { ...account.prestataire, tradeId } }
+          : {}),
+      });
       navigation.goBack();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Enregistrement impossible.');

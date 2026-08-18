@@ -1,9 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TabBar } from './components/TabBar';
 import { HomeScreen } from './screens/HomeScreen';
+import { EspacePrestataireScreen } from './screens/EspacePrestataireScreen';
+import { EspaceBusinessScreen } from './screens/EspaceBusinessScreen';
 import { SearchResultsScreen } from './screens/SearchResultsScreen';
 import { ProfessionalProfileScreen } from './screens/ProfessionalProfileScreen';
 import { TradesScreen } from './screens/TradesScreen';
@@ -58,10 +60,25 @@ const Tab = createBottomTabNavigator();
 
 const hidden = { headerShown: false } as const;
 
+/**
+ * Which space the Accueil tab shows depends on the profile in use (§2.2).
+ * Switching profile in the Profil tab therefore changes the whole app, which is
+ * what "espace" means — not just a badge on a settings row.
+ *
+ * A prestataire or business still needs to be able to book services, so the
+ * rest of the stack (catalogue, results, professional profiles) is shared.
+ */
+function ActiveSpaceScreen(props: NativeStackScreenProps<HomeStackParamList, 'Accueil'>) {
+  const { account } = useAuth();
+  if (account?.activeProfile === 'prestataire') return <EspacePrestataireScreen />;
+  if (account?.activeProfile === 'business') return <EspaceBusinessScreen />;
+  return <HomeScreen {...props} />;
+}
+
 function HomeStackScreens() {
   return (
     <Home.Navigator screenOptions={hidden}>
-      <Home.Screen name="Accueil" component={HomeScreen} />
+      <Home.Screen name="Accueil" component={ActiveSpaceScreen} />
       <Home.Screen name="Metiers" component={TradesScreen} />
       <Home.Screen name="Resultats" component={SearchResultsScreen} />
       <Home.Screen name="Profil" component={ProfessionalProfileScreen} />

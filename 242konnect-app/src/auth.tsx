@@ -33,6 +33,66 @@ export const PROFILE_LABELS: Record<ProfileKind, string> = {
   business: 'Business',
 };
 
+/**
+ * Per-profile detail. §2.2 gives each account type a different required set, so
+ * they are separate objects rather than a pile of optional fields on Account:
+ * a Business has no date of birth, a Particulier has no RCCM, and flattening
+ * them would make "is this profile complete?" impossible to answer.
+ */
+export type ParticulierDetails = {
+  /** §2.2: adresse complète + référence de l'adresse (how to find it locally). */
+  address: string;
+  addressReference: string;
+  interests: string[];
+};
+
+export type PrestataireDetails = {
+  /** ISO date. §2.2 forbids under-16s. */
+  birthDate: string;
+  tradeId: string;
+  zone: string;
+  hourlyRate: number;
+  formations: string;
+  diplomas: string;
+  experience: string;
+  /** Names of the pièces justificatives supplied; validation is 242Konnect's. */
+  documents: string[];
+  /** Awarded by 242Konnect after checking documents (§7.6) — never self-set. */
+  verified: boolean;
+};
+
+export type BusinessDetails = {
+  companyName: string;
+  /** Data URI, like the avatar. */
+  logo?: string;
+  rccm: string;
+  nif: string;
+  sector: string;
+  website?: string;
+  address: string;
+};
+
+export const MIN_PRESTATAIRE_AGE = 16;
+
+export const BUSINESS_SECTORS = [
+  'Hôtellerie & Restauration',
+  'Commerce & Distribution',
+  'Industrie',
+  'BTP & Immobilier',
+  'Santé',
+  'Éducation',
+  'Banque & Assurance',
+  'Transport & Logistique',
+  'Administration publique',
+  'ONG & Association',
+  'Autre',
+];
+
+export const INTERESTS = [
+  'Maison', 'Bricolage', 'Automobile', 'Beauté', 'Santé', 'Éducation',
+  'Événementiel', 'Informatique', 'Jardinage', 'Nettoyage',
+];
+
 export type Account = {
   /** Local number without the +242 prefix, digits only. Part of the identity. */
   phone: string;
@@ -46,17 +106,43 @@ export type Account = {
   profiles: ProfileKind[];
   /** The profile currently in use; switched from the Profil tab. */
   activeProfile: ProfileKind;
-  /** Prestataire profile: which trade they offer. */
-  tradeId?: string;
-  /** Business profile: raison sociale (§2.2). */
-  companyName?: string;
+  /** Populated only for the profiles this account has activated. */
+  particulier?: ParticulierDetails;
+  prestataire?: PrestataireDetails;
+  business?: BusinessDetails;
   createdAt: number;
 };
 
 /** What someone can change afterwards. Phone and e-mail are the identity. */
 export type ProfileEdits = Partial<
-  Pick<Account, 'name' | 'avatar' | 'bio' | 'tradeId' | 'companyName'>
+  Pick<Account, 'name' | 'avatar' | 'bio' | 'particulier' | 'prestataire' | 'business'>
 >;
+
+/** Everything collected across the sign-up steps, before the code is confirmed. */
+export type SignUpDraft = {
+  name: string;
+  phone: string;
+  email: string;
+  password: string;
+  profile: ProfileKind;
+  channel: OtpChannel;
+  avatar?: string;
+  bio?: string;
+  particulier?: ParticulierDetails;
+  prestataire?: PrestataireDetails;
+  business?: BusinessDetails;
+};
+
+/** Years between an ISO date and today. Used for the under-16 rule. */
+export function ageFrom(isoDate: string): number | null {
+  const born = new Date(isoDate);
+  if (Number.isNaN(born.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - born.getFullYear();
+  const monthDelta = now.getMonth() - born.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < born.getDate())) age -= 1;
+  return age;
+}
 
 type StoredAccount = Account & { password: string };
 
@@ -99,13 +185,7 @@ export function isValidEmail(input: string): boolean {
 /** Where a verification code was sent, so the OTP screen can say so. */
 export type OtpChannel = 'sms' | 'email';
 
-export type PendingSignUp = {
-  name: string;
-  phone: string;
-  email: string;
-  password: string;
-  profile: ProfileKind;
-  channel: OtpChannel;
+export type PendingSignUp = SignUpDraft & {
   /**
    * How the code was delivered. With the API configured this is
    * `{ mode: 'email' }` and the code exists only in the message — nothing on the
@@ -122,15 +202,8 @@ type AuthState = {
   restoring: boolean;
   /** Set once sign-up details are accepted and a code is awaiting entry. */
   pending: PendingSignUp | null;
-  /** Validates the details and issues a code; does not create the account yet. */
-  startSignUp: (input: {
-    name: string;
-    phone: string;
-    email: string;
-    password: string;
-    profile: ProfileKind;
-    channel: OtpChannel;
-  }) => Promise<void>;
+  /** Validates the whole draft and issues a code; no account is created yet. */
+  startSignUp: (draft: SignUpDraft) => Promise<void>;
   /** Creates the account once the code matches. */
   confirmSignUp: (code: string) => Promise<void>;
   /** Issues a fresh code for the pending sign-up. */
@@ -204,16 +277,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const startSignUp = useCallback<AuthState['startSignUp']>(
-    async ({ name, phone, email, password, profile, channel }) => {
-      const digits = normalizePhone(phone);
-      const mail = email.trim().toLowerCase();
+    async (draft) => {
+      const digits = normalizePhone(draft.phone);
+      const mail = draft.email.trim().toLowerCase();
 
-      if (name.trim().length < 2) throw new Error('Entrez votre nom complet.');
+      // Shared identity rules.
+      if (draft.name.trim().length < 2) throw new Error('Entrez votre nom complet.');
       if (digits.length !== PHONE_LENGTH)
         throw new Error(`Le numéro doit contenir ${PHONE_LENGTH} chiffres.`);
       if (!isValidEmail(mail)) throw new Error('Entrez une adresse e-mail valide.');
-      if (password.length < MIN_PASSWORD)
+      if (draft.password.length < MIN_PASSWORD)
         throw new Error(`Le mot de passe doit contenir au moins ${MIN_PASSWORD} caractères.`);
+
+      // Per-profile rules — §2.2 asks for a different set from each.
+      if (draft.profile === 'particulier') {
+        const d = draft.particulier;
+        if (!d?.address.trim()) throw new Error('Indiquez votre adresse complète.');
+        if (!d?.addressReference.trim())
+          throw new Error("Indiquez une référence d'adresse (un repère pour vous trouver).");
+      }
+
+      if (draft.profile === 'prestataire') {
+        const d = draft.prestataire;
+        // "photo de profil obligatoire" is stated for prestataires only.
+        if (!draft.avatar) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
+        if (!d?.birthDate) throw new Error('Indiquez votre date de naissance.');
+        const age = ageFrom(d.birthDate);
+        if (age === null) throw new Error('Date de naissance invalide (JJ/MM/AAAA).');
+        if (age < MIN_PRESTATAIRE_AGE)
+          throw new Error(
+            `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
+          );
+        if (!d.tradeId) throw new Error('Choisissez votre métier.');
+        if (!d.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+        if (!(d.hourlyRate > 0)) throw new Error('Indiquez votre tarif horaire.');
+        if (!draft.bio?.trim()) throw new Error('Rédigez une courte biographie.');
+      }
+
+      if (draft.profile === 'business') {
+        const d = draft.business;
+        if (!d?.companyName.trim()) throw new Error('Indiquez la raison sociale.');
+        if (!d?.rccm.trim()) throw new Error('Indiquez le numéro RCCM.');
+        if (!d?.nif.trim()) throw new Error('Indiquez le NIF.');
+        if (!d?.sector.trim()) throw new Error("Choisissez le secteur d'activité.");
+        if (!d?.address.trim()) throw new Error("Indiquez l'adresse de l'entreprise.");
+      }
 
       // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
@@ -223,15 +331,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Asking the API to mail the code can fail (offline, service down); the
       // sign-up must not look started if no code actually went out.
       const delivery = await requestCode(digits, mail);
-      setPending({
-        name: name.trim(),
-        phone: digits,
-        email: mail,
-        password,
-        profile,
-        channel,
-        delivery,
-      });
+      setPending({ ...draft, name: draft.name.trim(), phone: digits, email: mail, delivery });
     },
     []
   );
@@ -254,8 +354,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: pending.email,
         name: pending.name,
         password: pending.password,
+        avatar: pending.avatar,
+        bio: pending.bio,
         profiles: [pending.profile],
         activeProfile: pending.profile,
+        particulier: pending.particulier,
+        prestataire: pending.prestataire,
+        business: pending.business,
         createdAt: Date.now(),
       };
       await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));

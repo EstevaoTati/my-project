@@ -68,15 +68,74 @@ export type Message = {
 
 export type Thread = { professionalId: string; messages: Message[] };
 
+/**
+ * Business data (§2.2). Establishments and collaborators are genuinely
+ * manageable on the device — they are the company's own records, not something
+ * that needs another user to exist — so the Espace Business can actually do
+ * something rather than showing empty dashboards everywhere.
+ */
+export type Establishment = {
+  id: string;
+  name: string;
+  kind: 'agence' | 'bureau' | 'magasin' | 'chantier' | 'site';
+  address: string;
+};
+
+/** Access levels, from §2.2. */
+export type CollaboratorRole =
+  | 'administrateur'
+  | 'responsable'
+  | 'comptable'
+  | 'acheteur'
+  | 'maintenance'
+  | 'employe';
+
+export const COLLABORATOR_ROLES: { id: CollaboratorRole; label: string; can: string }[] = [
+  { id: 'administrateur', label: 'Administrateur', can: 'Tous les droits' },
+  { id: 'responsable', label: 'Responsable', can: 'Créer et valider les demandes' },
+  { id: 'comptable', label: 'Comptable', can: 'Factures, paiements et budgets' },
+  { id: 'acheteur', label: 'Acheteur', can: 'Comparer et attribuer les missions' },
+  { id: 'maintenance', label: 'Responsable maintenance', can: 'Demandes techniques' },
+  { id: 'employe', label: 'Employé autorisé', can: 'Créer une demande' },
+];
+
+export const ESTABLISHMENT_KINDS: { id: Establishment['kind']; label: string }[] = [
+  { id: 'agence', label: 'Agence' },
+  { id: 'bureau', label: 'Bureau' },
+  { id: 'magasin', label: 'Magasin' },
+  { id: 'chantier', label: 'Chantier' },
+  { id: 'site', label: "Site d'intervention" },
+];
+
+export type Collaborator = {
+  id: string;
+  name: string;
+  email: string;
+  role: CollaboratorRole;
+  invitedAt: number;
+  /** No backend to send the invitation, so it never becomes 'active'. */
+  status: 'invite';
+};
+
 type UserData = {
   favorites: Record<string, boolean>;
   city: City;
   bookings: Booking[];
   payments: Payment[];
   threads: Record<string, Thread>;
+  establishments: Establishment[];
+  collaborators: Collaborator[];
 };
 
-const EMPTY: UserData = { favorites: {}, city: CITIES[0], bookings: [], payments: [], threads: {} };
+const EMPTY: UserData = {
+  favorites: {},
+  city: CITIES[0],
+  bookings: [],
+  payments: [],
+  threads: {},
+  establishments: [],
+  collaborators: [],
+};
 
 const keyFor = (phone: string) => `242k.data.${phone}`;
 
@@ -96,6 +155,10 @@ type Store = UserData & {
   disputeMission: (bookingId: string) => void;
   sendMessage: (professionalId: string, text: string) => void;
   ensureThread: (professionalId: string) => void;
+  addEstablishment: (input: Omit<Establishment, 'id'>) => void;
+  removeEstablishment: (id: string) => void;
+  inviteCollaborator: (input: { name: string; email: string; role: CollaboratorRole }) => void;
+  removeCollaborator: (id: string) => void;
   /** Total the client has actually paid in, across all missions. */
   totalPaid: number;
   /** Money currently held by 242Konnect for this client. */
@@ -248,6 +311,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ? prev
             : { ...prev, threads: { ...prev.threads, [professionalId]: { professionalId, messages: [] } } }
         ),
+      addEstablishment: (input) =>
+        update((prev) => ({
+          ...prev,
+          establishments: [...prev.establishments, { ...input, id: uid() }],
+        })),
+      removeEstablishment: (id) =>
+        update((prev) => ({
+          ...prev,
+          establishments: prev.establishments.filter((e) => e.id !== id),
+        })),
+      inviteCollaborator: (input) =>
+        update((prev) => ({
+          ...prev,
+          collaborators: [
+            ...prev.collaborators,
+            { ...input, id: uid(), invitedAt: Date.now(), status: 'invite' },
+          ],
+        })),
+      removeCollaborator: (id) =>
+        update((prev) => ({
+          ...prev,
+          collaborators: prev.collaborators.filter((c) => c.id !== id),
+        })),
       totalPaid: data.payments.filter((p) => !p.refundedAt).reduce((sum, p) => sum + p.amount, 0),
       heldInEscrow: data.payments
         .filter((p) => !p.releasedAt && !p.refundedAt)
