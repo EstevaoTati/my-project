@@ -23,6 +23,9 @@ const blocks = toml.split(/\[\[headers\]\]/).slice(1).map((b) => {
 const site = blocks.find((b) => b.path === "/*");
 const proto = blocks.find((b) => b.path === "/242konnect/*");
 const app = blocks.find((b) => b.path === "/242konnect-web/*");
+// A rewrite makes Netlify pick headers by the requested URL, not the file it
+// serves, so the bare path needs its own block or it falls back to /*.
+const appBare = blocks.find((b) => b.path === "/242konnect-web");
 
 check("landing page has a CSP", !!site?.csp);
 check("landing page allows no external script host",
@@ -54,6 +57,8 @@ check("app allows no external script host",
   !!app && !/script-src[^;]*https:/.test(app.csp));
 check("app connect-src names one host, not a wildcard",
   !!app && !/connect-src[^;]*(\*|https:\s)/.test(app.csp));
+check("the bare /242konnect-web path carries the same policy",
+  !!appBare && !!app && appBare.csp === app.csp);
 check("landing page still cannot reach Supabase",
   !!site && !/connect-src[^;]*supabase/.test(site.csp));
 

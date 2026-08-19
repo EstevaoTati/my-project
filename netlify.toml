@@ -68,6 +68,18 @@
 #
 # Limitée à /242konnect-web/* : la landing page garde sa CSP d'origine.
 # connect-src n'autorise que le projet Supabase, pas un hôte générique.
+#
+# Les deux chemins sont déclarés volontairement. Pour une réécriture (status
+# 200), Netlify choisit les en-têtes d'après l'URL demandée, pas d'après le
+# fichier servi : « /242konnect-web » sans barre oblique ne correspond donc pas
+# à « /242konnect-web/* » et retomberait sur la CSP stricte de /*, ce qui
+# casserait l'inscription — silencieusement, puisque le blocage vient du
+# navigateur.
+[[headers]]
+  for = "/242konnect-web"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://abdmdtftnuyjzkdkcwiq.supabase.co; frame-ancestors 'self';"
+
 [[headers]]
   for = "/242konnect-web/*"
   [headers.values]
