@@ -18,12 +18,14 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Literal
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
 
-from . import otp
+from . import momo, otp
 from .mailer import MailError, build_transport, render_code_email
 
 log = logging.getLogger("242konnect.otp")
@@ -66,6 +68,8 @@ async def health() -> dict:
         "pending": otp.pending_count(),
         # Makes it obvious in a browser whether real mail is going out.
         "sends_email": transport.name != "console",
+        # Same, for money: which operators can actually be debited.
+        "momo": {"mtn": momo.configured("mtn"), "airtel": momo.configured("airtel")},
     }
 
 
@@ -100,3 +104,62 @@ async def verify(body: VerifyRequest) -> dict:
     except otp.OtpError as exc:
         raise HTTPException(status_code=exc.status, detail=exc.message) from exc
     return {"verified": True}
+
+
+# --------------------------------------------------------------------------- #
+# Mobile Money collections
+# --------------------------------------------------------------------------- #
+
+
+class RequestToPayBody(BaseModel):
+    operator: Literal["mtn", "airtel"]
+    #: National or international Congolese number; normalised server-side.
+    phone: str = Field(min_length=9, max_length=15)
+    #: Whole FCFA. XAF has no minor unit, so fractional amounts are meaningless.
+    amount: int = Field(gt=0, le=5_000_000)
+    currency: str = Field(default="XAF", max_length=3)
+    label: str = Field(default="242Konnect", max_length=160)
+
+
+def _collection_payload(record: momo.Collection) -> dict:
+    return {
+        "id": record.id,
+        "status": record.status,
+        "operator_reference": record.operator_reference,
+        "reason": record.reason,
+    }
+
+
+@app.post("/payments/momo/request-to-pay")
+async def request_to_pay(body: RequestToPayBody) -> dict:
+    """Starts a collection. Returns as soon as the PIN prompt has been sent.
+
+    This does not wait for the customer — they have up to a minute or so to
+    enter their PIN, which is far longer than a request should be held open. The
+    app polls the status endpoint instead.
+    """
+    try:
+        record = await momo.request_to_pay(body.operator, body.phone, body.amount, body.label)
+    except momo.MomoError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except httpx.HTTPError as exc:
+        log.error("momo request-to-pay transport error: %s", exc)
+        raise HTTPException(
+            status_code=502, detail="L'opérateur Mobile Money est injoignable. Réessayez."
+        ) from exc
+    return _collection_payload(record)
+
+
+@app.get("/payments/momo/{collection_id}")
+async def collection_status(collection_id: str) -> dict:
+    """Where a collection has got to. Polled by the app until it settles."""
+    try:
+        record = await momo.status(collection_id)
+    except momo.MomoError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except httpx.HTTPError as exc:
+        # Leave the client polling rather than failing a payment that may well
+        # have succeeded: unknown is not the same as refused.
+        log.warning("momo status transport error: %s", exc)
+        return {"id": collection_id, "status": "pending", "operator_reference": None, "reason": None}
+    return _collection_payload(record)

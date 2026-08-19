@@ -51,6 +51,10 @@ export type Payment = {
   amount: number;
   /** Human-readable reference shown on the receipt (§6.7). */
   reference: string;
+  /** The operator's own transaction id, for Mobile Money payments. */
+  operatorReference?: string;
+  /** The MSISDN debited, for Mobile Money payments. */
+  payerPhone?: string;
   createdAt: number;
   /** Set once the funds are released to the prestataire. */
   releasedAt?: number;
@@ -148,7 +152,17 @@ type Store = UserData & {
   addBooking: (input: { professionalId: string; slot: string; rate: number }) => Booking;
   cancelBooking: (id: string) => void;
   /** Client pays 242Konnect; the money is held, not forwarded (§6.4). */
-  payBooking: (bookingId: string, method: PaymentMethod, amount: number) => Payment;
+  /**
+   * Records a payment into escrow. Called *after* the money has actually been
+   * collected — for Mobile Money that means after the operator reported the
+   * collection successful, not when the payer tapped "payer".
+   */
+  payBooking: (
+    bookingId: string,
+    method: PaymentMethod,
+    amount: number,
+    details?: { operatorReference?: string; payerPhone?: string }
+  ) => Payment;
   /** Client validates the work; this is what releases the funds (§5.8). */
   validateMission: (bookingId: string, speed: PayoutSpeed) => Settlement | undefined;
   /** Opens a dispute; the money stays blocked until 242Konnect decides (§6.4). */
@@ -227,13 +241,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return booking;
     };
 
-    const payBooking: Store['payBooking'] = (bookingId, method, amount) => {
+    const payBooking: Store['payBooking'] = (bookingId, method, amount, details = {}) => {
       const payment: Payment = {
         id: uid(),
         bookingId,
         method,
         amount,
         reference: reference(),
+        operatorReference: details.operatorReference,
+        payerPhone: details.payerPhone,
         createdAt: Date.now(),
       };
       update((prev) => ({

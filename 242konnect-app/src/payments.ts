@@ -76,8 +76,18 @@ export const PAYMENT_METHODS: {
   /** Whether the method needs a phone number to debit. */
   needsPhone: boolean;
 }[] = [
-  { id: 'mtn', label: 'MTN Mobile Money', hint: 'Débit depuis votre compte MoMo', needsPhone: true },
-  { id: 'airtel', label: 'Airtel Money', hint: 'Débit depuis votre compte Airtel', needsPhone: true },
+  {
+    id: 'mtn',
+    label: 'MTN Mobile Money',
+    hint: 'Confirmation par code PIN sur votre téléphone',
+    needsPhone: true,
+  },
+  {
+    id: 'airtel',
+    label: 'Airtel Money',
+    hint: 'Confirmation par code PIN sur votre téléphone',
+    needsPhone: true,
+  },
   { id: 'carte', label: 'Carte bancaire', hint: 'Visa, Mastercard', needsPhone: false },
   { id: 'virement', label: 'Virement bancaire', hint: 'Depuis votre banque', needsPhone: false },
 ];

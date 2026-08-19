@@ -1,6 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { checkCode, hasOtpApi, requestCode, type OtpDelivery } from './otpClient';
+import {
+  canSendOtp,
+  checkCode,
+  otpProvider,
+  OTP_UNAVAILABLE_MESSAGE,
+  requestCode,
+  type OtpDelivery,
+} from './otpClient';
 
 /**
  * Accounts, stored on the device.
@@ -160,8 +167,8 @@ export const PHONE_LENGTH = 9;
 export const MIN_PASSWORD = 6;
 export const OTP_LENGTH = 6;
 
-/** Re-exported so screens don't need to know where the API lives. */
-export { hasOtpApi };
+/** Re-exported so screens don't need to know where the verification service lives. */
+export { canSendOtp, otpProvider, OTP_UNAVAILABLE_MESSAGE };
 
 /** The refusal the spec dictates, quoted rather than paraphrased. */
 export const DUPLICATE_ACCOUNT_MESSAGE =
@@ -187,11 +194,9 @@ export type OtpChannel = 'sms' | 'email';
 
 export type PendingSignUp = SignUpDraft & {
   /**
-   * How the code was delivered. With the API configured this is
-   * `{ mode: 'email' }` and the code exists only in the message — nothing on the
-   * device knows it. Without an API it is `{ mode: 'demo', code }`, shown on
-   * screen behind a notice, because silently accepting any code would make the
-   * verification look real while enforcing nothing.
+   * Which service mailed the code, and how long it stays valid. Not the code:
+   * that exists only in the user's inbox and in the service that issued it, so
+   * nothing on this device — and nothing on this screen — can reveal it.
    */
   delivery: OtpDelivery;
 };
@@ -328,9 +333,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (accounts.some((a) => a.phone === digits || a.email === mail))
         throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
 
-      // Asking the API to mail the code can fail (offline, service down); the
-      // sign-up must not look started if no code actually went out.
-      const delivery = await requestCode(digits, mail);
+      // Mailing the code can fail (offline, service down, nothing configured);
+      // the sign-up must not look started if no code actually went out.
+      const delivery = await requestCode(digits, mail, {
+        name: draft.name.trim(),
+        phone: digits,
+        profile: draft.profile,
+      });
       setPending({ ...draft, name: draft.name.trim(), phone: digits, email: mail, delivery });
     },
     []
@@ -339,9 +348,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const confirmSignUp = useCallback<AuthState['confirmSignUp']>(
     async (code) => {
       if (!pending) throw new Error('Aucune inscription en cours.');
-      // Server-side when an API is configured, so attempts are capped and the
-      // code expires; on-device only in demo mode.
-      await checkCode(pending.phone, code, pending.delivery);
+      // Always server-side: the device holds nothing to compare against, so
+      // attempts are capped and the code expires where it was issued.
+      await checkCode(pending.phone, pending.email, code, pending.delivery);
 
       const accounts = await readAccounts();
       // Re-check: another profile could have claimed the number while the code
@@ -373,7 +382,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendCode = useCallback(async () => {
     if (!pending) return;
-    const delivery = await requestCode(pending.phone, pending.email);
+    const delivery = await requestCode(pending.phone, pending.email, {
+      name: pending.name,
+      phone: pending.phone,
+      profile: pending.profile,
+    });
     setPending((prev) => (prev ? { ...prev, delivery } : prev));
   }, [pending]);
 

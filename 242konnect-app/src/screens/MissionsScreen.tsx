@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import { ProAvatar } from '../components/Avatar';
@@ -19,8 +19,17 @@ import {
   type PayoutSpeed,
   type Settlement,
 } from '../payments';
+import {
+  failureMessage,
+  momoGatewayConfigured,
+  operatorForPhone,
+  OPERATOR_LABELS,
+  PIN_PROMPT_TIMEOUT_SECONDS,
+  pollCollection,
+  requestToPay,
+} from '../momo';
 import { useStore, type Booking, type MissionStatus } from '../store';
-import { normalizePhone, useAuth } from '../auth';
+import { formatPhone, normalizePhone, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
@@ -42,7 +51,23 @@ export function MissionsScreen() {
   const [paying, setPaying] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [payPhone, setPayPhone] = useState(account?.phone ?? '');
-  const [receipt, setReceipt] = useState<{ reference: string; amount: number; method: PaymentMethod } | null>(null);
+  const [receipt, setReceipt] = useState<{
+    reference: string;
+    amount: number;
+    method: PaymentMethod;
+    operatorReference?: string;
+    simulated: boolean;
+  } | null>(null);
+
+  /**
+   * Mobile Money runs asynchronously: we ask the operator to prompt the payer,
+   * then wait. `momoPhase` is what the sheet renders while that happens, and
+   * `momoAbort` lets the payer give up without leaving a poll running.
+   */
+  const [momoPhase, setMomoPhase] = useState<'idle' | 'prompting' | 'waiting'>('idle');
+  const [secondsLeft, setSecondsLeft] = useState(PIN_PROMPT_TIMEOUT_SECONDS);
+  const [payError, setPayError] = useState<string | null>(null);
+  const momoAbort = useRef<AbortController | null>(null);
 
   const [validating, setValidating] = useState<Booking | null>(null);
   const [speed, setSpeed] = useState<PayoutSpeed>('standard');
@@ -52,13 +77,86 @@ export function MissionsScreen() {
     setPaying(booking);
     setMethod(null);
     setReceipt(null);
+    setPayError(null);
+    setMomoPhase('idle');
     setPayPhone(account?.phone ?? '');
   };
 
-  const confirmPayment = () => {
+  /** Abandons any in-flight collection; called on close and on "Annuler". */
+  const stopMomo = () => {
+    momoAbort.current?.abort();
+    momoAbort.current = null;
+    setMomoPhase('idle');
+  };
+
+  const closePayment = () => {
+    stopMomo();
+    setPaying(null);
+  };
+
+  const confirmPayment = async () => {
     if (!paying || !method) return;
-    const payment = payBooking(paying.id, method, paying.rate);
-    setReceipt({ reference: payment.reference, amount: payment.amount, method });
+    setPayError(null);
+
+    // Card and transfer stay a single step; only Mobile Money has the PIN round trip.
+    if (method !== 'mtn' && method !== 'airtel') {
+      const payment = payBooking(paying.id, method, paying.rate);
+      setReceipt({
+        reference: payment.reference,
+        amount: payment.amount,
+        method,
+        simulated: true,
+      });
+      return;
+    }
+
+    const phone = normalizePhone(payPhone);
+    const controller = new AbortController();
+    momoAbort.current = controller;
+
+    try {
+      setMomoPhase('prompting');
+      const started = await requestToPay({
+        operator: method,
+        phone,
+        amount: paying.rate,
+        label: `242Konnect · mission ${paying.id.slice(0, 6).toUpperCase()}`,
+      });
+
+      setMomoPhase('waiting');
+      setSecondsLeft(PIN_PROMPT_TIMEOUT_SECONDS);
+      const settledCollection = await pollCollection(started.id, phone, {
+        signal: controller.signal,
+        onTick: setSecondsLeft,
+      });
+
+      if (settledCollection.status !== 'successful') {
+        setMomoPhase('idle');
+        setPayError(failureMessage(settledCollection));
+        return;
+      }
+
+      // Only now has money actually moved.
+      const payment = payBooking(paying.id, method, paying.rate, {
+        operatorReference: settledCollection.operatorReference,
+        payerPhone: phone,
+      });
+      setMomoPhase('idle');
+      setReceipt({
+        reference: payment.reference,
+        amount: payment.amount,
+        method,
+        operatorReference: settledCollection.operatorReference,
+        simulated: settledCollection.simulated,
+      });
+    } catch (e) {
+      setMomoPhase('idle');
+      // An abort is the payer's own doing, so it is not an error to report.
+      if (!controller.signal.aborted)
+        setPayError(e instanceof Error ? e.message : 'Le paiement a échoué.');
+    } finally {
+      momoAbort.current = null;
+    }
   };
 
   const openValidation = (booking: Booking) => {
@@ -73,6 +171,16 @@ export function MissionsScreen() {
   };
 
   const canPay = !!method && (!methodNeedsPhone(method) || normalizePhone(payPhone).length === 9);
+
+  /**
+   * The operator the entered number looks like, when that disagrees with the one
+   * selected. Paying from an Airtel line with MTN selected is the single most
+   * common mobile money failure, and the operator's own error for it is opaque.
+   */
+  const detected = operatorForPhone(payPhone);
+  const operatorMismatch =
+    (method === 'mtn' || method === 'airtel') && detected && detected !== method ? detected : null;
+
   const preview = validating ? settle(validating.rate, speed) : null;
 
   return (
@@ -216,10 +324,41 @@ export function MissionsScreen() {
       {/* ---- Payment ---- */}
       <Sheet
         visible={!!paying}
-        title={receipt ? 'Paiement enregistré' : 'Payer la mission'}
-        onClose={() => setPaying(null)}
+        title={
+          receipt
+            ? 'Paiement enregistré'
+            : momoPhase !== 'idle'
+              ? 'Confirmez sur votre téléphone'
+              : 'Payer la mission'
+        }
+        onClose={closePayment}
       >
-        {receipt ? (
+        {momoPhase !== 'idle' && !receipt ? (
+          /* The operator has the payer's attention now, not us. This state exists
+             so the wait is legible instead of looking like a frozen button. */
+          <View style={styles.done}>
+            <ActivityIndicator size="large" color={colors.foreground} />
+            <Text style={styles.doneTitle}>
+              {method ? OPERATOR_LABELS[method as 'mtn' | 'airtel'] : ''}
+            </Text>
+            <Text style={styles.doneBody}>
+              {momoPhase === 'prompting'
+                ? 'Envoi de la demande à votre opérateur…'
+                : `Une demande de paiement de ${formatFcfaFull(paying?.rate ?? 0)} FCFA a été envoyée au ${formatPhone(normalizePhone(payPhone))}. Saisissez votre code PIN Mobile Money pour confirmer.`}
+            </Text>
+            {momoPhase === 'waiting' && (
+              <Text style={styles.countdown}>{secondsLeft} s restantes</Text>
+            )}
+            <Pressable
+              onPress={stopMomo}
+              accessibilityRole="button"
+              accessibilityLabel="Annuler le paiement"
+              style={styles.ghostWide}
+            >
+              <Text style={styles.ghostLabel}>Annuler</Text>
+            </Pressable>
+          </View>
+        ) : receipt ? (
           <View style={styles.done}>
             <View style={styles.doneIcon}>
               <Icon name="solar:shield-check-bold" size={32} color={colors.foreground} />
@@ -227,16 +366,19 @@ export function MissionsScreen() {
             <Text style={styles.doneTitle}>{formatFcfaFull(receipt.amount)} FCFA</Text>
             <Text style={styles.doneBody}>
               {paymentMethodLabel(receipt.method)} · référence {receipt.reference}
+              {receipt.operatorReference ? `\nTransaction opérateur ${receipt.operatorReference}` : ''}
             </Text>
             <Text style={styles.doneEscrow}>
               242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation
               de la prestation.
             </Text>
-            <Text style={styles.demoNote}>
-              Démonstration : aucun argent n'a été débité. Un paiement réel nécessite un compte
-              marchand et un serveur.
-            </Text>
-            <Pressable onPress={() => setPaying(null)} accessibilityRole="button" style={styles.solidWide}>
+            {receipt.simulated && (
+              <Text style={styles.demoNote}>
+                Démonstration : aucun argent n'a été débité. Les paiements réels nécessitent les
+                comptes marchands MTN MoMo et Airtel Money côté serveur.
+              </Text>
+            )}
+            <Pressable onPress={closePayment} accessibilityRole="button" style={styles.solidWide}>
               <Text style={styles.solidLabel}>Terminé</Text>
             </Pressable>
           </View>
@@ -274,6 +416,25 @@ export function MissionsScreen() {
             {methodNeedsPhone(method) && (
               <View style={styles.payPhone}>
                 <PhoneField value={payPhone} onChangeText={setPayPhone} />
+                <Text style={styles.payPhoneHint}>
+                  Le numéro du compte Mobile Money à débiter. Vous recevrez une demande de code PIN
+                  sur ce téléphone.
+                </Text>
+                {/* A warning, not a block: number portability and prefix
+                    reallocations both mean the customer knows their own line
+                    better than our table does. */}
+                {operatorMismatch && (
+                  <Text style={styles.payPhoneWarn}>
+                    Ce numéro ressemble à un numéro {OPERATOR_LABELS[operatorMismatch]}. Vérifiez
+                    l'opérateur sélectionné avant de continuer.
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {payError && (
+              <View style={styles.payError}>
+                <Text style={styles.payErrorText}>{payError}</Text>
               </View>
             )}
 
@@ -285,8 +446,19 @@ export function MissionsScreen() {
               accessibilityState={{ disabled: !canPay }}
               style={[styles.solidWide, !canPay && styles.solidOff]}
             >
-              <Text style={styles.solidLabel}>Payer à 242Konnect</Text>
+              <Text style={styles.solidLabel}>
+                {method === 'mtn' || method === 'airtel'
+                  ? `Payer avec ${OPERATOR_LABELS[method]}`
+                  : 'Payer à 242Konnect'}
+              </Text>
             </Pressable>
+
+            {!momoGatewayConfigured && (method === 'mtn' || method === 'airtel') && (
+              <Text style={styles.demoNote}>
+                Démonstration : le parcours complet est joué (demande, code PIN, confirmation) mais
+                aucun argent n'est débité tant que les comptes marchands ne sont pas connectés.
+              </Text>
+            )}
           </>
         )}
       </Sheet>
@@ -518,6 +690,50 @@ const styles = StyleSheet.create({
   methodLabelSelected: { color: colors.foreground },
   methodHint: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
   payPhone: { marginBottom: 12 },
+  payPhoneHint: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.mutedForeground,
+    marginTop: 6,
+  },
+  payPhoneWarn: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.warning,
+    marginTop: 6,
+  },
+  payError: {
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.destructiveSurface,
+    borderWidth: 1,
+    borderColor: 'rgba(185,28,28,0.22)',
+  },
+  payErrorText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.destructive,
+  },
+  countdown: {
+    fontFamily: fonts.headingBold,
+    fontSize: 15,
+    color: colors.mutedForeground,
+    textAlign: 'center',
+  },
+  ghostWide: {
+    height: 52,
+    marginTop: 4,
+    alignSelf: 'stretch',
+    borderRadius: radius['2xl'],
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   done: { alignItems: 'center', gap: 8 },
   doneIcon: {
     width: 72,

@@ -49,7 +49,7 @@ const check = async (label, fn) => { try { const r = await fn(); if (!r) throw n
   await p.waitForTimeout(1200);
 
   await check("app reports the e-mail was sent, not a demo code", async () =>
-    (await seen("text=E-mail envoyé")) && !(await seen("text=Démonstration")));
+    (await seen("text=Consultez votre boîte e-mail")) && !(await seen("text=Démonstration")));
 
   await check("the code is nowhere in the page", async () => {
     const fresh = fs.readFileSync(LOG, "utf8").slice(before);

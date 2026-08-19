@@ -21,10 +21,10 @@ import { colors, fonts, radius, shadow } from '../theme';
  * The account is not created until the code matches, so this screen sits
  * between the sign-up form and a usable account.
  *
- * There is no SMS gateway in this build, so the code is shown on screen behind
- * an explicit "démonstration" notice. The alternative — accepting any six
- * digits — would make the verification look real while enforcing nothing, and
- * someone demoing the app would reasonably conclude that OTP was working.
+ * The code is never rendered here, and cannot be: `pending.delivery` carries no
+ * code field, because the app never receives one. It exists in the user's inbox
+ * and in the service that issued it, nowhere else. Verification is a round trip
+ * to that service.
  */
 export function OtpScreen() {
   const insets = useSafeAreaInsets();
@@ -111,29 +111,14 @@ export function OtpScreen() {
           />
         </View>
 
-        {pending.delivery.mode === 'demo' ? (
-          <View style={styles.demo}>
-            <Text style={styles.demoTitle}>Démonstration</Text>
-            <Text style={styles.demoText}>
-              Aucun e-mail n'a été envoyé : aucun service de vérification n'est configuré sur cette
-              version. Votre code est :
-            </Text>
-            <Text
-              style={styles.demoCode}
-              accessibilityLabel={`Code de démonstration ${pending.delivery.code}`}
-            >
-              {pending.delivery.code}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.sent}>
-            <Icon name="solar:shield-check-bold" size={18} color={colors.success} />
-            <Text style={styles.sentText}>
-              E-mail envoyé. Le code expire dans {Math.round(pending.delivery.expiresIn / 60)} minutes
-              et ne peut servir qu'une fois.
-            </Text>
-          </View>
-        )}
+        <View style={styles.sent}>
+          <Icon name="solar:shield-check-bold" size={18} color={colors.success} />
+          <Text style={styles.sentText}>
+            Consultez votre boîte e-mail. Le code expire dans{' '}
+            {Math.round(pending.delivery.expiresIn / 60)} minutes et ne peut servir qu'une fois.
+            Pensez à vérifier vos courriers indésirables.
+          </Text>
+        </View>
 
         <FormError message={error} />
         <SubmitButton
@@ -208,29 +193,6 @@ const styles = StyleSheet.create({
   },
   boxActive: { borderColor: colors.foreground },
   boxDigit: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.foreground },
-  demo: {
-    padding: 14,
-    gap: 4,
-    borderRadius: radius.xl,
-    backgroundColor: colors.warningSurface,
-    borderWidth: 1,
-    borderColor: 'rgba(180,83,9,0.25)',
-  },
-  demoTitle: {
-    fontFamily: fonts.sansBold,
-    fontSize: 11,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: colors.warning,
-  },
-  demoText: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.warning },
-  demoCode: {
-    fontFamily: fonts.headingBold,
-    fontSize: 26,
-    letterSpacing: 6,
-    color: colors.foreground,
-    marginTop: 2,
-  },
   sent: {
     flexDirection: 'row',
     alignItems: 'center',

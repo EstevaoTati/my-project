@@ -43,10 +43,65 @@ in `app/mailer.py`. Nothing else in the codebase names a provider.
 |---|---|
 | `POST /auth/otp/start` | `{key, email}` → mails a code. **Never returns the code.** |
 | `POST /auth/otp/verify` | `{key, code}` → `{verified: true}` or a 4xx. |
-| `GET /health` | Status, transport in use, and whether mail actually sends. |
+| `POST /payments/momo/request-to-pay` | `{operator, phone, amount}` → starts a Mobile Money collection. |
+| `GET /payments/momo/{id}` | Where that collection has got to. |
+| `GET /health` | Status, transport in use, whether mail sends, which operators are live. |
 
 `key` identifies the sign-up in progress — the phone number — so a resend
 replaces the outstanding code rather than adding a second valid one.
+
+## Mobile Money
+
+MTN MoMo and Airtel Money collections, in `app/momo.py`.
+
+A mobile money debit is **asynchronous**, and the API's shape follows from that:
+
+```
+request-to-pay  →  operator prompts the handset for a PIN  →  poll GET /{id}
+```
+
+`request-to-pay` returns as soon as the prompt is *sent*, with `status:
+"pending"`. Nothing has been debited at that point — the customer has up to a
+minute or so to enter their PIN on their own phone, which is far longer than an
+HTTP request should be held open. The app polls until the status leaves
+`pending` for `successful`, `failed` or `expired`.
+
+Two rules the tests pin down, because getting either wrong loses money:
+
+- **A failed status *read* is not a failed *payment*.** If the operator is
+  unreachable mid-poll, the collection stays `pending`. Reporting it failed
+  would tell the customer nothing was taken while the operator disagrees.
+- **A rejected request records nothing.** If the prompt never reached the payer,
+  there is no transaction to poll.
+
+MTN's `X-Reference-Id` is our own id, which is what makes a retry idempotent
+rather than a double debit.
+
+### Configuration
+
+Absent credentials mean that operator is refused with a clear message, never
+faked. `GET /health` reports which are live.
+
+| Variable | Effect |
+|---|---|
+| `MTN_MOMO_SUBSCRIPTION_KEY` | Collections product subscription key. |
+| `MTN_MOMO_API_USER` / `MTN_MOMO_API_KEY` | API user UUID and its generated key. |
+| `MTN_MOMO_ENVIRONMENT` | `sandbox`, or the production target id. |
+| `MTN_MOMO_BASE_URL` | Defaults to the sandbox host. |
+| `AIRTEL_CLIENT_ID` / `AIRTEL_CLIENT_SECRET` | OAuth2 client credentials. |
+| `AIRTEL_ENVIRONMENT` | `sandbox` or `production`; picks the default host. |
+| `AIRTEL_COUNTRY` / `AIRTEL_CURRENCY` | `CG` / `XAF` for the Republic of the Congo. |
+
+Both operators require a **merchant account and KYC** before production
+credentials are issued; sandbox credentials are self-service and enough to
+exercise the whole path.
+
+### Before production
+
+`_STORE` in `app/momo.py` is an in-process dict, exactly like the OTP store. A
+second worker will not see a collection the first one started, so the status
+poll would 404. Move both to Redis or Postgres before running more than one
+process — this is the one thing that will break under a real deployment.
 
 ## What it protects against
 

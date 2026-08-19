@@ -6,14 +6,26 @@ them. They live here so that doesn't happen again.
 ## `verify-app.js` — the functional suite
 
 Drives every interactive control in the built web export and asserts each one
-does something. 74 checks: accounts, categories, the trades catalogue, search
-and sort, favourites, booking, payment, messaging, profile editing, the FAQ,
-the tab bar, and session/data persistence across a reload and a sign-out.
+does something: accounts, categories, the trades catalogue, search and sort,
+favourites, booking, payment, messaging, profile editing, the FAQ, the tab bar,
+and session/data persistence across a reload and a sign-out.
 
 ```sh
-npx expo export --platform web
-node tools/verify-app.js
+npm run verify        # starts the API, builds against it, runs the suite
 ```
+
+**It needs the API running.** Sign-up requires a code that exists only in an
+e-mail, so the suite reads it from the service's outbox — the way a user reads
+their inbox — and separately asserts that no six-digit run appears anywhere in
+the page. That second assertion is the point: the app must never be able to show
+the code. `tools/verify.sh` wires the two together, because doing it by hand and
+getting either half wrong produces a wall of unrelated failures.
+
+Mobile Money is checked separately from the escrow rules. A mobile money debit
+is asynchronous — the operator prompts the handset and we poll — so the payment
+sheet holds a pending state, and the suite asserts that state rather than
+expecting an instant receipt. The escrow and settlement arithmetic is about the
+money rather than the rail, so it runs over the single-step card path.
 
 | Variable | Default | Purpose |
 |---|---|---|

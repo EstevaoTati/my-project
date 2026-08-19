@@ -43,7 +43,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Quels moyens de paiement acceptez-vous ?',
-        a: "MTN Mobile Money, Airtel Money, carte bancaire et virement. Tous les paiements passent par 242Konnect : vous ne réglez jamais le prestataire directement, pas même un pourboire.",
+        a: "MTN Mobile Money, Airtel Money, carte bancaire et virement. En Mobile Money, 242Konnect envoie une demande de paiement sur votre téléphone : vous la validez avec votre code PIN, et rien n'est débité tant que vous ne l'avez pas saisi. Tous les paiements passent par 242Konnect : vous ne réglez jamais le prestataire directement, pas même un pourboire.",
       },
       {
         q: 'Pourquoi payer avant la prestation ?',

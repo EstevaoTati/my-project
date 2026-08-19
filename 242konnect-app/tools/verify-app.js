@@ -37,6 +37,31 @@ const server = http.createServer((req, res) => {
 // path) instead of the local root server it would otherwise start itself.
 const BASE_URL = process.env.BASE_URL || null;
 
+/**
+ * The verification service's outbox.
+ *
+ * Sign-up needs a code that only ever exists in an e-mail, so this suite reads
+ * it from where the API sent it rather than from the page — the page not having
+ * it is the property under test. Run the API with its console transport and
+ * build the app with EXPO_PUBLIC_API_URL pointing at it; `npm run verify` does
+ * both.
+ */
+const API_LOG = process.env.API_LOG || "/tmp/242konnect-api.log";
+let mailWatermark = 0;
+
+/** Marks the current end of the outbox, so the next read gets only new mail. */
+const markOutbox = () => {
+  mailWatermark = fs.existsSync(API_LOG) ? fs.readFileSync(API_LOG, "utf8").length : 0;
+};
+
+/** The most recent code the API mailed since the last `markOutbox()`. */
+const mailedCode = () => {
+  if (!fs.existsSync(API_LOG)) return null;
+  const fresh = fs.readFileSync(API_LOG, "utf8").slice(mailWatermark);
+  const all = [...fresh.matchAll(/est : (\d{6})/g)];
+  return all.length ? all[all.length - 1][1] : null;
+};
+
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   if (!BASE_URL) await new Promise((r) => server.listen(PORT, r));
@@ -60,6 +85,18 @@ const BASE_URL = process.env.BASE_URL || null;
     return null;
   };
   const seen = async (sel) => !!(await visible(sel));
+
+  /**
+   * Any bare six-digit run rendered as its own text node — what showing the
+   * code would look like. The OTP boxes hold one digit each, so an entered code
+   * cannot produce a false positive here.
+   */
+  const codeOnScreen = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll("*")].some(
+        (n) => n.children.length === 0 && /^\d{6}$/.test((n.textContent || "").trim())
+      )
+    );
   const tap = async (sel) => {
     const el = await visible(sel);
     if (!el) throw new Error("not visible: " + sel);
@@ -206,31 +243,25 @@ const BASE_URL = process.env.BASE_URL || null;
   await check("details move to verification", async () => {
     await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
     await fill('[aria-label="Référence de l\'adresse"]', "En face du marché");
+    markOutbox();
     await tap('[aria-label="Créer mon compte"]');
     await page.waitForTimeout(1000);
     return seen("text=Vérification");
   });
-  await check("no account exists until the code is confirmed", () => seen("text=Aucun e-mail n'a été envoyé"));
+  // The code is not on the device and must not be: it is read from the
+  // service's outbox, the way a user reads their inbox. See API_LOG below.
+  await check("the app says to check the inbox, and shows no code", async () =>
+    (await seen("text=Consultez votre boîte e-mail")) && !(await codeOnScreen()));
   await check("a wrong code is refused", async () => {
-    const real = await page.evaluate(() => {
-      const el = [...document.querySelectorAll("*")].find((n) =>
-        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0);
-      return el ? el.textContent.trim() : null;
-    });
-    if (real === "000000") return true;
     await fill('[aria-label="Code de vérification"]', "000000");
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(1200);
     return seen("text=Code incorrect");
   });
-  await check("the real code creates the account", async () => {
-    const real = await page.evaluate(() => {
-      const el = [...document.querySelectorAll("*")].find((n) =>
-        /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0);
-      return el ? el.textContent.trim() : null;
-    });
-    if (!real) throw new Error("demo code not found");
+  await check("the code from the e-mail creates the account", async () => {
+    const real = mailedCode();
+    if (!real) throw new Error("no code in the outbox — is the API running?");
     await fill('[aria-label="Code de vérification"]', real);
-    await page.waitForTimeout(1600);
+    await page.waitForTimeout(1800);
     return seen("text=Catégories");
   });
 
@@ -380,9 +411,34 @@ const BASE_URL = process.env.BASE_URL || null;
     await tap('[aria-label="Carte bancaire"]');
     return !(await seen('[aria-label="Numéro de téléphone"]'));
   });
-  await check("paying holds the funds", async () => {
+  // Mobile Money is asynchronous — the operator prompts the handset and we wait
+  // — so it is checked on its own below. The escrow and settlement rules are
+  // about the money, not the rail, so they run over the single-step card path.
+  await check("Mobile Money warns when the number looks like the other operator", async () => {
     await tap('[aria-label="MTN Mobile Money"]');
+    await fill('[aria-label="Numéro de téléphone"]', "045550000");
+    await page.waitForTimeout(400);
+    return seen("text=ressemble à un numéro Airtel Money");
+  });
+  await check("the warning clears on the matching operator", async () => {
+    await tap('[aria-label="Airtel Money"]');
+    await page.waitForTimeout(400);
+    return !(await seen("text=ressemble à un numéro"));
+  });
+  await check("an unactivated operator is refused, not faked", async () => {
     await tap('[aria-label="Confirmer le paiement"]');
+    // Either the operator refuses it, or the gateway is unconfigured and the
+    // walkthrough runs; both must reach a real state, never a silent receipt.
+    await page.waitForTimeout(2500);
+    const refused = await seen("text=n'est pas encore activé");
+    const prompting = await seen("text=Confirmez sur votre téléphone");
+    if (prompting) await tap('[aria-label="Annuler le paiement"]');
+    return refused || prompting;
+  });
+  await check("paying holds the funds", async () => {
+    await tap('[aria-label="Carte bancaire"]');
+    await tap('[aria-label="Confirmer le paiement"]');
+    await page.waitForTimeout(600);
     return seen("text=242Konnect conserve ce montant");
   });
   await page.screenshot({ path: `${OUT}/c1-payment.png` });
