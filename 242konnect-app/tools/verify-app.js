@@ -74,7 +74,33 @@ const mailedCode = () => {
   const page = await ctx.newPage();
 
   const runtime = [];
-  page.on("console", (m) => m.type() === "error" && runtime.push("console: " + m.text().slice(0, 140)));
+
+  /**
+   * Two checks deliberately provoke a rejection from the API — a wrong OTP code
+   * (400) and an operator with no credentials (502) — and the browser logs both
+   * as console errors. Those are the assertions passing, not the app breaking.
+   *
+   * Scoped to the exact endpoints rather than muting 4xx/5xx generally, so a
+   * genuinely broken request still fails the run.
+   */
+  const expectedRejections = [];
+  page.on("response", (r) => {
+    if (r.status() < 400) return;
+    const url = r.url();
+    if (url.includes("/auth/otp/verify") || url.includes("/payments/momo/"))
+      expectedRejections.push(r.status());
+  });
+  const isProvoked = (text) =>
+    expectedRejections.some((status) => text.includes(String(status))) &&
+    /Failed to load resource/.test(text);
+
+  page.on(
+    "console",
+    (m) =>
+      m.type() === "error" &&
+      !isProvoked(m.text()) &&
+      runtime.push("console: " + m.text().slice(0, 140))
+  );
   page.on("pageerror", (e) => runtime.push("pageerror: " + e.message.slice(0, 140)));
   page.on("requestfailed", (r) => runtime.push("request failed: " + r.url().slice(0, 90)));
 
