@@ -51,6 +51,33 @@
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self';"
 
+# ---------------------------------------------------------------------------
+# APPLICATION 242KONNECT — /242konnect-web
+# Le build web de l'application React Native, servi tel quel.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from = "/242konnect-web"
+  to = "/242konnect-web/index.html"
+  status = 200
+
+# L'application appelle Supabase pour envoyer et vérifier le code de
+# confirmation. La CSP de la landing page impose connect-src 'self' : sans
+# cette exception, l'inscription échouerait silencieusement — la requête serait
+# bloquée par le navigateur, pas par le serveur, donc rien ne le signalerait
+# côté déploiement.
+#
+# Limitée à /242konnect-web/* : la landing page garde sa CSP d'origine.
+# connect-src n'autorise que le projet Supabase, pas un hôte générique.
+[[headers]]
+  for = "/242konnect-web/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://abdmdtftnuyjzkdkcwiq.supabase.co; frame-ancestors 'self';"
+
+[[headers]]
+  for = "/242konnect-web/_expo/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/vendor/*"
   [headers.values]

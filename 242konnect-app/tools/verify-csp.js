@@ -22,6 +22,7 @@ const blocks = toml.split(/\[\[headers\]\]/).slice(1).map((b) => {
 
 const site = blocks.find((b) => b.path === "/*");
 const proto = blocks.find((b) => b.path === "/242konnect/*");
+const app = blocks.find((b) => b.path === "/242konnect-web/*");
 
 check("landing page has a CSP", !!site?.csp);
 check("landing page allows no external script host",
@@ -40,6 +41,21 @@ check("prototype exception is scoped, not global",
   !!proto && proto.path.startsWith("/242konnect/"));
 check("prototype still blocks arbitrary connections",
   !!proto && /connect-src 'self'/.test(proto.csp));
+
+// The app calls Supabase to send and verify the code. Under the landing page's
+// connect-src 'self' that request is blocked by the browser, not the server, so
+// sign-up fails silently and nothing in the deploy reports it.
+check("app has its own CSP block", !!app?.csp);
+check("app may reach its Supabase project",
+  !!app && /connect-src[^;]*abdmdtftnuyjzkdkcwiq\.supabase\.co/.test(app.csp));
+check("app exception is scoped, not global",
+  !!app && app.path.startsWith("/242konnect-web/"));
+check("app allows no external script host",
+  !!app && !/script-src[^;]*https:/.test(app.csp));
+check("app connect-src names one host, not a wildcard",
+  !!app && !/connect-src[^;]*(\*|https:\s)/.test(app.csp));
+check("landing page still cannot reach Supabase",
+  !!site && !/connect-src[^;]*supabase/.test(site.csp));
 
 const redirect = /from\s*=\s*"\/242konnect"/.test(toml);
 check("the /242konnect route survived the deletion of _redirects", redirect);
