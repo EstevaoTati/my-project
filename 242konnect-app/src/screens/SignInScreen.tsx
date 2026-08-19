@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { FormError, Field, SubmitButton } from '../components/form';
-import { isValidEmail, normalizePhone, useAuth } from '../auth';
+import { DEMO_CREDENTIALS, DEMO_ENABLED, isValidEmail, normalizePhone, useAuth } from '../auth';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -78,6 +78,41 @@ export function SignInScreen({ navigation }: Props) {
           <SubmitButton label="Se connecter" onPress={submit} busy={busy} disabled={!ready} />
         </View>
 
+        {/* Preview builds only. Creating a new account still needs a real code
+            by e-mail — this signs into an account that already exists. */}
+        {DEMO_ENABLED && (
+          <View style={styles.demo}>
+            <Text style={styles.demoTitle}>Version de démonstration</Text>
+            <Text style={styles.demoText}>
+              Pour tester l'application sans attendre un e-mail, connectez-vous au compte de
+              démonstration.
+            </Text>
+            <Pressable
+              onPress={async () => {
+                setError(null);
+                setIdentifier(DEMO_CREDENTIALS.phone);
+                setPassword(DEMO_CREDENTIALS.password);
+                setBusy(true);
+                try {
+                  await signIn({
+                    identifier: DEMO_CREDENTIALS.phone,
+                    password: DEMO_CREDENTIALS.password,
+                  });
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : 'Connexion impossible.');
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Se connecter avec le compte de démonstration"
+              style={styles.demoButton}
+            >
+              <Text style={styles.demoButtonLabel}>Ouvrir le compte de démonstration</Text>
+            </Pressable>
+          </View>
+        )}
+
         <Pressable
           onPress={() => navigation.navigate('Inscription')}
           accessibilityRole="button"
@@ -95,6 +130,31 @@ export function SignInScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  demo: {
+    padding: 14,
+    gap: 6,
+    borderRadius: radius.xl,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  demoTitle: {
+    fontFamily: fonts.sansBold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.mutedForeground,
+  },
+  demoText: { fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: colors.mutedForeground },
+  demoButton: {
+    height: 46,
+    marginTop: 4,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  demoButtonLabel: { fontFamily: fonts.sansBold, fontSize: 14, color: colors.primaryForeground },
   scroll: { paddingHorizontal: 24, gap: 16 },
   back: {
     alignSelf: 'flex-start',

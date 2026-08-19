@@ -38,33 +38,15 @@ const OUT = process.env.SHOT_DIR || require("os").tmpdir() + "/242konnect-shots"
       for (const el of (await page.locator(sel).all()).reverse()) if (await el.isVisible()) return el;
       return null;
     };
-    // Sign up so the tabs and sheets exist to be measured. Sign-up is now
-    // three steps (type → identity → details) and ends on OTP verification.
-    await (await visible('[aria-label="Créer un compte"]')).click();
-    await page.waitForSelector("text=Quel type de compte ?", { timeout: 15000 });
+    // Sign in so the tabs and sheets exist to be measured.
+    //
+    // Not sign-up: creating an account needs a code that only exists in an
+    // e-mail, and this page has no network at all — which is the property under
+    // test. The preview build seeds a demo account for exactly this reason.
+    await (await visible('[aria-label="J\'ai déjà un compte, se connecter"]')).click();
+    await page.waitForSelector("text=Bon retour", { timeout: 15000 });
     await page.waitForTimeout(500);
-    await (await visible('[aria-label="Continuer"]')).click();
-    await page.waitForTimeout(600);
-    await (await visible('[aria-label="Nom complet"]')).fill("Estevao Macumba");
-    await (await visible('[aria-label="Numéro de téléphone"]')).fill("061234567");
-    await (await visible('[aria-label="Adresse e-mail"]')).fill("estevao@mwinda.cg");
-    await (await visible('[aria-label="Mot de passe"]')).fill("motdepasse");
-    await (await visible('[aria-label="Continuer vers les informations"]')).click();
-    await page.waitForSelector("text=Où intervenir ?", { timeout: 15000 });
-    await page.waitForTimeout(500);
-    await (await visible('[aria-label="Adresse complète"]')).fill("Avenue Tiboti, Mpaka");
-    await (await visible("[aria-label=\"Référence de l'adresse\"]")).fill("En face du marché");
-    await (await visible('[aria-label="Créer mon compte"]')).click();
-    await page.waitForSelector("text=Vérification", { timeout: 20000 });
-    await page.waitForTimeout(700);
-    const otp = await page.evaluate(() => {
-      const el = [...document.querySelectorAll("*")].find(
-        (n) => /^\d{6}$/.test((n.textContent || "").trim()) && n.children.length === 0
-      );
-      return el ? el.textContent.trim() : null;
-    });
-    if (!otp) throw new Error("demo OTP not found on the preview page");
-    await (await visible('[aria-label="Code de vérification"]')).fill(otp);
+    await (await visible('[aria-label="Se connecter avec le compte de démonstration"]')).click();
     await page.waitForSelector("text=Catégories", { timeout: 20000 });
     await page.waitForTimeout(1200);
 

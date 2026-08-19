@@ -170,6 +170,39 @@ export const OTP_LENGTH = 6;
 /** Re-exported so screens don't need to know where the verification service lives. */
 export { canSendOtp, otpProvider, OTP_UNAVAILABLE_MESSAGE };
 
+/**
+ * A ready-made account for shared preview builds, enabled by
+ * `EXPO_PUBLIC_DEMO_ACCOUNT=1` and absent from any build without it.
+ *
+ * Sign-up needs a code that only exists in an e-mail, which is right but leaves
+ * a tester on a link with no way in — and inside a Claude Artifact, whose
+ * content policy blocks every external host, no way in at all. This is the way
+ * in: a pre-existing account someone signs into normally.
+ *
+ * It fakes nothing. It is not an OTP bypass and does not touch verification;
+ * it is an account that already exists, exactly like the demo login on any
+ * product. Creating a *new* account still requires a real code by e-mail.
+ */
+export const DEMO_ENABLED = process.env.EXPO_PUBLIC_DEMO_ACCOUNT === '1';
+
+export const DEMO_CREDENTIALS = { phone: '060000000', password: 'demo2024' };
+
+const DEMO_ACCOUNT: StoredAccount = {
+  phone: DEMO_CREDENTIALS.phone,
+  email: 'demo@242konnect.cg',
+  name: 'Compte Démo',
+  password: DEMO_CREDENTIALS.password,
+  bio: "Compte de démonstration pour tester l'application.",
+  profiles: ['particulier'],
+  activeProfile: 'particulier',
+  particulier: {
+    address: 'Avenue Charles de Gaulle, Pointe-Noire',
+    addressReference: 'En face de la pharmacie du Centre',
+    interests: ['Maison', 'Automobile'],
+  },
+  createdAt: 0,
+};
+
 /** The refusal the spec dictates, quoted rather than paraphrased. */
 export const DUPLICATE_ACCOUNT_MESSAGE =
   'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
@@ -237,6 +270,23 @@ async function readAccounts(): Promise<StoredAccount[]> {
   }
 }
 
+/**
+ * Puts the demo account in the roster on preview builds, once.
+ *
+ * Re-added if missing but never overwritten, so a tester who edits its profile
+ * keeps those edits across reloads.
+ */
+async function seedDemoAccount(): Promise<void> {
+  if (!DEMO_ENABLED) return;
+  try {
+    const accounts = await readAccounts();
+    if (accounts.some((a) => a.phone === DEMO_ACCOUNT.phone)) return;
+    await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, DEMO_ACCOUNT]));
+  } catch {
+    // A tester without storage is already broken in more visible ways.
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [restoring, setRestoring] = useState(true);
@@ -246,6 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        await seedDemoAccount();
         const [raw, launched] = await Promise.all([
           AsyncStorage.getItem(SESSION_KEY),
           AsyncStorage.getItem(LAUNCHED_KEY),

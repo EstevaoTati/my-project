@@ -146,3 +146,17 @@ one sheet will not catch it.
 Instead the portal root is marked while it holds content and pinned over the
 phone with CSS. A transform on it makes it the containing block for the fixed
 layers inside, and nothing is ever re-parented.
+
+## `verify-demo.js` — the path a tester actually takes
+
+The main suite signs *up*, which needs a code that exists only in an e-mail. A
+tester on a shared link goes in through the seeded demo account instead, so this
+walks that path: the link opens straight into the app, the demo account signs
+in, and the tabs and catalogue work from there.
+
+```sh
+BASE_URL="https://…/242konnect-web/index.html" node tools/verify-demo.js
+```
+
+Run it against the deep, githack-shaped URL — that is where a build with an
+absolute asset path silently 404s, and where this catches it.
