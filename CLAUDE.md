@@ -114,6 +114,18 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   bounded JSON reads, audit logging). See `docs/security.md`.
 - `_redirects` and `netlify.toml` both force **404** on `/docs/*`,
   `/scripts/*`, `/netlify/*`, `/.claude/*`, `CLAUDE.md` and `package*.json`.
+- `bi.html` / `bi.css` / `bi.js` — MWINDA AI Business Intelligence at `/bi`:
+  idea → business model → business plan → financials → regulatory checklist →
+  roadmap → printable dossier. Calls `netlify/functions/bi.mjs`. Projects live
+  in `localStorage` (no accounts in this version). PDF is a print stylesheet,
+  not a server engine.
+- `netlify/functions/bi.mjs` — six-stage generation engine. Structured output
+  via tool-use; streams NDJSON because a stage runs 20-120s, past the
+  synchronous response window. **The model proposes financial assumptions
+  only — the arithmetic runs in `bi.js`**, so figures stay consistent and
+  editable. Truncated generations are returned as errors, never as partial
+  data. Env: `BI_MODEL` (default `claude-sonnet-5`), `BI_ENABLED=false` kills
+  it. See `docs/decisions/2026-08-22-ai-business-intelligence.md`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.

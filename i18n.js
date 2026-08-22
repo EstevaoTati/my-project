@@ -22,6 +22,7 @@
       'nav.impact': "Impact",
       'nav.contact': "Contact",
       'nav.os': "MWINDA OS",
+      'nav.bi': "AI Business Intelligence",
       'nav.cta': "Démarrer un projet",
 
       'hero.tag': "Écosystème digital & intelligence artificielle",
@@ -107,7 +108,7 @@
 
       'footer.tagline': "Bringing Light to Your Ideas. L'écosystème digital & IA qui transforme les idées en systèmes qui travaillent.",
       'footer.h1': "Pôles", 'footer.h2': "Groupe", 'footer.h3': "Légal",
-      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
+      'footer.about': "À propos", 'footer.eco': "Écosystème", 'footer.os': "MWINDA OS", 'footer.bi': "AI Business Intelligence", 'footer.impact': "Impact",
       'footer.careers': "Carrières", 'footer.press': "Presse",
       'footer.legal1': "Mentions légales", 'footer.legal2': "Confidentialité",
       'footer.legal3': "Cookies", 'footer.legal4': "CGU",
@@ -126,6 +127,7 @@
       'nav.impact': "Impact",
       'nav.contact': "Contact",
       'nav.os': "MWINDA OS",
+      'nav.bi': "AI Business Intelligence",
       'nav.cta': "Start a project",
 
       'hero.tag': "Digital & artificial intelligence ecosystem",
@@ -211,7 +213,7 @@
 
       'footer.tagline': "Bringing Light to Your Ideas. The digital & AI ecosystem that turns ideas into systems that work.",
       'footer.h1': "Divisions", 'footer.h2': "Group", 'footer.h3': "Legal",
-      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.os': "MWINDA OS", 'footer.impact': "Impact",
+      'footer.about': "About", 'footer.eco': "Ecosystem", 'footer.os': "MWINDA OS", 'footer.bi': "AI Business Intelligence", 'footer.impact': "Impact",
       'footer.careers': "Careers", 'footer.press': "Press",
       'footer.legal1': "Legal Notice", 'footer.legal2': "Privacy",
       'footer.legal3': "Cookies", 'footer.legal4': "Terms",

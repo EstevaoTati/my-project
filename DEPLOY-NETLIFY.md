@@ -49,7 +49,8 @@ works in production:
 1. Netlify UI → *Site settings → Environment variables*: set
    `ANTHROPIC_API_KEY` (never commit it). Optional: `CHAT_MODEL`
    (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable,
-   `FOUNDER_KEY` to enable founder (OS kernel) mode.
+   `FOUNDER_KEY` to enable founder (OS kernel) mode, `BI_MODEL` /
+   `BI_ENABLED=false` for AI Business Intelligence at `/bi`.
    Founder mode: type `/os <FOUNDER_KEY>` in the chat to talk to the
    MWINDA OS kernel itself (higher limits, kernel system prompt);
    `/public` switches back. Without `FOUNDER_KEY` set, OS mode is off.

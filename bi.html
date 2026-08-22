@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MWINDA AI BUSINESS INTELLIGENCE — describe your idea and turn it into a structured business project: business model, business plan, financial projections, regulatory checklist and roadmap, exportable as a professional dossier." />
+  <title>MWINDA AI Business Intelligence — From Idea to Business</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="bi.css?v=1" />
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="wrap topbar-in">
+    <a class="brand" href="index.html">Mwinda<small>Digital</small></a>
+    <div class="topbar-spacer"></div>
+    <a class="back" href="index.html">← Site</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero no-print">
+    <p class="eyebrow"><b>Mwinda Digital</b> · AI Business Intelligence</p>
+    <h1>From Idea <span class="thin">to Business</span></h1>
+    <p class="lede">Describe your idea. MWINDA structures it, analyses it and turns it into a professional business dossier — model, plan, financials, regulatory checklist and roadmap. <span id="langNote">De l'idée à l'entreprise : écrivez en français ou en anglais, MWINDA répond dans votre langue.</span></p>
+  </header>
+
+  <nav class="rail no-print" id="rail" aria-label="Steps"></nav>
+
+  <!-- ============================== 0 · START ============================== -->
+  <section class="step active" id="step-start">
+    <h2>Your <span class="g">project</span></h2>
+    <p class="sub">Six steps, each editable before the next. Nothing is sent anywhere but the analysis engine, and your project stays in this browser.</p>
+
+    <div class="panel">
+      <h3>What do you want to do?</h3>
+      <div class="chips" id="intentChips"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Where</h3>
+      <p class="sub" style="margin-bottom:18px">Jurisdiction changes everything downstream — costs, legal form, obligations. MWINDA never treats a rule as universal.</p>
+      <div class="grid-2">
+        <div class="field">
+          <label for="country">Country *</label>
+          <select id="country"></select>
+        </div>
+        <div class="field">
+          <label for="region">Region / Province / State</label>
+          <input id="region" type="text" placeholder="e.g. Kinshasa" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" type="text" placeholder="e.g. Gombe" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="budget">Budget available</label>
+          <input id="budget" type="text" placeholder="e.g. $10,000" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="sector">Sector *</label>
+          <select id="sector"></select>
+        </div>
+        <div class="field">
+          <label for="businessType">Business type *</label>
+          <select id="businessType"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Your idea</h3>
+      <div class="field">
+        <label for="idea">Describe it in your own words *</label>
+        <textarea id="idea" maxlength="4000" placeholder="Example: I want to build a platform that lets African restaurants manage their orders and deliveries with AI.&#10;&#10;Exemple : Je veux créer une plateforme qui permet aux restaurants africains de gérer leurs commandes et leurs livraisons grâce à l'IA."></textarea>
+        <p class="hint"><span id="ideaCount">0</span> / 4000 — the more concrete you are about who pays and for what, the sharper the analysis.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnAnalyze">Analyse my idea</button>
+        <button class="btn ghost small" id="btnReset" type="button">Start over</button>
+      </div>
+      <div id="startStatus"></div>
+    </div>
+
+    <div class="panel" id="savedPanel" hidden>
+      <h3>Saved projects</h3>
+      <div id="savedList"></div>
+    </div>
+  </section>
+
+  <!-- ============================== 1 · ANALYSIS ============================== -->
+  <section class="step" id="step-analyze">
+    <h2>Idea <span class="g">analysis</span></h2>
+    <p class="sub">What MWINDA understands, what it would challenge, and what you must verify.</p>
+    <div id="analyzeOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="model">Build the business model →</button>
+      <button class="btn ghost" data-regen="analyze">Regenerate</button>
+    </div>
+  </section>
+
+  <!-- ============================== 2 · BUSINESS MODEL ============================== -->
+  <section class="step" id="step-model">
+    <h2>Business <span class="g">model</span></h2>
+    <p class="sub">The nine blocks of the Business Model Canvas. Every field is editable — your edits carry into the plan.</p>
+    <div id="modelOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="plan">Generate the business plan →</button>
+      <button class="btn ghost" data-regen="model">Regenerate</button>
+    </div>
+  </section>
+
+  <!-- ============================== 3 · BUSINESS PLAN ============================== -->
+  <section class="step" id="step-plan">
+    <h2>Business <span class="g">plan</span></h2>
+    <p class="sub">Seventeen sections, written for a bank, an investor or a partner. Click any paragraph to edit it.</p>
+    <div id="planOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="financials">Financial projections →</button>
+      <button class="btn ghost" data-regen="plan">Regenerate</button>
+    </div>
+  </section>
+
+  <!-- ============================== 4 · FINANCIALS ============================== -->
+  <section class="step" id="step-financials">
+    <h2>Financial <span class="g">projections</span></h2>
+    <p class="sub">MWINDA proposes the assumptions; your browser does the arithmetic. Change any input and every figure recalculates live.</p>
+    <div id="finOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="compliance">Regulatory checklist →</button>
+      <button class="btn ghost" data-regen="financials">Re-propose assumptions</button>
+    </div>
+  </section>
+
+  <!-- ============================== 5 · COMPLIANCE ============================== -->
+  <section class="step" id="step-compliance">
+    <h2>Regulatory <span class="g">checklist</span></h2>
+    <p class="sub">What to verify before operating in your jurisdiction — with a confidence level and who to confirm it with.</p>
+    <div id="compOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="roadmap">Build the roadmap →</button>
+      <button class="btn ghost" data-regen="compliance">Regenerate</button>
+    </div>
+  </section>
+
+  <!-- ============================== 6 · ROADMAP ============================== -->
+  <section class="step" id="step-roadmap">
+    <h2>Execution <span class="g">roadmap</span></h2>
+    <p class="sub">Four phases, concrete tasks. Tick them off as you go — progress is saved in this browser.</p>
+    <div id="roadOut"></div>
+    <div class="actions no-print">
+      <button class="btn" data-next="dossier">Assemble my dossier →</button>
+      <button class="btn ghost" data-regen="roadmap">Regenerate</button>
+    </div>
+  </section>
+
+  <!-- ============================== 7 · DOSSIER ============================== -->
+  <section class="step" id="step-dossier">
+    <div class="actions no-print" style="margin-top:0;margin-bottom:24px">
+      <button class="btn" id="btnPrint">Download PDF</button>
+      <button class="btn ghost" id="btnSaveJson">Export data (JSON)</button>
+      <span class="footnote">“Download PDF” opens your browser’s print dialog — choose <b>Save as PDF</b>.</span>
+    </div>
+    <div id="dossierOut"></div>
+  </section>
+
+  <footer class="site no-print">
+    MWINDA AI Business Intelligence · Mwinda Digital — Bringing Light to Your Ideas.<br />
+    Analyses, projections and regulatory information are generated by AI as general orientation. They are not legal, tax, accounting or investment advice.
+  </footer>
+</div>
+
+<script src="bi.js?v=1"></script>
+</body>
+</html>
