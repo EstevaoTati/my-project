@@ -89,9 +89,14 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   inlined). It does **not** pick up changes to the external files — update it
   separately or note that it is stale.
 - `demo.html` — side-by-side desktop/mobile preview viewer.
-- `os.html` — MWINDA OS preview page. Fully self-contained (own inline
-  CSS/JS); it does not use `styles.css` or `i18n.js`. Hosts the "Talk to
-  the OS" demo chat, which calls `netlify/functions/chat.mjs`.
+- `os.html` — MWINDA OS page. Fully self-contained (own inline CSS/JS); it
+  does not use `styles.css` or `i18n.js`. **Public part is only the hero and
+  Layer 05 "Talk to the OS"** (the demo chat about Mwinda Digital). The
+  kernel/agents/routines/memory layers, the status board and the briefs are
+  private: their markup lives in `docs/os-console.html`, is never published
+  as a static file, and is injected into the page only after the founder key
+  is verified server-side. Hiding sections with CSS would not be security —
+  the private markup must stay out of the public source.
 - `netlify/functions/chat.mjs` — serverless proxy to the Claude API for the
   demo chat (scoped system prompt, input caps, `CHAT_ENABLED` kill switch).
   Also serves founder "OS mode": `/os <FOUNDER_KEY>` in the chat swaps in
@@ -99,10 +104,16 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   Needs `ANTHROPIC_API_KEY` in Netlify env vars; `package.json` exists only
   to bundle its `@anthropic-ai/sdk` dependency — the site itself is still
   buildless.
-- `netlify/functions/brief.mjs` — key-gated endpoint serving the Monday
-  briefs (`docs/briefs/*.md`, bundled via `included_files`) to the
-  "Founder Briefs" section (Layer 06) on `os.html`. `_redirects` blocks
-  direct public access to `/docs/*`, `/CLAUDE.md`, `/scripts/*`.
+- `netlify/functions/console.mjs` — key-gated endpoint returning the private
+  OS page fragment (`docs/os-console.html`) **and** the Monday briefs
+  (`docs/briefs/*.md`), both bundled via `included_files`. Requires
+  `FOUNDER_KEY`; rate-limited with a lockout on failed attempts. One key
+  unlocks the console, the briefs and kernel chat mode.
+- `netlify/functions/_security.mjs` — shared security primitives (constant-
+  time secret compare, rate limiting, auth lockout, origin enforcement,
+  bounded JSON reads, audit logging). See `docs/security.md`.
+- `_redirects` and `netlify.toml` both force **404** on `/docs/*`,
+  `/scripts/*`, `/netlify/*`, `/.claude/*`, `CLAUDE.md` and `package*.json`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.

@@ -64,6 +64,16 @@ today, so most controls below are aimed at throughput and cost, not secrecy.
   stripped, so a brief (which quotes repository text third parties can write)
   cannot close its own fence or issue instructions.
 
+**Public/private boundary on the OS page**
+- Only the hero and Layer 05 (the public demo chat) are in `os.html`'s
+  published source. The kernel, agents, routines, memory, status board and
+  briefs live in `docs/os-console.html`, which is bundled into the
+  key-gated function and returns 404 as a static path.
+- The public hero's boot log names no internal file paths.
+- This is the important distinction: CSS/JS hiding is cosmetic — anyone can
+  read the page source. Private content is only private if it never reaches
+  an unauthenticated browser.
+
 **Browser / hosting**
 - **CSP without `'unsafe-inline'` for scripts**: the 4 inline `<script>` blocks
   are allowed by SHA-256 hash. `scripts/update-csp.mjs` regenerates the policy;
@@ -141,5 +151,8 @@ fails when the policy is stale — wire it into any future CI.
 | `ALLOWED_ORIGINS` | recommended | Comma-separated hosts. Set when a custom domain is added. |
 | `CHAT_ENABLED` | no | `false` = kill switch |
 | `CHAT_MODEL` | no | Defaults to `claude-opus-4-8`; `claude-haiku-4-5` cuts cost ~5× |
+
+Endpoints: `/.netlify/functions/chat` (public + founder mode) and
+`/.netlify/functions/console` (founder only).
 
 Report a vulnerability: see `/.well-known/security.txt`.
