@@ -470,138 +470,16 @@
     <h1>Mwinda <span class="thin">OS</span></h1>
     <p class="tagline">The agentic operating system of Mwinda Digital — persistent instructions, specialized agents, and scheduled automations that turn one founder into an <em>AI-native company</em>. Bringing light to your ideas.</p>
     <div class="boot" role="img" aria-label="System boot log: kernel, agents, routine, and memory all loaded and operational">
-      <div class="boot-line"><span class="t">00.01</span><span>mounting kernel <span class="path">CLAUDE.md</span> ............... <span class="ok">loaded</span></span></div>
-      <div class="boot-line"><span class="t">00.02</span><span>registering agents <span class="path">.claude/agents/</span> ×3 ..... <span class="ok">ready</span></span></div>
-      <div class="boot-line"><span class="t">00.03</span><span>arming routine <span class="path">monday-priorities-brief</span> .... <span class="ok">scheduled</span></span></div>
-      <div class="boot-line"><span class="t">00.04</span><span>binding memory <span class="path">docs/decisions/ docs/briefs/</span> <span class="ok">linked</span></span></div>
-      <div class="boot-line"><span class="t">00.05</span><span>MWINDA OS v1.0 — operator: Founder</span></div>
-      <div class="boot-line"><span class="t">&gt;</span><span>awaiting directive <span class="cursor"></span></span></div>
+      <div class="boot-line"><span class="t">00.01</span><span>mounting kernel ......................... <span class="ok">loaded</span></span></div>
+      <div class="boot-line"><span class="t">00.02</span><span>registering specialist agents ×3 ........ <span class="ok">ready</span></span></div>
+      <div class="boot-line"><span class="t">00.03</span><span>arming scheduled routines ............... <span class="ok">scheduled</span></span></div>
+      <div class="boot-line"><span class="t">00.04</span><span>binding persistent memory ............... <span class="path">restricted</span></span></div>
+      <div class="boot-line"><span class="t">00.05</span><span>MWINDA OS v1.0 — internals: <span class="path">private</span></span></div>
+      <div class="boot-line"><span class="t">&gt;</span><span>public interface ready — ask me about Mwinda Digital <span class="cursor"></span></span></div>
     </div>
     <a class="talk-cta" href="#talk"><span class="dot"></span>Talk to the OS · Parler au système</a>
   </div>
 </header>
-
-<section>
-  <div class="wrap">
-    <div class="layer-head">
-      <span class="layer-tag">LAYER 01</span>
-      <h2>The <span class="g">Kernel</span></h2>
-    </div>
-    <p class="lede">One file, <code>CLAUDE.md</code>, loads automatically into every session. It carries the founder's identity, standing priorities, and the questions asked before any significant task — so the system never starts from zero.</p>
-    <div class="kernel-grid">
-      <div class="panel">
-        <h3>Standing Priorities</h3>
-        <ol class="prio">
-          <li>Protect the founder's time</li>
-          <li>Increase productivity</li>
-          <li>Improve decision quality</li>
-          <li>Build Mwinda Digital</li>
-          <li>Design scalable systems</li>
-          <li>Automate everything possible</li>
-          <li>Maintain perfect organization</li>
-          <li>Think strategically</li>
-          <li>Challenge weak ideas</li>
-          <li>Recommend better alternatives</li>
-        </ol>
-      </div>
-      <div class="panel">
-        <h3>Before Any Task</h3>
-        <ul class="q">
-          <li><b>What is the objective?</b></li>
-          <li><b>What is the business impact?</b></li>
-          <li><b>What is the fastest solution?</b></li>
-          <li><b>Can this be automated?</b></li>
-          <li><b>Can this become a reusable system?</b></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="layer-head">
-      <span class="layer-tag">LAYER 02</span>
-      <h2>The <span class="g">Agents</span></h2>
-    </div>
-    <p class="lede">Three specialists defined in <code>.claude/agents/</code>. Each carries its own mandate, rules, and output format — invoked by name inside any session, in parallel when the work allows it.</p>
-    <div class="agents">
-      <div class="agent">
-        <span class="glyph">A</span>
-        <h3>Architect</h3>
-        <p>Turns a product idea into a decision-ready design: one concrete architecture, cost at 10 / 1k / 100k users, a weekly build plan — and the strongest alternative it rejected, with reasons.</p>
-        <div class="invoke">use the architect agent: design the client-portal SaaS</div>
-      </div>
-      <div class="agent">
-        <span class="glyph">R</span>
-        <h3>Researcher</h3>
-        <p>Evidence-backed briefs readable in five minutes: bottom line with a confidence level, primary-sourced facts with dates and prices, implications for Mwinda, one sized next step.</p>
-        <div class="invoke">use the researcher agent: compare vector DB pricing</div>
-      </div>
-      <div class="agent">
-        <span class="glyph">S</span>
-        <h3>Strategist</h3>
-        <p>Chief of staff for prioritization and go/no-go calls. Holds a hard cap of three active priorities and challenges anything that smells like building infrastructure before revenue.</p>
-        <div class="invoke">use the strategist agent: client cash vs product bet?</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="layer-head">
-      <span class="layer-tag">LAYER 03</span>
-      <h2>The <span class="g">Routines</span></h2>
-    </div>
-    <p class="lede">Scheduled sessions that run without being asked. The first one is live: every Monday morning, a fresh session reviews the whole repository and delivers a priorities brief before the week starts.</p>
-    <div class="flow">
-      <div class="flow-step">
-        <span class="k">Trigger</span>
-        <div class="v">Monday 07:00 UTC<small>cron 0 7 * * 1</small></div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <span class="k">Review</span>
-        <div class="v">PRs · branches · commits<small>last 14 days</small></div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <span class="k">Produce</span>
-        <div class="v">One-page brief<small>top 3 priorities, open loops</small></div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <span class="k">Deliver</span>
-        <div class="v">Draft PR + push &amp; email<small>docs/briefs/</small></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="layer-head">
-      <span class="layer-tag">LAYER 04</span>
-      <h2>The <span class="g">Memory</span></h2>
-    </div>
-    <p class="lede">Chat is ephemeral; the repository is not. Everything worth keeping is written down, committed, and compounds across sessions.</p>
-    <div class="mem">
-      <div class="panel">
-        <span class="path">docs/decisions/</span>
-        <p>One short file per significant decision, with its rationale — so past reasoning is searchable, not lost.</p>
-      </div>
-      <div class="panel">
-        <span class="path">docs/briefs/</span>
-        <p>The Monday briefs accumulate into a running record of priorities, trajectory, and what actually shipped.</p>
-      </div>
-      <div class="panel">
-        <span class="path">CLAUDE.md</span>
-        <p>Self-updating: when the founder states a durable preference, it gets folded back into the kernel itself.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section id="talk">
   <div class="wrap">
@@ -627,73 +505,36 @@
   </div>
 </section>
 
-<section id="briefs">
+<section id="console">
+  <div class="wrap">
+    <div class="layer-head">
+      <span class="layer-tag">PRIVATE</span>
+      <h2>Founder <span class="g">Console</span></h2>
+    </div>
+    <p class="lede">The kernel, the agents, the routines, the memory and the Monday briefs are not public. Nothing beyond this point is sent to the browser without the founder key.</p>
+    <div class="briefs-gate" id="briefsGate">
+      <input id="briefsKey" type="password" autocomplete="off" placeholder="Founder key…" aria-label="Founder key" />
+      <button id="briefsUnlock" type="button">Unlock</button>
+    </div>
+    <p class="briefs-note" id="briefsNote">Locked.</p>
+  </div>
+</section>
+
+<div id="consoleView" hidden></div>
+
+<section id="briefs" hidden>
   <div class="wrap">
     <div class="layer-head">
       <span class="layer-tag">LAYER 06</span>
       <h2>Founder <span class="g">Briefs</span></h2>
     </div>
-    <p class="lede">Every Monday, the OS reviews the whole system and writes a priorities brief. This memory is private — unlock it with the founder key.</p>
-    <div class="briefs-gate" id="briefsGate">
-      <input id="briefsKey" type="password" autocomplete="off" placeholder="Founder key…" aria-label="Founder key" />
-      <button id="briefsUnlock" type="button">Unlock</button>
-    </div>
-    <p class="briefs-note" id="briefsNote">Locked. The key is never stored on our servers.</p>
-    <div id="briefsView" hidden>
+    <div id="briefsView">
       <div class="briefs-tabs" id="briefsTabs"></div>
       <div class="brief-doc" id="briefDoc"></div>
     </div>
   </div>
 </section>
 
-<section class="status">
-  <div class="wrap">
-    <div class="layer-head">
-      <span class="layer-tag">SYSTEM STATUS</span>
-      <h2>Deployed <span class="g">Today</span></h2>
-    </div>
-    <p class="lede">Not a mockup — current state of the live system as of July 20, 2026.</p>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr><th>Component</th><th>Where</th><th>State</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Kernel</td>
-            <td class="mono">CLAUDE.md · merged in <a href="https://github.com/EstevaoTati/my-project/pull/5">PR #5</a></td>
-            <td><span class="pill live">Live</span></td>
-          </tr>
-          <tr>
-            <td>Agents ×3</td>
-            <td class="mono">.claude/agents/{architect,researcher,strategist}.md</td>
-            <td><span class="pill live">Live</span></td>
-          </tr>
-          <tr>
-            <td>Monday Brief routine</td>
-            <td class="mono">trigger · next run 2026-07-20 07:00 UTC</td>
-            <td><span class="pill live">Armed</span></td>
-          </tr>
-          <tr>
-            <td>Notifications</td>
-            <td class="mono">push + email on routine completion</td>
-            <td><span class="pill live">On</span></td>
-          </tr>
-          <tr>
-            <td>Memory</td>
-            <td class="mono">docs/decisions/ · docs/hermes-setup.md</td>
-            <td><span class="pill live">Recording</span></td>
-          </tr>
-          <tr>
-            <td>Talk to the OS</td>
-            <td class="mono">this page · public demo + founder kernel mode</td>
-            <td><span class="pill live">Live</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
 
 <footer>
   <div class="wrap">
@@ -751,6 +592,16 @@
   }
 
   applyMode();
+
+  // Bridge for the founder console: one key unlocks both surfaces. Setting it
+  // here has no security effect on its own — the server validates every call.
+  window.mwindaOS = {
+    unlock(key) {
+      osKey = key;
+      try { sessionStorage.setItem(OS_STORE, key); } catch { /* blocked */ }
+      applyMode();
+    },
+  };
 
   // Restore the conversation after a reload (same tab session).
   try {
@@ -875,7 +726,8 @@
   const keyInput = document.getElementById('briefsKey');
   const unlock = document.getElementById('briefsUnlock');
   const note = document.getElementById('briefsNote');
-  const view = document.getElementById('briefsView');
+  const consoleView = document.getElementById('consoleView');
+  const briefsSection = document.getElementById('briefs');
   const tabs = document.getElementById('briefsTabs');
   const doc = document.getElementById('briefDoc');
   if (!gate) return;
@@ -923,7 +775,7 @@
   async function tryUnlock(key) {
     note.textContent = 'Unlocking…';
     try {
-      const res = await fetch('/.netlify/functions/brief', {
+      const res = await fetch('/.netlify/functions/console', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ key }),
@@ -935,14 +787,24 @@
           : 'Unavailable (' + (data.error || res.status) + ').';
         return;
       }
+
+      // The private layers are not in this page's source — they arrive only
+      // now, authored by us and served solely to a verified key holder.
+      if (data.html) {
+        consoleView.innerHTML = data.html;
+        consoleView.hidden = false;
+      }
       briefs = data.briefs || [];
       gate.hidden = true;
-      view.hidden = false;
+      // One key, both surfaces: the chat switches to kernel mode too.
+      if (window.mwindaOS) window.mwindaOS.unlock(key);
+
       if (!briefs.length) {
-        note.textContent = 'Unlocked — no briefs yet. The first one lands on Monday.';
+        note.textContent = 'Unlocked — console loaded. No briefs yet; the first lands on Monday.';
         return;
       }
-      note.textContent = 'Unlocked — ' + briefs.length + ' brief(s), newest first.';
+      note.textContent = 'Unlocked — console loaded · ' + briefs.length + ' brief(s), newest first.';
+      briefsSection.hidden = false;
       tabs.innerHTML = '';
       briefs.forEach((b, i) => {
         const btn = document.createElement('button');
@@ -972,3 +834,4 @@
 </script>
 </body>
 </html>
+
