@@ -1,9 +1,10 @@
-# Hero video — how to drop it in
+# Background video — how to drop it in
 
-The hero on `index.html` and `bi.html` already has its media layer built. It
-currently shows the founder-supplied bulb artwork with an infinite slow drift.
-Swapping in a video is a two-line change per page, and the CSS is already
-written for it.
+The artwork is a **page-wide fixed layer** (`.site-bg`) on `index.html`,
+`bi.html` and `os.html`: it sits behind the entire page and stays put while
+content scrolls over it. It currently shows the founder-supplied bulb stills
+with an infinite slow drift. Swapping in a video is a two-line change per
+page, and the CSS is already written for it.
 
 ## 1. Put the files here
 
@@ -18,20 +19,24 @@ real money and battery — compress hard, the veil hides most artefacts.
 
 ## 2. Add the element
 
-In each hero's `.hero-media` block, put the `<video>` immediately **before**
+In each page's `.site-bg` block, put the `<video>` immediately **before**
 the existing `<img>`:
 
 ```html
-<video class="hero-media-video" autoplay muted loop playsinline
+<video autoplay muted loop playsinline
        poster="assets/hero-platform.jpg" preload="metadata">
   <source src="assets/hero-platform.mp4" type="video/mp4" />
 </video>
-<img class="hero-media-img" src="assets/hero-platform.jpg" alt="" />
+<img class="site-bg-img" src="assets/hero-platform.jpg" alt="" />
 ```
 
-`.hero-media video` already: covers the area, sits above the poster, hides the
-`<img>` behind it, and is **disabled entirely under `prefers-reduced-motion`**,
-where the still image comes back. Nothing else to change.
+`.site-bg video` already: covers the viewport, sits above the poster, hides
+the `<img>` and the CSS ignition behind it, and is **disabled entirely under
+`prefers-reduced-motion`**, where the still image comes back. Nothing else to
+change.
+
+`assets/hero-platform.mp4` also serves `os.html`, which uses the same warm
+artwork.
 
 Attributes that matter: `muted` (browsers block autoplay without it),
 `playsinline` (iOS plays inline instead of going fullscreen), `loop` (the
@@ -53,7 +58,7 @@ fades back down — the behaviour of a real incandescent bulb, deliberately slow
 because it sits behind headline text. The BI page uses the same curve in
 electric blue.
 
-Adding a video automatically retires it: `.hero-media video ~ .hero-media-ignite`
+Adding a video automatically retires it: `.site-bg video ~ .site-bg-ignite`
 is set to `display: none`, because the video carries its own ignition.
 
 ## Content Security Policy

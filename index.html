@@ -10,9 +10,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body>
+
+<div class="site-bg" aria-hidden="true">
+  <!-- Drop assets/hero-platform.mp4 in and add a <video> here; .site-bg video is
+       already styled to cover, sit above the poster and retire the CSS
+       ignition. See docs/hero-video.md. -->
+  <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
+  <div class="site-bg-ignite"></div>
+  <div class="site-bg-veil"></div>
+</div>
+
 
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
@@ -75,14 +85,7 @@
 
   <!-- HERO -->
   <section class="hero" id="home">
-    <div class="hero-media" aria-hidden="true">
-      <!-- Poster image now; drop assets/hero-platform.mp4 in and the <video>
-           takes over automatically (see .hero-media video in styles.css). -->
-      <img class="hero-media-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
-      <div class="hero-media-ignite"></div>
-      <div class="hero-media-veil"></div>
-      <div class="hero-media-scan"></div>
-    </div>
+    <div class="hero-media-scan" aria-hidden="true"></div>
     <div class="hero-grid"></div>
     <div class="hero-glow"></div>
 

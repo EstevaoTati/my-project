@@ -470,3 +470,80 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   .hero-media-ignite::before { animation: none; opacity: .7; }
   .hero-media-ignite::after  { animation: none; opacity: .85; }
 }
+
+/* ============================================================
+   Page-wide background artwork
+   The bulb sits behind the ENTIRE page, fixed, so it stays put while
+   content scrolls over it. z-index -1 paints it above the body gradient
+   but below every block background and every line of text, which is what
+   keeps long-form copy readable over a photograph.
+   ============================================================ */
+.site-bg {
+  position: fixed; inset: 0; z-index: -1;
+  overflow: hidden; pointer-events: none;
+}
+.site-bg-img,
+.site-bg video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 38%;
+  will-change: transform;
+  animation: siteDrift 46s ease-in-out infinite alternate;
+}
+.site-bg video { z-index: 1; }
+.site-bg video + .site-bg-img { display: none; }
+.site-bg video ~ .site-bg-ignite { display: none; }
+
+@keyframes siteDrift {
+  from { transform: scale(1.08) translate3d(-1%, -0.6%, 0); }
+  to   { transform: scale(1.16) translate3d(1%, 0.6%, 0); }
+}
+
+/* The filament keeps igniting behind the whole page. */
+.site-bg-ignite {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; place-items: center;
+}
+.site-bg-ignite::before {
+  content: '';
+  opacity: .42;
+  width: min(52vw, 720px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(180,240,255,.46) 0%, rgba(80,190,255,.22) 22%,
+    rgba(40,140,255,.1) 44%, transparent 68%);
+  filter: blur(18px); transform: translateY(-8%);
+  animation: bulbIgnite 7.5s ease-in-out infinite;
+}
+.site-bg-ignite::after {
+  content: ''; position: absolute;
+  opacity: .38;
+  width: min(16vw, 210px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,253,255,.85) 0%, rgba(120,215,255,.38) 45%, transparent 72%);
+  filter: blur(10px); transform: translateY(-16%);
+  animation: bulbCore 7.5s ease-in-out infinite;
+}
+
+/* The scrim. Strong enough that body copy stays readable anywhere on the
+   page, light enough that the artwork is unmistakably present. */
+.site-bg-veil {
+  position: absolute; inset: 0; z-index: 3;
+  background:
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.76) 0%, rgba(5,5,7,.9) 55%, rgba(5,5,7,.95) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.6) 0%, rgba(5,5,7,.84) 55%, rgba(5,5,7,.92) 100%);
+}
+@media (max-width: 900px) {
+  /* Small screens crop hard and carry more text per pixel — dim further. */
+  .site-bg-veil {
+    background:
+      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.62) 0%, rgba(5,5,7,.9) 60%, rgba(5,5,7,.95) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.7) 0%, rgba(5,5,7,.9) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-bg-img { animation: none; transform: scale(1.1); }
+  .site-bg-ignite::before { animation: none; opacity: .3; }
+  .site-bg-ignite::after  { animation: none; opacity: .3; }
+  .site-bg video { display: none; }
+  .site-bg video + .site-bg-img { display: block; }
+}
