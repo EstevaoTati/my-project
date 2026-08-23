@@ -10,6 +10,7 @@
 import {
   json, clientIp, SlidingWindow, originRejected, readJson, audit,
   secretMatches, founderKeyUsable,
+  authLockedOut, recordAuthFailure, recordAuthSuccess,
 } from "./_security.mjs";
 import {
   configured, select, insert, update, logEvent,
@@ -18,6 +19,9 @@ import {
 
 const MAX_BODY_BYTES = 512 * 1024;   // a finished dossier is ~40-80 KB of JSON
 const RATE = new SlidingWindow({ windowMs: 60_000, max: 40 });
+// Events carry no ownership proof, so they get their own tighter bucket —
+// otherwise anyone could inflate the analytics table for free.
+const EVENT_RATE = new SlidingWindow({ windowMs: 60_000, max: 12 });
 
 const COLUMNS = [
   "intent", "country", "region", "city", "sector", "business_type", "budget",
@@ -120,19 +124,31 @@ export default async (req) => {
 
       case "event": {
         // Product KPI signal. Accepted without ownership proof because it
-        // carries no personal data and no project content.
-        const name = typeof parsed.value.event === "string" ? parsed.value.event.slice(0, 60) : null;
-        if (!name) return json(400, { error: "event name required" });
+        // carries no personal data and no project content — but that also
+        // makes it the cheapest thing to flood, so it is capped separately
+        // and restricted to the event names the client actually emits.
+        if (EVENT_RATE.check(ip)) return json(429, { error: "too many events" });
+        const ALLOWED = new Set(["dossier_exported", "stage_generated", "project_opened"]);
+        const name = typeof parsed.value.event === "string" ? parsed.value.event : "";
+        if (!ALLOWED.has(name)) return json(400, { error: "unknown event" });
         await logEvent(name, isUuid(id) ? id : null, {});
         return json(200, { ok: true });
       }
 
       case "stats": {
-        // Founder-only: the MVP KPI board.
+        // Founder-only: the MVP KPI board. Throttled like every other
+        // founder-gated surface, so the key cannot be probed here.
+        const lock = authLockedOut(ip);
+        if (lock) {
+          audit("project.auth_locked_out", { ip });
+          return json(429, { error: "too many attempts — try again later" }, { "retry-after": String(lock) });
+        }
         if (!founderKeyUsable() || !secretMatches(parsed.value.key, process.env.FOUNDER_KEY)) {
+          recordAuthFailure(ip);
           audit("project.stats_denied", { ip });
           return json(403, { error: "forbidden" });
         }
+        recordAuthSuccess(ip);
         const rows = await select("kpi_overview", "limit=1");
         return json(200, { stats: Array.isArray(rows) ? rows[0] : rows });
       }

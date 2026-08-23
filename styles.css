@@ -1449,3 +1449,11 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .site-bg video { display: none; }
   .site-bg video + .site-bg-img { display: block; }
 }
+
+/* Honeypot — off-screen rather than display:none, which some bots detect. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
