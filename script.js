@@ -208,6 +208,17 @@
       }
       formNote.style.color = '';
       formNote.textContent = t('form.ok', { name: name.split(' ')[0] });
+
+      // Record the lead server-side first. Until this existed, a visitor who
+      // abandoned the WhatsApp hop — popup blocked, no WhatsApp installed,
+      // changed their mind — was lost with no trace. Fire-and-forget: a
+      // storage failure must never block the handoff.
+      fetch('/.netlify/functions/lead', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: name, email: email, topic: topic, message: message, source: 'website', handedOff: true }),
+      }).catch(function () { /* the WhatsApp handoff below still happens */ });
+
       // Hand the message off to WhatsApp (business line) with everything prefilled.
       const waText = 'Nouveau message via mwindadigital' + String.fromCharCode(10) +
         'Nom / Name: ' + name + String.fromCharCode(10) +

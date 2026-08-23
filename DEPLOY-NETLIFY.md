@@ -51,6 +51,9 @@ works in production:
    (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable,
    `FOUNDER_KEY` to enable founder (OS kernel) mode, `BI_MODEL` /
    `BI_ENABLED=false` for AI Business Intelligence at `/bi`.
+   For persistent storage add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`
+   (full setup: `docs/supabase-setup.md`). Without them the site still works,
+   storing projects in the visitor's browser only.
    Founder mode: type `/os <FOUNDER_KEY>` in the chat to talk to the
    MWINDA OS kernel itself (higher limits, kernel system prompt);
    `/public` switches back. Without `FOUNDER_KEY` set, OS mode is off.

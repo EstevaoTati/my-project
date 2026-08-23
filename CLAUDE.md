@@ -109,6 +109,19 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   (`docs/briefs/*.md`), both bundled via `included_files`. Requires
   `FOUNDER_KEY`; rate-limited with a lockout on failed attempts. One key
   unlocks the console, the briefs and kernel chat mode.
+- `netlify/functions/project.mjs` — AI Business Intelligence project storage
+  in Supabase (create/save/load + founder-gated `stats`). No accounts: a
+  project is owned by its uuid **plus** a 32-byte token whose SHA-256 only is
+  stored. Degrades to 501 when Supabase is unconfigured, and the browser then
+  runs on `localStorage` alone.
+- `netlify/functions/lead.mjs` — contact-form lead capture, so a visitor who
+  abandons the WhatsApp handoff is no longer lost silently. Founder-gated
+  `list` action.
+- `netlify/functions/_db.mjs` — Supabase/PostgREST access via plain fetch. The
+  `service_role` key is server-side only; **the browser never holds a Supabase
+  credential**. See `docs/supabase-setup.md`.
+- `supabase/migrations/0001_init.sql` — schema. RLS enabled with **no
+  policies** on every table: `service_role` bypasses it, `anon` gets nothing.
 - `netlify/functions/_security.mjs` — shared security primitives (constant-
   time secret compare, rate limiting, auth lockout, origin enforcement,
   bounded JSON reads, audit logging). See `docs/security.md`.
@@ -132,6 +145,15 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 - `i18n.js` — FR/EN translation engine and dictionary (see below).
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.
+
+### Data storage
+
+Supabase holds BI projects, contact leads and product events — see
+`docs/supabase-setup.md`. Two things stay **out** of the database on purpose:
+chat transcripts (the OS page publicly states they are not stored) and the
+Monday briefs / decision records (the repo is the OS memory; the routine
+writes them via pull request). Do not move either without changing the
+public statement first.
 
 ### Developing and verifying
 
