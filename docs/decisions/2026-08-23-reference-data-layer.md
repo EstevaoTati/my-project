@@ -1,7 +1,7 @@
 # Ground the BI engine on institutional data, without pretending to read the law
 
 **Date:** 2026-08-23
-**Status:** accepted
+**Status:** accepted, amended same day — see *Amendment* below
 
 ## Context
 
@@ -71,3 +71,34 @@ fabrication is most costly and least detectable.
 **Ship without the ungrounded warning.** Rejected. A product that is silent
 when it lacks data teaches users to trust it uniformly, which is the opposite
 of what a business plan needs.
+
+---
+
+## Amendment — the registry is internal
+
+The decision above shipped a "Sources and verification" panel on the compliance
+stage and a deduplicated bibliography at the end of the dossier. The founder
+reversed that the same day, and was right to.
+
+**Which official databases the engine consults is methodology.** Assembling
+that registry — establishing which sources have an API and which do not, which
+country URL patterns are real, that one supplied link was a 404 page — is a
+meaningful part of what MWINDA AI Business Intelligence is. Printing it at the
+end of every dossier hands it to anyone who runs a single free analysis.
+
+So: the registry shapes the prompt and never crosses to the browser. No source
+list, link or grounding count is sent to the client, rendered in a dossier, or
+stored on a project row. `projects.sources` and `projects.grounding` are
+dropped in `0005`. The audit log is the only place its use is recorded.
+
+**What was weighed against it.** The panel had a real protective function: it
+told a reader where to verify a legal claim. That function survives without it
+— the compliance stage keeps its legal banner and its per-item *"confirm with"*
+field, and the prompt still instructs the model to name **the kind of body**
+that settles each obligation. The reader is told to verify with the national IP
+office; they are simply not handed our list of databases.
+
+**What did not change.** Everything about how the engine is grounded. The facts
+still come from real statistics, the model is still told it has not read the
+legal portals, and citations are still never invented. The output is unchanged
+in substance — only the advertising of the method is gone.

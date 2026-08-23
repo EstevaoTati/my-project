@@ -15,7 +15,7 @@ import {
   authLockedOut, recordAuthFailure, recordAuthSuccess,
   originRejected, readJson, audit,
 } from "./_security.mjs";
-import { referenceFor, linksFor } from "./_reference.mjs";
+import { referenceFor } from "./_reference.mjs";
 
 const MAX_BODY_BYTES = 96 * 1024;
 const PUBLIC_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 40 });  // ~6 dossiers/h
@@ -458,20 +458,12 @@ export default async (req) => {
           out_tokens: final.usage?.output_tokens,
           grounded: ref.facts.length,
         });
-        // Sources are attached by the server from a fixed registry — never
-        // produced by the model. A citation the model invented would be worse
-        // than no citation at all, because it looks checked.
-        send({
-          type: "result",
-          stage,
-          data: block.input,
-          sources: ref.country ? await linksFor(ref.country, stage) : [],
-          grounding: {
-            country: ref.country?.label || null,
-            indicators: ref.facts.length,
-            years: ref.facts.map((f) => f.year).filter(Boolean),
-          },
-        });
+        // Only the analysis crosses to the client. The reference layer — which
+        // sources exist, which were consulted, how many figures were injected —
+        // stays server-side: it is how the engine knows where official data
+        // lives, and that is methodology, not something to publish with every
+        // dossier. The audit line above is where its use is recorded.
+        send({ type: "result", stage, data: block.input });
       } catch (error) {
         const busy = error instanceof Anthropic.RateLimitError;
         console.error("bi stream error", error?.status, error?.message);

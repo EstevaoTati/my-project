@@ -40,14 +40,6 @@ create table if not exists public.reference_refresh (
   detail      text
 );
 
--- ------------------------------------------------- grounding on a project ---
--- Which sources a dossier was built against, and how many verified indicators
--- were available at the time. Stored with the project rather than recomputed on
--- load: reference data is refreshed over time, and a dossier must keep citing
--- the vintage it was actually written from.
-alter table public.projects add column if not exists sources   jsonb not null default '{}'::jsonb;
-alter table public.projects add column if not exists grounding jsonb not null default '{}'::jsonb;
-
 -- ------------------------------------------------------------------- RLS ----
 -- This data is public at the source, but the browser still has no Supabase
 -- credential and never will. Same deny-by-default posture as every other

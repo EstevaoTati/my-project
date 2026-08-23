@@ -8,11 +8,19 @@
 //            into `reference_indicators`, then injected into the prompt as
 //            ground truth the model must use instead of guessing.
 //
-//   LINKS  — human-facing legal databases with no public API (UNCTAD, WIPO Lex,
-//            NATLEX, UHRI, UN Treaty Collection). These are NEVER scraped and
-//            NEVER paraphrased into the prompt as fact. They are attached to
-//            the dossier so a founder can verify a claim at the source. A model
-//            that has not read the law must not sound like it has.
+//   PORTALS — human-facing legal databases with no public API (UNCTAD, WIPO
+//            Lex, NATLEX, UHRI, UN Treaty Collection). These are NEVER scraped
+//            and NEVER paraphrased into the prompt as fact. They tell the model
+//            which obligations are checkable and by what kind of body, so each
+//            checklist item can name who settles it. A model that has not read
+//            the law must not sound like it has — and the list of databases
+//            itself is never shown to the reader.
+//
+// This registry is INTERNAL and stays that way. Which official databases the
+// engine consults is methodology — the part of the product that took work to
+// assemble — so it shapes the prompt and never crosses to the browser. Nothing
+// here is sent to the client, rendered in a dossier, or stored on a project
+// row. The audit log is the only place its use is recorded.
 //
 // Everything here degrades to nothing. No database, no key, no network: the
 // engine emits exactly what it emitted before this module existed.
@@ -59,36 +67,6 @@ export async function resolveCountry(label) {
   if (!key) return null;
   const reg = await load();
   return reg.byLabel.get(key) || reg.byIso3.get(label.trim().toUpperCase()) || null;
-}
-
-/** Fill {iso3}/{iso2} in a URL template. */
-function expand(template, country) {
-  if (!template || !country) return null;
-  return template.replace("{iso3}", country.iso3).replace("{iso2}", country.iso2);
-}
-
-/**
- * The verification links for one country, in the order they should be shown.
- * Available with no database and no network — this is derived, not fetched.
- */
-export async function linksFor(country, stage = null) {
-  const reg = await load();
-  return reg.sources
-    .filter((s) => !stage || (s.feeds || []).includes(stage))
-    .map((s) => {
-      const deep = s.countryUrlStatus !== "none" ? expand(s.countryUrl, country) : null;
-      return {
-        key: s.key,
-        name: s.name,
-        publisher: s.publisher,
-        url: deep || s.url,
-        // The UI says "index — filter by country" when this is false, so a
-        // founder is never told a generic index is a country page.
-        countrySpecific: Boolean(deep),
-        attribution: s.attribution,
-        use: s.use,
-      };
-    });
 }
 
 /**
@@ -193,5 +171,3 @@ export async function referenceFor(countryLabel, stage) {
     block: (wantsFacts ? factsBlock(country, facts) : "") + links,
   };
 }
-
-export const allSources = async () => (await load()).sources;
