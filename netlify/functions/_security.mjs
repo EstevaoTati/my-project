@@ -1,5 +1,27 @@
 // MWINDA DIGITAL — shared security primitives for the serverless functions.
 //
+// ---------------------------------------------------------------------------
+// CHECKLIST FOR ANY NEW ENDPOINT — read this before writing one.
+//
+// Twice now, an endpoint written after a hardening pass has re-solved a
+// problem this file had already solved, and lost the protection doing it:
+// bi/project/lead all verified FOUNDER_KEY without the lockout, and bi
+// reimplemented chat's prompt fence without its sanitiser. The primitives
+// below are only useful if they are actually reached for.
+//
+//   1. Every request:            originRejected() + readJson(max) + a
+//                                SlidingWindow keyed on clientIp().
+//   2. Every founder-gated path: authLockedOut() BEFORE the compare, then
+//                                recordAuthFailure() / recordAuthSuccess().
+//   3. Every privileged read:    audit() on SUCCESS as well as failure — an
+//                                attacker with a valid key must leave a trace.
+//   4. Every model-bound string: clamp the length AND strip [<>] before it
+//                                goes near a prompt fence.
+//   5. Every client object hitting the database: clamp it, including jsonb.
+//   6. Cheap unauthenticated writes get their OWN tighter bucket.
+//
+// ---------------------------------------------------------------------------
+//
 // Design notes:
 // - Secrets never leave Netlify env vars. Nothing here logs a secret or a
 //   candidate secret, not even truncated.

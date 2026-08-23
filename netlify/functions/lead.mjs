@@ -53,6 +53,9 @@ export default async (req) => {
     recordAuthSuccess(ip);
     try {
       const rows = await select("leads", "select=id,created_at,name,email,topic,message,handed_off&order=created_at.desc&limit=50");
+      // Log the SUCCESS too. Auditing only failures means a stolen key can
+      // dump the entire PII table repeatedly and generate no evidence.
+      audit("lead.list_ok", { ip, count: (rows || []).length });
       return json(200, { leads: rows || [] });
     } catch {
       return json(503, { error: "storage temporarily unavailable" });
@@ -89,7 +92,9 @@ export default async (req) => {
       handed_off: body.handedOff === true,
     });
     const row = Array.isArray(rows) ? rows[0] : rows;
-    await logEvent("lead_captured", null, { topic });
+    // No topic here: `events` is documented as holding no personal data, and
+    // a visitor can type anything into that field. The lead row already has it.
+    await logEvent("lead_captured", null, {});
     audit("lead.captured", { ip, topic });
     return json(200, { ok: true, id: row?.id });
   } catch (error) {

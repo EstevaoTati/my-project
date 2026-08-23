@@ -26,10 +26,22 @@
     available: true,        // flipped off after a 501
     status: 'local',        // local | syncing | synced | error
 
-    keys() { try { return JSON.parse(localStorage.getItem(KEYS) || '{}'); } catch { return {}; } },
-    setKey(id, token) {
-      const k = this.keys(); k[id] = token;
-      try { localStorage.setItem(KEYS, JSON.stringify(k)); } catch { /* full */ }
+    /* Own projects keep their token in localStorage. A project opened from
+       someone else's access link keeps it in sessionStorage only: it is their
+       confidential business plan, and it must not outlive the tab on a shared
+       or public machine. */
+    keys() {
+      let own = {}, shared = {};
+      try { own = JSON.parse(localStorage.getItem(KEYS) || '{}'); } catch { /* ignore */ }
+      try { shared = JSON.parse(sessionStorage.getItem(KEYS) || '{}'); } catch { /* ignore */ }
+      return Object.assign({}, own, shared);
+    },
+    setKey(id, token, ephemeral) {
+      const store = ephemeral ? sessionStorage : localStorage;
+      let k = {};
+      try { k = JSON.parse(store.getItem(KEYS) || '{}'); } catch { /* ignore */ }
+      k[id] = token;
+      try { store.setItem(KEYS, JSON.stringify(k)); } catch { /* full */ }
     },
 
     async call(payload) {
@@ -71,10 +83,13 @@
 
     event(name, id) {
       if (!this.available) return;
+      // Send the ownership token too: the server only attaches the project to
+      // the event when it can prove the caller owns it, which keeps the KPI
+      // board honest. Costs us nothing — we already hold it.
       fetch(PROJECT_API, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'event', event: name, id: id || null }),
+        body: JSON.stringify({ action: 'event', event: name, id: id || null, token: id ? (this.keys()[id] || null) : null }),
       }).catch(() => { /* analytics is best-effort */ });
     },
   };
@@ -171,6 +186,7 @@
   const blank = () => ({
     id: 'p' + Date.now().toString(36),
     remoteId: null,
+    shared: false,
     createdAt: new Date().toISOString(),
     progress: 0,
     intent: '', country: '', region: '', city: '', budget: '',
@@ -194,6 +210,9 @@
     try {
       localStorage.setItem(STORE, JSON.stringify(project));
       project.progress = Math.round(Object.keys(project.stages).length / 6 * 100);
+      // A dossier opened from someone else's link is never added to the saved
+      // list — it would sit in the panel of whoever was shown it once.
+      if (project.shared) return;
       const list = JSON.parse(localStorage.getItem(LIST) || '[]')
         .filter((p) => p.id !== project.id);
       list.unshift({
@@ -917,8 +936,8 @@
     try {
       setSync('syncing');
       const loaded = await remote.load(m[1], m[2]);
-      project = Object.assign(blank(), loaded, { remoteId: m[1] });
-      remote.setKey(m[1], m[2]);
+      project = Object.assign(blank(), loaded, { remoteId: m[1], shared: true });
+      remote.setKey(m[1], m[2], true);   // tab-scoped, not persisted
       save();
       boot();
       go(project.stages.analyze ? 'analyze' : 'start');

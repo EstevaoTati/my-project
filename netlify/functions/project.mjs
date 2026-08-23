@@ -22,6 +22,12 @@ const RATE = new SlidingWindow({ windowMs: 60_000, max: 40 });
 // Events carry no ownership proof, so they get their own tighter bucket —
 // otherwise anyone could inflate the analytics table for free.
 const EVENT_RATE = new SlidingWindow({ windowMs: 60_000, max: 12 });
+// `create` happens once per project; `save` happens every couple of seconds.
+// Sharing one bucket let a single IP mint ~20 MB/min of unauthenticated rows,
+// enough to fill the free tier in under half an hour.
+const CREATE_RATE = new SlidingWindow({ windowMs: 60_000, max: 6 });
+// Ceiling per jsonb column. A finished dossier is 40-80 KB across all of them.
+const MAX_JSON_FIELD = 96 * 1024;
 
 const COLUMNS = [
   "intent", "country", "region", "city", "sector", "business_type", "budget",
@@ -31,6 +37,15 @@ const COLUMNS = [
 /** Map the client's project shape onto table columns, dropping anything else. */
 function toRow(p = {}) {
   const clamp = (v, n) => (typeof v === "string" ? v.slice(0, n) : null);
+  // jsonb columns were passed through on a bare typeof check, so a caller
+  // could store megabytes per row. Oversized fields are dropped, not
+  // truncated: half a JSON blob is worse than none.
+  const jsonb = (v) => {
+    if (!v || typeof v !== "object") return {};
+    try {
+      return JSON.stringify(v).length > MAX_JSON_FIELD ? {} : v;
+    } catch { return {}; }
+  };
   return {
     intent: clamp(p.intent, 80),
     country: clamp(p.country, 80),
@@ -40,10 +55,10 @@ function toRow(p = {}) {
     business_type: clamp(p.businessType, 80),
     budget: clamp(p.budget, 60),
     idea: clamp(p.idea, 4000),
-    answers: p.answers && typeof p.answers === "object" ? p.answers : {},
-    stages: p.stages && typeof p.stages === "object" ? p.stages : {},
-    tasks_done: p.tasksDone && typeof p.tasksDone === "object" ? p.tasksDone : {},
-    checked: p.checked && typeof p.checked === "object" ? p.checked : {},
+    answers: jsonb(p.answers),
+    stages: jsonb(p.stages),
+    tasks_done: jsonb(p.tasksDone),
+    checked: jsonb(p.checked),
     progress: Math.max(0, Math.min(100, Number(p.progress) || 0)),
   };
 }
@@ -95,6 +110,11 @@ export default async (req) => {
   try {
     switch (action) {
       case "create": {
+        const createWait = CREATE_RATE.check(ip);
+        if (createWait) {
+          audit("project.create_rate_limited", { ip });
+          return json(429, { error: "too many new projects" }, { "retry-after": String(createWait) });
+        }
         const fresh = newToken();
         const rows = await insert("projects", { ...toRow(project), token_hash: hashToken(fresh) });
         const row = Array.isArray(rows) ? rows[0] : rows;
@@ -110,6 +130,7 @@ export default async (req) => {
         const patch = toRow(project);
         const saved = await update("projects", `id=eq.${encodeURIComponent(id)}`, patch);
         const out = Array.isArray(saved) ? saved[0] : saved;
+        audit("project.saved", { ip });
         if (patch.progress >= 100 && (row.progress || 0) < 100) {
           await logEvent("project_completed", id, {});
         }
@@ -119,6 +140,9 @@ export default async (req) => {
       case "load": {
         const row = await fetchOwned(id, token);
         if (!row) return json(403, { error: "unknown project or token" });
+        // A dossier read is worth a log line: without it, anyone holding a
+        // shared link reads confidential plans leaving no trace at all.
+        audit("project.loaded", { ip });
         return json(200, { project: toProject(row) });
       }
 
@@ -131,7 +155,14 @@ export default async (req) => {
         const ALLOWED = new Set(["dossier_exported", "stage_generated", "project_opened"]);
         const name = typeof parsed.value.event === "string" ? parsed.value.event : "";
         if (!ALLOWED.has(name)) return json(400, { error: "unknown event" });
-        await logEvent(name, isUuid(id) ? id : null, {});
+        // Attach the project only on proof of ownership. The client already
+        // holds the token, so this costs it nothing — but it stops anyone
+        // fabricating rows against a real project and skewing the KPI board.
+        let linked = null;
+        if (isUuid(id) && typeof token === "string" && token) {
+          linked = (await fetchOwned(id, token)) ? id : null;
+        }
+        await logEvent(name, linked, {});
         return json(200, { ok: true });
       }
 
@@ -150,6 +181,7 @@ export default async (req) => {
         }
         recordAuthSuccess(ip);
         const rows = await select("kpi_overview", "limit=1");
+        audit("project.stats_ok", { ip });
         return json(200, { stats: Array.isArray(rows) ? rows[0] : rows });
       }
 

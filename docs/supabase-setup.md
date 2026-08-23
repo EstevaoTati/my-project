@@ -13,7 +13,8 @@ metrics) is stored in Supabase. This is the 15-minute setup.
 ## 2. Create the tables
 
 Supabase dashboard → **SQL Editor** → **New query** → paste the whole of
-`supabase/migrations/0001_init.sql` → **Run**.
+`supabase/migrations/0001_init.sql` → **Run**. Then do the same with
+`supabase/migrations/0002_retention.sql`.
 
 That creates `projects`, `leads`, `events`, the `kpi_overview` view, the
 `updated_at` trigger, and — importantly — enables Row Level Security with **no
@@ -76,8 +77,12 @@ unguessable uuid and the matching token. Consequences, stated plainly:
   recovery flow, by design of a login-less MVP.
 
 **Personal data.** `leads` holds names, emails and messages. The contact form
-now says so next to the submit button. Keep the retention short and delete on
-request — that is a legal obligation in the EU and good practice everywhere.
+says so next to the submit button. `0002_retention.sql` makes the promise
+real: `purge_expired()` deletes leads older than 18 months and events older
+than 12, and `erase_lead('someone@example.com')` handles an erasure request
+without hand-written SQL. **Schedule `purge_expired()`** — the function exists
+but nothing calls it until you do (`pg_cron` if your plan has it, otherwise a
+scheduled Netlify function).
 
 **`events` holds no personal data** — an event name, an optional project id,
 and a small JSON blob. No IP addresses, no cross-site tracking.

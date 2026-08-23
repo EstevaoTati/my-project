@@ -108,6 +108,12 @@ revoke all on public.projects from anon, authenticated;
 revoke all on public.leads    from anon, authenticated;
 revoke all on public.events   from anon, authenticated;
 
+-- Deny-by-default must apply to tables that do not exist yet. Without this,
+-- the next migration is publicly readable through PostgREST unless whoever
+-- writes it remembers to revoke — safety that depends on memory is not safety.
+alter default privileges in schema public revoke all on tables from anon, authenticated;
+alter default privileges in schema public revoke all on sequences from anon, authenticated;
+
 -- ------------------------------------------------------- founder dashboard --
 -- Aggregates for the MVP KPIs, queried by the founder console.
 create or replace view public.kpi_overview
