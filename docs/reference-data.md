@@ -38,7 +38,47 @@ Three reasons, in order of how much they would hurt:
 
 So the ingestion runs on a schedule and the engine reads a local table.
 
-## Refreshing the data
+## How the refresh actually runs
+
+**In the database, on a schedule, with no key and nothing to invoke.** Postgres
+has both halves of the problem covered — `http` for the outbound request and
+`pg_cron` for the timing — so `public.refresh_reference_data()` runs on the 1st
+of each month at 04:00 UTC and needs no deployment, no secret and no external
+trigger. Run it by hand any time with:
+
+```sql
+select * from public.refresh_reference_data();
+```
+
+It returns one row per series with a count and a note, so a partial failure is
+visible rather than silent. One bad series never abandons the other sixteen.
+
+Two alternative paths exist and are equivalent in effect:
+
+- `scripts/fetch-reference-data.mjs` — local, and the **only** path that can
+  load B-READY, which arrives as a CSV the database cannot parse.
+- `supabase/functions/refresh-reference` — an edge function, for anyone who
+  would rather not enable the `http` extension. It requires the service_role
+  key as a bearer token; the anon key is public and this endpoint writes.
+
+All three read the same registries, so they cannot disagree about which
+countries and series are pulled. `scripts/build-edge-function.mjs` regenerates
+the edge function from those registries.
+
+### Two API details that are easy to get wrong
+
+Both of these were found by running the refresh against the live API, not by
+reading documentation:
+
+- **The WGI codes are `GOV_WGI_<X>.SC`** (governance score, 0–100). The
+  percentile-rank codes that look correct — `RL.PER.RNK` and friends — do not
+  exist in the v2 indicator API, which answers *"the indicator was not found"*.
+- **Use `mrnev=1`, not `mrv=1`.** `mrv` means "the most recent year", so every
+  country that has not reported it yet comes back null: it filled 5 of 58
+  countries for internet usage where `mrnev` filled 58. `per_page` must also
+  exceed the country count for the same reason.
+
+## Refreshing the data locally
 
 ```bash
 node scripts/fetch-reference-data.mjs                    # fetch → snapshot.json
@@ -71,13 +111,24 @@ job would be noise.
 
 ## Setup
 
-1. Run `supabase/migrations/0003_reference_data.sql` in the SQL editor.
-2. Run the script with `--push` once to fill the table.
-3. That is all. `bi.mjs` picks it up on the next generation.
+1. Run migrations `0001` → `0004` in the SQL editor.
+2. `select * from public.refresh_reference_data();` once, to fill the table
+   immediately rather than waiting for the 1st of the month.
+3. Set `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` in Netlify, so the site can
+   read what was loaded.
 
-Until step 2 the engine behaves exactly as it did before this layer existed:
-no facts block, links still attached, dossier still generated. **Reference data
-enriches; it never gates.**
+Steps 1 and 2 are what put figures in the database. **Step 3 is what lets the
+site see them** — without it the engine keeps running on links alone, which is
+also exactly how it behaves before any of this: no facts block, dossier still
+generated. **Reference data enriches; it never gates.**
+
+### A caution about vintages
+
+`mrnev` returns the most recent value a country actually reported, which is not
+always recent. The DRC's inflation figure, for instance, comes back as 2.89%
+for **2016** — nine years stale. That is why the year is printed beside every
+number in the dossier and passed to the model in the facts block. A stale
+figure openly labelled is usable; the same figure presented as current is not.
 
 ## What the founder sees
 

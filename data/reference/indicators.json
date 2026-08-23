@@ -14,12 +14,12 @@
     { "code": "FS.AST.PRVT.GD.ZS",  "source": "wdi", "label": "Domestic credit to private sector", "unit": "% of GDP",         "meaning": "How available bank financing realistically is. Low values mean self-funding or informal credit." },
     { "code": "SL.UEM.TOTL.ZS",     "source": "wdi", "label": "Unemployment",                    "unit": "% of labour force",  "meaning": "Labour availability and wage pressure." },
 
-    { "code": "RL.PER.RNK", "source": "wgi", "label": "Rule of law",              "unit": "percentile rank (0-100)", "meaning": "Contract enforceability and property rights. Low values raise the cost of every agreement." },
-    { "code": "CC.PER.RNK", "source": "wgi", "label": "Control of corruption",    "unit": "percentile rank (0-100)", "meaning": "Likelihood of informal payments being demanded. Affects timelines and budget." },
-    { "code": "RQ.PER.RNK", "source": "wgi", "label": "Regulatory quality",       "unit": "percentile rank (0-100)", "meaning": "How workable the rules are for private business." },
-    { "code": "GE.PER.RNK", "source": "wgi", "label": "Government effectiveness", "unit": "percentile rank (0-100)", "meaning": "Quality of public services a business depends on — registration, utilities, courts." },
-    { "code": "PV.PER.RNK", "source": "wgi", "label": "Political stability",      "unit": "percentile rank (0-100)", "meaning": "Continuity risk. Low values justify shorter planning horizons." },
-    { "code": "VA.PER.RNK", "source": "wgi", "label": "Voice and accountability", "unit": "percentile rank (0-100)", "meaning": "Openness of the civic environment." }
+    { "code": "GOV_WGI_RL.SC", "source": "wgi", "label": "Rule of law",              "unit": "governance score (0-100)", "meaning": "Contract enforceability and property rights. Low values raise the cost of every agreement." },
+    { "code": "GOV_WGI_CC.SC", "source": "wgi", "label": "Control of corruption",    "unit": "governance score (0-100)", "meaning": "Likelihood of informal payments being demanded. Affects timelines and budget." },
+    { "code": "GOV_WGI_RQ.SC", "source": "wgi", "label": "Regulatory quality",       "unit": "governance score (0-100)", "meaning": "How workable the rules are for private business." },
+    { "code": "GOV_WGI_GE.SC", "source": "wgi", "label": "Government effectiveness", "unit": "governance score (0-100)", "meaning": "Quality of public services a business depends on — registration, utilities, courts." },
+    { "code": "GOV_WGI_PV.SC", "source": "wgi", "label": "Political stability",      "unit": "governance score (0-100)", "meaning": "Continuity risk. Low values justify shorter planning horizons." },
+    { "code": "GOV_WGI_VA.SC", "source": "wgi", "label": "Voice and accountability", "unit": "governance score (0-100)", "meaning": "Openness of the civic environment." }
   ],
 
   "hdr": [

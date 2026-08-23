@@ -21,7 +21,11 @@ begin
 end;
 $$;
 
-revoke all on function public.erase_lead(text) from anon, authenticated;
+-- Revoking from anon and authenticated is NOT enough: Postgres grants EXECUTE
+-- on every new function to PUBLIC, and that grant is what PostgREST honours at
+-- /rest/v1/rpc/erase_lead. Without the PUBLIC revoke, anyone holding the anon
+-- key — which is public by design — could delete a customer's record.
+revoke execute on function public.erase_lead(text) from public, anon, authenticated;
 
 -- 2. Retention. Eighteen months is long enough for a sales cycle and short
 --    enough to defend. Call it from a scheduled job, or run it periodically.
@@ -37,8 +41,10 @@ begin
 end;
 $$;
 
-revoke all on function public.purge_expired() from anon, authenticated;
+-- Same reasoning as above: without the PUBLIC revoke this is a mass-deletion
+-- button any visitor can press.
+revoke execute on function public.purge_expired() from public, anon, authenticated;
 
--- If pg_cron is available on your plan, schedule it:
---   select cron.schedule('mwinda-purge', '0 3 * * 0', 'select public.purge_expired()');
--- Otherwise call it manually, or from a scheduled Netlify function.
+-- Scheduled in 0004_reference_refresh.sql via pg_cron, alongside the reference
+-- data refresh. Until that migration runs, this function exists but nothing
+-- calls it — and the retention promise on the contact form is not being kept.

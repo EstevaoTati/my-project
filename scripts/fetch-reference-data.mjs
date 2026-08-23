@@ -51,12 +51,16 @@ const log = (...m) => console.log(...m);
 const warn = (...m) => console.warn(...m);
 
 // ------------------------------------------------------------- World Bank --
-// Documented, keyless, and stable. `mrv=1` returns the most recent value that
-// actually exists per country, which matters: these series have gaps, and
-// asking for a fixed year would silently drop half the countries.
+// Documented, keyless, and stable.
+//
+// `mrnev=1` — most recent NON-EMPTY value per country — not `mrv=1`, which
+// means "the most recent year" and returns null for every country that has
+// not reported it yet. Running this against the live API, mrv=1 filled 5 of
+// 58 countries for internet usage; mrnev=1 filled 58. per_page must also
+// exceed the country count or sparse series come back mostly empty.
 async function fetchWorldBank(indicator, isoList) {
   const url = `https://api.worldbank.org/v2/country/${isoList.join(";")}`
-    + `/indicator/${indicator.code}?format=json&mrv=1&per_page=${isoList.length * 2}`;
+    + `/indicator/${indicator.code}?format=json&mrnev=1&per_page=${isoList.length * 4}`;
 
   const res = await fetch(url, { headers: { accept: "application/json" } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
