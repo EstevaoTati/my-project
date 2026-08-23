@@ -658,6 +658,19 @@
       h('div', { class: 'm', text: 'Generated ' + new Date().toLocaleDateString() + ' · Mwinda Digital' }),
     ));
 
+    const LABELS = {
+      analyze: 'Idea analysis', model: 'Business model', plan: 'Business plan',
+      financials: 'Financial projections', compliance: 'Regulatory checklist', roadmap: 'Roadmap',
+    };
+    const included = ORDER.filter((k) => s[k]);
+    const missing = ORDER.filter((k) => !s[k]);
+    if (missing.length) {
+      out.appendChild(h('p', { class: 'footnote', style: 'margin:-18px 0 26px',
+        text: 'This dossier covers ' + included.length + ' of 6 sections: ' +
+              included.map((k) => LABELS[k]).join(', ') + '. Not yet generated: ' +
+              missing.map((k) => LABELS[k]).join(', ') + '.' }));
+    }
+
     const sec = (title, ...kids) => h('div', { class: 'doc-section' }, h('h4', { text: title }), ...kids);
 
     if (s.analyze) {
@@ -852,11 +865,26 @@
       });
     });
 
-    $('btnPrint').addEventListener('click', () => {
+    /**
+     * One export path, reachable from every stage. The dossier is rebuilt from
+     * whatever is finished at that moment, so a founder who has only run the
+     * analysis still gets a usable PDF rather than being made to complete all
+     * six stages first.
+     */
+    function exportPdf() {
+      const done = ORDER.filter((s) => project.stages[s]).length;
+      if (!done) {
+        alert('Nothing to export yet — run the idea analysis first.');
+        return;
+      }
       renderDossier();
       remote.event('dossier_exported', project.remoteId);
-      setTimeout(() => window.print(), 60);
-    });
+      go('dossier');
+      setTimeout(() => window.print(), 120);
+    }
+
+    $('btnPrint').addEventListener('click', exportPdf);
+    document.querySelectorAll('[data-pdf]').forEach((b) => b.addEventListener('click', exportPdf));
 
     // Capability link: id + owner token in the fragment. The fragment is never
     // sent to the server by the browser, so the link is only as exposed as the
