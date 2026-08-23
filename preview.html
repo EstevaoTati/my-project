@@ -1464,6 +1464,14 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .site-bg video + .site-bg-img { display: block; }
 }
 
+/* Honeypot — off-screen rather than display:none, which some bots detect. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
   </style>
 </head>
 <body>
@@ -1894,6 +1902,12 @@ section { position: relative; padding: 140px 0; z-index: 1; }
           </select>
           <label for="topic" data-i18n="form.topic">Pôle concerné</label>
           <span class="line-fx"></span>
+        </div>
+        <!-- Bot trap: never shown, never focusable, never announced. A human
+             cannot fill it; automated form-stuffers fill everything. -->
+        <div class="hp-field" aria-hidden="true">
+          <label for="hp_site">Do not fill this in</label>
+          <input type="text" id="hp_site" name="website" tabindex="-1" autocomplete="off" />
         </div>
         <div class="field">
           <textarea id="message" rows="4" required placeholder=" "></textarea>
@@ -2493,6 +2507,9 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   });
 
   /* ---------- Contact form ---------- */
+  // Used to spot form-stuffers: a human cannot read the page and submit in
+  // under a couple of seconds.
+  const pageLoadedAt = Date.now();
   const form = document.getElementById('contactForm');
   const formNote = document.getElementById('formNote');
   if (form) {
@@ -2523,7 +2540,12 @@ section { position: relative; padding: 140px 0; z-index: 1; }
       fetch('/.netlify/functions/lead', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: name, email: email, topic: topic, message: message, source: 'website', handedOff: true }),
+        body: JSON.stringify({
+          name: name, email: email, topic: topic, message: message,
+          source: 'website', handedOff: true,
+          website: (form.querySelector('#hp_site') || {}).value || '',
+          elapsed: Date.now() - pageLoadedAt,
+        }),
       }).catch(function () { /* the WhatsApp handoff below still happens */ });
 
       // Hand the message off to WhatsApp (business line) with everything prefilled.

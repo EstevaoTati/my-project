@@ -11,6 +11,7 @@
 import {
   json, clientIp, SlidingWindow, originRejected, readJson, audit,
   secretMatches, founderKeyUsable,
+  authLockedOut, recordAuthFailure, recordAuthSuccess,
 } from "./_security.mjs";
 import { configured, insert, select, logEvent } from "./_db.mjs";
 
@@ -37,10 +38,19 @@ export default async (req) => {
 
   // Founder-only listing of recent leads.
   if (body.action === "list") {
+    // This action returns customer names, emails and messages. It is the
+    // single most sensitive read in the system and must be throttled.
+    const lock = authLockedOut(ip);
+    if (lock) {
+      audit("lead.auth_locked_out", { ip });
+      return json(429, { error: "too many attempts — try again later" }, { "retry-after": String(lock) });
+    }
     if (!founderKeyUsable() || !secretMatches(body.key, process.env.FOUNDER_KEY)) {
+      recordAuthFailure(ip);
       audit("lead.list_denied", { ip });
       return json(403, { error: "forbidden" });
     }
+    recordAuthSuccess(ip);
     try {
       const rows = await select("leads", "select=id,created_at,name,email,topic,message,handed_off&order=created_at.desc&limit=50");
       return json(200, { leads: rows || [] });
@@ -53,6 +63,15 @@ export default async (req) => {
   if (wait) {
     audit("lead.rate_limited", { ip });
     return json(429, { error: "too many submissions — please try again later" }, { "retry-after": String(wait) });
+  }
+
+  // Bot filter. Both signals are silent: a spammer told "rejected" adapts,
+  // one told "thank you" does not. Nothing is stored either way.
+  const trapped = typeof body.website === "string" && body.website.trim().length > 0;
+  const tooFast = Number.isFinite(Number(body.elapsed)) && Number(body.elapsed) < 2500;
+  if (trapped || tooFast) {
+    audit("lead.bot_filtered", { ip, reason: trapped ? "honeypot" : "too_fast" });
+    return json(200, { ok: true });
   }
 
   const name = clamp(body.name, 120);

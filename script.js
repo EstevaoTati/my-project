@@ -186,6 +186,9 @@
   });
 
   /* ---------- Contact form ---------- */
+  // Used to spot form-stuffers: a human cannot read the page and submit in
+  // under a couple of seconds.
+  const pageLoadedAt = Date.now();
   const form = document.getElementById('contactForm');
   const formNote = document.getElementById('formNote');
   if (form) {
@@ -216,7 +219,12 @@
       fetch('/.netlify/functions/lead', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: name, email: email, topic: topic, message: message, source: 'website', handedOff: true }),
+        body: JSON.stringify({
+          name: name, email: email, topic: topic, message: message,
+          source: 'website', handedOff: true,
+          website: (form.querySelector('#hp_site') || {}).value || '',
+          elapsed: Date.now() - pageLoadedAt,
+        }),
       }).catch(function () { /* the WhatsApp handoff below still happens */ });
 
       // Hand the message off to WhatsApp (business line) with everything prefilled.

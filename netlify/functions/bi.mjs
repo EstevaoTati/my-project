@@ -12,6 +12,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
   json, secretMatches, founderKeyUsable, clientIp, SlidingWindow,
+  authLockedOut, recordAuthFailure, recordAuthSuccess,
   originRejected, readJson, audit,
 } from "./_security.mjs";
 
@@ -300,7 +301,20 @@ export default async (req) => {
   }
   if (body.project.idea.length > 4000) return json(400, { error: "idea must be under 4000 characters" });
 
-  const founder = founderKeyUsable() && secretMatches(body?.key, process.env.FOUNDER_KEY);
+  // Founder mode here only raises rate limits, so a wrong key degrades rather
+  // than refuses. Guessing must still be throttled: without this, the key can
+  // be probed here at no cost even though chat.mjs locks it down.
+  let founder = false;
+  if (typeof body?.key === "string" && body.key.length) {
+    const lock = authLockedOut(ip);
+    if (lock) {
+      audit("bi.auth_locked_out", { ip });
+      return json(429, { error: "too many attempts — try again later" }, { "retry-after": String(lock) });
+    }
+    founder = founderKeyUsable() && secretMatches(body.key, process.env.FOUNDER_KEY);
+    if (founder) recordAuthSuccess(ip);
+    else { recordAuthFailure(ip); audit("bi.auth_failed", { ip }); }
+  }
   const wait = (founder ? FOUNDER_RATE : PUBLIC_RATE).check(ip);
   if (wait) {
     audit("bi.rate_limited", { ip, stage });

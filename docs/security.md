@@ -1,6 +1,6 @@
 # Security — MWINDA DIGITAL platform
 
-*Owner: the founder. Last hardening pass: 2026-07-20.*
+*Owner: the founder. Last hardening pass: 2026-08-23.*
 
 Nothing here claims the platform "cannot be hacked" — no system can. The goal
 is narrower and achievable: make an attack **expensive**, **noisy**, and
@@ -74,6 +74,30 @@ today, so most controls below are aimed at throughput and cost, not secrecy.
   read the page source. Private content is only private if it never reaches
   an unauthenticated browser.
 
+**The newer endpoints (`bi`, `project`, `lead`)**
+
+These were written after the first hardening pass and initially **failed to
+apply protections that already existed** in `_security.mjs` — the classic way
+security regresses. Fixed 2026-08-23:
+
+- All three check `FOUNDER_KEY` but none recorded failures or consulted the
+  lockout, so the key could be brute-forced against them freely while `chat`
+  and `console` were locked down. `lead`'s `list` action returns customer
+  names, emails and messages — the most sensitive read in the system. All
+  three now share the same 5-failures/15-minute lockout, verified by test:
+  a correct key is still refused while the IP is locked.
+- `bi`'s founder key only *raises rate limits*, so a wrong key degrades
+  instead of refusing. Guessing is throttled anyway, and only when a key was
+  actually supplied — anonymous users are never affected by someone else's
+  lockout.
+- `project`'s `event` action takes no ownership proof. It is now restricted to
+  a fixed allowlist of event names and given its own 12/min bucket, so the
+  analytics table cannot be inflated or used as free storage.
+- The contact form gained a honeypot field plus a minimum time-to-submit.
+  Both drop silently with a 200: a spammer told "rejected" adapts, one told
+  "thank you" does not. Verified: bot submissions are not written to the
+  database.
+
 **Database (Supabase)**
 - The browser holds **no Supabase credential**. All access is server-side
   through `project.mjs` / `lead.mjs` with the `service_role` key.
@@ -126,12 +150,15 @@ leg, so no mail relay or injection surface exists.
 ## 4. Runbook
 
 **If the bill spikes or abuse is suspected — in this order:**
-1. Netlify → Environment variables → set `CHAT_ENABLED=false`. The chat is off
-   within a minute. This is the kill switch; use it first, diagnose second.
+1. Netlify → Environment variables → set `CHAT_ENABLED=false` **and**
+   `BI_ENABLED=false`. Both AI surfaces are off within a minute. Use them
+   first, diagnose second. Removing `SUPABASE_URL` is the storage kill switch.
 2. console.anthropic.com → check usage, lower the monthly cap.
-3. Netlify → Functions → logs. Grep `chat.completed` for token totals and
-   `chat.rate_limited` / `auth_failed` for the source (`actor` is a stable
-   pseudonymous hash of the IP — same attacker, same value).
+3. Netlify → Functions → logs. Grep `chat.completed` and `bi.completed` for
+   token totals, and `*.auth_failed` / `*.auth_locked_out` / `lead.bot_filtered`
+   for abuse (`actor` is a stable pseudonymous hash of the IP — same attacker,
+   same value). A burst of `auth_failed` across several endpoints from one
+   actor is someone hunting for the founder key.
 
 **If the founder key is exposed** (pasted, screenshotted, shared):
 1. Netlify → change `FOUNDER_KEY` to a new value. The old one dies at the next
@@ -168,6 +195,8 @@ fails when the policy is stale — wire it into any future CI.
 | `CHAT_MODEL` | no | Defaults to `claude-opus-4-8`; `claude-haiku-4-5` cuts cost ~5× |
 | `SUPABASE_URL` | for storage | Supabase project URL. Removing it is the storage kill switch. |
 | `SUPABASE_SERVICE_KEY` | for storage | `service_role` key — bypasses all database rules. Server-side only, never in a page. |
+| `BI_ENABLED` | no | `false` = kill switch for AI Business Intelligence |
+| `BI_MODEL` | no | Defaults to `claude-sonnet-5` |
 
 Endpoints: `/.netlify/functions/chat` (public + founder mode) and
 `/.netlify/functions/console` (founder only).
