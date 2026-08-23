@@ -1,0 +1,33 @@
+{
+  "_comment": "The indicator series pulled per country. Kept deliberately short: every series here is injected into the model prompt, so each one must earn its tokens by changing an answer. `meaning` is what the model is told the number represents — write it so a number alone cannot be misread.",
+
+  "worldbank": [
+    { "code": "NY.GDP.PCAP.CD",     "source": "wdi", "label": "GDP per capita",                  "unit": "current US$",        "meaning": "Average income level. Anchors pricing and willingness to pay." },
+    { "code": "NY.GDP.PCAP.PP.CD",  "source": "wdi", "label": "GDP per capita, PPP",             "unit": "international $",    "meaning": "Income adjusted for local prices. Better than nominal for judging affordability." },
+    { "code": "NY.GDP.MKTP.KD.ZG",  "source": "wdi", "label": "GDP growth",                      "unit": "% per year",         "meaning": "Direction of the economy. A growth assumption above this needs justifying." },
+    { "code": "FP.CPI.TOTL.ZG",     "source": "wdi", "label": "Inflation",                       "unit": "% per year",         "meaning": "Consumer price inflation. Cost lines and price lists must account for it." },
+    { "code": "SP.POP.TOTL",        "source": "wdi", "label": "Population",                      "unit": "people",             "meaning": "Total addressable population — a ceiling, never a market size." },
+    { "code": "SP.URB.TOTL.IN.ZS",  "source": "wdi", "label": "Urban population",                "unit": "% of total",         "meaning": "How concentrated customers are. Drives distribution and logistics cost." },
+    { "code": "IT.NET.USER.ZS",     "source": "wdi", "label": "Internet users",                  "unit": "% of population",    "meaning": "Hard ceiling on any purely online model." },
+    { "code": "IT.CEL.SETS.P2",     "source": "wdi", "label": "Mobile subscriptions",            "unit": "per 100 people",     "meaning": "Reach of mobile channels, including mobile money." },
+    { "code": "EG.ELC.ACCS.ZS",     "source": "wdi", "label": "Access to electricity",           "unit": "% of population",    "meaning": "Operational constraint. Low values imply generator or solar cost lines." },
+    { "code": "FS.AST.PRVT.GD.ZS",  "source": "wdi", "label": "Domestic credit to private sector", "unit": "% of GDP",         "meaning": "How available bank financing realistically is. Low values mean self-funding or informal credit." },
+    { "code": "SL.UEM.TOTL.ZS",     "source": "wdi", "label": "Unemployment",                    "unit": "% of labour force",  "meaning": "Labour availability and wage pressure." },
+
+    { "code": "GOV_WGI_RL.SC", "source": "wgi", "label": "Rule of law",              "unit": "governance score (0-100)", "meaning": "Contract enforceability and property rights. Low values raise the cost of every agreement." },
+    { "code": "GOV_WGI_CC.SC", "source": "wgi", "label": "Control of corruption",    "unit": "governance score (0-100)", "meaning": "Likelihood of informal payments being demanded. Affects timelines and budget." },
+    { "code": "GOV_WGI_RQ.SC", "source": "wgi", "label": "Regulatory quality",       "unit": "governance score (0-100)", "meaning": "How workable the rules are for private business." },
+    { "code": "GOV_WGI_GE.SC", "source": "wgi", "label": "Government effectiveness", "unit": "governance score (0-100)", "meaning": "Quality of public services a business depends on — registration, utilities, courts." },
+    { "code": "GOV_WGI_PV.SC", "source": "wgi", "label": "Political stability",      "unit": "governance score (0-100)", "meaning": "Continuity risk. Low values justify shorter planning horizons." },
+    { "code": "GOV_WGI_VA.SC", "source": "wgi", "label": "Voice and accountability", "unit": "governance score (0-100)", "meaning": "Openness of the civic environment." }
+  ],
+
+  "hdr": [
+    { "code": "hdi",    "label": "Human Development Index", "unit": "0-1",     "meaning": "Composite of health, education and income." },
+    { "code": "le",     "label": "Life expectancy",         "unit": "years",   "meaning": "Health context." },
+    { "code": "eys",    "label": "Expected years of schooling", "unit": "years", "meaning": "Skill availability in the workforce to come." },
+    { "code": "mys",    "label": "Mean years of schooling",  "unit": "years",  "meaning": "Skill availability in the workforce today. Constrains how much training a plan must budget for." },
+    { "code": "gii",    "label": "Gender Inequality Index",  "unit": "0-1",    "meaning": "Lower is more equal. Relevant to workforce access and to products serving women." },
+    { "code": "ihdi",   "label": "Inequality-adjusted HDI",  "unit": "0-1",    "meaning": "HDI discounted for inequality. The gap against HDI shows how unevenly income is spread." }
+  ]
+}

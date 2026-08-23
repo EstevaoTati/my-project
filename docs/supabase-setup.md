@@ -14,11 +14,20 @@ metrics) is stored in Supabase. This is the 15-minute setup.
 
 Supabase dashboard → **SQL Editor** → **New query** → paste the whole of
 `supabase/migrations/0001_init.sql` → **Run**. Then do the same with
-`supabase/migrations/0002_retention.sql`.
+`0002_retention.sql`, `0003_reference_data.sql` and
+`0004_reference_refresh.sql`, in that order.
+
+`0004` also schedules both recurring jobs with `pg_cron` — the monthly
+reference refresh and the weekly retention purge — so nothing needs to be
+scheduled by hand any more.
 
 That creates `projects`, `leads`, `events`, the `kpi_overview` view, the
-`updated_at` trigger, and — importantly — enables Row Level Security with **no
-policies** on every table.
+`updated_at` trigger, the reference-data tables, and — importantly — enables
+Row Level Security with **no policies** on every table.
+
+`0003` also adds `sources` and `grounding` to `projects`: a dossier records
+which references it was written against, so a later data refresh cannot
+retroactively change what a finished document claims to cite.
 
 ## 3. Wire it to the site
 
@@ -80,12 +89,18 @@ unguessable uuid and the matching token. Consequences, stated plainly:
 says so next to the submit button. `0002_retention.sql` makes the promise
 real: `purge_expired()` deletes leads older than 18 months and events older
 than 12, and `erase_lead('someone@example.com')` handles an erasure request
-without hand-written SQL. **Schedule `purge_expired()`** — the function exists
-but nothing calls it until you do (`pg_cron` if your plan has it, otherwise a
-scheduled Netlify function).
+without hand-written SQL. `0004` schedules the purge weekly with `pg_cron`, so
+the promise is now kept automatically rather than depending on someone
+remembering.
 
 **`events` holds no personal data** — an event name, an optional project id,
 and a small JSON blob. No IP addresses, no cross-site tracking.
+
+**`reference_indicators` holds public statistics**, not user data — World Bank
+and UNDP figures per country. It is still service_role-only, because the
+browser has no Supabase credential and adding one for "harmless" data would
+undo that. Refreshed by `scripts/fetch-reference-data.mjs`; see
+`docs/reference-data.md`.
 
 ---
 

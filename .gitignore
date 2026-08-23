@@ -1,3 +1,8 @@
 node_modules/
 .netlify/
 .env
+
+# Output of scripts/fetch-reference-data.mjs. Supabase is the runtime source of
+# reference data; this file is the working artifact of a refresh, so committing
+# it would only add churn and invite a stale copy to be mistaken for live data.
+data/reference/snapshot.json

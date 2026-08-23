@@ -181,6 +181,37 @@ path; `/brief` never takes a filename from the request; there is no CSRF
 surface (no cookies, no ambient authority); the contact form has no server
 leg, so no mail relay or injection surface exists.
 
+### Database function grants — the PUBLIC trap
+
+Postgres grants `EXECUTE` on every new function to `PUBLIC`. Revoking from
+`anon` and `authenticated` does **not** remove that grant, and PostgREST honours
+it: the function stays callable at `/rest/v1/rpc/<name>` by anyone holding the
+anon key, which is public by design.
+
+This was live on the production database. Before it was closed, any visitor
+could call `erase_lead()` to delete a customer record, `purge_expired()` to
+trigger mass deletion, or `refresh_reference_data()` to force seventeen
+outbound API calls on demand.
+
+The rule for every function added from now on:
+
+```sql
+revoke execute on function public.<name>(<args>) from public, anon, authenticated;
+```
+
+`alter default privileges in schema public revoke execute on functions from
+public` is now set, so new functions no longer inherit the trap — but a
+function created by a different role still can. Verify rather than assume:
+
+```sql
+select proname, has_function_privilege('anon', oid, 'EXECUTE')
+from pg_proc where pronamespace = 'public'::regnamespace;
+```
+
+Supabase's own advisor flags this as *"Public Can Execute SECURITY DEFINER
+Function"*. **Run the security advisor after any migration that adds a
+function** — this one was caught by it, not by review.
+
 ## 3. Residual risks — ranked, with the honest verdict
 
 | Risk | Status | Next step |

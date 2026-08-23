@@ -32,6 +32,7 @@ const MAX_JSON_FIELD = 96 * 1024;
 const COLUMNS = [
   "intent", "country", "region", "city", "sector", "business_type", "budget",
   "idea", "answers", "stages", "tasks_done", "checked", "progress",
+  "sources", "grounding",
 ];
 
 /** Map the client's project shape onto table columns, dropping anything else. */
@@ -59,6 +60,8 @@ function toRow(p = {}) {
     stages: jsonb(p.stages),
     tasks_done: jsonb(p.tasksDone),
     checked: jsonb(p.checked),
+    sources: jsonb(p.sources),
+    grounding: jsonb(p.grounding),
     progress: Math.max(0, Math.min(100, Number(p.progress) || 0)),
   };
 }
@@ -74,6 +77,7 @@ function toProject(row) {
     budget: row.budget || "", idea: row.idea || "",
     answers: row.answers || {}, stages: row.stages || {},
     tasksDone: row.tasks_done || {}, checked: row.checked || {},
+    sources: row.sources || {}, grounding: row.grounding || {},
     progress: row.progress || 0,
   };
 }
