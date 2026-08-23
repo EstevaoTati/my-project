@@ -1162,3 +1162,74 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   margin: 10px 0 0;
   line-height: 1.5;
 }
+
+/* ===== AI Business Intelligence — hero CTA, promo section, second FAB ===== */
+.btn-bi {
+  background: linear-gradient(135deg, rgba(212,175,55,.16), rgba(212,175,55,.06));
+  border: 1px solid var(--gold, #D4AF37);
+  color: #FFE680;
+}
+.btn-bi:hover { background: rgba(212,175,55,.24); }
+.bi-pulse {
+  width: 8px; height: 8px; border-radius: 50%; background: #7dc98f;
+  box-shadow: 0 0 0 0 rgba(125,201,143,.6); animation: biPulse 2s infinite;
+  display: inline-block; margin-right: 4px;
+}
+@keyframes biPulse {
+  0% { box-shadow: 0 0 0 0 rgba(125,201,143,.5); }
+  70% { box-shadow: 0 0 0 8px rgba(125,201,143,0); }
+  100% { box-shadow: 0 0 0 0 rgba(125,201,143,0); }
+}
+@media (prefers-reduced-motion: reduce) { .bi-pulse { animation: none; } }
+
+.bi-promo { padding: 40px 0 20px; }
+.bi-card {
+  display: grid; grid-template-columns: 1.25fr .75fr; gap: 40px; align-items: center;
+  background: linear-gradient(135deg, rgba(212,175,55,.07), rgba(212,175,55,.02));
+  border: 1px solid rgba(212,175,55,.28);
+  border-radius: 20px; padding: 46px 48px;
+}
+@media (max-width: 900px) { .bi-card { grid-template-columns: 1fr; gap: 28px; padding: 32px 26px; } }
+.bi-card .section-title { margin: 10px 0 16px; }
+.bi-card p { color: rgba(246,241,225,.72); max-width: 44em; }
+.bi-list { list-style: none; margin: 22px 0 28px; padding: 0; }
+.bi-list li { padding: 6px 0 6px 24px; position: relative; color: rgba(246,241,225,.8); font-size: 15px; }
+.bi-list li::before {
+  content: '✓'; position: absolute; left: 0; top: 6px;
+  color: #D4AF37; font-size: 13px; font-weight: 700;
+}
+.bi-note { font-size: 13px; color: rgba(246,241,225,.45); margin: 16px 0 0; }
+
+.bi-flow { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.bi-flow span {
+  font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: .1em;
+  text-transform: uppercase; color: rgba(246,241,225,.62);
+  border: 1px solid rgba(212,175,55,.28); border-radius: 6px; padding: 7px 14px;
+  background: rgba(5,5,7,.5);
+}
+.bi-flow span.last { color: #000; background: #D4AF37; border-color: #D4AF37; font-weight: 700; }
+.bi-flow i { width: 1px; height: 12px; background: rgba(212,175,55,.45); margin-left: 18px; }
+@media (max-width: 900px) {
+  .bi-flow { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .bi-flow i { width: 12px; height: 1px; margin: 0; }
+}
+
+/* stacked floating buttons */
+.fab-stack {
+  position: fixed; right: 22px; bottom: 22px; z-index: 900;
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+}
+.fab-stack .os-fab { position: static; }
+.os-fab-secondary {
+  background: rgba(5,5,7,.92);
+  border: 1px solid rgba(212,175,55,.45);
+  color: #FFE680;
+  box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  font-size: 11.5px; padding: 10px 16px;
+}
+.os-fab-secondary:hover { background: rgba(212,175,55,.14); box-shadow: 0 8px 26px rgba(0,0,0,.5); }
+@media (max-width: 600px) {
+  .fab-stack { right: 12px; bottom: 12px; gap: 8px; }
+  .fab-stack .os-fab { padding: 10px 14px; font-size: 11px; }
+  .os-fab-secondary { font-size: 10px; padding: 8px 12px; }
+}
