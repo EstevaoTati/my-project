@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="bi.css?v=1" />
+  <link rel="stylesheet" href="bi.css?v=2" />
 </head>
 <body>
 
@@ -33,7 +33,7 @@
   <!-- ============================== 0 · START ============================== -->
   <section class="step active" id="step-start">
     <h2>Your <span class="g">project</span></h2>
-    <p class="sub">Six steps, each editable before the next. Nothing is sent anywhere but the analysis engine, and your project stays in this browser.</p>
+    <p class="sub">Six steps, each editable before the next. Your project is saved as you work — in this browser, and on the MWINDA server when storage is enabled, so you can pick it up from another device.</p>
 
     <div class="panel">
       <h3>What do you want to do?</h3>
@@ -83,6 +83,8 @@
         <button class="btn ghost small" id="btnReset" type="button">Start over</button>
       </div>
       <div id="startStatus"></div>
+      <p class="sync local" id="syncState">Saved in this browser</p>
+      <p class="footnote" id="linkNote"></p>
     </div>
 
     <div class="panel" id="savedPanel" hidden>
@@ -149,7 +151,7 @@
   <!-- ============================== 6 · ROADMAP ============================== -->
   <section class="step" id="step-roadmap">
     <h2>Execution <span class="g">roadmap</span></h2>
-    <p class="sub">Four phases, concrete tasks. Tick them off as you go — progress is saved in this browser.</p>
+    <p class="sub">Four phases, concrete tasks. Tick them off as you go — progress is saved with the project.</p>
     <div id="roadOut"></div>
     <div class="actions no-print">
       <button class="btn" data-next="dossier">Assemble my dossier →</button>
@@ -162,6 +164,7 @@
     <div class="actions no-print" style="margin-top:0;margin-bottom:24px">
       <button class="btn" id="btnPrint">Download PDF</button>
       <button class="btn ghost" id="btnSaveJson">Export data (JSON)</button>
+      <button class="btn ghost" id="btnLink">Copy access link</button>
       <span class="footnote">“Download PDF” opens your browser’s print dialog — choose <b>Save as PDF</b>.</span>
     </div>
     <div id="dossierOut"></div>
@@ -173,6 +176,6 @@
   </footer>
 </div>
 
-<script src="bi.js?v=1"></script>
+<script src="bi.js?v=2"></script>
 </body>
 </html>

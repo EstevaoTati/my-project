@@ -318,3 +318,16 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   .scenario .num { color: #111 !important; }
   a { color: #111 !important; text-decoration: none; }
 }
+
+/* sync indicator */
+.sync {
+  font-family: var(--mono); font-size: 12px; margin: 14px 0 0;
+  display: flex; align-items: center; gap: 8px; color: var(--dim);
+}
+.sync::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+}
+.sync.synced { color: var(--ok); }
+.sync.syncing { color: var(--gold-3); }
+.sync.error { color: var(--warn); }
+@media print { .sync { display: none !important; } }

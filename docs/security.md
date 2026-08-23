@@ -74,6 +74,21 @@ today, so most controls below are aimed at throughput and cost, not secrecy.
   read the page source. Private content is only private if it never reaches
   an unauthenticated browser.
 
+**Database (Supabase)**
+- The browser holds **no Supabase credential**. All access is server-side
+  through `project.mjs` / `lead.mjs` with the `service_role` key.
+- RLS enabled on every table with **no policies**: `anon` and `authenticated`
+  read nothing even if a key leaks. `service_role` bypasses RLS by design.
+- BI projects are owned by an unguessable uuid **plus** a 32-byte capability
+  token; only the token's SHA-256 is stored, so a database dump does not grant
+  API access. Verified by test: forged token → 403, no content returned.
+- The access link (`#p=<id>.<token>`) is a credential. The fragment never
+  reaches the server, so it stays out of logs — but anyone holding the link
+  holds the project.
+- Storage is optional everywhere: unconfigured or unreachable Supabase returns
+  501/503 and the client falls back to local storage. A database outage cannot
+  take the site down.
+
 **Browser / hosting**
 - **CSP without `'unsafe-inline'` for scripts**: the 4 inline `<script>` blocks
   are allowed by SHA-256 hash. `scripts/update-csp.mjs` regenerates the policy;
@@ -151,6 +166,8 @@ fails when the policy is stale — wire it into any future CI.
 | `ALLOWED_ORIGINS` | recommended | Comma-separated hosts. Set when a custom domain is added. |
 | `CHAT_ENABLED` | no | `false` = kill switch |
 | `CHAT_MODEL` | no | Defaults to `claude-opus-4-8`; `claude-haiku-4-5` cuts cost ~5× |
+| `SUPABASE_URL` | for storage | Supabase project URL. Removing it is the storage kill switch. |
+| `SUPABASE_SERVICE_KEY` | for storage | `service_role` key — bypasses all database rules. Server-side only, never in a page. |
 
 Endpoints: `/.netlify/functions/chat` (public + founder mode) and
 `/.netlify/functions/console` (founder only).

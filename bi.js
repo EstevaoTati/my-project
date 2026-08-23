@@ -11,8 +11,88 @@
   'use strict';
 
   const ENDPOINT = '/.netlify/functions/bi';
+  const PROJECT_API = '/.netlify/functions/project';
   const STORE = 'mwinda.bi.project';
   const LIST = 'mwinda.bi.projects';
+  const KEYS = 'mwinda.bi.keys';   // { projectId: ownerToken }
+
+  /* ---------------------------------------------------------------------
+     Remote persistence (Supabase, behind our own function).
+     Entirely optional: if the server has no database configured it answers
+     501 and everything below quietly no-ops, leaving the browser copy as the
+     single source of truth exactly as before.
+     --------------------------------------------------------------------- */
+  const remote = {
+    available: true,        // flipped off after a 501
+    status: 'local',        // local | syncing | synced | error
+
+    keys() { try { return JSON.parse(localStorage.getItem(KEYS) || '{}'); } catch { return {}; } },
+    setKey(id, token) {
+      const k = this.keys(); k[id] = token;
+      try { localStorage.setItem(KEYS, JSON.stringify(k)); } catch { /* full */ }
+    },
+
+    async call(payload) {
+      const res = await fetch(PROJECT_API, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 501) { this.available = false; throw new Error('no storage'); }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      return data;
+    },
+
+    /** Create on first real content, then update. Never throws to callers. */
+    async sync(p) {
+      if (!this.available) return;
+      try {
+        setSync('syncing');
+        const token = this.keys()[p.remoteId];
+        if (p.remoteId && token) {
+          await this.call({ action: 'save', id: p.remoteId, token, project: p });
+        } else {
+          const out = await this.call({ action: 'create', project: p });
+          p.remoteId = out.id;
+          this.setKey(out.id, out.token);
+          try { localStorage.setItem(STORE, JSON.stringify(p)); } catch { /* full */ }
+        }
+        setSync('synced');
+      } catch {
+        setSync(this.available ? 'error' : 'local');
+      }
+    },
+
+    async load(id, token) {
+      const out = await this.call({ action: 'load', id, token });
+      return out.project;
+    },
+
+    event(name, id) {
+      if (!this.available) return;
+      fetch(PROJECT_API, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'event', event: name, id: id || null }),
+      }).catch(() => { /* analytics is best-effort */ });
+    },
+  };
+
+  let syncTimer = null;
+  function setSync(state) {
+    remote.status = state;
+    const el = document.getElementById('syncState');
+    if (!el) return;
+    const label = {
+      local: 'Saved in this browser',
+      syncing: 'Saving…',
+      synced: 'Saved to your MWINDA account',
+      error: 'Saved locally — server unreachable',
+    }[state] || '';
+    el.textContent = label;
+    el.className = 'sync ' + state;
+  }
 
   const STEPS = [
     { id: 'start', label: '00 · Project' },
@@ -90,7 +170,9 @@
   // ----------------------------------------------------------------- state --
   const blank = () => ({
     id: 'p' + Date.now().toString(36),
+    remoteId: null,
     createdAt: new Date().toISOString(),
+    progress: 0,
     intent: '', country: '', region: '', city: '', budget: '',
     sector: '', businessType: '', idea: '',
     answers: {},
@@ -103,8 +185,15 @@
   let current = 'start';
 
   function save() {
+    // Debounced: typing in an editable field must not produce a request per
+    // keystroke. Two seconds after the last change, push to the server.
+    if (remote.available) {
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => remote.sync(project), 2000);
+    }
     try {
       localStorage.setItem(STORE, JSON.stringify(project));
+      project.progress = Math.round(Object.keys(project.stages).length / 6 * 100);
       const list = JSON.parse(localStorage.getItem(LIST) || '[]')
         .filter((p) => p.id !== project.id);
       list.unshift({
@@ -763,7 +852,28 @@
       });
     });
 
-    $('btnPrint').addEventListener('click', () => { renderDossier(); setTimeout(() => window.print(), 60); });
+    $('btnPrint').addEventListener('click', () => {
+      renderDossier();
+      remote.event('dossier_exported', project.remoteId);
+      setTimeout(() => window.print(), 60);
+    });
+
+    // Capability link: id + owner token in the fragment. The fragment is never
+    // sent to the server by the browser, so the link is only as exposed as the
+    // person holding it — treat it like a password.
+    $('btnLink').addEventListener('click', async () => {
+      const note = $('linkNote');
+      if (!project.remoteId) {
+        clear(note);
+        note.appendChild(h('span', { text: 'Not saved to the server yet — add your idea first, or storage is not configured.' }));
+        return;
+      }
+      const token = remote.keys()[project.remoteId];
+      const url = location.origin + '/bi.html#p=' + project.remoteId + '.' + token;
+      try { await navigator.clipboard.writeText(url); } catch { /* fall through to showing it */ }
+      clear(note);
+      note.appendChild(h('span', { text: 'Link copied. Anyone with it can open and edit this project — treat it like a password.' }));
+    });
     $('btnSaveJson').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
       const a = h('a', { href: URL.createObjectURL(blob), download: 'mwinda-business-project.json' });
@@ -771,7 +881,30 @@
     });
   }
 
+  /** #p=<uuid>.<token> opens a project saved on the server, on any device. */
+  async function openFromHash() {
+    const m = (location.hash || '').match(/^#p=([0-9a-f-]{36})\.([\w-]+)$/i);
+    if (!m) return false;
+    history.replaceState(null, '', location.pathname);
+    try {
+      setSync('syncing');
+      const loaded = await remote.load(m[1], m[2]);
+      project = Object.assign(blank(), loaded, { remoteId: m[1] });
+      remote.setKey(m[1], m[2]);
+      save();
+      boot();
+      go(project.stages.analyze ? 'analyze' : 'start');
+      setSync('synced');
+      return true;
+    } catch {
+      setSync('error');
+      return false;
+    }
+  }
+
   load();
   bind();
   boot();
+  setSync('local');
+  openFromHash();
 })();

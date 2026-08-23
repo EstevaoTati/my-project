@@ -1154,3 +1154,11 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .os-fab { right: 14px; bottom: 14px; padding: 11px 16px; font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .os-fab-dot { animation: none; } }
+
+/* Contact form privacy disclosure */
+.form-privacy {
+  font-size: 12px;
+  color: rgba(246, 241, 225, 0.42);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
