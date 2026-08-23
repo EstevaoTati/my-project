@@ -98,6 +98,53 @@ security regresses. Fixed 2026-08-23:
   "thank you" does not. Verified: bot submissions are not written to the
   database.
 
+**Second review pass (independent threat model, 2026-08-23)**
+
+An architect agent modelled the new surface and found more. Fixed:
+
+- **The BI prompt fence was escapable.** `bi.mjs` reimplemented `chat.mjs`'s
+  XML-ish fencing and dropped its sanitiser: the `prior` object's *keys* were
+  interpolated raw into the tag, so a crafted key closed its own fence and
+  injected instructions. With `plan` at 16 000 max tokens, that turned the
+  endpoint into an unrestricted text generator printing under the Mwinda cover
+  page. Now iterates a fixed stage allowlist and strips `[<>]` from values.
+- **`create` was an unauthenticated, unbounded write.** The four `jsonb`
+  columns passed a bare `typeof === "object"` check, so 512 KB bodies at
+  40/min ≈ 20 MB/min per IP — enough to fill the 500 MB free tier in under
+  half an hour and break the product for everyone. Oversized jsonb is now
+  dropped (not truncated — half a blob is worse than none) and `create` has
+  its own 6/min bucket, separate from `save`.
+- **Only `idea` was length-capped on the endpoint that spends money.** Every
+  other field rode in unbounded. All fields now clamp exactly as
+  `project.mjs` already did — the cheap endpoint was stricter than the
+  expensive one.
+- **The cost ceiling counted requests, not tokens.** 600/h × 16 k tokens is
+  ~9.6 M output tokens per warm instance. Replaced with an hourly *token*
+  budget (`BI_TOKEN_BUDGET_HOURLY`, default 400 k) fed by the usage figures
+  already returned, and `GLOBAL_RATE` cut to 200/h.
+- **Successful privileged reads left no trace.** `lead.list` logged only
+  failures, so a stolen key could dump the PII table repeatedly and generate
+  zero evidence; `project` `save`/`load` logged nothing at all. All three now
+  audit success.
+- **Forged analytics.** Anyone could fire `dossier_exported` against a real
+  project id. The client already holds the ownership token, so it now sends
+  it; the server links the event only on proof.
+- **`topic` leaked into `events`**, a table documented as personal-data-free.
+  Removed — the lead row already has it.
+- **Deny-by-default was per-table.** `alter default privileges … revoke all`
+  added, so the next migration is not publicly readable by omission.
+- **A shared access link permanently copied the dossier** into the recipient's
+  browser and listed it in their saved-projects panel. Their token is now
+  `sessionStorage`-scoped and shared projects are never listed.
+- **Retention now exists** (`0002_retention.sql`): `purge_expired()` for leads
+  at 18 months and events at 12, plus `erase_lead(email)` so a GDPR erasure
+  request does not need hand-written SQL.
+
+**The systemic finding, and the fix.** Twice an endpoint written after a
+hardening pass re-solved a problem `_security.mjs` had already solved and lost
+the protection doing it. The primitives were fine; nothing forced their use.
+`_security.mjs` now opens with a six-point checklist for any new endpoint.
+
 **Database (Supabase)**
 - The browser holds **no Supabase credential**. All access is server-side
   through `project.mjs` / `lead.mjs` with the `service_role` key.
@@ -145,6 +192,8 @@ leg, so no mail relay or injection surface exists.
 | **`FOUNDER_KEY` is a permanent bearer secret in `sessionStorage`**, auto-replayed to `/brief`. | Mitigated | Exchange it once for a short-lived `HttpOnly` cookie token |
 | **Deny-list instead of allow-list for published files.** `publish = "."` uploads the whole repo; safety depends on remembering to add a rule. | Mitigated today, rots over time | Move public assets to `site/`, set `publish = "site"` |
 | **Function logs have no retention or alerting.** | Open | Forward to a log drain with an alert on `auth_failed` bursts |
+| **Blanket-overwrite saves, no revision history.** A link holder or a client bug can blank a dossier in one request; the free tier has no point-in-time recovery. | Accepted for the MVP | A `project_revisions` table, or paid-tier PITR |
+| **`purge_expired()` must be scheduled.** The function exists; nothing calls it yet. | **Action required** | `pg_cron` if available, else a scheduled Netlify function |
 | **PII to Meta.** The form hands name/email/message to WhatsApp with no notice. | Open (compliance, not security) | One line of disclosure by the submit button |
 
 ## 4. Runbook
