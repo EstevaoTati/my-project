@@ -45,6 +45,17 @@ Higgsfield's `generate_video` with the bulb image as `start_image` is the
 intended route. Keep the camera still and the loop seamless — a background
 that pans or cuts fights the text in front of it.
 
+## What is there in the meantime
+
+Until an mp4 exists, `.hero-media-ignite` runs the ignition in CSS: a 7.5 s
+loop where the filament strikes, flickers once, settles into a steady burn and
+fades back down — the behaviour of a real incandescent bulb, deliberately slow
+because it sits behind headline text. The BI page uses the same curve in
+electric blue.
+
+Adding a video automatically retires it: `.hero-media video ~ .hero-media-ignite`
+is set to `display: none`, because the video carries its own ignition.
+
 ## Content Security Policy
 
 No change needed. `default-src 'self'` covers `media-src`, so self-hosted mp4
