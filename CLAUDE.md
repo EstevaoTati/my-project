@@ -140,14 +140,17 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   data. Env: `BI_MODEL` (default `claude-sonnet-5`), `BI_ENABLED=false` kills
   it. See `docs/decisions/2026-08-22-ai-business-intelligence.md`.
 - `netlify/functions/_reference.mjs` + `data/reference/*.json` — the grounding
-  layer for the BI engine. **Facts and links are never blurred:** World Bank
+  layer for the BI engine. **Facts and portals are never blurred:** World Bank
   (WDI / WGI / B-READY) and UNDP HDR figures are ingested on a schedule and
   injected as ground truth; UNCTAD, WIPO Lex, NATLEX, UHRI and the UN Treaty
-  Collection have no public API and are attached as verification links only —
-  the prompt tells the model it has *not* read them. Sources are attached by
-  the server from a fixed registry, **never produced by the model**. Refresh
-  with `scripts/fetch-reference-data.mjs`; nothing breaks when the table is
-  empty. See `docs/reference-data.md`.
+  Collection have no public API, so they are named to the model only — the
+  prompt states it has *not* read them, and it must say what kind of body
+  settles each obligation rather than invent a statute. **The registry is
+  internal**: no source list, link or grounding count is ever sent to the
+  browser, rendered in a dossier or stored on a project row. Which databases
+  the engine consults is methodology, not something to publish with every
+  analysis. Refresh runs in Postgres monthly (`refresh_reference_data()`);
+  nothing breaks when the table is empty. See `docs/reference-data.md`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.

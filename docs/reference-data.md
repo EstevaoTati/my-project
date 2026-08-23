@@ -2,18 +2,18 @@
 
 Until now every figure in a dossier came from the model's memory. This layer
 replaces the ones that can be replaced with published statistics, and, for the
-ones that cannot, tells the founder exactly where to check.
+ones that cannot, makes the engine say plainly what still needs checking.
 
 ## The distinction that runs through the whole design
 
 The ten sources split into two kinds, and treating them the same would be the
 central mistake.
 
-| | **Facts** | **Links** |
+| | **Facts** | **Portals** |
 |---|---|---|
 | Sources | World Bank WDI, WGI, B-READY; UNDP HDR | UNCTAD, WIPO Lex, NATLEX, UHRI, UN Treaty Collection |
 | Have an API or bulk download | yes | no |
-| What we do | ingest the numbers, inject them into the prompt as ground truth | attach the URL to the dossier |
+| What we do | ingest the numbers, inject them into the prompt as ground truth | name them to the model so it knows what is checkable |
 | What the model is told | "these are facts, never contradict one" | "you have NOT read these; do not quote them" |
 
 A legal portal with no API can only be scraped or guessed at. Scraping other
@@ -21,7 +21,13 @@ people's legal databases to feed a commercial product is a licensing problem
 and a fragility problem at once, and guessing is worse: an invented article
 number is more dangerous than an admitted gap, because it looks checked. So
 the engine never claims to have read a law. It says which obligation exists,
-how confident it is, and where the founder can settle it.
+how confident it is, and what kind of body settles it.
+
+**The registry itself is internal and stays that way.** Which official databases
+the engine consults is methodology — the part of the product that took work to
+assemble — so it shapes the prompt and never crosses to the browser. No source
+list is sent to the client, rendered in a dossier, or stored on a project row.
+The audit log is the only place its use is recorded.
 
 ## Why not call the APIs live during a generation
 
@@ -118,8 +124,8 @@ job would be noise.
    read what was loaded.
 
 Steps 1 and 2 are what put figures in the database. **Step 3 is what lets the
-site see them** — without it the engine keeps running on links alone, which is
-also exactly how it behaves before any of this: no facts block, dossier still
+site see them** — without it the engine keeps running ungrounded, which is
+also exactly how it behaved before any of this: no facts block, dossier still
 generated. **Reference data enriches; it never gates.**
 
 ### A caution about vintages
@@ -127,17 +133,25 @@ generated. **Reference data enriches; it never gates.**
 `mrnev` returns the most recent value a country actually reported, which is not
 always recent. The DRC's inflation figure, for instance, comes back as 2.89%
 for **2016** — nine years stale. That is why the year is printed beside every
-number in the dossier and passed to the model in the facts block. A stale
-figure openly labelled is usable; the same figure presented as current is not.
+number passed to the model in the facts block. A stale figure openly labelled
+is usable; the same figure presented as current is not.
 
-## What the founder sees
+## What the reader sees
 
-- Each grounded section ends with *"This section was written with N verified
-  indicators for <country> (2022–2023) supplied to the engine as fact."*
-- When no data exists for a country, the same panel says so in a warning colour
-  instead — an honest absence rather than a silent one.
-- The dossier carries one deduplicated bibliography, with full URLs printed so
-  they survive being read on paper.
+Nothing about this layer, by design — only better answers. Concretely:
+
+- Figures in the analysis are the real ones for that country instead of
+  recalled approximations, with the year attached where it matters.
+- Each compliance item names **the kind of body** that settles it — a national
+  IP office, a labour inspectorate — without naming the database behind that
+  knowledge.
+- The legal banner and the per-item *"confirm with"* field carry the
+  protection a source list used to: the reader is still told plainly to verify
+  locally before relying on anything.
+
+An earlier version rendered a "Sources and verification" panel and a dossier
+bibliography. Both were removed: publishing the registry with every dossier
+handed the methodology to anyone who ran one free analysis.
 
 ## Adding a source
 
