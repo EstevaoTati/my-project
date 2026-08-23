@@ -8,9 +8,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
 
@@ -75,6 +75,13 @@
 
   <!-- HERO -->
   <section class="hero" id="home">
+    <div class="hero-media" aria-hidden="true">
+      <!-- Poster image now; drop assets/hero-platform.mp4 in and the <video>
+           takes over automatically (see .hero-media video in styles.css). -->
+      <img class="hero-media-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
+      <div class="hero-media-veil"></div>
+      <div class="hero-media-scan"></div>
+    </div>
     <div class="hero-grid"></div>
     <div class="hero-glow"></div>
 

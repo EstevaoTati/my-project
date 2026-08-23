@@ -18,9 +18,9 @@
   --ok: #7dc98f;
   --warn: #e0b34c;
   --bad: #e08c8c;
-  --serif: 'Cinzel', Georgia, 'Times New Roman', serif;
+  --serif: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --ease: cubic-bezier(.2, .7, .2, 1);
 }
 * { box-sizing: border-box; }
@@ -66,7 +66,7 @@ body {
 .eyebrow b { color: var(--gold-3); font-weight: 600; }
 h1 {
   font-family: var(--serif); font-weight: 700;
-  font-size: clamp(32px, 5.4vw, 54px); letter-spacing: .09em;
+  font-size: clamp(32px, 5.4vw, 54px); letter-spacing: .01em;
   text-transform: uppercase; line-height: 1.08; margin: 0 0 14px;
   color: var(--gold-2); text-wrap: balance;
 }
@@ -331,3 +331,76 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 .sync.syncing { color: var(--gold-3); }
 .sync.error { color: var(--warn); }
 @media print { .sync { display: none !important; } }
+
+/* ============================================================
+   XXL tech hero media
+   Poster image today, <video> the moment one is dropped in.
+   Both animate forever; both freeze under prefers-reduced-motion.
+   ============================================================ */
+.hero { position: relative; overflow: hidden; isolation: isolate; }
+.hero-media {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+.hero-media-img,
+.hero-media video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  will-change: transform;
+}
+/* A video, when present, sits on top of and replaces the poster. */
+.hero-media video { z-index: 1; }
+.hero-media video + .hero-media-img { display: none; }
+
+/* Infinite slow drift — the "always animated" background. */
+.hero-media-img { animation: heroDrift 32s ease-in-out infinite alternate; }
+@keyframes heroDrift {
+  from { transform: scale(1.06) translate3d(-1.2%, -0.8%, 0); }
+  to   { transform: scale(1.16) translate3d(1.2%, 0.8%, 0); }
+}
+
+/* Legibility: the text must win over the artwork, always. */
+.hero-media-veil {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(5,5,7,.96) 0%, rgba(5,5,7,.82) 42%, rgba(5,5,7,.35) 72%, rgba(5,5,7,.55) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.88) 0%, rgba(5,5,7,.25) 38%, rgba(5,5,7,.92) 100%);
+}
+@media (max-width: 900px) {
+  .hero-media-veil {
+    background:
+      linear-gradient(180deg, rgba(5,5,7,.9) 0%, rgba(5,5,7,.72) 45%, rgba(5,5,7,.95) 100%);
+  }
+}
+
+/* Engineering-blueprint overlay: fine grid + a slow scanning sweep. */
+.hero-media-scan {
+  position: absolute; inset: 0; z-index: 3;
+  background-image:
+    linear-gradient(rgba(120,190,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,190,255,.07) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px;
+  mask-image: radial-gradient(ellipse 78% 68% at 50% 45%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 45%, #000 35%, transparent 100%);
+}
+.hero-media-scan::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 34%;
+  background: linear-gradient(180deg, transparent, rgba(120,190,255,.09), transparent);
+  animation: heroScan 9s linear infinite;
+}
+@keyframes heroScan {
+  from { transform: translateY(-40%); }
+  to   { transform: translateY(300%); }
+}
+
+/* Hero content must sit above every media layer. */
+.hero-content, .hero-3d, .hero-scroll, .hero > .wrap { position: relative; z-index: 4; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-media-img { animation: none; transform: scale(1.08); }
+  .hero-media-scan::after { animation: none; opacity: .35; }
+  .hero-media video { display: none; }
+  .hero-media video + .hero-media-img { display: block; }
+}

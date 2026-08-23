@@ -97,7 +97,7 @@ body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: var(--
 }
 .loader-text {
   margin-top: 20px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   letter-spacing: .35em;
   color: var(--gold-2);
   font-size: 14px;
@@ -159,7 +159,7 @@ body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: var(--
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
   color: var(--gold-2);
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-weight: 700;
   letter-spacing: .15em;
 }
@@ -217,7 +217,7 @@ body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: var(--
 .lang-switch button {
   background: transparent; border: none;
   color: var(--text-mute);
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 11px; font-weight: 600;
   letter-spacing: .2em;
   padding: 6px 12px;
@@ -282,7 +282,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 .section-head { text-align: center; margin-bottom: 80px; max-width: 820px; margin-left: auto; margin-right: auto; }
 .section-eyebrow {
   display: inline-block;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 12px; letter-spacing: .35em;
   color: var(--gold-2);
   padding: 6px 16px;
@@ -292,7 +292,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   text-transform: uppercase;
 }
 .section-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: clamp(34px, 5.6vw, 64px);
   font-weight: 700; line-height: 1.05;
   letter-spacing: -.02em;
@@ -390,10 +390,10 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   border: 1px solid var(--line-strong);
   border-radius: 80px;
   color: var(--gold-1);
-  font-size: 12.5px; letter-spacing: .12em;
+  font-size: 12.5px; letter-spacing: .04em;
   text-transform: uppercase;
   margin-bottom: 28px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
 }
 .hero-tag .dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -404,7 +404,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 @keyframes heroDot { 50% { opacity: .3; } }
 
 .hero-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: clamp(48px, 8.5vw, 124px);
   font-weight: 700; line-height: 1; letter-spacing: -.03em;
   margin-bottom: 32px;
@@ -433,7 +433,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 }
 .hero-meta > div { display: flex; flex-direction: column; gap: 4px; }
 .hero-meta strong {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 36px; color: var(--gold-2);
   line-height: 1;
 }
@@ -490,7 +490,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   font-size: 22px; line-height: 1.55;
   color: var(--text);
   margin-bottom: 22px;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
 }
 .about-text .lead strong { color: var(--gold-1); font-weight: 600; }
 .about-text > p { color: var(--text-mute); font-size: 16px; }
@@ -514,7 +514,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   background: linear-gradient(135deg, rgba(212,175,55,.08), rgba(212,175,55,.02));
 }
 .about-pillars li > span {
-  font-family: 'Cinzel', serif; color: var(--gold-2);
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif; color: var(--gold-2);
   font-size: 14px; letter-spacing: .15em;
   flex-shrink: 0; padding-top: 2px;
 }
@@ -624,7 +624,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 .div-icon svg { width: 32px; height: 32px; }
 
 .div-card h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 24px; font-weight: 600; letter-spacing: -.01em;
   line-height: 1.15;
   margin-bottom: 6px;
@@ -639,7 +639,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   color: var(--text-mute);
   text-transform: uppercase;
   margin-bottom: 18px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
 }
 .div-desc {
   color: var(--text-mute);
@@ -665,7 +665,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 }
 .div-num {
   position: absolute; top: 28px; right: 30px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 13px; color: var(--gold-3);
   letter-spacing: .15em;
   opacity: .6;
@@ -693,7 +693,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   border-radius: 50%;
   background: radial-gradient(circle, var(--gold-2), var(--gold-3) 60%, var(--gold-deep));
   display: grid; place-items: center;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   color: #1a1408;
   text-align: center;
   box-shadow: 0 0 80px rgba(255,215,0,.5), inset 0 0 30px rgba(255,255,255,.3);
@@ -722,7 +722,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   background: linear-gradient(135deg, rgba(212,175,55,.12), rgba(0,0,0,.6));
   border: 1px solid var(--line-strong);
   border-radius: 50%;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: clamp(10px, 1.3vw, 13px);
   color: var(--gold-1);
   letter-spacing: .1em;
@@ -770,7 +770,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   background: linear-gradient(180deg, rgba(212,175,55,.09), transparent);
 }
 .stat-num {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: clamp(40px, 5vw, 64px);
   font-weight: 700; line-height: 1;
   background: linear-gradient(135deg, var(--gold-1), var(--gold-3));
@@ -789,7 +789,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   max-width: 880px; margin: 0 auto;
   padding: 60px 40px;
   text-align: center;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: clamp(20px, 2.5vw, 28px);
   font-style: italic;
   color: var(--text);
@@ -808,7 +808,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   display: block;
   margin-top: 24px;
   font-style: normal;
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 12px; letter-spacing: .35em;
   color: var(--gold-2);
 }
@@ -960,7 +960,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 }
 @media (max-width: 600px) { .footer-cols { grid-template-columns: repeat(2, 1fr); } }
 .footer-cols h5 {
-  font-family: 'Cinzel', serif;
+  font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 12px; letter-spacing: .25em;
   color: var(--gold-2);
   text-transform: uppercase;
@@ -1084,7 +1084,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .stats { gap: 14px; margin-bottom: 50px; }
   .stat { padding: 26px 14px; }
   .stat-num { font-size: 36px; }
-  .stat-lbl { font-size: 11px; letter-spacing: .12em; }
+  .stat-lbl { font-size: 11px; letter-spacing: .04em; }
   .quote { padding: 40px 22px; font-size: 18px; }
 
   /* CONTACT */
@@ -1131,7 +1131,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   display: inline-flex; align-items: center; gap: 9px;
   background: linear-gradient(135deg, #D4AF37, #FFD700);
   color: #000;
-  font-weight: 700; font-size: 13px; letter-spacing: .12em;
+  font-weight: 700; font-size: 13px; letter-spacing: .04em;
   padding: 13px 20px;
   border-radius: 999px;
   text-decoration: none;
@@ -1232,4 +1232,77 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .fab-stack { right: 12px; bottom: 12px; gap: 8px; }
   .fab-stack .os-fab { padding: 10px 14px; font-size: 11px; }
   .os-fab-secondary { font-size: 10px; padding: 8px 12px; }
+}
+
+/* ============================================================
+   XXL tech hero media
+   Poster image today, <video> the moment one is dropped in.
+   Both animate forever; both freeze under prefers-reduced-motion.
+   ============================================================ */
+.hero { position: relative; overflow: hidden; isolation: isolate; }
+.hero-media {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+.hero-media-img,
+.hero-media video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  will-change: transform;
+}
+/* A video, when present, sits on top of and replaces the poster. */
+.hero-media video { z-index: 1; }
+.hero-media video + .hero-media-img { display: none; }
+
+/* Infinite slow drift — the "always animated" background. */
+.hero-media-img { animation: heroDrift 32s ease-in-out infinite alternate; }
+@keyframes heroDrift {
+  from { transform: scale(1.06) translate3d(-1.2%, -0.8%, 0); }
+  to   { transform: scale(1.16) translate3d(1.2%, 0.8%, 0); }
+}
+
+/* Legibility: the text must win over the artwork, always. */
+.hero-media-veil {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(5,5,7,.96) 0%, rgba(5,5,7,.82) 42%, rgba(5,5,7,.35) 72%, rgba(5,5,7,.55) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.88) 0%, rgba(5,5,7,.25) 38%, rgba(5,5,7,.92) 100%);
+}
+@media (max-width: 900px) {
+  .hero-media-veil {
+    background:
+      linear-gradient(180deg, rgba(5,5,7,.9) 0%, rgba(5,5,7,.72) 45%, rgba(5,5,7,.95) 100%);
+  }
+}
+
+/* Engineering-blueprint overlay: fine grid + a slow scanning sweep. */
+.hero-media-scan {
+  position: absolute; inset: 0; z-index: 3;
+  background-image:
+    linear-gradient(rgba(212,175,55,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,55,.055) 1px, transparent 1px);
+  background-size: 64px 64px, 64px 64px;
+  mask-image: radial-gradient(ellipse 78% 68% at 50% 45%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 68% at 50% 45%, #000 35%, transparent 100%);
+}
+.hero-media-scan::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 34%;
+  background: linear-gradient(180deg, transparent, rgba(212,175,55,.07), transparent);
+  animation: heroScan 9s linear infinite;
+}
+@keyframes heroScan {
+  from { transform: translateY(-40%); }
+  to   { transform: translateY(300%); }
+}
+
+/* Hero content must sit above every media layer. */
+.hero-content, .hero-3d, .hero-scroll, .hero > .wrap { position: relative; z-index: 4; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-media-img { animation: none; transform: scale(1.08); }
+  .hero-media-scan::after { animation: none; opacity: .35; }
+  .hero-media video { display: none; }
+  .hero-media video + .hero-media-img { display: block; }
 }
