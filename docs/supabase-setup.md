@@ -14,11 +14,16 @@ metrics) is stored in Supabase. This is the 15-minute setup.
 
 Supabase dashboard → **SQL Editor** → **New query** → paste the whole of
 `supabase/migrations/0001_init.sql` → **Run**. Then do the same with
-`supabase/migrations/0002_retention.sql`.
+`supabase/migrations/0002_retention.sql` and
+`supabase/migrations/0003_reference_data.sql`.
 
 That creates `projects`, `leads`, `events`, the `kpi_overview` view, the
-`updated_at` trigger, and — importantly — enables Row Level Security with **no
-policies** on every table.
+`updated_at` trigger, the reference-data tables, and — importantly — enables
+Row Level Security with **no policies** on every table.
+
+`0003` also adds `sources` and `grounding` to `projects`: a dossier records
+which references it was written against, so a later data refresh cannot
+retroactively change what a finished document claims to cite.
 
 ## 3. Wire it to the site
 
@@ -86,6 +91,12 @@ scheduled Netlify function).
 
 **`events` holds no personal data** — an event name, an optional project id,
 and a small JSON blob. No IP addresses, no cross-site tracking.
+
+**`reference_indicators` holds public statistics**, not user data — World Bank
+and UNDP figures per country. It is still service_role-only, because the
+browser has no Supabase credential and adding one for "harmless" data would
+undo that. Refreshed by `scripts/fetch-reference-data.mjs`; see
+`docs/reference-data.md`.
 
 ---
 

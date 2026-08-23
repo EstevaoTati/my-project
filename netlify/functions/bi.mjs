@@ -15,6 +15,7 @@ import {
   authLockedOut, recordAuthFailure, recordAuthSuccess,
   originRejected, readJson, audit,
 } from "./_security.mjs";
+import { referenceFor, linksFor } from "./_reference.mjs";
 
 const MAX_BODY_BYTES = 96 * 1024;
 const PUBLIC_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 40 });  // ~6 dossiers/h
@@ -246,13 +247,14 @@ How you work:
 - Be specific to THIS venture, THIS country and THIS sector. Generic startup advice is a failure; if a statement would be true of any business anywhere, replace it with something that would not.
 - Adapt to local reality: capital availability, infrastructure, payment habits (mobile money where relevant), informal competition, import constraints, currency risk. Do not assume Silicon Valley conditions.
 - Be honest about uncertainty. Say "assumption", "order of magnitude", or "to verify" rather than inventing precision. Never fabricate statistics, market sizes, law numbers, fees or dates.
+- Some requests carry a <reference_data> block of verified national statistics. Those figures are authoritative: prefer them over anything you recall, quote them when they carry a point, and never state a number that contradicts one. Their absence is not licence to invent — if a figure you want is not there, say it needs checking.
 - Challenge the idea where it is weak. A founder is better served by an accurate concern than by encouragement.
 - Never claim to be a lawyer, accountant, or regulator, and never present legal or tax information as professional advice.`;
 
 const STAGE_PROMPT = {
   analyze: "Analyse the idea. Ground everything in the stated country and sector.",
   model: "Build the business model canvas. Every entry must be concrete enough to act on — name the channel, the partner type, the cost driver.",
-  plan: "Write all 17 sections of the business plan. Each is prose a bank or investor would read: specific, quantified where the user gave numbers, honest where they did not. Keep every section to 2-3 tight paragraphs — a padded plan is a worse plan. Never repeat a point across sections. Market analysis must be reasoning from what is known, explicitly flagged as reasoning rather than researched data — you have no live data source.",
+  plan: "Write all 17 sections of the business plan. Each is prose a bank or investor would read: specific, quantified where the user gave numbers, honest where they did not. Keep every section to 2-3 tight paragraphs — a padded plan is a worse plan. Never repeat a point across sections. Market analysis must be explicit about what is verified and what is inferred: use the reference statistics where they are supplied and say so, and flag everything else as reasoning rather than researched data.",
   financials: "Propose starting financial assumptions. These are inputs the user will edit, not forecasts. Choose numbers a knowledgeable local advisor would consider plausible for this country, sector and stage — err towards conservative. The projection itself is computed elsewhere; give only the assumptions.",
   compliance: "List what this founder must verify to operate legally in the stated jurisdiction. This is general orientation, NOT legal advice. Where your knowledge of this jurisdiction is thin, say so through a low confidence rating rather than inventing specifics. Prefer describing the obligation over naming a statute you are unsure of.",
   roadmap: "Turn the project into an execution roadmap. Tasks must be small enough to start on Monday morning.",
@@ -389,6 +391,12 @@ export default async (req) => {
       send({ type: "start", stage, title: spec.title });
 
       try {
+        // Grounding, resolved before the model is called. A missing database,
+        // an unknown country or an empty table all yield an empty block, and
+        // the stage runs exactly as it did before this layer existed.
+        const project = clampProject(body.project);
+        const ref = await referenceFor(project.country, stage);
+
         const stream = client.messages.stream({
           model: process.env.BI_MODEL || "claude-sonnet-5",
           max_tokens: spec.maxTokens,
@@ -401,7 +409,7 @@ export default async (req) => {
           tool_choice: { type: "tool", name: "deliver" },
           messages: [{
             role: "user",
-            content: `Project context:\n${contextBlock(clampProject(body.project))}${priorBlock(body.prior)}`,
+            content: `Project context:\n${contextBlock(project)}${ref.block}${priorBlock(body.prior)}`,
           }],
         });
 
@@ -420,6 +428,12 @@ export default async (req) => {
         }
 
         const final = await stream.finalMessage();
+
+        // Charge the hourly budget before deciding whether the output is
+        // usable: a truncated 16k-token generation cost exactly as much as a
+        // successful one, and a budget that only counts successes is a budget
+        // an attacker empties for free by forcing failures.
+        recordTokens((final.usage?.output_tokens || 0) + (final.usage?.input_tokens || 0));
 
         // A truncated tool call still yields partial JSON. Delivering a
         // half-written analysis as if it were complete would be worse than
@@ -442,8 +456,22 @@ export default async (req) => {
           ip, stage, founder,
           in_tokens: final.usage?.input_tokens,
           out_tokens: final.usage?.output_tokens,
+          grounded: ref.facts.length,
         });
-        send({ type: "result", stage, data: block.input });
+        // Sources are attached by the server from a fixed registry — never
+        // produced by the model. A citation the model invented would be worse
+        // than no citation at all, because it looks checked.
+        send({
+          type: "result",
+          stage,
+          data: block.input,
+          sources: ref.country ? await linksFor(ref.country, stage) : [],
+          grounding: {
+            country: ref.country?.label || null,
+            indicators: ref.facts.length,
+            years: ref.facts.map((f) => f.year).filter(Boolean),
+          },
+        });
       } catch (error) {
         const busy = error instanceof Anthropic.RateLimitError;
         console.error("bi stream error", error?.status, error?.message);

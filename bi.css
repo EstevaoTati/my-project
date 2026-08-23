@@ -319,6 +319,50 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   a { color: #111 !important; text-decoration: none; }
 }
 
+/* ---------- reference sources ---------- */
+.panel.sources { border-left: 2px solid var(--line-strong); }
+.grounded {
+  font-family: var(--mono); font-size: 13px; line-height: 1.6;
+  color: var(--ok); margin: 0 0 14px;
+}
+.grounded.warn { color: var(--warn); }
+
+ul.source-list { list-style: none; margin: 0; padding: 0; }
+ul.source-list li {
+  padding: 12px 0; border-top: 1px solid var(--line);
+}
+ul.source-list li:first-child { border-top: none; }
+ul.source-list a {
+  color: var(--gold-2); text-decoration: none; font-weight: 600;
+  border-bottom: 1px solid transparent; transition: border-color .2s var(--ease);
+}
+ul.source-list a:hover, ul.source-list a:focus-visible { border-bottom-color: var(--gold-2); }
+ul.source-list .pub { color: var(--mute); font-size: 14px; }
+ul.source-list .why { color: var(--dim); font-size: 13px; line-height: 1.55; margin-top: 4px; }
+ul.source-list .url {
+  font-family: var(--mono); font-size: 11px; color: var(--dim);
+  margin-top: 4px; word-break: break-all; display: none;
+}
+.scope {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 3px;
+  border: 1px solid var(--line); margin-left: 8px; white-space: nowrap;
+}
+.scope.direct { color: var(--ok); border-color: rgba(125, 201, 143, .4); }
+.scope.index { color: var(--dim); }
+
+@media print {
+  /* On paper a hyperlink is invisible, so the URL is spelled out and the
+     screen-only "filter by country" chip is dropped. */
+  ul.source-list .url { display: block; color: #555 !important; }
+  ul.source-list .pub, ul.source-list .why { color: #444 !important; }
+  ul.source-list li { border-top: 0.5pt solid #ddd; page-break-inside: avoid; }
+  ul.source-list a { color: #111 !important; font-weight: 700; }
+  .scope { display: none !important; }
+  .grounded { color: #444 !important; }
+  .panel.sources { border-left: none; }
+}
+
 /* sync indicator */
 .sync {
   font-family: var(--mono); font-size: 12px; margin: 14px 0 0;

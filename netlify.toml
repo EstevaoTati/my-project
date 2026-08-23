@@ -17,7 +17,9 @@
   # Private content bundled with the key-gated console function: the OS page
   # fragment (kernel/agents/routines/memory/status) and the Monday briefs.
   # These are never published as static files — /docs/* returns 404.
-  included_files = ["docs/briefs/*.md", "docs/os-console.html"]
+  # data/reference/*.json is the country/source registry the BI engine grounds
+  # its dossiers on. It is bundled, not published: /data/* returns 404 too.
+  included_files = ["docs/briefs/*.md", "docs/os-console.html", "data/reference/*.json"]
 
 # Pretty URL: serve preview.html-style content from the homepage if you ever
 # want it; default is index.html. Kept here as a reference, commented out.
@@ -38,6 +40,18 @@
 
 [[redirects]]
   from = "/scripts/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/data/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/supabase/*"
   to = "/index.html"
   status = 404
   force = true

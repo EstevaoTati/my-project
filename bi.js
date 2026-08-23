@@ -195,6 +195,8 @@
     stages: {},        // analyze | model | plan | financials | compliance | roadmap
     tasksDone: {},     // "phaseIndex:taskIndex" -> true
     checked: {},       // compliance item index -> true
+    sources: {},       // stage -> [{ name, publisher, url, countrySpecific }]
+    grounding: {},     // stage -> { country, indicators, years }
   });
 
   let project = blank();
@@ -300,6 +302,8 @@
       const dec = new TextDecoder();
       let buf = '';
       let result = null;
+      let sources = [];
+      let grounding = null;
 
       for (;;) {
         const { done, value } = await reader.read();
@@ -314,12 +318,24 @@
           if (msg.type === 'start') label.textContent = 'Generating the ' + msg.title + '…';
           else if (msg.type === 'progress') label.textContent = 'Writing… ' + Math.round(msg.chars / 100) * 100 + ' characters';
           else if (msg.type === 'error') throw new Error(msg.error);
-          else if (msg.type === 'result') result = msg.data;
+          else if (msg.type === 'result') {
+            result = msg.data;
+            // Sources come from the server's fixed registry, never from the
+            // model, so they are kept beside the stage rather than inside it —
+            // editing the analysis must not let a citation drift from what was
+            // actually consulted.
+            sources = Array.isArray(msg.sources) ? msg.sources : [];
+            grounding = msg.grounding || null;
+          }
         }
       }
       if (!result) throw new Error('no result received — please retry');
 
       project.stages[stage] = result;
+      project.sources = project.sources || {};
+      project.grounding = project.grounding || {};
+      project.sources[stage] = sources;
+      project.grounding[stage] = grounding;
       save();
       clear(statusHost);
       return result;
@@ -628,7 +644,59 @@
       ));
     });
     out.appendChild(panel);
+    const refs = sourcesPanel('compliance');
+    if (refs) out.appendChild(refs);
     out.appendChild(h('p', { class: 'footnote', text: 'Generated ' + new Date().toLocaleDateString() + ' for ' + [project.country, project.region].filter(Boolean).join(' · ') + '. Re-check before acting: rules change.' }));
+  }
+
+  // ------------------------------------------------------ reference sources --
+  // Rendered from what the server attached to the stage, never from anything
+  // the model produced. Two claims are kept strictly apart: an indicator count
+  // means real figures were injected into the analysis; a link list means only
+  // that here is where a founder can verify a point themselves.
+  function sourcesPanel(stage) {
+    const list = (project.sources && project.sources[stage]) || [];
+    const g = (project.grounding && project.grounding[stage]) || null;
+    if (!list.length && !(g && g.indicators)) return null;
+
+    const panel = h('div', { class: 'panel sources' }, h('h3', { text: 'Sources and verification' }));
+
+    if (g && g.indicators) {
+      const years = (g.years || []).filter(Boolean);
+      const span = years.length
+        ? (Math.min.apply(null, years) === Math.max.apply(null, years)
+          ? String(Math.min.apply(null, years))
+          : Math.min.apply(null, years) + '–' + Math.max.apply(null, years))
+        : '';
+      panel.appendChild(h('p', { class: 'grounded', text:
+        'This section was written with ' + g.indicators + ' verified indicator'
+        + (g.indicators > 1 ? 's' : '') + ' for ' + (g.country || project.country)
+        + (span ? ' (' + span + ')' : '') + ' supplied to the engine as fact.' }));
+    } else {
+      panel.appendChild(h('p', { class: 'grounded warn', text:
+        'No reference statistics were available for this country, so every figure '
+        + 'in this section is the engine reasoning — treat it as an estimate to check.' }));
+    }
+
+    const ul = h('ul', { class: 'source-list' });
+    list.forEach((s) => {
+      const a = h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' });
+      a.textContent = s.name;
+      ul.appendChild(h('li', {},
+        a,
+        h('span', { class: 'pub', text: ' — ' + s.publisher }),
+        h('span', {
+          class: 'scope ' + (s.countrySpecific ? 'direct' : 'index'),
+          text: s.countrySpecific ? 'country page' : 'index — filter by country',
+        }),
+        h('div', { class: 'why', text: s.use || '' }),
+      ));
+    });
+    panel.appendChild(ul);
+    panel.appendChild(h('p', { class: 'footnote', text:
+      'These databases are listed so you can check this section at the source. '
+      + 'The engine has not read them: nothing above is quoted from them.' }));
+    return panel;
   }
 
   function renderRoadmap() {
@@ -754,6 +822,46 @@
         list.appendChild(ul);
       });
       out.appendChild(sec('Execution roadmap', list));
+    }
+
+    // One consolidated bibliography, deduplicated across stages. A dossier that
+    // cannot say where its numbers came from is not a document to take to a
+    // bank, and repeating the same five sources six times is not a bibliography.
+    const seen = new Set();
+    const bibliography = [];
+    let grounded = 0;
+    ORDER.forEach((stage) => {
+      const g = (project.grounding && project.grounding[stage]) || null;
+      if (g && g.indicators > grounded) grounded = g.indicators;
+      ((project.sources && project.sources[stage]) || []).forEach((s) => {
+        if (seen.has(s.url)) return;
+        seen.add(s.url);
+        bibliography.push(s);
+      });
+    });
+
+    if (bibliography.length) {
+      const ul = h('ul', { class: 'source-list' });
+      bibliography.forEach((s) => {
+        const a = h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' });
+        a.textContent = s.name;
+        ul.appendChild(h('li', {},
+          a,
+          h('span', { class: 'pub', text: ' — ' + s.publisher }),
+          // The URL is printed in full: on paper a hyperlink is invisible.
+          h('div', { class: 'url', text: s.url }),
+        ));
+      });
+      out.appendChild(sec('Sources',
+        h('p', { text: grounded
+          ? grounded + ' verified indicators for ' + (project.country || 'this country')
+            + ' were supplied to the engine as fact. Everything else in this dossier is'
+            + ' reasoning from the information its author provided.'
+          : 'No reference statistics were available for this country. Every figure in'
+            + ' this dossier is the engine reasoning from the information its author'
+            + ' provided, and should be verified before it is relied upon.' }),
+        ul,
+        h('p', { class: 'footnote', text: 'The databases above are where each point can be checked at the source. They were not read by the engine and nothing here is quoted from them.' })));
     }
 
     out.appendChild(h('div', { class: 'doc-section' },
