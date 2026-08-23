@@ -362,7 +362,7 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 
 /* Legibility: the text must win over the artwork, always. */
 .hero-media-veil {
-  position: absolute; inset: 0; z-index: 2;
+  position: absolute; inset: 0; z-index: 3;
   background:
     linear-gradient(90deg, rgba(5,5,7,.96) 0%, rgba(5,5,7,.82) 42%, rgba(5,5,7,.35) 72%, rgba(5,5,7,.55) 100%),
     linear-gradient(180deg, rgba(5,5,7,.88) 0%, rgba(5,5,7,.25) 38%, rgba(5,5,7,.92) 100%);
@@ -376,7 +376,7 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 
 /* Engineering-blueprint overlay: fine grid + a slow scanning sweep. */
 .hero-media-scan {
-  position: absolute; inset: 0; z-index: 3;
+  position: absolute; inset: 0; z-index: 4;
   background-image:
     linear-gradient(rgba(120,190,255,.07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(120,190,255,.07) 1px, transparent 1px);
@@ -396,11 +396,77 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 }
 
 /* Hero content must sit above every media layer. */
-.hero-content, .hero-3d, .hero-scroll, .hero > .wrap { position: relative; z-index: 4; }
+.hero-content, .hero-3d, .hero-scroll, .hero > .wrap { position: relative; z-index: 5; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-media-img { animation: none; transform: scale(1.08); }
   .hero-media-scan::after { animation: none; opacity: .35; }
   .hero-media video { display: none; }
   .hero-media video + .hero-media-img { display: block; }
+}
+
+/* ============================================================
+   Bulb ignition loop — the "switching on" motion, in CSS.
+   Sits over the hero artwork, centred on the bulb. Runs forever,
+   slowly, because it lives behind headline text: a background that
+   flickers or strobes makes the title unreadable.
+   ============================================================ */
+.hero-media-ignite {
+  position: absolute; inset: 0; z-index: 2;
+  pointer-events: none;
+  display: grid; place-items: center;
+}
+.hero-media-ignite::before {
+  /* the filament bloom */
+  content: '';
+  width: min(46vw, 640px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(180,240,255,.5) 0%,
+    rgba(80,190,255,.26) 22%,
+    rgba(40,140,255,.12) 42%,
+    transparent 68%);
+  filter: blur(14px);
+  transform: translateY(-6%);
+  animation: bulbIgnite 7.5s ease-in-out infinite;
+}
+.hero-media-ignite::after {
+  /* the hot core, tighter and brighter */
+  content: '';
+  position: absolute;
+  width: min(15vw, 190px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,253,255,.9) 0%, rgba(120,215,255,.42) 45%, transparent 72%);
+  filter: blur(8px);
+  transform: translateY(-14%);
+  animation: bulbCore 7.5s ease-in-out infinite;
+}
+
+/* One cycle: dark filament, a quick strike, settle into a steady burn,
+   then fade back down. Mirrors how an incandescent bulb actually behaves. */
+@keyframes bulbIgnite {
+  0%   { opacity: .06; transform: translateY(-6%) scale(.86); }
+  7%   { opacity: .85; transform: translateY(-6%) scale(1.06); }
+  11%  { opacity: .45; transform: translateY(-6%) scale(.97); }
+  16%  { opacity: .92; transform: translateY(-6%) scale(1.03); }
+  55%  { opacity: .78; transform: translateY(-6%) scale(1.01); }
+  82%  { opacity: .5;  transform: translateY(-6%) scale(.96); }
+  100% { opacity: .06; transform: translateY(-6%) scale(.86); }
+}
+@keyframes bulbCore {
+  0%   { opacity: 0;   transform: translateY(-14%) scale(.6); }
+  7%   { opacity: 1;   transform: translateY(-14%) scale(1.12); }
+  11%  { opacity: .55; transform: translateY(-14%) scale(.95); }
+  16%  { opacity: 1;   transform: translateY(-14%) scale(1.04); }
+  55%  { opacity: .9;  transform: translateY(-14%) scale(1); }
+  82%  { opacity: .55; transform: translateY(-14%) scale(.92); }
+  100% { opacity: 0;   transform: translateY(-14%) scale(.6); }
+}
+
+/* A video, once present, carries its own ignition — drop the CSS one. */
+.hero-media video ~ .hero-media-ignite { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-media-ignite::before { animation: none; opacity: .7; }
+  .hero-media-ignite::after  { animation: none; opacity: .85; }
 }
