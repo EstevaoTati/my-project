@@ -19,4 +19,16 @@
 /package-lock.json  /index.html   404!
 /DEPLOY-NETLIFY.md  /index.html   404!
 /mwinda-netlify.zip /index.html   404!
+
+# A missing asset must 404, not fall through to the SPA catch-all below.
+# Without this, a mistyped or not-yet-committed file — assets/hero-platform.mp4,
+# say — answers with the whole of index.html at status 200. The browser then
+# downloads the entire homepage on every visit while trying to decode it as a
+# video, and the real failure is invisible in the network panel because the
+# request looks successful.
+#
+# No "!" on purpose: an unforced rule applies only when no real file matches,
+# so every asset that does exist is still served normally.
+/assets/*   /index.html   404
+
 /*          /index.html      200
