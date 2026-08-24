@@ -555,9 +555,11 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
    moving image and needs the full scrim back. script.js/bi.js add
    .past-hero once the hero is scrolled away. */
 .site-bg.video-ready .site-bg-veil {
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 34%, rgba(5,5,7,.06) 0%, rgba(5,5,7,.16) 60%, rgba(5,5,7,.30) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.05) 0%, rgba(5,5,7,.14) 55%, rgba(5,5,7,.28) 100%);
+  /* No wash at all: while a video plays the clip is the background, full
+     strength, top to bottom. Legibility is handled entirely at the glyph
+     level below — a shadow that travels with the type, so the image stays
+     uncovered everywhere there is no text. */
+  background: none;
   transition: background .45s ease;
 }
 /* Reading position: the scrim comes back so body copy stays legible. */
@@ -565,23 +567,9 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
    secondary copy in --mute (#a39c8b), which is dimmer than --text, and measured
    4.36:1 over a worst-case bright frame at the lighter values — under WCAG AA.
    Measured, not guessed, and corrected here rather than by dimming the type. */
-body.past-hero .site-bg.video-ready .site-bg-veil {
-  background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.30) 0%, rgba(5,5,7,.52) 55%, rgba(5,5,7,.66) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.26) 0%, rgba(5,5,7,.50) 55%, rgba(5,5,7,.66) 100%);
-}
+
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
-  .site-bg.video-ready .site-bg-veil {
-    background:
-      radial-gradient(ellipse 100% 50% at 50% 24%, rgba(5,5,7,.10) 0%, rgba(5,5,7,.24) 60%, rgba(5,5,7,.38) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.10) 0%, rgba(5,5,7,.34) 100%);
-  }
-  body.past-hero .site-bg.video-ready .site-bg-veil {
-    background:
-      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.46) 0%, rgba(5,5,7,.76) 60%, rgba(5,5,7,.88) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.50) 0%, rgba(5,5,7,.82) 100%);
-  }
 }
 
 /* Same reasoning as the main site: protect the glyphs, not the whole page. */
@@ -620,6 +608,25 @@ body.has-video-bg .hint,
 body.has-video-bg .footnote,
 body.has-video-bg .meta {
   color: #ddd6c6;
+}
+
+/* Most MVP copy already sits inside .panel, which is opaque. These few blocks
+   float directly on the background; with no global wash they need their own. */
+body.has-video-bg .step > .sub,
+body.has-video-bg .hero .lede,
+body.has-video-bg .hero .eyebrow {
+  background: linear-gradient(180deg, rgba(6, 7, 11, .78), rgba(6, 7, 11, .66));
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+@supports not (backdrop-filter: blur(2px)) {
+  body.has-video-bg .step > .sub,
+  body.has-video-bg .hero .lede,
+  body.has-video-bg .hero .eyebrow {
+    background: linear-gradient(180deg, rgba(6, 7, 11, .9), rgba(6, 7, 11, .84));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

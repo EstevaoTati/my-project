@@ -98,45 +98,41 @@ The `<video>` elements are already in both pages and already point at those
 paths, so nothing else has to change — until the files land, the poster shows
 and the CSS ignition keeps running, which is exactly the behaviour today.
 
-### The scrim: nearly gone in the hero, thin everywhere else
+### No global scrim at all while a video plays
 
-The brief was for the clip to be very visible, always. The obstacle is
-structural and worth writing down: **no section on either page has an opaque
-background** — `section { position: relative; z-index: 1 }` and nothing else.
-Every paragraph scrolls directly over the moving image.
+`.site-bg.video-ready .site-bg-veil { background: none }`. Top to bottom, the
+clip is the background at full strength — nothing is laid over it.
 
-The wrong answer is a darker page-wide curtain. The right one is to protect the
-glyphs and leave the gaps between them clear, so the video shows through even
-behind text:
+That is only possible because legibility is solved where the problem actually
+is. Measured over a worst-case bright frame with the wash removed and nothing
+else changed, body copy fell to **2.1:1** on the platform and **2.4:1** on the
+MVP — unreadable. Two local measures fix it without covering a single pixel
+that has no text on it:
 
-| | Hero | Scrolled (`body.past-hero`) |
+1. **A shadow on the glyphs.** It travels with the type, so the image shows
+   through between the words.
+2. **A glass panel behind the few blocks that float directly on the
+   background** — `.section-head` and `.about-text` on the platform, the
+   free-standing `.sub`, `.lede` and `.eyebrow` on the MVP. Most MVP copy
+   already sits inside `.panel`, which is opaque, so it needed nothing.
+   `backdrop-filter: blur(12px)` with an `@supports` fallback to plain opacity,
+   because shipping unreadable text to a browser without blur support is not an
+   acceptable degradation.
+
+The panels are a visible design change, and a deliberate one: the alternative
+was a darker page, which is what the brief ruled out.
+
+Measured from rendered pixels against a **full-frame white flare**, far harsher
+than either real clip:
+
+| Page | Hero headline | Body copy |
 |---|---|---|
-| Platform | 0.05–0.30 | 0.16–0.54 |
-| MVP | 0.05–0.30 | 0.26–0.66 |
+| Platform | 17.0 : 1 | 5.0 : 1 |
+| MVP | 5.0 : 1 | 5.9 : 1 |
 
-`script.js` and `bi.js` toggle `.past-hero` at 55% of hero height, on a
-`requestAnimationFrame`-throttled passive listener, with a 0.45 s transition.
-They also add `.has-video-bg` to `<body>` on the same `playing` event, which is
-what the text rules key off.
-
-Three supporting decisions:
-
-- **Text-shadow on body copy, not just the hero.** It travels with the glyphs,
-  so it costs nothing where there is no text — which is exactly what a curtain
-  cannot do.
-- **The MVP's dim copy is brightened, not the background darkened.** `--mute`
-  (#a39c8b) measured **3.5:1** over a worst-case bright frame — under WCAG AA.
-  With a thin scrim the binding constraint is the type colour, not the video, so
-  `.sub`, `.lede`, `.hint`, `.footnote` and `.meta` move to #ddd6c6 while a
-  video plays. Fixing the contrast where it is actually weak keeps the clip
-  visible.
-- Every number below is measured from rendered pixels against a **full-frame
-  white flare**, far harsher than either real clip.
-
-| Page | Hero headline | Scrolled body copy |
-|---|---|---|
-| Platform | 17.0 : 1 | 7.0 : 1 |
-| MVP | 6.2 : 1 | 6.5 : 1 |
+Every value clears WCAG AA. `body.past-hero` still toggles on scroll — it now
+drives nothing visual, and is kept only because removing a class other rules
+may key off later is not worth the churn.
 
 ### Playing forever is enforced, not assumed
 
