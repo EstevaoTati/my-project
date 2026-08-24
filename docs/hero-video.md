@@ -45,6 +45,23 @@ error-page download, and prints the commit commands. If the CDN links have
 expired, save the two clips from the Higgsfield library by hand under exactly
 `assets/hero-platform.mp4` and `assets/hero-bi.mp4`.
 
+### A missing asset now 404s
+
+`_redirects` and `netlify.toml` both send `/assets/*` to a **404** when no real
+file matches, ahead of the SPA catch-all. Without that rule a missing or
+mistyped asset answered with the whole of `index.html` at status **200**: the
+browser downloaded the entire homepage on every visit while trying to decode it
+as a video, and the failure was invisible in the network panel because the
+request looked successful. Neither rule is forced, so every asset that exists is
+still served normally — verified: the two JPGs return 200 `image/jpeg`, a
+missing MP4 returns 404.
+
+That also means the fetch script cannot be fooled by a catch-all response. It
+checks two things beyond the HTTP status: a floor of 100 KB, and the `ftyp`
+box every MP4 carries in its header. Tested against the homepage renamed to
+`.mp4` (rejected on size) and the homepage padded past 200 KB (rejected on the
+missing `ftyp` box — the case the size check alone would have let through).
+
 ### Proven to autoplay once the files exist
 
 Not assumed — measured. With a real MP4 in place and Chromium's **default**

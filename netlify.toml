@@ -98,6 +98,20 @@
   status = 404
   force = true
 
+# A missing asset must 404 rather than fall through to the catch-all below.
+# Without this, a file that is mistyped or not yet committed answers with the
+# whole of index.html at status 200: the browser downloads the entire homepage
+# on every visit while trying to decode it as a video or an image, and the
+# failure is invisible because the request looks successful.
+#
+# force = false on purpose — the rule applies only when no real file matches,
+# so existing assets are still served.
+[[redirects]]
+  from = "/assets/*"
+  to = "/index.html"
+  status = 404
+  force = false
+
 # 404 fallback (optional; the site is single-page anchors so usually unused)
 [[redirects]]
   from = "/*"
