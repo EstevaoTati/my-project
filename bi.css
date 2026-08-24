@@ -491,7 +491,7 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   animation: siteDrift 46s ease-in-out infinite alternate;
 }
 /* The video fades in over the poster only once it is genuinely playing —
-   bi.js adds .video-ready on the `playing` event. Keying this off the mere
+   video-bg.js adds .video-ready on the `playing` event. Keying this off the mere
    presence of the element meant a 404, an unsupported codec or a browser
    refusing autoplay would hide the artwork and leave a black rectangle. */
 .site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
@@ -660,7 +660,7 @@ body.has-video-bg .rail button { text-shadow: 0 1px 6px rgba(5,5,7,.9); }
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
   .site-bg-ignite::after  { animation: none; opacity: .3; }
-  /* The video is never started under reduced motion (bi.js checks the same
+  /* The video is never started under reduced motion (video-bg.js checks the same
      query); hidden here too so an over-eager browser cannot override it. */
   .site-bg video { display: none; }
 }
