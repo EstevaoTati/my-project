@@ -983,6 +983,32 @@
   }
   document.querySelectorAll('.site-bg video').forEach(initBackgroundVideo);
 
+  /* ---------- Reading scrim ----------
+     The hero shows the video at roughly 90% strength. Every section below it is
+     transparent, so page copy scrolls directly over the moving image — the
+     scrim has to come back before the first paragraph does. Threshold is 55% of
+     the hero, which puts the change well before any body text reaches the top
+     of the viewport. */
+  (() => {
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    let ticking = false;
+    const apply = () => {
+      ticking = false;
+      const past = window.scrollY > hero.offsetHeight * 0.55;
+      document.body.classList.toggle('past-hero', past);
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    apply();
+  })();
+
+
   load();
   bind();
   boot();

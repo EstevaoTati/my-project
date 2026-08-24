@@ -98,26 +98,48 @@ The `<video>` elements are already in both pages and already point at those
 paths, so nothing else has to change — until the files land, the poster shows
 and the CSS ignition keeps running, which is exactly the behaviour today.
 
-### The scrim lifts while a video plays
+### The scrim: nearly gone in the hero, back for reading
 
-`.site-bg.video-ready .site-bg-veil` cuts the wash from 0.76–0.95 down to
-0.36–0.80 (0.40–0.86 on phones). A background loop buried under a near-opaque
-black layer is a cost with no benefit.
+The brief was "roughly nine parts video to one part scrim". That is achievable
+in the hero and **not** achievable page-wide, for a structural reason worth
+writing down: no section on either page has an opaque background —
+`section { position: relative; z-index: 1 }` and nothing else. Every paragraph
+on the site scrolls directly over the moving image, with the veil as its only
+protection. Thinning it everywhere would not have made a bolder site, it would
+have made an unreadable one.
 
-Going that light needs a second safeguard, because the MVP brief contains a
-deliberate **burst of light**. Darkening the whole page to survive two seconds
-of video would undo the point, so the protection travels with the glyphs
-instead: a tight `text-shadow` on the hero headline, lede and eyebrow, applied
-only under `.video-ready`. Invisible over dark frames, decisive over bright
-ones.
+So the veil has two states:
 
-Contrast is measured from rendered pixels, against a **full-frame white flare**
-— far harsher than either real clip:
-
-| Page | Contrast over white | WCAG |
+| | Hero | Scrolled (`body.past-hero`) |
 |---|---|---|
-| Platform | 13.8 : 1 | AAA |
-| MVP | 10.9 : 1 | AAA |
+| Platform | 0.05–0.30 | 0.34–0.84 |
+| MVP | 0.05–0.30 | 0.52–0.92 |
+
+`script.js` and `bi.js` toggle `.past-hero` at 55% of the hero height — well
+before any body text reaches the top of the viewport — on a
+`requestAnimationFrame`-throttled passive scroll listener, with a 0.45 s
+transition so the change is never a visible flick.
+
+Two supporting details:
+
+- The hero headline, lede and eyebrow carry a **tight `text-shadow`**, applied
+  only under `.video-ready`. With the scrim almost absent, that shadow is what
+  keeps the type readable over the clip's bright burst. It travels with the
+  glyphs, so it costs nothing where there is no text.
+- **The MVP's reading scrim is heavier than the platform's.** Its secondary copy
+  is set in `--mute` (#a39c8b), dimmer than `--text`, and measured **4.36:1**
+  over a worst-case bright frame at the platform's values — under WCAG AA. The
+  scrim was raised rather than the type dimmed.
+
+All figures are measured from rendered pixels against a **full-frame white
+flare**, far harsher than either real clip:
+
+| Page | Hero headline | Scrolled body copy |
+|---|---|---|
+| Platform | 17.0 : 1 | 8.9 : 1 |
+| MVP | 6.2 : 1 | 5.7 : 1 |
+
+Every value clears WCAG AA.
 
 ## 1. Put the files here
 
