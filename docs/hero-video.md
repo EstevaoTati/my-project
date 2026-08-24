@@ -6,6 +6,28 @@ content scrolls over it. It currently shows the founder-supplied bulb stills
 with an infinite slow drift. Swapping in a video is a two-line change per
 page, and the CSS is already written for it.
 
+## Status: generated, not yet in the repo
+
+Both clips exist on Higgsfield, generated with Kling v3.0 from the founder's
+bulb stills — 1280×720, 16:9, 5 s, **no audio**, `std` mode, and the same image
+passed as both `start_image` and `end_image` so the last frame returns to the
+first and the loop has no visible seam. 15 credits.
+
+| Page | Job | Download |
+|---|---|---|
+| `index.html` | `c520a369-f76c-434d-b275-02a07e2d6607` | `hf_20260824_010122_c520a369-f76c-434d-b275-02a07e2d6607.mp4` |
+| `bi.html` | `7ea6e8c5-3f8c-4a73-ba09-4a7561069a3d` | `hf_20260824_010047_7ea6e8c5-3f8c-4a73-ba09-4a7561069a3d.mp4` |
+
+They are **not in `assets/` yet**: the session that generated them could reach
+Higgsfield's upload bucket but not its output CDN (`d8j0ntlcm91z4.cloudfront.net`
+is refused by the network policy), so the bytes could not be pulled down. Save
+them from the Higgsfield library as `assets/hero-platform.mp4` and
+`assets/hero-bi.mp4`.
+
+The `<video>` elements are already in both pages and already point at those
+paths, so nothing else has to change — until the files land, the poster shows
+and the CSS ignition keeps running, which is exactly the behaviour today.
+
 ## 1. Put the files here
 
 | File | Page | Source artwork |

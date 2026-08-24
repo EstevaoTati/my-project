@@ -15,9 +15,15 @@
 <body>
 
 <div class="site-bg" aria-hidden="true">
-  <!-- Drop assets/hero-platform.mp4 in and add a <video> here; .site-bg video is
-       already styled to cover, sit above the poster and retire the CSS
-       ignition. See docs/hero-video.md. -->
+  <!-- The poster below is NOT a fallback of last resort — it is what shows
+       until the video is genuinely playing, and it stays underneath forever.
+       script.js reveals the video on the `playing` event only, so a missing
+       file, a rejected codec or a blocked autoplay all leave this artwork in
+       place rather than a black rectangle. See docs/hero-video.md. -->
+  <video autoplay muted loop playsinline preload="metadata"
+         poster="assets/hero-platform.jpg">
+    <source src="assets/hero-platform.mp4" type="video/mp4" />
+  </video>
   <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>

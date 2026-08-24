@@ -13,9 +13,12 @@
 <body>
 
 <div class="site-bg" aria-hidden="true">
-  <!-- Drop assets/hero-bi.mp4 in and add a <video> here; .site-bg video is
-       already styled to cover, sit above the poster and retire the CSS
-       ignition. See docs/hero-video.md. -->
+  <!-- Poster first: bi.js reveals the video only once it is actually playing,
+       so this artwork covers every failure mode. See docs/hero-video.md. -->
+  <video autoplay muted loop playsinline preload="metadata"
+         poster="assets/hero-bi.jpg">
+    <source src="assets/hero-bi.mp4" type="video/mp4" />
+  </video>
   <img class="site-bg-img" src="assets/hero-bi.jpg" alt="" decoding="async" fetchpriority="high" />
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>
