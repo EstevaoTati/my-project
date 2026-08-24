@@ -1439,16 +1439,26 @@ section { position: relative; padding: 140px 0; z-index: 1; }
    re-checked at these values, not assumed. */
 .site-bg.video-ready .site-bg-veil {
   background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.60) 0%, rgba(5,5,7,.82) 55%, rgba(5,5,7,.9) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.46) 0%, rgba(5,5,7,.76) 55%, rgba(5,5,7,.88) 100%);
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.36) 0%, rgba(5,5,7,.64) 55%, rgba(5,5,7,.80) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.28) 0%, rgba(5,5,7,.60) 55%, rgba(5,5,7,.80) 100%);
 }
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
   .site-bg.video-ready .site-bg-veil {
     background:
-      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.54) 0%, rgba(5,5,7,.84) 60%, rgba(5,5,7,.92) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.6) 0%, rgba(5,5,7,.86) 100%);
+      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.40) 0%, rgba(5,5,7,.72) 60%, rgba(5,5,7,.86) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.44) 0%, rgba(5,5,7,.78) 100%);
   }
+}
+
+/* During the clip's bright burst the veil alone is not enough to guarantee
+   legibility, and darkening the whole page to cover two seconds of video is
+   the wrong trade. A tight shadow travels with the glyphs instead: invisible
+   over dark frames, decisive over bright ones. */
+.site-bg.video-ready ~ * .hero-title,
+.site-bg.video-ready ~ * .hero-sub,
+.site-bg.video-ready ~ * .hero-tag {
+  text-shadow: 0 2px 18px rgba(5, 5, 7, .85), 0 0 4px rgba(5, 5, 7, .6);
 }
 
 @media (prefers-reduced-motion: reduce) {

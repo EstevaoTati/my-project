@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Pull the two generated background clips into assets/.
 #
+# These are the 10-second versions, shot to the founder's beat-by-beat brief.
+# The earlier 5-second pair is superseded; the job ids below are the ones to use.
+#
 # Run this from a machine with normal internet access — the session that
 # generated them could reach Higgsfield's upload bucket but not its output CDN,
 # so it could not do this itself.
@@ -15,8 +18,8 @@ cd "$(dirname "$0")/.."
 mkdir -p assets
 
 BASE="https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW"
-PLATFORM="hf_20260824_010122_c520a369-f76c-434d-b275-02a07e2d6607.mp4"
-BI="hf_20260824_010047_7ea6e8c5-3f8c-4a73-ba09-4a7561069a3d.mp4"
+PLATFORM="hf_20260824_011907_3212f21a-c433-4267-aeae-14da76d5ddfe.mp4"
+BI="hf_20260824_011915_e8d3ed0c-815a-49c8-a06a-be037bb52bc9.mp4"
 
 get() {
   local url="$1" out="$2"
