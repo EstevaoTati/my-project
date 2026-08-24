@@ -1432,6 +1432,25 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   }
 }
 
+/* When a video is actually playing, lift the scrim: a background loop buried
+   under a 76-95% black wash is a cost with no benefit. The lift is modest and
+   deliberate — headings sit exactly where the centre of this gradient falls,
+   and washing them out was a real regression once before. Text contrast was
+   re-checked at these values, not assumed. */
+.site-bg.video-ready .site-bg-veil {
+  background:
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.60) 0%, rgba(5,5,7,.82) 55%, rgba(5,5,7,.9) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.46) 0%, rgba(5,5,7,.76) 55%, rgba(5,5,7,.88) 100%);
+}
+@media (max-width: 900px) {
+  /* Phones carry more text per pixel and are read in daylight — lift less. */
+  .site-bg.video-ready .site-bg-veil {
+    background:
+      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.54) 0%, rgba(5,5,7,.84) 60%, rgba(5,5,7,.92) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.6) 0%, rgba(5,5,7,.86) 100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }

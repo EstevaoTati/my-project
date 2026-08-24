@@ -20,13 +20,42 @@ first and the loop has no visible seam. 15 credits.
 
 They are **not in `assets/` yet**: the session that generated them could reach
 Higgsfield's upload bucket but not its output CDN (`d8j0ntlcm91z4.cloudfront.net`
-is refused by the network policy), so the bytes could not be pulled down. Save
-them from the Higgsfield library as `assets/hero-platform.mp4` and
-`assets/hero-bi.mp4`.
+is refused by the egress policy), so the bytes could not be pulled down. That is
+an organisation policy denial, not a bug to work around.
+
+From any machine with normal internet access:
+
+```bash
+bash scripts/fetch-hero-videos.sh
+```
+
+It writes both files under the right names, refuses to keep a truncated or
+error-page download, and prints the commit commands. If the CDN links have
+expired, save the two clips from the Higgsfield library by hand under exactly
+`assets/hero-platform.mp4` and `assets/hero-bi.mp4`.
+
+### Proven to autoplay once the files exist
+
+Not assumed — measured. With a real MP4 in place and Chromium's **default**
+autoplay policy (no permissive flag), on both pages: the video reaches
+`readyState 4`, starts with no user gesture, `currentTime` advances, the layer
+flips to `video-ready`, opacity reaches 1, it covers the viewport, it loops, it
+is muted, the CSS ignition retires and the poster stays underneath. 22
+assertions, 0 failures.
 
 The `<video>` elements are already in both pages and already point at those
 paths, so nothing else has to change — until the files land, the poster shows
 and the CSS ignition keeps running, which is exactly the behaviour today.
+
+### The scrim lifts while a video plays
+
+`.site-bg.video-ready .site-bg-veil` reduces the wash from 0.76–0.95 to
+0.60–0.90 (less again on phones). A background loop buried under a near-opaque
+black layer is a cost with no benefit. The lift is modest on purpose: headings
+sit exactly where the centre of that gradient falls, and washing them out was a
+real regression once before. Contrast was re-measured from rendered pixels over
+the playing video — **18:1 on the platform, 16.6:1 on the MVP**, both past WCAG
+AAA — rather than eyeballed.
 
 ## 1. Put the files here
 
