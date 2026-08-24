@@ -964,6 +964,16 @@
       return;
     }
 
+    // These clips are 8-12 MB. Autoplaying them costs a metered visitor real
+    // money, so honour the two signals a browser gives us about that. The
+    // poster stays, which is a complete experience on its own.
+    const net = navigator.connection;
+    if (net && (net.saveData === true || /^(slow-)?2g$/.test(net.effectiveType || ''))) {
+      video.removeAttribute('autoplay');
+      video.preload = 'none';
+      return;
+    }
+
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;

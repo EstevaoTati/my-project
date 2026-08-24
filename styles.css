@@ -1479,29 +1479,32 @@ body.has-video-bg .section-head,
 body.has-video-bg h2,
 body.has-video-bg h3,
 body.has-video-bg h4 {
-  text-shadow: 0 1px 12px rgba(5, 5, 7, .92), 0 0 4px rgba(5, 5, 7, .8);
+  text-shadow: 0 0 2px rgba(5,5,7,.95), 0 1px 6px rgba(5,5,7,.95), 0 2px 22px rgba(5,5,7,.9);
 }
 
-/* Zero global wash means the clip is uncovered everywhere — including behind
-   paragraphs, where measured contrast collapsed to 2.1:1 over a bright frame.
-   Rather than put the curtain back, the few text blocks that float directly on
-   the background get their own glass panel. The video stays at full strength
-   across every other pixel of the page, which is the entire point. */
-body.has-video-bg .section-head,
-body.has-video-bg .about-text {
-  background: linear-gradient(180deg, rgba(6, 7, 11, .78), rgba(6, 7, 11, .66));
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(212, 175, 55, .10);
-  border-radius: 20px;
-  padding: 26px 28px;
+/* No panel behind the text on this page. Measured on the artwork the clip is
+   generated from, the left column where the copy sits is essentially black —
+   luminance 0.004 median, 0.055 at the 95th percentile — so light text already
+   clears 8.9:1 with nothing behind it. A panel here would darken the page and
+   buy no legibility, which is the opposite of what is wanted. The glyph halo
+   above stays as cheap insurance for the brief ignition flare. */
+
+/* The artwork's subject is bright and sits centre-right — exactly under these
+   controls. Outlined buttons that read fine on a dark page wash out over it.
+   A backdrop only while a video plays: they stay ghost buttons on the still. */
+body.has-video-bg .btn-ghost,
+body.has-video-bg .btn-bi {
+  background: rgba(8, 9, 14, .58);
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  backdrop-filter: blur(14px) saturate(125%);
 }
-@supports not (backdrop-filter: blur(2px)) {
-  /* No blur support: lean on opacity alone rather than ship unreadable text. */
-  body.has-video-bg .section-head,
-  body.has-video-bg .about-text {
-    background: linear-gradient(180deg, rgba(6, 7, 11, .9), rgba(6, 7, 11, .84));
-  }
+body.has-video-bg .btn-ghost:hover,
+body.has-video-bg .btn-bi:hover { background: rgba(8, 9, 14, .74); }
+
+/* Same reason: the lede's last lines run under the bulb. */
+body.has-video-bg .hero-sub,
+body.has-video-bg .hero-tag {
+  text-shadow: 0 0 3px rgba(5,5,7,.98), 0 1px 8px rgba(5,5,7,.95), 0 2px 24px rgba(5,5,7,.92);
 }
 
 @media (prefers-reduced-motion: reduce) {
