@@ -98,41 +98,59 @@ The `<video>` elements are already in both pages and already point at those
 paths, so nothing else has to change — until the files land, the poster shows
 and the CSS ignition keeps running, which is exactly the behaviour today.
 
-### No global scrim at all while a video plays
+### No scrim, and no panel where the artwork is already dark
 
-`.site-bg.video-ready .site-bg-veil { background: none }`. Top to bottom, the
-clip is the background at full strength — nothing is laid over it.
+`.site-bg.video-ready .site-bg-veil { background: none }`. Nothing is laid over
+the clip.
 
-That is only possible because legibility is solved where the problem actually
-is. Measured over a worst-case bright frame with the wash removed and nothing
-else changed, body copy fell to **2.1:1** on the platform and **2.4:1** on the
-MVP — unreadable. Two local measures fix it without covering a single pixel
-that has no text on it:
+Whether anything is needed *behind the text* was settled by measuring the
+artwork the clips are generated from — the one thing that could be decoded in
+the sandbox (see the codec note below):
 
-1. **A shadow on the glyphs.** It travels with the type, so the image shows
-   through between the words.
-2. **A glass panel behind the few blocks that float directly on the
-   background** — `.section-head` and `.about-text` on the platform, the
-   free-standing `.sub`, `.lede` and `.eyebrow` on the MVP. Most MVP copy
-   already sits inside `.panel`, which is opaque, so it needed nothing.
-   `backdrop-filter: blur(12px)` with an `@supports` fallback to plain opacity,
-   because shipping unreadable text to a browser without blur support is not an
-   acceptable degradation.
+| | Text column, median | 95th percentile | Unaided contrast |
+|---|---|---|---|
+| Platform | 0.004 | 0.055 | **8.9 : 1** |
+| MVP | 0.023 | 0.537 | **1.6 : 1** |
 
-The panels are a visible design change, and a deliberate one: the alternative
-was a darker page, which is what the brief ruled out.
+So the two pages get different answers, and that is the point of measuring:
 
-Measured from rendered pixels against a **full-frame white flare**, far harsher
-than either real clip:
+- **The platform has no panel at all.** The left column where its copy sits is
+  essentially black. A panel there would darken the page and buy nothing.
+- **The MVP keeps one.** Its artwork has a bright region overlapping the text
+  column, where light copy would otherwise sit at 1.6:1.
 
-| Page | Hero headline | Body copy |
-|---|---|---|
-| Platform | 17.0 : 1 | 5.0 : 1 |
-| MVP | 5.0 : 1 | 5.9 : 1 |
+Verified on the real artwork with the video state forced on: platform body copy
+**9.0:1**, MVP hero **12.8:1**, MVP body **7.9:1**.
 
-Every value clears WCAG AA. `body.past-hero` still toggles on scroll — it now
-drives nothing visual, and is kept only because removing a class other rules
-may key off later is not worth the churn.
+### Where the aggregate number lied
+
+The hero measurement samples the left column, which is dark, so it passed while
+the render showed the outlined buttons washing out over the bulb — which sits
+centre-right, exactly under them. The metric compares the brightest and darkest
+pixels in an element's box and assumes the brightest are the glyphs; over a
+bright subject with gold type that assumption inverts and reports a comfortable
+ratio for something unreadable.
+
+**Look at the render.** `.btn-ghost` and `.btn-bi` now take a blurred backdrop
+while a video plays, and the hero lede and eyebrow carry a heavier halo.
+
+### The clips are large
+
+12 MB and 8 MB. `preload="metadata"` limits the initial fetch, but autoplay
+means a visitor downloads the whole file. `script.js` and `bi.js` therefore skip
+starting the video entirely when `navigator.connection.saveData` is set or the
+effective type is 2g — the poster is a complete experience on its own. Re-encode
+smaller when convenient; the target in this file has always been under 4 MB.
+
+### Why the clips could not be viewed in the sandbox
+
+They are H.264 **Main profile, level 3.2** — as conservative and widely
+supported as video gets. The Chromium build available here is the open-source
+one, which ships without proprietary codecs, so it answers
+`DEMUXER_ERROR_NO_SUPPORTED_STREAMS`. The files are correct: valid `ftyp`,
+`moov` before `mdat` (fast-start), H.264/AVC. Chrome, Safari, Edge and Firefox
+play them. Nothing about their content could be verified here, which is why the
+artwork was measured instead.
 
 ### Playing forever is enforced, not assumed
 

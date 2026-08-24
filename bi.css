@@ -593,7 +593,7 @@ body.has-video-bg .meta,
 body.has-video-bg h2,
 body.has-video-bg h3,
 body.has-video-bg h4 {
-  text-shadow: 0 1px 12px rgba(5, 5, 7, .92), 0 0 4px rgba(5, 5, 7, .8);
+  text-shadow: 0 0 2px rgba(5,5,7,.95), 0 1px 6px rgba(5,5,7,.95), 0 2px 22px rgba(5,5,7,.9);
 }
 
 /* The scrim is thin so the clip stays visible; that leaves the DIM copy as the
@@ -615,9 +615,9 @@ body.has-video-bg .meta {
 body.has-video-bg .step > .sub,
 body.has-video-bg .hero .lede,
 body.has-video-bg .hero .eyebrow {
-  background: linear-gradient(180deg, rgba(6, 7, 11, .78), rgba(6, 7, 11, .66));
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
+  background: linear-gradient(180deg, rgba(6, 7, 11, .66), rgba(6, 7, 11, .56));
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  backdrop-filter: blur(14px) saturate(125%);
   border-radius: 14px;
   padding: 14px 18px;
 }
@@ -625,7 +625,7 @@ body.has-video-bg .hero .eyebrow {
   body.has-video-bg .step > .sub,
   body.has-video-bg .hero .lede,
   body.has-video-bg .hero .eyebrow {
-    background: linear-gradient(180deg, rgba(6, 7, 11, .9), rgba(6, 7, 11, .84));
+    background: linear-gradient(180deg, rgba(6, 7, 11, .66), rgba(6, 7, 11, .56));
   }
 }
 

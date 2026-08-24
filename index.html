@@ -22,15 +22,7 @@
        place rather than a black rectangle. See docs/hero-video.md. -->
   <video autoplay muted loop playsinline preload="metadata"
          poster="assets/hero-platform.jpg">
-    <!-- Local file first. Until it is committed the browser falls through to
-         the Higgsfield CDN copy, so the clip plays today instead of waiting.
-         Once assets/hero-platform.mp4 exists it wins and the third-party
-         source is never fetched — at which point delete the second <source>
-         and drop the host from media-src in scripts/update-csp.mjs. A
-         background that depends on someone else's CDN can be pulled out from
-         under the site. -->
     <source src="assets/hero-platform.mp4" type="video/mp4" />
-    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260824_011907_3212f21a-c433-4267-aeae-14da76d5ddfe.mp4" type="video/mp4" />
   </video>
   <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
   <div class="site-bg-ignite"></div>
