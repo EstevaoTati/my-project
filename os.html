@@ -12,9 +12,11 @@
 <body>
 
 <div class="site-bg" aria-hidden="true">
-  <!-- Drop assets/hero-platform.mp4 in and add a <video> here; .site-bg video is
-       already styled to cover, sit above the poster and retire the CSS
-       ignition. See docs/hero-video.md. -->
+  <!-- To put the clip here: add the <video> above the poster and load
+       video-bg.js. .site-bg video is already styled to cover, sit above the
+       poster and retire the CSS ignition once it is playing. Left as the still
+       on purpose — this page is the founder console, not a showcase.
+       See docs/hero-video.md. -->
   <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>
@@ -492,9 +494,13 @@
   will-change: transform;
   animation: siteDrift 46s ease-in-out infinite alternate;
 }
-.site-bg video { z-index: 1; }
-.site-bg video + .site-bg-img { display: none; }
-.site-bg video ~ .site-bg-ignite { display: none; }
+/* Same contract as the other pages: the poster stays beneath permanently and
+   the video fades in only once it is genuinely playing. Keying this off the
+   element's mere presence would let a 404, a rejected codec or a refused
+   autoplay hide the artwork and leave a black rectangle. */
+.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+.site-bg.video-ready video { opacity: 1; }
+.site-bg.video-ready .site-bg-ignite { display: none; }
 
 @keyframes siteDrift {
   from { transform: scale(1.08) translate3d(-1%, -0.6%, 0); }

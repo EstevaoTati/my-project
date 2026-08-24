@@ -154,6 +154,15 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.
+- `video-bg.js` — the background video, shared by `index.html` and `bi.html`.
+  One implementation on purpose: `autoplay muted loop playsinline` is not
+  enough on its own, and two copies of the recovery logic drift. It restarts on
+  every signal that playback stopped, runs a watchdog for the stalls that emit
+  no event, waits for a human gesture once the browser has genuinely refused
+  (iOS Low Power Mode), and stands down entirely under `prefers-reduced-motion`
+  or a data saver. **The poster is never removed** — the video is revealed only
+  on the `playing` event, so every failure shows the artwork. See
+  `docs/hero-video.md`.
 - `i18n.js` — FR/EN translation engine and dictionary (see below).
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.

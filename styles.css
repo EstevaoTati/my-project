@@ -1238,7 +1238,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
    was wrong: a 404, a codec the browser rejects, a stalled connection or a
    mobile browser refusing autoplay would each hide the artwork and leave a
    black rectangle. The poster now stays underneath permanently, so the worst
-   case is the background we already ship. script.js adds .video-ready. */
+   case is the background we already ship. video-bg.js adds .video-ready. */
 .hero-media video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
 .hero-media.video-ready video { opacity: 1; }
 
@@ -1593,7 +1593,7 @@ body.has-video-bg .nav { background: rgba(8, 9, 14, .82); }
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
   .site-bg-ignite::after  { animation: none; opacity: .3; }
-  /* Reduced motion: the video is never started (script.js checks the same
+  /* Reduced motion: the video is never started (video-bg.js checks the same
      query), and is hidden here so a browser that autoplays anyway cannot
      override the preference. */
   .site-bg video, .hero-media video { display: none; }

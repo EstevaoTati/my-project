@@ -949,83 +949,8 @@
     }
   }
 
-  /* ---------- Background video ----------
-     Same contract as the main site: autoplay is only permitted for muted
-     video, and even then a browser may refuse, a file may 404, or a codec may
-     be unsupported. The poster stays underneath and the video is revealed only
-     on `playing` — the one signal meaning frames are actually on screen. */
-  function initBackgroundVideo(video) {
-    const layer = video.parentElement;
-    if (!layer) return;
+  /* Background video: video-bg.js, shared by both pages. */
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      video.removeAttribute('autoplay');
-      video.pause();
-      return;
-    }
-
-    // These clips are 8-12 MB. Autoplaying them costs a metered visitor real
-    // money, so honour the two signals a browser gives us about that. The
-    // poster stays, which is a complete experience on its own.
-    const net = navigator.connection;
-    if (net && (net.saveData === true || /^(slow-)?2g$/.test(net.effectiveType || ''))) {
-      video.removeAttribute('autoplay');
-      video.preload = 'none';
-      return;
-    }
-
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-    video.loop = true;
-
-    const reveal = () => {
-      layer.classList.add('video-ready');
-      // Also on <body>, so text protection is a plain selector rather than a
-      // chain of sibling combinators.
-      document.body.classList.add('has-video-bg');
-    };
-    video.addEventListener('playing', reveal, { once: true });
-    video.addEventListener('error', () => {
-      layer.classList.remove('video-ready');
-      document.body.classList.remove('has-video-bg');
-    });
-
-    const attempt = () => {
-      const p = video.play();
-      if (p && typeof p.catch === 'function') p.catch(() => { /* poster stands in */ });
-    };
-    attempt();
-
-    // "Play forever" is not something `loop` alone guarantees. A background
-    // video gets paused by things the page never hears about: a tab losing
-    // focus, iOS Low Power Mode, a data saver, a decoder dropped under memory
-    // pressure, or a stall that ends the stream early. Each leaves a frozen
-    // frame that looks like a bug. Restart on every signal that it stopped,
-    // plus a slow watchdog for the stalls that emit no event at all.
-    video.addEventListener('pause', () => { if (!document.hidden) attempt(); });
-    video.addEventListener('ended', attempt);      // fires if `loop` is ever lost
-    video.addEventListener('stalled', attempt);
-    video.addEventListener('suspend', () => { if (video.paused) attempt(); });
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && video.paused) attempt();
-    });
-
-    let lastTime = -1;
-    setInterval(() => {
-      if (document.hidden) return;
-      if (video.paused) { attempt(); return; }
-      // Playing but the clock has not moved: the decoder is wedged. Nudging
-      // currentTime forces a re-seek.
-      if (video.currentTime === lastTime && video.readyState >= 2) {
-        video.currentTime = 0;
-        attempt();
-      }
-      lastTime = video.currentTime;
-    }, 4000);
-  }
-  document.querySelectorAll('.site-bg video').forEach(initBackgroundVideo);
 
   /* ---------- Reading scrim ----------
      The hero shows the video at roughly 90% strength. Every section below it is
