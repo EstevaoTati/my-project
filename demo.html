@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MWINDA GROUP — Live Preview · Desktop &amp; Mobile</title>
+  <title>MWINDA DIGITAL — Live Preview · Desktop &amp; Mobile</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -239,7 +239,7 @@
         <rect x="40" y="84" width="20" height="4" rx="1.5" opacity=".8"/>
         <rect x="42" y="89" width="16" height="3" rx="1.5" opacity=".6"/>
       </svg>
-      <span class="brand-stack">MWINDA GROUP<small>Live Preview</small></span>
+      <span class="brand-stack">MWINDA DIGITAL<small>Live Preview</small></span>
     </div>
 
     <div class="switcher" role="tablist">
@@ -263,17 +263,21 @@
   <main class="stage">
     <div class="frame desktop">
       <span class="frame-label">DESKTOP · 1280px</span>
-      <iframe src="preview.html" title="Mwinda Group Desktop Preview" loading="lazy"></iframe>
+      <!-- index.html, not preview.html: that file is a self-contained snapshot
+           that no longer tracks the live site — it still loads three.js and still
+           shows the 3D hero shapes that were removed. A demo that previews a
+           stale copy is worse than no demo. -->
+      <iframe src="index.html" title="MWINDA DIGITAL — desktop preview" loading="lazy"></iframe>
     </div>
 
     <div class="frame mobile">
       <span class="frame-label">MOBILE · 390px</span>
-      <iframe src="preview.html" title="Mwinda Group Mobile Preview" loading="lazy"></iframe>
+      <iframe src="index.html" title="MWINDA DIGITAL — mobile preview" loading="lazy"></iframe>
     </div>
   </main>
 
   <footer class="foot">
-    © <span id="y"></span> MWINDA GROUP LLC — <a href="preview.html" target="_blank">Ouvrir en plein écran</a>
+    © <span id="y"></span> MWINDA DIGITAL — <a href="index.html" target="_blank">Ouvrir en plein écran</a>
   </footer>
 
   <script>
