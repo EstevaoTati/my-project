@@ -1443,29 +1443,17 @@ section { position: relative; padding: 140px 0; z-index: 1; }
    moving image and needs the full scrim back. script.js/bi.js add
    .past-hero once the hero is scrolled away. */
 .site-bg.video-ready .site-bg-veil {
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 34%, rgba(5,5,7,.06) 0%, rgba(5,5,7,.16) 60%, rgba(5,5,7,.30) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.05) 0%, rgba(5,5,7,.14) 55%, rgba(5,5,7,.28) 100%);
+  /* No wash at all: while a video plays the clip is the background, full
+     strength, top to bottom. Legibility is handled entirely at the glyph
+     level below — a shadow that travels with the type, so the image stays
+     uncovered everywhere there is no text. */
+  background: none;
   transition: background .45s ease;
 }
 /* Reading position: the scrim comes back so body copy stays legible. */
-body.past-hero .site-bg.video-ready .site-bg-veil {
-  background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.20) 0%, rgba(5,5,7,.40) 55%, rgba(5,5,7,.54) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.16) 0%, rgba(5,5,7,.38) 55%, rgba(5,5,7,.54) 100%);
-}
+
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
-  .site-bg.video-ready .site-bg-veil {
-    background:
-      radial-gradient(ellipse 100% 50% at 50% 24%, rgba(5,5,7,.10) 0%, rgba(5,5,7,.24) 60%, rgba(5,5,7,.38) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.10) 0%, rgba(5,5,7,.34) 100%);
-  }
-  body.past-hero .site-bg.video-ready .site-bg-veil {
-    background:
-      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.26) 0%, rgba(5,5,7,.50) 60%, rgba(5,5,7,.64) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.30) 0%, rgba(5,5,7,.58) 100%);
-  }
 }
 
 /* During the clip's bright burst the veil alone is not enough to guarantee
@@ -1492,6 +1480,28 @@ body.has-video-bg h2,
 body.has-video-bg h3,
 body.has-video-bg h4 {
   text-shadow: 0 1px 12px rgba(5, 5, 7, .92), 0 0 4px rgba(5, 5, 7, .8);
+}
+
+/* Zero global wash means the clip is uncovered everywhere — including behind
+   paragraphs, where measured contrast collapsed to 2.1:1 over a bright frame.
+   Rather than put the curtain back, the few text blocks that float directly on
+   the background get their own glass panel. The video stays at full strength
+   across every other pixel of the page, which is the entire point. */
+body.has-video-bg .section-head,
+body.has-video-bg .about-text {
+  background: linear-gradient(180deg, rgba(6, 7, 11, .78), rgba(6, 7, 11, .66));
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(212, 175, 55, .10);
+  border-radius: 20px;
+  padding: 26px 28px;
+}
+@supports not (backdrop-filter: blur(2px)) {
+  /* No blur support: lean on opacity alone rather than ship unreadable text. */
+  body.has-video-bg .section-head,
+  body.has-video-bg .about-text {
+    background: linear-gradient(180deg, rgba(6, 7, 11, .9), rgba(6, 7, 11, .84));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
