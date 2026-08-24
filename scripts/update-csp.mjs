@@ -43,6 +43,12 @@ function buildPolicy(frameAncestors) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data:",
+    // The background clips live on Higgsfield's CDN as a fallback source, so
+    // they play before the mp4s are committed locally. media-src would
+    // otherwise inherit default-src 'self' and block them. Drop this host once
+    // assets/hero-*.mp4 are in the repo — a self-hosted background has no
+    // third-party dependency and cannot be pulled out from under the site.
+    "media-src 'self' https://d8j0ntlcm91z4.cloudfront.net",
     "connect-src 'self'",
     "form-action 'self' https://wa.me",
     `frame-ancestors ${frameAncestors}`,
