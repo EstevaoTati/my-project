@@ -45,6 +45,29 @@ error-page download, and prints the commit commands. If the CDN links have
 expired, save the two clips from the Higgsfield library by hand under exactly
 `assets/hero-platform.mp4` and `assets/hero-bi.mp4`.
 
+### The CDN copy is a stand-in, not the plan
+
+Each `<video>` carries two `<source>` elements: the local file first, the
+Higgsfield CDN copy second. Browsers try them in order, so the clip plays today
+instead of waiting for the download, and the moment `assets/hero-*.mp4` are
+committed the local file wins and the third-party URL is never fetched.
+
+**Remove the second `<source>` once the files are committed**, and drop the host
+from `media-src` in `scripts/update-csp.mjs`. A background that depends on
+someone else's CDN can be pulled out from under the site — that is the whole
+reason the local file is listed first.
+
+Verified both ways in a browser: with no local file the page falls through to
+the CDN source, decodes frames, autoplays without a gesture and reaches full
+opacity; with a local file present it plays that one and the CDN is **never
+requested** (0 hits).
+
+**One thing that could not be verified from here:** whether the CloudFront URL
+is publicly readable. That host is refused by this environment's egress policy,
+so the check has to happen in a real browser. If it turns out to need auth or to
+expire, the failure is safe — `.video-ready` never fires and the poster stays,
+exactly as today.
+
 ### A missing asset now 404s
 
 `_redirects` and `netlify.toml` both send `/assets/*` to a **404** when no real
