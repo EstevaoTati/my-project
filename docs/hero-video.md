@@ -77,6 +77,25 @@ Prompts that match the brief, one per page:
 Ask for **no audio**: the file is muted in the browser regardless, and an audio
 track is dead weight in a background loop.
 
+## The Three.js hero is gone
+
+`index.html` used to carry a gold wireframe icosahedron with orbital rings over
+the hero, plus a full-page gold particle field, both drawn with Three.js. Both
+were removed: the background artwork — and the video, once one is dropped in —
+is now the only thing behind the page, and two competing gold light sources
+fought each other for the reader's eye.
+
+Consequences worth knowing:
+
+- `index.html` no longer loads the three.js CDN script at all. That is the
+  heaviest dependency the page had.
+- `cdnjs.cloudflare.com` stays in the CSP because **`preview.html` still loads
+  three.js**. That file is the self-contained snapshot of the site and does not
+  track changes to the external assets — it is now stale in this respect, as
+  `CLAUDE.md` warns it can be. Regenerate or retire it when convenient.
+- The hero is not empty without it: `.site-bg` carries the bulb artwork with a
+  46 s drift and a 7.5 s ignition loop, both running today.
+
 ## What is there in the meantime
 
 Until an mp4 exists, `.hero-media-ignite` runs the ignition in CSS: a 7.5 s
