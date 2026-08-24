@@ -1451,8 +1451,8 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 /* Reading position: the scrim comes back so body copy stays legible. */
 body.past-hero .site-bg.video-ready .site-bg-veil {
   background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.42) 0%, rgba(5,5,7,.70) 55%, rgba(5,5,7,.84) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.34) 0%, rgba(5,5,7,.66) 55%, rgba(5,5,7,.84) 100%);
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.20) 0%, rgba(5,5,7,.40) 55%, rgba(5,5,7,.54) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.16) 0%, rgba(5,5,7,.38) 55%, rgba(5,5,7,.54) 100%);
 }
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
@@ -1463,8 +1463,8 @@ body.past-hero .site-bg.video-ready .site-bg-veil {
   }
   body.past-hero .site-bg.video-ready .site-bg-veil {
     background:
-      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.46) 0%, rgba(5,5,7,.76) 60%, rgba(5,5,7,.88) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.50) 0%, rgba(5,5,7,.82) 100%);
+      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.26) 0%, rgba(5,5,7,.50) 60%, rgba(5,5,7,.64) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.30) 0%, rgba(5,5,7,.58) 100%);
   }
 }
 
@@ -1476,6 +1476,22 @@ body.past-hero .site-bg.video-ready .site-bg-veil {
 .site-bg.video-ready ~ * .hero-sub,
 .site-bg.video-ready ~ * .hero-tag {
   text-shadow: 0 2px 26px rgba(5, 5, 7, .95), 0 1px 8px rgba(5, 5, 7, .9), 0 0 3px rgba(5, 5, 7, .75);
+}
+
+/* With the reading scrim thinned so the clip stays visible while scrolling,
+   body copy needs its own protection. A shadow travels with the glyphs, so the
+   video shows through everywhere between the words — which a darker page-wide
+   curtain cannot do. Applied only when a video is actually playing. */
+body.has-video-bg p,
+body.has-video-bg li,
+body.has-video-bg dd,
+body.has-video-bg .lead,
+body.has-video-bg .section-title,
+body.has-video-bg .section-head,
+body.has-video-bg h2,
+body.has-video-bg h3,
+body.has-video-bg h4 {
+  text-shadow: 0 1px 12px rgba(5, 5, 7, .92), 0 0 4px rgba(5, 5, 7, .8);
 }
 
 @media (prefers-reduced-motion: reduce) {

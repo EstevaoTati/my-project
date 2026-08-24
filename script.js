@@ -281,10 +281,18 @@
     video.playsInline = true;
     video.loop = true;
 
-    const reveal = () => layer.classList.add('video-ready');
+    const reveal = () => {
+      layer.classList.add('video-ready');
+      // Also on <body>, so text protection is a plain selector rather than a
+      // chain of sibling combinators.
+      document.body.classList.add('has-video-bg');
+    };
     video.addEventListener('playing', reveal, { once: true });
     // A failure of any kind simply leaves the poster in place.
-    video.addEventListener('error', () => layer.classList.remove('video-ready'));
+    video.addEventListener('error', () => {
+      layer.classList.remove('video-ready');
+      document.body.classList.remove('has-video-bg');
+    });
 
     const attempt = () => {
       const p = video.play();
@@ -292,11 +300,37 @@
     };
     attempt();
 
-    // Some browsers pause a background video when the tab loses focus and do
-    // not resume it. Nudge it back when the tab returns.
+    // "Play forever" is not something `loop` alone guarantees. A background
+    // video gets paused by things the page never hears about: a tab losing
+    // focus, iOS Low Power Mode, a data saver, a decoder dropped under memory
+    // pressure, or a stall that ends the stream early. Each of those leaves a
+    // frozen frame that looks like a bug.
+    //
+    // So: restart on every signal that it stopped, plus a slow watchdog for
+    // the stalls that emit no event at all. play() on an already-playing video
+    // is a no-op, and the rejection is swallowed, so this is safe to call
+    // often — it is deliberately infrequent all the same.
+    video.addEventListener('pause', () => { if (!document.hidden) attempt(); });
+    video.addEventListener('ended', attempt);      // fires if `loop` is ever lost
+    video.addEventListener('stalled', attempt);
+    video.addEventListener('suspend', () => { if (video.paused) attempt(); });
+
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && video.paused) attempt();
     });
+
+    let lastTime = -1;
+    setInterval(() => {
+      if (document.hidden) return;
+      if (video.paused) { attempt(); return; }
+      // Playing but the clock has not moved since the last check: the decoder
+      // is wedged. Nudging currentTime forces it to re-seek and resume.
+      if (video.currentTime === lastTime && video.readyState >= 2) {
+        video.currentTime = 0;
+        attempt();
+      }
+      lastTime = video.currentTime;
+    }, 4000);
   }
 
   document.querySelectorAll('.site-bg video, .hero-media video').forEach(initBackgroundVideo);
