@@ -567,8 +567,8 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
    Measured, not guessed, and corrected here rather than by dimming the type. */
 body.past-hero .site-bg.video-ready .site-bg-veil {
   background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.58) 0%, rgba(5,5,7,.82) 55%, rgba(5,5,7,.92) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.52) 0%, rgba(5,5,7,.80) 55%, rgba(5,5,7,.92) 100%);
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.30) 0%, rgba(5,5,7,.52) 55%, rgba(5,5,7,.66) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.26) 0%, rgba(5,5,7,.50) 55%, rgba(5,5,7,.66) 100%);
 }
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
@@ -589,6 +589,37 @@ body.past-hero .site-bg.video-ready .site-bg-veil {
 .site-bg.video-ready ~ * .lede,
 .site-bg.video-ready ~ * .eyebrow {
   text-shadow: 0 2px 26px rgba(5, 5, 7, .95), 0 1px 8px rgba(5, 5, 7, .9), 0 0 3px rgba(5, 5, 7, .75);
+}
+
+/* With the reading scrim thinned so the clip stays visible while scrolling,
+   body copy needs its own protection. A shadow travels with the glyphs, so the
+   video shows through everywhere between the words — which a darker page-wide
+   curtain cannot do. Applied only when a video is actually playing. */
+body.has-video-bg p,
+body.has-video-bg li,
+body.has-video-bg dd,
+body.has-video-bg .lede,
+body.has-video-bg .sub,
+body.has-video-bg .req,
+body.has-video-bg .meta,
+body.has-video-bg h2,
+body.has-video-bg h3,
+body.has-video-bg h4 {
+  text-shadow: 0 1px 12px rgba(5, 5, 7, .92), 0 0 4px rgba(5, 5, 7, .8);
+}
+
+/* The scrim is thin so the clip stays visible; that leaves the DIM copy as the
+   binding constraint, not the video. --mute (#a39c8b) measured 3.5:1 over a
+   worst-case bright frame — under WCAG AA — so the type is brightened while a
+   video plays rather than the background darkened back down. Fixing the
+   contrast where it is actually weak keeps the video visible, which is the
+   whole point of the change. */
+body.has-video-bg .sub,
+body.has-video-bg .lede,
+body.has-video-bg .hint,
+body.has-video-bg .footnote,
+body.has-video-bg .meta {
+  color: #ddd6c6;
 }
 
 @media (prefers-reduced-motion: reduce) {

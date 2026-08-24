@@ -969,17 +969,51 @@
     video.playsInline = true;
     video.loop = true;
 
-    video.addEventListener('playing', () => layer.classList.add('video-ready'), { once: true });
-    video.addEventListener('error', () => layer.classList.remove('video-ready'));
+    const reveal = () => {
+      layer.classList.add('video-ready');
+      // Also on <body>, so text protection is a plain selector rather than a
+      // chain of sibling combinators.
+      document.body.classList.add('has-video-bg');
+    };
+    video.addEventListener('playing', reveal, { once: true });
+    video.addEventListener('error', () => {
+      layer.classList.remove('video-ready');
+      document.body.classList.remove('has-video-bg');
+    });
 
     const attempt = () => {
       const p = video.play();
       if (p && typeof p.catch === 'function') p.catch(() => { /* poster stands in */ });
     };
     attempt();
+
+    // "Play forever" is not something `loop` alone guarantees. A background
+    // video gets paused by things the page never hears about: a tab losing
+    // focus, iOS Low Power Mode, a data saver, a decoder dropped under memory
+    // pressure, or a stall that ends the stream early. Each leaves a frozen
+    // frame that looks like a bug. Restart on every signal that it stopped,
+    // plus a slow watchdog for the stalls that emit no event at all.
+    video.addEventListener('pause', () => { if (!document.hidden) attempt(); });
+    video.addEventListener('ended', attempt);      // fires if `loop` is ever lost
+    video.addEventListener('stalled', attempt);
+    video.addEventListener('suspend', () => { if (video.paused) attempt(); });
+
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && video.paused) attempt();
     });
+
+    let lastTime = -1;
+    setInterval(() => {
+      if (document.hidden) return;
+      if (video.paused) { attempt(); return; }
+      // Playing but the clock has not moved: the decoder is wedged. Nudging
+      // currentTime forces a re-seek.
+      if (video.currentTime === lastTime && video.readyState >= 2) {
+        video.currentTime = 0;
+        attempt();
+      }
+      lastTime = video.currentTime;
+    }, 4000);
   }
   document.querySelectorAll('.site-bg video').forEach(initBackgroundVideo);
 

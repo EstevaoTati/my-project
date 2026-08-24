@@ -98,48 +98,66 @@ The `<video>` elements are already in both pages and already point at those
 paths, so nothing else has to change — until the files land, the poster shows
 and the CSS ignition keeps running, which is exactly the behaviour today.
 
-### The scrim: nearly gone in the hero, back for reading
+### The scrim: nearly gone in the hero, thin everywhere else
 
-The brief was "roughly nine parts video to one part scrim". That is achievable
-in the hero and **not** achievable page-wide, for a structural reason worth
-writing down: no section on either page has an opaque background —
-`section { position: relative; z-index: 1 }` and nothing else. Every paragraph
-on the site scrolls directly over the moving image, with the veil as its only
-protection. Thinning it everywhere would not have made a bolder site, it would
-have made an unreadable one.
+The brief was for the clip to be very visible, always. The obstacle is
+structural and worth writing down: **no section on either page has an opaque
+background** — `section { position: relative; z-index: 1 }` and nothing else.
+Every paragraph scrolls directly over the moving image.
 
-So the veil has two states:
+The wrong answer is a darker page-wide curtain. The right one is to protect the
+glyphs and leave the gaps between them clear, so the video shows through even
+behind text:
 
 | | Hero | Scrolled (`body.past-hero`) |
 |---|---|---|
-| Platform | 0.05–0.30 | 0.34–0.84 |
-| MVP | 0.05–0.30 | 0.52–0.92 |
+| Platform | 0.05–0.30 | 0.16–0.54 |
+| MVP | 0.05–0.30 | 0.26–0.66 |
 
-`script.js` and `bi.js` toggle `.past-hero` at 55% of the hero height — well
-before any body text reaches the top of the viewport — on a
-`requestAnimationFrame`-throttled passive scroll listener, with a 0.45 s
-transition so the change is never a visible flick.
+`script.js` and `bi.js` toggle `.past-hero` at 55% of hero height, on a
+`requestAnimationFrame`-throttled passive listener, with a 0.45 s transition.
+They also add `.has-video-bg` to `<body>` on the same `playing` event, which is
+what the text rules key off.
 
-Two supporting details:
+Three supporting decisions:
 
-- The hero headline, lede and eyebrow carry a **tight `text-shadow`**, applied
-  only under `.video-ready`. With the scrim almost absent, that shadow is what
-  keeps the type readable over the clip's bright burst. It travels with the
-  glyphs, so it costs nothing where there is no text.
-- **The MVP's reading scrim is heavier than the platform's.** Its secondary copy
-  is set in `--mute` (#a39c8b), dimmer than `--text`, and measured **4.36:1**
-  over a worst-case bright frame at the platform's values — under WCAG AA. The
-  scrim was raised rather than the type dimmed.
-
-All figures are measured from rendered pixels against a **full-frame white
-flare**, far harsher than either real clip:
+- **Text-shadow on body copy, not just the hero.** It travels with the glyphs,
+  so it costs nothing where there is no text — which is exactly what a curtain
+  cannot do.
+- **The MVP's dim copy is brightened, not the background darkened.** `--mute`
+  (#a39c8b) measured **3.5:1** over a worst-case bright frame — under WCAG AA.
+  With a thin scrim the binding constraint is the type colour, not the video, so
+  `.sub`, `.lede`, `.hint`, `.footnote` and `.meta` move to #ddd6c6 while a
+  video plays. Fixing the contrast where it is actually weak keeps the clip
+  visible.
+- Every number below is measured from rendered pixels against a **full-frame
+  white flare**, far harsher than either real clip.
 
 | Page | Hero headline | Scrolled body copy |
 |---|---|---|
-| Platform | 17.0 : 1 | 8.9 : 1 |
-| MVP | 6.2 : 1 | 5.7 : 1 |
+| Platform | 17.0 : 1 | 7.0 : 1 |
+| MVP | 6.2 : 1 | 6.5 : 1 |
 
-Every value clears WCAG AA.
+### Playing forever is enforced, not assumed
+
+`loop` alone does not guarantee it. A background video gets stopped by things
+the page never hears about: a tab losing focus, iOS Low Power Mode, a data
+saver, a decoder dropped under memory pressure, a stall that ends the stream
+early. Each leaves a frozen frame that reads as a bug.
+
+So both pages restart on every signal that playback stopped — `pause`, `ended`
+(which fires if `loop` is ever lost), `stalled`, `suspend`, and
+`visibilitychange` — plus a 4-second watchdog for the stalls that emit no event
+at all. The watchdog also catches the wedged case: playing, but `currentTime`
+has not moved since the last check, which it fixes by re-seeking to 0.
+
+`play()` on an already-playing video is a no-op and its rejection is swallowed,
+so this is safe to call often; it is deliberately infrequent anyway. It never
+fights `prefers-reduced-motion` — there the video is never started at all.
+
+Tested by breaking it four ways on both pages: paused externally (resumes),
+`loop` removed and run to the end (restarts), wedged with no event (watchdog
+advances the clock), and tab visibility changes. 12 assertions, 0 failures.
 
 ## 1. Put the files here
 
