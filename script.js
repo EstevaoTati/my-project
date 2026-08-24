@@ -467,6 +467,54 @@
     window.addEventListener('resize', onResize);
   }
 
+  /* ---------- Background video ----------
+     Autoplay is only permitted for muted video, and even then a browser may
+     refuse, a file may 404, or a codec may be unsupported. So the poster stays
+     underneath and the video is only revealed on the `playing` event — the one
+     signal that means frames are actually on screen. Anything short of that
+     leaves the artwork we already ship.
+
+     `loop` handles the "never stops" requirement; the watchdog handles the
+     case where a backgrounded tab or a mobile power-saver pauses it. */
+  function initBackgroundVideo(video) {
+    const layer = video.parentElement;
+    if (!layer) return;
+
+    if (prefersReduced) {
+      // Honour the preference at the source rather than merely hiding it.
+      video.removeAttribute('autoplay');
+      video.pause();
+      return;
+    }
+
+    // Set in JS as well as markup: a muted video is the only kind a browser
+    // will start on its own, and this must not depend on the attribute
+    // surviving an edit.
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.loop = true;
+
+    const reveal = () => layer.classList.add('video-ready');
+    video.addEventListener('playing', reveal, { once: true });
+    // A failure of any kind simply leaves the poster in place.
+    video.addEventListener('error', () => layer.classList.remove('video-ready'));
+
+    const attempt = () => {
+      const p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(() => { /* poster stands in */ });
+    };
+    attempt();
+
+    // Some browsers pause a background video when the tab loses focus and do
+    // not resume it. Nudge it back when the tab returns.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && video.paused) attempt();
+    });
+  }
+
+  document.querySelectorAll('.site-bg video, .hero-media video').forEach(initBackgroundVideo);
+
   /* ---------- Parallax for hero glow ---------- */
   const heroGlow = document.querySelector('.hero-glow');
   if (heroGlow && !isMobile) {

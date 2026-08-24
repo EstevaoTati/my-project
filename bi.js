@@ -949,6 +949,40 @@
     }
   }
 
+  /* ---------- Background video ----------
+     Same contract as the main site: autoplay is only permitted for muted
+     video, and even then a browser may refuse, a file may 404, or a codec may
+     be unsupported. The poster stays underneath and the video is revealed only
+     on `playing` — the one signal meaning frames are actually on screen. */
+  function initBackgroundVideo(video) {
+    const layer = video.parentElement;
+    if (!layer) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.removeAttribute('autoplay');
+      video.pause();
+      return;
+    }
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.loop = true;
+
+    video.addEventListener('playing', () => layer.classList.add('video-ready'), { once: true });
+    video.addEventListener('error', () => layer.classList.remove('video-ready'));
+
+    const attempt = () => {
+      const p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(() => { /* poster stands in */ });
+    };
+    attempt();
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && video.paused) attempt();
+    });
+  }
+  document.querySelectorAll('.site-bg video').forEach(initBackgroundVideo);
+
   load();
   bind();
   boot();
