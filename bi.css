@@ -490,9 +490,13 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   will-change: transform;
   animation: siteDrift 46s ease-in-out infinite alternate;
 }
-.site-bg video { z-index: 1; }
-.site-bg video + .site-bg-img { display: none; }
-.site-bg video ~ .site-bg-ignite { display: none; }
+/* The video fades in over the poster only once it is genuinely playing —
+   bi.js adds .video-ready on the `playing` event. Keying this off the mere
+   presence of the element meant a 404, an unsupported codec or a browser
+   refusing autoplay would hide the artwork and leave a black rectangle. */
+.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+.site-bg.video-ready video { opacity: 1; }
+.site-bg.video-ready .site-bg-ignite { display: none; }
 
 @keyframes siteDrift {
   from { transform: scale(1.08) translate3d(-1%, -0.6%, 0); }
@@ -544,6 +548,7 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
   .site-bg-ignite::after  { animation: none; opacity: .3; }
+  /* The video is never started under reduced motion (bi.js checks the same
+     query); hidden here too so an over-eager browser cannot override it. */
   .site-bg video { display: none; }
-  .site-bg video + .site-bg-img { display: block; }
 }

@@ -1251,9 +1251,14 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   object-fit: cover; object-position: center;
   will-change: transform;
 }
-/* A video, when present, sits on top of and replaces the poster. */
-.hero-media video { z-index: 1; }
-.hero-media video + .hero-media-img { display: none; }
+/* A video sits on top of the poster and fades in — but ONLY once it is
+   genuinely playing. Keying this off the element's mere presence in the DOM
+   was wrong: a 404, a codec the browser rejects, a stalled connection or a
+   mobile browser refusing autoplay would each hide the artwork and leave a
+   black rectangle. The poster now stays underneath permanently, so the worst
+   case is the background we already ship. script.js adds .video-ready. */
+.hero-media video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+.hero-media.video-ready video { opacity: 1; }
 
 /* Infinite slow drift — the "always animated" background. */
 .hero-media-img { animation: heroDrift 32s ease-in-out infinite alternate; }
@@ -1304,7 +1309,6 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .hero-media-img { animation: none; transform: scale(1.08); }
   .hero-media-scan::after { animation: none; opacity: .35; }
   .hero-media video { display: none; }
-  .hero-media video + .hero-media-img { display: block; }
 }
 
 /* ============================================================
@@ -1365,8 +1369,9 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   100% { opacity: 0;   transform: translateY(-14%) scale(.6); }
 }
 
-/* A video, once present, carries its own ignition — drop the CSS one. */
-.hero-media video ~ .hero-media-ignite { display: none; }
+/* A playing video carries its own ignition — drop the CSS one, but only once
+   it is actually playing. */
+.hero-media.video-ready .hero-media-ignite { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-media-ignite::before { animation: none; opacity: .7; }
@@ -1392,9 +1397,12 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   will-change: transform;
   animation: siteDrift 46s ease-in-out infinite alternate;
 }
-.site-bg video { z-index: 1; }
-.site-bg video + .site-bg-img { display: none; }
-.site-bg video ~ .site-bg-ignite { display: none; }
+/* Same contract as the hero: the poster stays beneath, the video fades in
+   only when it is actually playing, and the CSS ignition steps aside only
+   then — a video that never starts must not take the glow with it. */
+.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+.site-bg.video-ready video { opacity: 1; }
+.site-bg.video-ready .site-bg-ignite { display: none; }
 
 @keyframes siteDrift {
   from { transform: scale(1.08) translate3d(-1%, -0.6%, 0); }
@@ -1446,8 +1454,10 @@ section { position: relative; padding: 140px 0; z-index: 1; }
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
   .site-bg-ignite::after  { animation: none; opacity: .3; }
-  .site-bg video { display: none; }
-  .site-bg video + .site-bg-img { display: block; }
+  /* Reduced motion: the video is never started (script.js checks the same
+     query), and is hidden here so a browser that autoplays anyway cannot
+     override the preference. */
+  .site-bg video, .hero-media video { display: none; }
 }
 
 /* Honeypot — off-screen rather than display:none, which some bots detect. */
