@@ -1551,6 +1551,44 @@ body.has-video-bg .hero-title .gold-text {
 }
 body.has-video-bg .hero-title .italic { color: #fff6dd; }
 
+/* --------------------------------------------------------------------------
+   Every written thing sits on a black layer.
+
+   The background is fixed, so all 72 text-bearing elements below the hero
+   scroll straight over the moving image with nothing behind them. A scrim tuned
+   for the hero cannot also serve a contact form eight screens down.
+
+   So the hero keeps the clip at full strength — that is where the bulb is meant
+   to be seen — and every section after it takes a dark layer of its own. The
+   video stays present through it and in the gaps, which is the arrangement
+   already approved on the MVP.
+   -------------------------------------------------------------------------- */
+body.has-video-bg section:not(.hero),
+body.has-video-bg .footer {
+  background: linear-gradient(180deg, rgba(5, 5, 7, .90) 0%, rgba(5, 5, 7, .94) 100%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+@supports not (backdrop-filter: blur(2px)) {
+  body.has-video-bg section:not(.hero),
+  body.has-video-bg .footer { background: rgba(5, 5, 7, .95); }
+}
+
+/* The muted tone is #a39c8b — luminance 0.33. Fine on a flat dark page, thin
+   over a lit image, and it carries the nav, the hero lede and every secondary
+   label. Lifted while a video plays rather than left to fight the picture. */
+body.has-video-bg .nav-links a,
+body.has-video-bg .hero-sub,
+body.has-video-bg .hero-meta span,
+body.has-video-bg .hero-scroll span,
+body.has-video-bg .nav-logo-text small,
+body.has-video-bg .lang-switch button:not(.active) {
+  color: #d9d2c2;
+}
+
+/* The nav floats over the brightest part of the hero. */
+body.has-video-bg .nav { background: rgba(8, 9, 14, .82); }
+
 @media (prefers-reduced-motion: reduce) {
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
