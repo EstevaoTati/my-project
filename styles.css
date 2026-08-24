@@ -1437,17 +1437,34 @@ section { position: relative; padding: 140px 0; z-index: 1; }
    deliberate — headings sit exactly where the centre of this gradient falls,
    and washing them out was a real regression once before. Text contrast was
    re-checked at these values, not assumed. */
+/* In the hero the video is the point, so the wash nearly disappears: the clip
+   reads at roughly nine parts video to one part scrim. Only the hero — every
+   section below it is transparent, so page copy scrolls directly over the
+   moving image and needs the full scrim back. script.js/bi.js add
+   .past-hero once the hero is scrolled away. */
 .site-bg.video-ready .site-bg-veil {
   background:
-    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.36) 0%, rgba(5,5,7,.64) 55%, rgba(5,5,7,.80) 100%),
-    linear-gradient(180deg, rgba(5,5,7,.28) 0%, rgba(5,5,7,.60) 55%, rgba(5,5,7,.80) 100%);
+    radial-gradient(ellipse 90% 70% at 50% 34%, rgba(5,5,7,.06) 0%, rgba(5,5,7,.16) 60%, rgba(5,5,7,.30) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.05) 0%, rgba(5,5,7,.14) 55%, rgba(5,5,7,.28) 100%);
+  transition: background .45s ease;
+}
+/* Reading position: the scrim comes back so body copy stays legible. */
+body.past-hero .site-bg.video-ready .site-bg-veil {
+  background:
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.42) 0%, rgba(5,5,7,.70) 55%, rgba(5,5,7,.84) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.34) 0%, rgba(5,5,7,.66) 55%, rgba(5,5,7,.84) 100%);
 }
 @media (max-width: 900px) {
   /* Phones carry more text per pixel and are read in daylight — lift less. */
   .site-bg.video-ready .site-bg-veil {
     background:
-      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.40) 0%, rgba(5,5,7,.72) 60%, rgba(5,5,7,.86) 100%),
-      linear-gradient(180deg, rgba(5,5,7,.44) 0%, rgba(5,5,7,.78) 100%);
+      radial-gradient(ellipse 100% 50% at 50% 24%, rgba(5,5,7,.10) 0%, rgba(5,5,7,.24) 60%, rgba(5,5,7,.38) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.10) 0%, rgba(5,5,7,.34) 100%);
+  }
+  body.past-hero .site-bg.video-ready .site-bg-veil {
+    background:
+      radial-gradient(ellipse 100% 45% at 50% 22%, rgba(5,5,7,.46) 0%, rgba(5,5,7,.76) 60%, rgba(5,5,7,.88) 100%),
+      linear-gradient(180deg, rgba(5,5,7,.50) 0%, rgba(5,5,7,.82) 100%);
   }
 }
 
@@ -1458,7 +1475,7 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 .site-bg.video-ready ~ * .hero-title,
 .site-bg.video-ready ~ * .hero-sub,
 .site-bg.video-ready ~ * .hero-tag {
-  text-shadow: 0 2px 18px rgba(5, 5, 7, .85), 0 0 4px rgba(5, 5, 7, .6);
+  text-shadow: 0 2px 26px rgba(5, 5, 7, .95), 0 1px 8px rgba(5, 5, 7, .9), 0 0 3px rgba(5, 5, 7, .75);
 }
 
 @media (prefers-reduced-motion: reduce) {
