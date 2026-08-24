@@ -8,15 +8,26 @@ page, and the CSS is already written for it.
 
 ## Status: generated, not yet in the repo
 
-Both clips exist on Higgsfield, generated with Kling v3.0 from the founder's
-bulb stills — 1280×720, 16:9, 5 s, **no audio**, `std` mode, and the same image
-passed as both `start_image` and `end_image` so the last frame returns to the
-first and the loop has no visible seam. 15 credits.
+Both clips exist on Higgsfield: Kling v3.0 from the founder's bulb stills,
+1280×720, 16:9, **10 s**, **no audio**, `std` mode, cut to the founder's
+beat-by-beat brief. 30 credits.
 
-| Page | Job | Download |
+| Page | Job | File |
 |---|---|---|
-| `index.html` | `c520a369-f76c-434d-b275-02a07e2d6607` | `hf_20260824_010122_c520a369-f76c-434d-b275-02a07e2d6607.mp4` |
-| `bi.html` | `7ea6e8c5-3f8c-4a73-ba09-4a7561069a3d` | `hf_20260824_010047_7ea6e8c5-3f8c-4a73-ba09-4a7561069a3d.mp4` |
+| `index.html` | `3212f21a-c433-4267-aeae-14da76d5ddfe` | `hf_20260824_011907_…mp4` |
+| `bi.html` | `e8d3ed0c-815a-49c8-a06a-be037bb52bc9` | `hf_20260824_011915_…mp4` |
+
+An earlier 5-second pair exists and is superseded.
+
+**No audio, deliberately.** The briefs described sound — a hum, a click, a low
+tone. A background video must be muted or the browser refuses to autoplay it,
+so an audio track would cost credits for a channel no visitor will ever hear.
+
+**The loop restarts rather than holding.** Both briefs open in darkness and end
+in warm steady light, so a seamless loop is impossible by construction: it would
+need the last frame to return to the first. The clip therefore reads as the bulb
+re-igniting on each cycle, which suits "Bringing Light to Your Ideas". Forcing
+seamlessness would mean ending dark, contradicting the brief.
 
 They are **not in `assets/` yet**: the session that generated them could reach
 Higgsfield's upload bucket but not its output CDN (`d8j0ntlcm91z4.cloudfront.net`
@@ -49,13 +60,24 @@ and the CSS ignition keeps running, which is exactly the behaviour today.
 
 ### The scrim lifts while a video plays
 
-`.site-bg.video-ready .site-bg-veil` reduces the wash from 0.76–0.95 to
-0.60–0.90 (less again on phones). A background loop buried under a near-opaque
-black layer is a cost with no benefit. The lift is modest on purpose: headings
-sit exactly where the centre of that gradient falls, and washing them out was a
-real regression once before. Contrast was re-measured from rendered pixels over
-the playing video — **18:1 on the platform, 16.6:1 on the MVP**, both past WCAG
-AAA — rather than eyeballed.
+`.site-bg.video-ready .site-bg-veil` cuts the wash from 0.76–0.95 down to
+0.36–0.80 (0.40–0.86 on phones). A background loop buried under a near-opaque
+black layer is a cost with no benefit.
+
+Going that light needs a second safeguard, because the MVP brief contains a
+deliberate **burst of light**. Darkening the whole page to survive two seconds
+of video would undo the point, so the protection travels with the glyphs
+instead: a tight `text-shadow` on the hero headline, lede and eyebrow, applied
+only under `.video-ready`. Invisible over dark frames, decisive over bright
+ones.
+
+Contrast is measured from rendered pixels, against a **full-frame white flare**
+— far harsher than either real clip:
+
+| Page | Contrast over white | WCAG |
+|---|---|---|
+| Platform | 13.8 : 1 | AAA |
+| MVP | 10.9 : 1 | AAA |
 
 ## 1. Put the files here
 
