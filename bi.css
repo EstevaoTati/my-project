@@ -629,6 +629,33 @@ body.has-video-bg .hero .eyebrow {
   }
 }
 
+/* The MVP centres its copy, so there is no clear side to spare — a straight
+   vertical wash, strong at the top where the headline and lede sit. */
+.site-bg.video-ready .site-bg-veil {
+  background: linear-gradient(180deg,
+    rgba(5,5,7,.80) 0%, rgba(5,5,7,.70) 35%, rgba(5,5,7,.62) 70%, rgba(5,5,7,.72) 100%);
+  transition: background .45s ease;
+}
+
+/* Same trap as the main site: any gradient-clipped text would show the shadow
+   through a transparent fill. This page's accents are solid colours already,
+   but pin them bright over the clip. */
+body.has-video-bg h1 .thin { color: #ffffff; }
+body.has-video-bg h2 .g { color: #FFE680; }
+
+/* Steps not yet reachable sit at 32% opacity, which reads as "dimmed" on a
+   flat page and as "invisible" over a moving image. Lift them and give the rail
+   its own backdrop so the whole strip stays legible. */
+body.has-video-bg .rail {
+  background: linear-gradient(180deg, rgba(6,7,11,.62), rgba(6,7,11,.48));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding-left: 10px; padding-right: 10px;
+}
+body.has-video-bg .rail button:disabled { opacity: .62; }
+body.has-video-bg .rail button { text-shadow: 0 1px 6px rgba(5,5,7,.9); }
+
 @media (prefers-reduced-motion: reduce) {
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }

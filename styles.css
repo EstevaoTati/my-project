@@ -1494,18 +1494,62 @@ body.has-video-bg h4 {
    A backdrop only while a video plays: they stay ghost buttons on the still. */
 body.has-video-bg .btn-ghost,
 body.has-video-bg .btn-bi {
-  background: rgba(8, 9, 14, .58);
+  /* .82, not less: this button lands on the brightest part of the bulb, where
+     a lighter backdrop measured 4.4:1 — just under AA. Its label goes white for
+     the same reason; light gold on a lit background is not enough. */
+  background: rgba(8, 9, 14, .82);
+  color: #ffffff;
   -webkit-backdrop-filter: blur(14px) saturate(125%);
   backdrop-filter: blur(14px) saturate(125%);
 }
 body.has-video-bg .btn-ghost:hover,
-body.has-video-bg .btn-bi:hover { background: rgba(8, 9, 14, .74); }
+body.has-video-bg .btn-bi:hover { background: rgba(8, 9, 14, .86); }
 
 /* Same reason: the lede's last lines run under the bulb. */
 body.has-video-bg .hero-sub,
 body.has-video-bg .hero-tag {
   text-shadow: 0 0 3px rgba(5,5,7,.98), 0 1px 8px rgba(5,5,7,.95), 0 2px 24px rgba(5,5,7,.92);
 }
+
+/* --------------------------------------------------------------------------
+   Text over the clip: darken the column, not the picture.
+
+   The veil is a left-anchored gradient rather than a flat wash. The copy sits
+   on the left, the bulb centre-right, so the side that carries text goes dark
+   and the side that carries the subject stays clear. Legibility and a visible
+   video at the same time, instead of trading one for the other.
+   -------------------------------------------------------------------------- */
+.site-bg.video-ready .site-bg-veil {
+  background:
+    linear-gradient(100deg,
+      rgba(5,5,7,.90) 0%, rgba(5,5,7,.84) 26%, rgba(5,5,7,.58) 44%,
+      rgba(5,5,7,.22) 60%, rgba(5,5,7,.10) 76%, rgba(5,5,7,.34) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.10) 0%, rgba(5,5,7,0) 30%, rgba(5,5,7,.42) 100%);
+  transition: background .45s ease;
+}
+@media (max-width: 900px) {
+  /* Narrow screens put text across the full width — no clear side to spare. */
+  .site-bg.video-ready .site-bg-veil {
+    background: linear-gradient(180deg, rgba(5,5,7,.82) 0%, rgba(5,5,7,.74) 45%, rgba(5,5,7,.80) 100%);
+  }
+}
+
+/* `Light` was rendering BLACK, and the cause was a shadow added here earlier.
+   .gold-text paints a gradient clipped to the glyphs with `color: transparent`,
+   so a text-shadow behind it is not behind anything — it shows straight through
+   the letters, and the dark shadow becomes the visible fill.
+
+   Over the clip the gradient is dropped for solid white: brightest possible
+   against a lit bulb, and immune to the same trap. */
+body.has-video-bg .gold-text,
+body.has-video-bg .hero-title .gold-text {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #ffffff;
+  filter: none;
+}
+body.has-video-bg .hero-title .italic { color: #fff6dd; }
 
 @media (prefers-reduced-motion: reduce) {
   .site-bg-img { animation: none; transform: scale(1.1); }
