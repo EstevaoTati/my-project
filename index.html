@@ -135,67 +135,44 @@
 
     /* ---------- Hero ---------- */
     .hero{position:relative;min-height:100vh}
-    .hero-stage{position:relative;min-height:100vh;display:grid;grid-template-columns:1.08fr .92fr;
-      align-items:center;gap:clamp(2rem,5vw,5rem);padding:17vh var(--gut) 16vh;overflow:hidden}
-    .hero-copy{position:relative;z-index:3}
+    /* Hero en une seule colonne : la déclaration porte l'écran à elle seule. */
+    .hero-stage{position:relative;min-height:100vh;display:flex;flex-direction:column;
+      justify-content:center;padding:14vh var(--gut) 12vh;overflow:hidden}
+    .hero-copy{position:relative;z-index:3;max-width:min(100%,62rem)}
     .hero-eyebrow{display:flex;align-items:center;gap:.75rem;font-family:var(--mono);font-size:.62rem;
       letter-spacing:.28em;text-transform:uppercase;color:var(--amber);opacity:0}
     .hero-eyebrow::after{content:'';flex:1;height:1px;max-width:100px;background:linear-gradient(90deg,var(--amber-line),transparent)}
-    h1.hero-title{margin-top:1.5rem;font-family:var(--display);font-weight:700;text-transform:uppercase;
-      font-size:clamp(1.7rem,4vw,3.4rem);line-height:1.15;text-wrap:balance;text-shadow:0 2px 30px rgba(3,5,10,.9)}
+    /* Plus de carte 3D à droite : la typographie occupe l'écran, mais tout
+       le bloc doit tenir dans une seule hauteur d'écran, chiffres compris. */
+    h1.hero-title{margin-top:1.4rem;font-family:var(--display);font-weight:700;text-transform:uppercase;
+      font-size:clamp(1.85rem,4.6vw,3.6rem);line-height:1.1;max-width:23ch;text-wrap:balance;
+      text-shadow:0 2px 30px rgba(3,5,10,.9)}
     /* Les caractères sont groupés par mot : la césure ne peut tomber
        qu'entre deux mots, jamais au milieu d'un mot. */
     h1.hero-title .w{display:inline-block;white-space:nowrap}
     h1.hero-title .c{display:inline-block}
     h1.hero-title .am{color:var(--amber)}
-    .hero-lede{margin-top:1.6rem;max-width:46ch;color:var(--ink-dim);font-size:1rem;line-height:1.8;opacity:0}
-    .hero-cta{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:2.3rem;opacity:0}
-    .hero-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:2.5rem;font-family:var(--mono);
+    .hero-lede{margin-top:1.4rem;max-width:46ch;color:var(--ink-dim);font-size:1rem;line-height:1.8;opacity:0}
+    .hero-cta{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:2rem;opacity:0}
+    .hero-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:2rem;font-family:var(--mono);
       font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);opacity:0}
     .hero-meta b{color:var(--amber);font-weight:500}
 
-    /* Carte 3D autonome */
-    .hero-3d{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
-      perspective:1200px;min-height:min(52vh,440px)}
-    .hero-spin{position:relative;transform-style:preserve-3d;will-change:transform;display:flex;align-items:center;justify-content:center}
-    .hero-card{position:relative;width:clamp(225px,25vw,355px);aspect-ratio:1;transform-style:preserve-3d;opacity:0;will-change:transform}
-    .card-face{position:absolute;inset:0;border-radius:4px;overflow:hidden;backface-visibility:hidden;
-      box-shadow:0 60px 140px -40px rgba(0,0,0,.92),0 0 0 1px rgba(245,166,35,.22),0 0 90px -18px rgba(245,166,35,.32)}
-    .card-face img{width:100%;height:100%;object-fit:cover;display:block}
-    .card-sheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 42%,rgba(245,166,35,.16) 50%,transparent 58%);
-      mix-blend-mode:screen;pointer-events:none}
-    .card-corner{position:absolute;width:16px;height:16px;border:1px solid var(--amber);opacity:.85}
-    .card-corner.tl{top:8px;left:8px;border-right:0;border-bottom:0}
-    .card-corner.br{bottom:8px;right:8px;border-left:0;border-top:0}
-    .card-back{transform:rotateY(180deg);background:linear-gradient(160deg,var(--panel-2) 0%,var(--panel) 60%,#04060c 100%);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem}
-    .card-back::before{content:'';position:absolute;inset:0;background:
-      repeating-linear-gradient(0deg,transparent 0 21px,rgba(245,166,35,.07) 21px 22px),
-      repeating-linear-gradient(90deg,transparent 0 21px,rgba(245,166,35,.07) 21px 22px)}
-    .card-back .big-glyph{width:74px;height:74px;position:relative}
-    .card-back .big-glyph i{position:absolute;border-radius:50%}
-    .card-back .big-glyph i:nth-child(1){inset:0;border:1px solid rgba(245,166,35,.65)}
-    .card-back .big-glyph i:nth-child(2){inset:14px;border:1px solid rgba(245,166,35,.4)}
-    .card-back .big-glyph i:nth-child(3){inset:31px;background:var(--amber);box-shadow:0 0 24px var(--amber)}
-    .card-back .back-text{font-family:var(--mono);font-size:.54rem;letter-spacing:.36em;
-      text-transform:uppercase;color:var(--amber);text-indent:.36em;text-align:center}
-    .orbit-ring{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(245,166,35,.25);
-      pointer-events:none;box-shadow:0 0 24px -6px rgba(245,166,35,.32)}
-    .ring-a{width:152%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg)}
-    .ring-b{width:178%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg) rotateY(18deg);border-color:rgba(46,204,143,.17)}
-    .ring-a::after,.ring-b::after{content:'';position:absolute;top:-3px;left:50%;width:6px;height:6px;
-      border-radius:50%;background:var(--amber);box-shadow:0 0 14px 3px rgba(245,166,35,.8)}
-    .ring-b::after{background:var(--signal);box-shadow:0 0 14px 3px rgba(46,204,143,.7)}
-    .hero-halo{position:absolute;width:min(62vw,620px);aspect-ratio:1;border-radius:50%;
-      background:radial-gradient(circle,rgba(245,166,35,.16),transparent 62%);filter:blur(8px);pointer-events:none}
     .hero-dust{position:absolute;inset:0;pointer-events:none;z-index:1}
     .cinebar{position:absolute;left:0;right:0;height:0;background:#02040a;z-index:4;pointer-events:none}
     .cinebar.top{top:0}.cinebar.bottom{bottom:0}
 
+    /* Indicateur de défilement */
+    .hero-scrollcue{position:absolute;bottom:2.2rem;right:var(--gut);z-index:5;display:flex;
+      align-items:center;gap:.9rem;font-family:var(--mono);color:var(--ink-dim);
+      font-size:.56rem;letter-spacing:.32em;text-transform:uppercase}
+    .hero-scrollcue .line{width:56px;height:1px;background:linear-gradient(90deg,var(--amber),transparent);
+      transform-origin:left;animation:cue 2.4s ease infinite}
+    @keyframes cue{0%{transform:scaleX(0);opacity:0}40%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+
     @media(max-width:960px){
-      .hero-stage{grid-template-columns:1fr;padding:15vh var(--gut) 12vh;gap:2.8rem}
-      .hero-3d{order:-1;min-height:auto}
-      .hero-card{width:min(62vw,290px)}
+      .hero-stage{padding:16vh var(--gut) 14vh}
+      .hero-scrollcue{bottom:1.6rem}
     }
 
     /* ---------- Ticker : défilement continu ---------- */
@@ -325,12 +302,12 @@
       *,*::before,*::after{animation:none!important;transition:none!important}
       html{scroll-behavior:auto}
       .loader{display:none}
-      .hero-card,.hero-eyebrow,.hero-lede,.hero-cta,.hero-meta{opacity:1!important}
+      .hero-eyebrow,.hero-lede,.hero-cta,.hero-meta{opacity:1!important}
       .manifesto .word{opacity:1}
       .contact-beam{transform:scaleX(1)}
       .num-rail i{inset:0}
     }
-    .reduced .hero-card,.reduced .hero-eyebrow,.reduced .hero-lede,.reduced .hero-cta,.reduced .hero-meta{opacity:1}
+    .reduced .hero-eyebrow,.reduced .hero-lede,.reduced .hero-cta,.reduced .hero-meta{opacity:1}
     .reduced .manifesto .word{opacity:1}
     .reduced .contact-beam{transform:scaleX(1)}
   </style>
@@ -403,28 +380,11 @@
         </div>
       </div>
 
-      <div class="hero-3d" id="hero3d">
-        <div class="hero-halo" id="heroHalo"></div>
-        <div class="hero-spin" id="heroSpin">
-          <div class="orbit-ring ring-a" id="ringA"></div>
-          <div class="orbit-ring ring-b" id="ringB"></div>
-          <div class="hero-card" id="heroCard">
-            <div class="card-face card-front">
-              <img src="assets/estevao-graded.jpg" data-i18n-attr="alt" data-i18n="portrait.alt"
-                   alt="Portrait du consultant en IA" />
-              <div class="card-sheen"></div>
-              <span class="card-corner tl"></span><span class="card-corner br"></span>
-            </div>
-            <div class="card-face card-back" aria-hidden="true">
-              <div class="big-glyph"><i></i><i></i><i></i></div>
-              <div class="back-text">Agentic OS</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="cinebar top" aria-hidden="true"></div>
       <div class="cinebar bottom" aria-hidden="true"></div>
+      <div class="hero-scrollcue" aria-hidden="true">
+        <span data-i18n="hero.scroll">Défiler</span><span class="line"></span>
+      </div>
     </div>
   </section>
 
@@ -625,7 +585,6 @@
         'meta.desc':"J'aide les gens à entrer avec confiance dans le monde de la tech et de l'IA, et à saisir chaque opportunité. Conseil IA, solutions LLM, systèmes agentiques, web et automatisation.",
         'mark':"Consultant IA",
         'hud.sys':"Système <b>en ligne</b>",
-        'portrait.alt':"Portrait du consultant en IA",
         'nav.comp':"Compétences",'nav.num':"Chiffres",'nav.who':"Avec qui",'nav.work':"Réalisations",'nav.contact':"Contact",
         'hero.eyebrow':"Tech & IA · Conseil & systèmes agentiques",
         'hero.title':"J'aide les gens à entrer avec confiance dans le monde de la <em>tech &amp; de l'IA</em> — et à saisir chaque opportunité.",
@@ -667,7 +626,6 @@
         'meta.desc':"I help people confidently enter the world of Tech & AI and capitalize on every opportunity. AI consulting, LLM solutions, agentic systems, web and automation.",
         'mark':"AI Consultant",
         'hud.sys':"System <b>online</b>",
-        'portrait.alt':"Portrait of the AI consultant",
         'nav.comp':"Competences",'nav.num':"Numbers",'nav.who':"Who I work with",'nav.work':"Work",'nav.contact':"Contact",
         'hero.eyebrow':"Tech & AI · Consulting & agentic systems",
         'hero.title':"I help people to confidently enter the world of <em>tech &amp; AI</em> and capitalize on every opportunity.",
@@ -973,39 +931,14 @@
 
     /* ---------- Timelines ---------- */
     if(hasGSAP){
-      const heroTl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'+=200%',scrub:.6,pin:true,anticipatePin:1}});
+      const heroTl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'+=180%',scrub:.6,pin:true,anticipatePin:1}});
       heroTl.fromTo('.cinebar',{height:0},{height:'6vh',duration:1.6,ease:'power2.out'},.4);
-      heroTl.fromTo('#heroCard',{scale:1},{keyframes:[{scale:1.12,z:70,duration:3,ease:'power1.inOut'},{scale:.9,z:-50,duration:4,ease:'power1.in'}],duration:7},0);
-      heroTl.fromTo('.hero-copy',{yPercent:0,opacity:1},{yPercent:-14,opacity:0,duration:2.4,ease:'power2.in'},5.2);
-      heroTl.fromTo('#hero3d',{opacity:1,z:0},{opacity:0,z:-300,duration:2.2,ease:'power2.in'},5.4);
-      heroTl.to('.cinebar',{height:0,duration:1.2,ease:'power2.in'},6.4);
-
-      // Rotation 3D autonome + turbo au scroll
-      (function(){
-        const spin=document.getElementById('heroSpin'), halo=document.getElementById('heroHalo'),
-              sheens=gsap.utils.toArray('.card-sheen');
-        let ang=0, ring=0, boost=0, ly=scrollY;
-        const BASE=112, MAX=1080;
-        gsap.ticker.add((t,dt)=>{
-          if(document.hidden) return;
-          if(scrollY>innerHeight*3.4){ly=scrollY;return;}
-          const d=Math.min(dt,80)/1000, dy=scrollY-ly; ly=scrollY;
-          boost=boost*Math.pow(.06,d)+Math.abs(dy)*3.4;
-          const sp=BASE+Math.min(boost,MAX);
-          ang=(ang+sp*d)%360; ring+=sp*.55*d;
-          gsap.set(spin,{rotationY:ang});
-          gsap.set('#ringA',{rotation:-ring});
-          gsap.set('#ringB',{rotation:ring*.72});
-          const s=Math.abs(Math.sin(ang*Math.PI/180));
-          gsap.set(halo,{opacity:.45+.6*Math.pow(s,7),scale:1+.14*Math.pow(s,7)});
-          sheens.forEach(e=>gsap.set(e,{xPercent:Math.sin(ang*Math.PI/180)*70}));
-        });
-      })();
+      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:.8,ease:'none'},.4);
+      heroTl.fromTo('.hero-copy',{yPercent:0,opacity:1},{yPercent:-14,opacity:0,duration:2.4,ease:'power2.in'},4.6);
+      heroTl.to('.cinebar',{height:0,duration:1.2,ease:'power2.in'},5.8);
 
       // Entrée
-      gsap.fromTo('#heroCard',{opacity:0,y:50},{opacity:1,y:0,duration:1.6,ease:'power3.out',delay:.75});
-      gsap.fromTo(['#ringA','#ringB'],{opacity:0},{opacity:1,duration:2.2,stagger:.25,delay:1.2,ease:'power2.out'});
-      gsap.to('#heroEyebrow',{opacity:1,duration:.9,delay:.95});
+      gsap.to('#heroEyebrow',{opacity:1,duration:.9,delay:.55});
       window.revealTitle=function(){
         const el=document.getElementById('heroTitle');
         delete el.dataset.decoded;
@@ -1083,8 +1016,6 @@
           });
           b.addEventListener('pointerleave',()=>gsap.to(b,{x:0,y:0,duration:.6,ease:'elastic.out(1,.5)'}));
         });
-        const qx=gsap.quickTo('#heroCard','rotationX',{duration:.7,ease:'power2.out'});
-        document.getElementById('heroStage').addEventListener('pointermove',e=>qx(((e.clientY/innerHeight)-.5)*-8));
       }
     } else {
       document.querySelectorAll('.num-val[data-count]').forEach(el=>{el.querySelector('.val').textContent=el.dataset.count;});
