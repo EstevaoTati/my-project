@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="bi.css?v=7" />
+  <link rel="stylesheet" href="bi.css?v=8" />
 </head>
 <body>
 
@@ -183,9 +183,10 @@
   <section class="step" id="step-dossier">
     <div class="actions no-print" style="margin-top:0;margin-bottom:24px">
       <button class="btn" id="btnPrint">Download the full dossier (PDF)</button>
+      <button class="btn ghost" id="btnPrintDialog" type="button">Print</button>
       <button class="btn ghost" id="btnSaveJson">Export data (JSON)</button>
       <button class="btn ghost" id="btnLink">Copy access link</button>
-      <span class="footnote">“Download PDF” opens your browser’s print dialog — choose <b>Save as PDF</b>.</span>
+      <span class="footnote">The PDF is written by MWINDA and saved straight to your device — no print dialog. “Print” opens your browser’s dialog instead, if you prefer it.</span>
     </div>
     <div id="dossierOut"></div>
   </section>
@@ -198,6 +199,7 @@
 
 <script src="video-bg.js?v=1"></script>
 
-<script src="bi.js?v=3"></script>
+<script src="bi-pdf.js?v=1"></script>
+<script src="bi.js?v=4"></script>
 </body>
 </html>
