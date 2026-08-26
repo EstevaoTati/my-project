@@ -6,6 +6,19 @@
 2. Glisser-déposer ce dossier (ou le ZIP).
 3. C'est en ligne. **La vidéo de fond joue immédiatement**, sans rien configurer.
 
+### Si le site est connecté à GitHub plutôt que déposé à la main
+
+Vérifiez **la branche de production** : Netlify → Site configuration →
+Build & deploy → *Branches and deploy contexts* → « Production branch ».
+
+C'est le piège classique. Netlify choisit souvent `main` par défaut. Si votre
+travail est fusionné dans une autre branche, les aperçus de Pull Request
+fonctionneront parfaitement pendant que **la production ne bougera jamais** —
+et le site en ligne restera bloqué sur une ancienne version sans qu'aucune
+erreur ne le signale.
+
+Après correction : **Deploys → Trigger deploy → Deploy site**.
+
 Le formulaire `portfolio-contact` est détecté automatiquement par Netlify :
 les soumissions arrivent dans l'onglet **Forms** du dashboard.
 

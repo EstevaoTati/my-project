@@ -159,8 +159,6 @@
     .hero-meta b{color:var(--amber);font-weight:500}
 
     .hero-dust{position:absolute;inset:0;pointer-events:none;z-index:1}
-    .cinebar{position:absolute;left:0;right:0;height:0;background:#02040a;z-index:4;pointer-events:none}
-    .cinebar.top{top:0}.cinebar.bottom{bottom:0}
 
     /* Indicateur de défilement */
     .hero-scrollcue{position:absolute;bottom:2.2rem;right:var(--gut);z-index:5;display:flex;
@@ -380,8 +378,6 @@
         </div>
       </div>
 
-      <div class="cinebar top" aria-hidden="true"></div>
-      <div class="cinebar bottom" aria-hidden="true"></div>
       <div class="hero-scrollcue" aria-hidden="true">
         <span data-i18n="hero.scroll">Défiler</span><span class="line"></span>
       </div>
@@ -781,9 +777,12 @@
        on retombe sur le CDN, puis sur le réseau neuronal seul. */
     if(!reduced){
       const amb=document.querySelector('.bg-ambient');
+      // mp4 en premier : sur Netlify il répond toujours (fichier local ou proxy),
+      // donc aucun 404 en production. Le webm ne sert que si l'on choisit de
+      // n'auto-héberger que cette variante.
       const SOURCES=[
-        'assets/clips/bg-tech.webm',   // variante VP9 si elle existe (plus légère)
         'assets/clips/bg-tech.mp4',    // fichier local, ou proxy Netlify
+        'assets/clips/bg-tech.webm',   // variante VP9 si c'est la seule présente
         'https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4'
       ];
       let vid=null, idx=0, lastT=-1, strikes=0;
@@ -931,11 +930,14 @@
 
     /* ---------- Timelines ---------- */
     if(hasGSAP){
-      const heroTl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'+=180%',scrub:.6,pin:true,anticipatePin:1}});
-      heroTl.fromTo('.cinebar',{height:0},{height:'6vh',duration:1.6,ease:'power2.out'},.4);
-      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:.8,ease:'none'},.4);
-      heroTl.fromTo('.hero-copy',{yPercent:0,opacity:1},{yPercent:-14,opacity:0,duration:2.4,ease:'power2.in'},4.6);
-      heroTl.to('.cinebar',{height:0,duration:1.2,ease:'power2.in'},5.8);
+      // Aucun épinglage : dès le premier cran de molette, la page descend
+      // vraiment. Le hero se contente d'un léger effet de profondeur pendant
+      // qu'il sort de l'écran, sur sa propre hauteur — pas un pixel de scroll
+      // n'est confisqué.
+      const heroTl=gsap.timeline({scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:.5}});
+      heroTl.fromTo('.hero-scrollcue',{opacity:1},{opacity:0,duration:1,ease:'none'},0);
+      // Fondu seul, sans déplacement : le texte suit le scroll au pixel près.
+      heroTl.fromTo('.hero-copy',{opacity:1},{opacity:.15,duration:3,ease:'power1.in'},1);
 
       // Entrée
       gsap.to('#heroEyebrow',{opacity:1,duration:.9,delay:.55});
