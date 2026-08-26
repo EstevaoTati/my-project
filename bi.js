@@ -906,28 +906,47 @@
      * and on a phone, or with no print backend, none did. bi-pdf.js writes the
      * file here instead, so a button that says "download" downloads.
      */
+    /** Write a message into the export note, replacing whatever was there. */
+    function pdfNote(text, kind) {
+      const note = $('pdfNote');
+      if (!note) return null;
+      clear(note);
+      note.className = 'footnote' + (kind ? ' ' + kind : '');
+      if (text) note.appendChild(h('span', { text }));
+      return note;
+    }
+
     function exportPdf() {
       const done = ORDER.filter((s) => project.stages[s]).length;
       if (!done) {
-        alert('Nothing to export yet — run the idea analysis first.');
+        // An alert() is swallowed by several in-app browsers, and "nothing to
+        // export" read as "the file is missing". Say it in the page, where it
+        // stays put and can say what to do about it.
+        go('dossier');
+        pdfNote('Nothing to export yet — run “Analyse my idea” first, then come back. The dossier is built from the stages you have generated.', 'warn');
         return;
       }
       renderDossier();
       go('dossier');
 
-      const out = $('dossierOut');
+      const note = pdfNote('Preparing the PDF…');
       const name = [project.businessType, project.sector, project.country].filter(Boolean).join(' ');
       try {
-        if (!window.mwindaPdf) throw new Error('bi-pdf.js not loaded');
-        window.mwindaPdf.save(out, {
+        if (!window.mwindaPdf) throw new Error('bi-pdf.js did not load');
+        const ok = window.mwindaPdf.save($('dossierOut'), {
           name: name || 'business',
           title: (project.idea || 'Business dossier').slice(0, 90),
           subject: 'MWINDA AI Business Intelligence — ' + [project.sector, project.country].filter(Boolean).join(', '),
+          noteEl: note,
         });
+        if (!ok) throw new Error('this browser cannot build the file');
         remote.event('dossier_exported', project.remoteId);
       } catch (e) {
-        // Never leave the founder with a dead button: fall back to the print
-        // dialog, which is what this used to be.
+        // Never leave the founder with a dead button — and never leave them
+        // guessing why. Say what failed, then fall back to the print dialog.
+        const n = pdfNote('The PDF could not be written here (' + (e && e.message ? e.message : 'unknown error') +
+          '). Opening your browser’s print dialog instead — choose “Save as PDF”.', 'warn');
+        if (n) n.appendChild(h('br'));
         printDossier();
       }
     }
@@ -947,18 +966,79 @@
     // Capability link: id + owner token in the fragment. The fragment is never
     // sent to the server by the browser, so the link is only as exposed as the
     // person holding it — treat it like a password.
+    /**
+     * The access link. Three things were wrong with this:
+     *
+     *  · It claimed "Link copied" whether or not the clipboard write worked —
+     *    and it never showed the link, so a refused clipboard left the founder
+     *    with nothing at all and no idea anything had failed. Safari and every
+     *    in-app browser refuse clipboard writes routinely.
+     *  · It refused outright when the project had not reached the server yet,
+     *    instead of simply saving it and then handing over the link.
+     *  · It would happily build a link ending in ".undefined" when the owner
+     *    token was missing — a link that cannot ever open.
+     *
+     * The link is now always rendered on the page, selectable, whether or not
+     * the clipboard cooperated.
+     */
     $('btnLink').addEventListener('click', async () => {
       const note = $('linkNote');
-      if (!project.remoteId) {
+      const say = (text, kind) => {
         clear(note);
-        note.appendChild(h('span', { text: 'Not saved to the server yet — add your idea first, or storage is not configured.' }));
+        note.className = 'footnote' + (kind ? ' ' + kind : '');
+        note.appendChild(h('span', { text }));
+        return note;
+      };
+
+      if (!remote.available) {
+        say('Server storage is not configured on this deployment, so there is no link to share. Use “Export data (JSON)” to move this project to another device.', 'warn');
         return;
       }
+
+      if (!project.remoteId) {
+        if (!(project.idea || '').trim()) {
+          say('Add your idea first — there is nothing to share yet.', 'warn');
+          return;
+        }
+        say('Saving to the server…');
+        await remote.sync(project);
+        if (!project.remoteId) {
+          say(remote.available
+            ? 'The server did not answer, so no link can be issued yet. Your work is safe in this browser — try again in a moment, or use “Export data (JSON)” to move it to another device.'
+            : 'Server storage is not configured on this deployment, so there is no link to share. Use “Export data (JSON)” to move this project to another device.', 'warn');
+          return;
+        }
+      }
+
       const token = remote.keys()[project.remoteId];
-      const url = location.origin + '/bi.html#p=' + project.remoteId + '.' + token;
-      try { await navigator.clipboard.writeText(url); } catch { /* fall through to showing it */ }
-      clear(note);
-      note.appendChild(h('span', { text: 'Link copied. Anyone with it can open and edit this project — treat it like a password.' }));
+      if (!token) {
+        say('This project was opened from someone else’s link, and that link is the only key to it — MWINDA never stored a second one. Ask whoever shared it, or use “Export data (JSON)”.', 'warn');
+        return;
+      }
+
+      const url = location.origin + '/bi#p=' + project.remoteId + '.' + token;
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(url);
+        copied = true;
+      } catch { /* shown below instead — the clipboard is not the only route */ }
+
+      const n = say(copied
+        ? 'Link copied. Anyone with it can open and edit this project — treat it like a password.'
+        : 'Your browser refused the clipboard. Here is the link — select it and copy it by hand. Anyone with it can open and edit this project, so treat it like a password.');
+      n.appendChild(h('br'));
+      // Selecting the whole link on a phone is fiddly; one tap does it.
+      n.appendChild(h('code', {
+        class: 'link-out',
+        text: url,
+        onclick: (ev) => {
+          const r = document.createRange();
+          r.selectNodeContents(ev.currentTarget);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(r);
+        },
+      }));
     });
     $('btnSaveJson').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });

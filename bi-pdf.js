@@ -505,26 +505,67 @@
   }
 
   /* ------------------------------------------------------------ delivery -- */
-  function download(bytes, filename) {
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+  /*
+   * Handing the file over is where this breaks in the field, not building it.
+   * A browser's download can go somewhere the reader cannot find: iOS drops it
+   * into Files with no prompt, in-app WebViews (WhatsApp, Instagram, Gmail)
+   * often have no download UI at all, and a phone with no file manager leaves
+   * the reader looking at a notification that goes nowhere. The file exists;
+   * the person cannot reach it. That reads as "fichier introuvable".
+   *
+   * So the download is fired AND a live link is left on the page. Tapping it
+   * opens the PDF in the browser's own viewer, which every platform has and
+   * which always offers Share / Save. There is always a way to the document.
+   */
 
+  // Kept alive for the life of the page: a link the reader may tap minutes
+  // later must not point at a revoked blob. The previous one is released when
+  // a new export replaces it.
+  let liveUrl = null;
+
+  function download(bytes, filename, noteEl) {
+    if (typeof Blob !== 'function' || !window.URL || !URL.createObjectURL) return false;
+
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    if (liveUrl) { try { URL.revokeObjectURL(liveUrl); } catch { /* already gone */ } }
+    liveUrl = URL.createObjectURL(blob);
+    const url = liveUrl;
+
+    // 1. Ask the browser to save it.
     if ('download' in HTMLAnchorElement.prototype) {
+      const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       a.rel = 'noopener';
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } else {
-      // Old iOS Safari ignores `download`. Opening the blob at least puts the
-      // document in front of the reader, who can then save it from the viewer.
-      window.open(url, '_blank');
     }
-    // Revoking immediately cancels the download in Safari; a minute is plenty
-    // and the URL dies with the page anyway.
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+    // 2. And leave a way in, whatever the browser did with step 1.
+    if (noteEl) {
+      while (noteEl.firstChild) noteEl.removeChild(noteEl.firstChild);
+      const open = document.createElement('a');
+      open.href = url;
+      open.target = '_blank';
+      open.rel = 'noopener';
+      open.className = 'pdf-open';
+      open.textContent = 'Open the PDF →';
+      // A blob has no filename of its own; give the viewer's save the right one.
+      open.setAttribute('download', filename);
+      noteEl.appendChild(open);
+
+      const meta = document.createElement('span');
+      meta.className = 'pdf-meta';
+      meta.textContent = filename + ' · ' + Math.max(1, Math.round(bytes.length / 1024)) + ' KB';
+      noteEl.appendChild(meta);
+
+      const hint = document.createElement('span');
+      hint.className = 'pdf-hint';
+      hint.textContent = 'Saved to your downloads. If you cannot find it there, open it above and use your browser’s share or save button.';
+      noteEl.appendChild(hint);
+    }
     return true;
   }
 
@@ -551,12 +592,13 @@
     },
     download,
     slug,
-    /** Build and download in one call; returns false if there is nothing in it. */
+    /** Build and download in one call; returns false if there is nothing in it.
+     *  `meta.noteEl` receives the always-available "Open the PDF" link. */
     save(root, meta) {
       if (!root || !root.children.length) return false;
       const bytes = this.build(root, meta);
       const name = 'mwinda-dossier' + ((meta && meta.name) ? '-' + slug(meta.name) : '') + '.pdf';
-      return download(bytes, name);
+      return download(bytes, name, meta && meta.noteEl);
     },
   };
 })();
