@@ -129,9 +129,18 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   `/scripts/*`, `/netlify/*`, `/.claude/*`, `CLAUDE.md` and `package*.json`.
 - `bi.html` / `bi.css` / `bi.js` — MWINDA AI Business Intelligence at `/bi`:
   idea → business model → business plan → financials → regulatory checklist →
-  roadmap → printable dossier. Calls `netlify/functions/bi.mjs`. Projects live
-  in `localStorage` (no accounts in this version). PDF is a print stylesheet,
-  not a server engine.
+  roadmap → downloadable dossier. Calls `netlify/functions/bi.mjs`. Projects
+  live in `localStorage` (no accounts in this version). The PDF is written in
+  the browser by `bi-pdf.js` — no server engine, and no print dialog.
+- `bi-pdf.js` — writes the dossier PDF in the browser, with **no library**.
+  "Download PDF" used to call `window.print()` and hope the founder found
+  *Save as PDF*; on phones and in in-app browsers no file appeared. This walks
+  the rendered `#dossierOut` and emits a real file: base-14 Helvetica, no
+  embedding, WinAnsi text (accents native, everything else transliterated —
+  never dropped), lines measured with canvas `measureText` and wrapped at 98%
+  of the column. ~50 KB for six pages. A **Print** button keeps the browser
+  dialog as a second route. See
+  `docs/decisions/2026-08-26-dossier-pdf-without-a-library.md`.
 - `netlify/functions/bi.mjs` — six-stage generation engine. Structured output
   via tool-use; streams NDJSON because a stage runs 20-120s, past the
   synchronous response window. **The model proposes financial assumptions

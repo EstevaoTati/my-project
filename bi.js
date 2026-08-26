@@ -664,6 +664,17 @@
   }
 
   // ---------------------------------------------------------------- dossier --
+  /** The cover line. Cut on a word, never mid-word — this is the first thing a
+   *  bank or an investor reads, and "…commandes et livr" reads as a bug. */
+  function coverTitle() {
+    const idea = (project.idea || '').trim();
+    if (!idea) return 'Business dossier';
+    if (idea.length <= 80) return idea;
+    const cut = idea.slice(0, 80);
+    const space = cut.lastIndexOf(' ');
+    return (space > 40 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '') + '…';
+  }
+
   function renderDossier() {
     const out = $('dossierOut');
     clear(out);
@@ -671,7 +682,7 @@
 
     out.appendChild(h('div', { class: 'doc-cover' },
       h('div', { class: 'eyebrow', text: 'MWINDA AI BUSINESS INTELLIGENCE' }),
-      h('div', { class: 't', text: (s.analyze && s.analyze.summary ? (project.idea || '').slice(0, 80) : project.idea || 'Business dossier') }),
+      h('div', { class: 't', text: coverTitle() }),
       h('div', { class: 'm', text: [project.businessType, project.sector].filter(Boolean).join(' · ') }),
       h('div', { class: 'm', text: [project.city, project.region, project.country].filter(Boolean).join(', ') }),
       h('div', { class: 'm', text: 'Generated ' + new Date().toLocaleDateString() + ' · Mwinda Digital' }),
@@ -889,6 +900,11 @@
      * whatever is finished at that moment, so a founder who has only run the
      * analysis still gets a usable PDF rather than being made to complete all
      * six stages first.
+     *
+     * This used to call window.print() and hope the founder picked "Save as
+     * PDF". Whether a file appeared was then entirely the browser's business —
+     * and on a phone, or with no print backend, none did. bi-pdf.js writes the
+     * file here instead, so a button that says "download" downloads.
      */
     function exportPdf() {
       const done = ORDER.filter((s) => project.stages[s]).length;
@@ -897,13 +913,36 @@
         return;
       }
       renderDossier();
-      remote.event('dossier_exported', project.remoteId);
+      go('dossier');
+
+      const out = $('dossierOut');
+      const name = [project.businessType, project.sector, project.country].filter(Boolean).join(' ');
+      try {
+        if (!window.mwindaPdf) throw new Error('bi-pdf.js not loaded');
+        window.mwindaPdf.save(out, {
+          name: name || 'business',
+          title: (project.idea || 'Business dossier').slice(0, 90),
+          subject: 'MWINDA AI Business Intelligence — ' + [project.sector, project.country].filter(Boolean).join(', '),
+        });
+        remote.event('dossier_exported', project.remoteId);
+      } catch (e) {
+        // Never leave the founder with a dead button: fall back to the print
+        // dialog, which is what this used to be.
+        printDossier();
+      }
+    }
+
+    /** The browser's own print dialog — kept as a deliberate second route. */
+    function printDossier() {
+      renderDossier();
       go('dossier');
       setTimeout(() => window.print(), 120);
     }
 
     $('btnPrint').addEventListener('click', exportPdf);
     document.querySelectorAll('[data-pdf]').forEach((b) => b.addEventListener('click', exportPdf));
+    const btnPrintDialog = $('btnPrintDialog');
+    if (btnPrintDialog) btnPrintDialog.addEventListener('click', printDossier);
 
     // Capability link: id + owner token in the fragment. The fragment is never
     // sent to the server by the browser, so the link is only as exposed as the

@@ -299,6 +299,11 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
   @page { margin: 18mm 16mm; }
   html, body { background: #fff !important; color: #111 !important; font-size: 11pt; }
   .topbar, .rail, .hero, .actions, footer.site, .no-print, .btn { display: none !important; }
+  /* The fixed background layer — poster, ignition and a multi-megabyte video —
+     has no business in a print job. Chrome has to snapshot a playing <video>
+     to lay out the page, which is slow at best and has been seen to fail the
+     preview outright. */
+  .site-bg { display: none !important; }
   .step { display: none !important; }
   .step#step-dossier { display: block !important; padding: 0; }
   .wrap { max-width: none; padding: 0; }
