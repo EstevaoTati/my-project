@@ -781,9 +781,12 @@
        on retombe sur le CDN, puis sur le réseau neuronal seul. */
     if(!reduced){
       const amb=document.querySelector('.bg-ambient');
+      // mp4 en premier : sur Netlify il répond toujours (fichier local ou proxy),
+      // donc aucun 404 en production. Le webm ne sert que si l'on choisit de
+      // n'auto-héberger que cette variante.
       const SOURCES=[
-        'assets/clips/bg-tech.webm',   // variante VP9 si elle existe (plus légère)
         'assets/clips/bg-tech.mp4',    // fichier local, ou proxy Netlify
+        'assets/clips/bg-tech.webm',   // variante VP9 si c'est la seule présente
         'https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260730_005955_b7dfa171-e171-4ecd-8108-44f7dc4af7a8.mp4'
       ];
       let vid=null, idx=0, lastT=-1, strikes=0;
