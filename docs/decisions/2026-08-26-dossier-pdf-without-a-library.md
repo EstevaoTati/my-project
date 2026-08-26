@@ -103,6 +103,53 @@ Driven in a real browser against a server that emulates the Netlify rules:
 Margins were checked by reading every character's bounding box out of the
 produced file, not by looking at it.
 
+## Follow-up: building the file was not the last problem
+
+The founder reported the same symptom again after this shipped — *le fichier
+PDF semble être introuvable*. Writing the file was fixed; **handing it over**
+was not. A browser's download can land somewhere the reader cannot reach:
+
+- iOS drops it into Files with no prompt and no visible destination.
+- In-app WebViews (WhatsApp, Instagram, Gmail) frequently have no download UI
+  at all — the click succeeds and nothing observable happens.
+- A phone with no file manager leaves a notification that goes nowhere.
+
+The file existed every time. The person could not get to it. So the export now
+fires the download **and** leaves a live `Open the PDF →` link on the page,
+which opens the document in the browser's own viewer — a viewer every platform
+has, and which always offers Share / Save. The blob URL behind it is held for
+the life of the page rather than revoked on a timer, because a reader may tap
+that link minutes later.
+
+Two related traps closed at the same time:
+
+- **`alert('Nothing to export yet')`.** Several in-app browsers swallow
+  `alert()` entirely, so a founder who had generated nothing got *silence* from
+  the download button — indistinguishable from a missing file. It is now an
+  in-page notice that says what to do instead.
+- **A failure told you nothing.** The `catch` fell back to the print dialog
+  without saying why. It now names the error before falling back.
+
+## And the access link
+
+`Copy access link` had three defects, all found by reading it:
+
+1. It printed **"Link copied"** whether or not the clipboard write succeeded,
+   and never showed the link. Safari and every in-app browser refuse clipboard
+   writes routinely, so the founder was told it worked while nothing was
+   copied and nothing was displayed.
+2. It **refused outright** when the project had not reached the server yet,
+   instead of saving it and then issuing the link.
+3. It would build a link ending in **`.undefined`** when the owner token was
+   missing — a link that can never open.
+
+The link is now always rendered on the page, selectable with one tap, and the
+message only claims a copy when the clipboard actually resolved. When server
+storage is not configured at all — which is this deployment's current state,
+since `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are unset in Netlify — it says
+so plainly and points at `Export data (JSON)` as the way to move a project
+between devices, rather than failing silently.
+
 ## What this does not do
 
 No images, no embedded fonts, no right-to-left text, no hyperlinks. If the

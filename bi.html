@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="bi.css?v=8" />
+  <link rel="stylesheet" href="bi.css?v=9" />
 </head>
 <body>
 
@@ -188,6 +188,10 @@
       <button class="btn ghost" id="btnLink">Copy access link</button>
       <span class="footnote">The PDF is written by MWINDA and saved straight to your device — no print dialog. “Print” opens your browser’s dialog instead, if you prefer it.</span>
     </div>
+    <!-- After an export this carries the "Open the PDF" link, so the document
+         is reachable even when the browser's download goes somewhere the
+         reader cannot find. See bi-pdf.js. -->
+    <p class="footnote" id="pdfNote"></p>
     <div id="dossierOut"></div>
   </section>
 
@@ -199,7 +203,7 @@
 
 <script src="video-bg.js?v=1"></script>
 
-<script src="bi-pdf.js?v=1"></script>
-<script src="bi.js?v=4"></script>
+<script src="bi-pdf.js?v=2"></script>
+<script src="bi.js?v=5"></script>
 </body>
 </html>

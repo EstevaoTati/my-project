@@ -282,6 +282,35 @@ table.fin tr.total td { color: var(--text); font-weight: 600; border-top: 1px so
 .doc-cover .m { color: var(--dim); font-size: 13.5px; }
 
 .footnote { color: var(--dim); font-size: 12.5px; margin-top: 10px; }
+/* A footnote that is telling the founder something went wrong has to read as
+   a notice, not as small print they will scroll past. */
+.footnote.warn { color: var(--warn); }
+
+/* Export note: the way back to the file when the browser's download landed
+   somewhere the reader cannot see. See bi-pdf.js. */
+#pdfNote { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 22px; }
+#pdfNote:empty { margin: 0; }
+.pdf-open {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(212,175,55,.14); border: 1px solid var(--gold-3);
+  border-radius: 8px; color: var(--gold-1); text-decoration: none;
+  font-size: 13px; font-weight: 600; letter-spacing: .05em;
+  text-transform: uppercase; padding: 10px 16px;
+  transition: background .2s var(--ease);
+}
+.pdf-open:hover { background: rgba(212,175,55,.24); }
+.pdf-meta { font-family: var(--mono); font-size: 12px; color: var(--mute); }
+.pdf-hint { flex: 1 1 100%; color: var(--dim); font-size: 12.5px; }
+
+/* The access link, shown in full so a refused clipboard costs nothing. */
+.link-out {
+  display: inline-block; margin-top: 8px; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  color: var(--gold-1); background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 10px; word-break: break-all; max-width: 100%;
+}
+.link-out:hover { border-color: var(--line-strong); }
 footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-top: 40px; color: var(--dim); font-size: 13px; }
 
 /* saved projects */
@@ -298,7 +327,8 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 @media print {
   @page { margin: 18mm 16mm; }
   html, body { background: #fff !important; color: #111 !important; font-size: 11pt; }
-  .topbar, .rail, .hero, .actions, footer.site, .no-print, .btn { display: none !important; }
+  .topbar, .rail, .hero, .actions, footer.site, .no-print, .btn,
+  #pdfNote { display: none !important; }
   /* The fixed background layer — poster, ignition and a multi-megabyte video —
      has no business in a print job. Chrome has to snapshot a playing <video>
      to lay out the page, which is slow at best and has been seen to fail the
