@@ -365,6 +365,8 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
 .sync.synced { color: var(--ok); }
 .sync.syncing { color: var(--gold-3); }
 .sync.error { color: var(--warn); }
+/* Not a status — a warning that work will be lost on reload. */
+.sync.unsaved { color: var(--bad); font-weight: 600; }
 @media print { .sync { display: none !important; } }
 
 /* ============================================================

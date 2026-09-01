@@ -150,6 +150,57 @@ since `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are unset in Netlify — it says
 so plainly and points at `Export data (JSON)` as the way to move a project
 between devices, rather than failing silently.
 
+## Follow-up 2: the whole flow, driven for the first time
+
+Every test until now seeded `localStorage` and started at the dossier. The
+generation pipeline — `Analyse my idea` → six stages → the file — had never
+actually been driven. It is now, against a faithful replica of
+`netlify/functions/bi.mjs`'s wire protocol: NDJSON, `start` → `progress…` →
+`result`, with schema-complete payloads for all six stages, streamed in
+irregular chunks that split mid-JSON and mid-UTF-8 on purpose. The client's
+buffered line parsing survives that.
+
+**31 assertions end to end**, on desktop and on a phone viewport, against the
+built package: the form, the analysis, each of the five following stages, the
+rail's progress state, the financial arithmetic, the assembled dossier, the
+downloaded PDF, and a reload afterwards. Plus **32 more** on the paths where
+things go wrong.
+
+Two real bugs came out of it.
+
+### Retries stacked their errors
+
+Each `[data-next]` / `[data-regen]` click inserted a **new** status container
+above the previous one. On success that left an empty div behind; on failure it
+left the previous attempt's red box on screen underneath the new one. Three
+retries of a failing stage showed **three identical errors stacked** — which
+reads as three separate things breaking rather than one thing tried three
+times. There is now one status area per step, reused and cleared.
+
+### A browser that refuses storage lost everything, silently
+
+Safari's Private Browsing and several in-app WebViews (WhatsApp, Instagram,
+Gmail) refuse `localStorage` outright — the write throws. `save()` caught that
+and carried on, which is correct for the session, since `project` lives in
+memory. But the indicator went on saying **"Saved in this browser"**, and those
+WebViews reload constantly: on backgrounding, on memory pressure, on following
+a link and coming back.
+
+Measured: six stages generated fine, then one reload left the plan at **0
+characters**, the idea field empty and the rail reset. An hour of work, gone,
+with the interface having claimed throughout that it was saved.
+
+Storage is now probed at boot, the indicator says *"NOT saved — this browser
+blocks storage. Download your dossier before leaving this page."* in the
+warning colour, and leaving the page with generated work and no persistence
+raises the browser's own confirm. The rest of the flow is untouched: the same
+run under blocked storage still completes all six stages and still produces the
+PDF.
+
+**Quota was not the problem, and I checked rather than assumed:** a complete
+six-stage project occupies **26 KB**, against a ~5 MB budget. The failure is
+refusal, not fullness.
+
 ## What this does not do
 
 No images, no embedded fonts, no right-to-left text, no hyperlinks. If the
