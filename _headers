@@ -7,15 +7,15 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3B7dQI8vO0VOheSsCtN1mkahG+AmmWvJtGtn65qxWq8=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-VJ2gFfUQR5R8R26JZGV4eBvAmgkN0FPChZxD6H94t8c=' 'sha256-pS7KjmLQzzvmV/z9Inqb2oiPySngNnIaZCWquMkdNME=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'self'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:default
 
 /os
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-mOKN2CBlGHn0RS7egLQe17qiTDnSOyOIpRMqarujycI=' 'sha256-zqaGzeK6E+JLQqhzIxWD/tDPq5P+Bw+L4UZRPWPb67Q=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
 
 /os.html
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-mOKN2CBlGHn0RS7egLQe17qiTDnSOyOIpRMqarujycI=' 'sha256-zqaGzeK6E+JLQqhzIxWD/tDPq5P+Bw+L4UZRPWPb67Q=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
 
 /.netlify/functions/*
   Cache-Control: no-store
@@ -26,3 +26,9 @@
 
 /*.js
   Cache-Control: public, max-age=31536000, immutable
+
+# HTML must revalidate, or a cached page keeps pointing at old asset
+# versions. netlify.toml already says this; _headers is what applies to
+# `netlify deploy --dir=.` and Drop, so it has to agree.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

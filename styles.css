@@ -1382,7 +1382,15 @@ section { position: relative; padding: 140px 0; z-index: 1; }
 /* Same contract as the hero: the poster stays beneath, the video fades in
    only when it is actually playing, and the CSS ignition steps aside only
    then — a video that never starts must not take the glow with it. */
-.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+/* The drift exists to keep a STILL background alive. A playing video already
+   moves: the extra 1.08→1.16 zoom only crops the composition — the clip is
+   framed so the whole bulb survives any viewport, and a 16% zoom takes that
+   margin away — and it burns GPU transforming a full-viewport video layer on
+   every frame, which on a phone is battery for nothing. */
+.site-bg video {
+  z-index: 1; opacity: 0; transition: opacity .9s ease;
+  animation: none; transform: none;
+}
 .site-bg.video-ready video { opacity: 1; }
 .site-bg.video-ready .site-bg-ignite { display: none; }
 

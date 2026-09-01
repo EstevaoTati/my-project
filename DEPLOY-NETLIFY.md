@@ -33,10 +33,9 @@ netlify deploy --prod --dir=.
 | File | Purpose |
 |------|---------|
 | `index.html`, `styles.css`, `script.js`, `i18n.js` | The site itself (FR/EN i18n) |
-| `preview.html` | Self-contained single-file version (CSS+JS inlined) |
 | `demo.html` | Side-by-side desktop/mobile preview viewer |
 | `netlify.toml` | Build, redirects, security headers, caching |
-| `_redirects` | Friendly URLs (`/preview`, `/demo`) |
+| `_redirects` | Friendly URLs (`/demo`); `/preview` 301s to `/` |
 | `_headers` | Per-file headers (cache-control, security) |
 | `robots.txt`, `sitemap.xml` | SEO basics |
 
@@ -67,6 +66,6 @@ works in production:
 
 - [ ] Open the Netlify URL on desktop — verify hero 3D, animations, form
 - [ ] Open it on a phone — verify mobile layout
-- [ ] Check `/preview` and `/demo` shortcuts
+- [ ] Check the `/demo` shortcut, and that `/preview` redirects to `/`
 - [ ] Run a Lighthouse audit
 - [ ] Set up a custom domain (e.g. `mwindagroup.com`)
