@@ -2,6 +2,14 @@
 
 **Date:** 2026-08-22 · **Status:** shipped (validation slice)
 
+> **Correction, 2026-08-26.** The streaming rationale below — that NDJSON gets
+> a 20-120s stage "past the synchronous response window" — is **wrong**.
+> Streaming holds a connection open; it does not extend a function's execution
+> limit. The platform killed every invocation mid-stream, which is why the
+> engine never once worked in production. Generation now runs in a background
+> function: see
+> `docs/decisions/2026-08-26-bi-generation-runs-in-the-background.md`.
+
 ## Decision
 
 Build the AI engine and the full six-stage user journey **on the existing
