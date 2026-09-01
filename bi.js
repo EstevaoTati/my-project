@@ -94,16 +94,40 @@
     },
   };
 
+  /**
+   * Whether this browser will actually keep anything.
+   *
+   * Safari's Private Browsing and several in-app WebViews (WhatsApp,
+   * Instagram, Gmail) refuse localStorage outright — the write throws. The app
+   * still runs, because `project` lives in memory, but a reload then wipes an
+   * hour of generation. Those WebViews reload constantly: on backgrounding, on
+   * memory pressure, on following a link and coming back.
+   *
+   * Measured before this existed: six stages generated fine, the indicator
+   * said "Saved in this browser", and one reload left the dossier empty. The
+   * indicator must never claim a save that cannot happen.
+   */
+  let persistOk = (() => {
+    try {
+      localStorage.setItem('mwinda.probe', '1');
+      localStorage.removeItem('mwinda.probe');
+      return true;
+    } catch { return false; }
+  })();
+
   let syncTimer = null;
   function setSync(state) {
     remote.status = state;
     const el = document.getElementById('syncState');
     if (!el) return;
+    // "Saved in this browser" is false when the browser is refusing to store.
+    if (!persistOk && (state === 'local' || state === 'error')) state = 'unsaved';
     const label = {
       local: 'Saved in this browser',
       syncing: 'Saving…',
       synced: 'Saved to your MWINDA account',
       error: 'Saved locally — server unreachable',
+      unsaved: 'NOT saved — this browser blocks storage. Download your dossier before leaving this page.',
     }[state] || '';
     el.textContent = label;
     el.className = 'sync ' + state;
@@ -224,8 +248,25 @@
         data: project,
       });
       localStorage.setItem(LIST, JSON.stringify(list.slice(0, 8)));
-    } catch { /* storage full or blocked — the session still works */ }
+      persistOk = true;
+    } catch {
+      // The session still works — everything is in memory — but a reload will
+      // take it all. Say so, rather than showing "Saved in this browser".
+      persistOk = false;
+      setSync(remote.available ? remote.status : 'local');
+    }
   }
+
+  /* A browser that refuses to store makes leaving the page destructive. Warn
+     only when that is true AND there is generated work to lose — never on a
+     browser that is saving normally. */
+  window.addEventListener('beforeunload', (e) => {
+    if (persistOk || remote.status === 'synced') return;
+    if (!project || !Object.keys(project.stages || {}).length) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
 
   function load() {
     try {
@@ -829,6 +870,27 @@
     renderRail();
   }
 
+  /**
+   * One status area per step, reused across attempts.
+   *
+   * Every click used to insert a *new* container above the previous one. On
+   * success that left an empty div behind; on failure it left the previous
+   * attempt's red error box on screen underneath the new one. Three retries of
+   * a failing stage showed three identical failures stacked — which reads as
+   * three separate things going wrong rather than one thing tried three times.
+   */
+  function statusHost(btn) {
+    const step = btn.closest('.step');
+    let box = step.querySelector('.gen-status');
+    if (!box) {
+      const actions = step.querySelector('.actions');
+      box = h('div', { class: 'gen-status no-print' });
+      actions.parentNode.insertBefore(box, actions.nextSibling);
+    }
+    clear(box);
+    return box;
+  }
+
   function bind() {
     ['region', 'city', 'budget'].forEach((k) =>
       $(k).addEventListener('input', () => { project[k] = $(k).value; save(); }));
@@ -873,10 +935,7 @@
         if (stage === 'dossier') { renderDossier(); renderRail(); return go('dossier'); }
         if (project.stages[stage]) { RENDER[stage](); return go(stage); }
         btn.disabled = true;
-        const host = btn.closest('.step').querySelector('.actions');
-        const status = h('div');
-        host.parentNode.insertBefore(status, host.nextSibling);
-        const data = await generate(stage, status);
+        const data = await generate(stage, statusHost(btn));
         btn.disabled = false;
         if (data) { RENDER[stage](); renderRail(); go(stage); }
       });
@@ -886,10 +945,7 @@
       btn.addEventListener('click', async () => {
         const stage = btn.getAttribute('data-regen');
         btn.disabled = true;
-        const host = btn.closest('.step').querySelector('.actions');
-        const status = h('div');
-        host.parentNode.insertBefore(status, host.nextSibling);
-        const data = await generate(stage, status);
+        const data = await generate(stage, statusHost(btn));
         btn.disabled = false;
         if (data) RENDER[stage]();
       });
