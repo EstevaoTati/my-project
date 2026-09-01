@@ -3,6 +3,7 @@
   "private": true,
   "description": "MWINDA DIGITAL static site. No build step for the site itself; this manifest exists only so Netlify bundles the serverless function dependencies in netlify/functions/.",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.110.0"
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@netlify/blobs": "^11.0.2"
   }
 }

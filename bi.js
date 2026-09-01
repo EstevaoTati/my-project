@@ -11,6 +11,20 @@
   'use strict';
 
   const ENDPOINT = '/.netlify/functions/bi';
+  const STATUS_ENDPOINT = '/.netlify/functions/bi-status';
+  // The engine dispatches to a background worker and we poll. Two seconds is
+  // frequent enough to feel alive and slow enough that a six-stage dossier
+  // does not generate hundreds of requests.
+  const POLL_MS = 2000;
+  // The worker's own ceiling is 15 minutes. Give up before that, because a
+  // stage that has not finished in eight is not going to.
+  const MAX_WAIT_MS = 8 * 60 * 1000;
+  const STAGE_TITLES = {
+    analyze: 'idea analysis', model: 'business model', plan: 'business plan',
+    financials: 'financial assumptions', compliance: 'regulatory checklist',
+    roadmap: 'execution roadmap',
+  };
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
   const PROJECT_API = '/.netlify/functions/project';
   const STORE = 'mwinda.bi.project';
   const LIST = 'mwinda.bi.projects';
@@ -304,7 +318,20 @@
   }
 
   // -------------------------------------------------------------- generate --
-  /** Streamed NDJSON: {start} … {progress} … {result|error} */
+  /**
+   * Ask the engine for a stage, then wait for it.
+   *
+   * This used to read a streamed NDJSON response. That could not work: a stage
+   * runs 20-120 seconds and the platform kills a synchronous function long
+   * before that. Because bytes had already been streamed, the browser saw the
+   * connection simply stop — no result, no error — and this function reported
+   * "no result received", which is what the founder hit on every analysis.
+   *
+   * The engine now dispatches the work to a background worker and answers with
+   * a job id in milliseconds; we poll for the outcome. A dropped poll on a
+   * flaky connection no longer costs the generation — the work carries on
+   * server-side and the next poll picks it up.
+   */
   async function generate(stage, statusHost) {
     const box = h('div', { class: 'status' }, h('span', { class: 'spin' }), h('span', { text: 'Contacting the engine…' }));
     clear(statusHost);
@@ -316,6 +343,10 @@
       if (s === stage) break;
       if (project.stages[s]) prior[s] = project.stages[s];
     }
+
+    const started = Date.now();
+    const secs = () => Math.round((Date.now() - started) / 1000);
+    const say = (text) => { label.textContent = text; };
 
     try {
       const res = await fetch(ENDPOINT, {
@@ -332,33 +363,49 @@
         }),
       });
 
-      if (!res.ok || !res.body) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || ('HTTP ' + res.status));
-      }
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || ('HTTP ' + res.status));
+      if (!out.jobId) throw new Error('the engine did not start the work — please retry');
 
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = '';
+      say('Generating the ' + (STAGE_TITLES[stage] || stage) + '…');
+
       let result = null;
-
+      let misses = 0;
       for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop();
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          let msg;
-          try { msg = JSON.parse(line); } catch { continue; }
-          if (msg.type === 'start') label.textContent = 'Generating the ' + msg.title + '…';
-          else if (msg.type === 'progress') label.textContent = 'Writing… ' + Math.round(msg.chars / 100) * 100 + ' characters';
-          else if (msg.type === 'error') throw new Error(msg.error);
-          else if (msg.type === 'result') result = msg.data;
+        await pause(POLL_MS);
+        if (Date.now() - started > MAX_WAIT_MS) {
+          throw new Error('this is taking much longer than usual — please retry');
         }
+
+        let status = null;
+        try {
+          const r = await fetch(STATUS_ENDPOINT + '?job=' + encodeURIComponent(out.jobId), { cache: 'no-store' });
+          const s = await r.json().catch(() => ({}));
+          // 404 right after dispatch, or a 5xx, is worth another look — the
+          // work is still running on the server either way.
+          if (r.status === 404 || r.status >= 500) { status = null; }
+          else if (!r.ok) throw new Error(s.error || ('HTTP ' + r.status));
+          else status = s;
+        } catch (netErr) {
+          if (netErr && netErr.__fatal) throw netErr;
+          status = null;                       // a dropped poll, not a failure
+        }
+
+        if (!status) {
+          if (++misses > 8) throw new Error('lost contact with the engine — please retry');
+          continue;
+        }
+        misses = 0;
+
+        if (status.status === 'done') { result = status.data; break; }
+        if (status.status === 'error') throw new Error(status.error || 'generation failed');
+
+        say(status.chars
+          ? 'Writing… ' + Math.round(status.chars / 100) * 100 + ' characters (' + secs() + 's)'
+          : 'Generating the ' + (STAGE_TITLES[stage] || stage) + '… (' + secs() + 's)');
       }
-      if (!result) throw new Error('no result received — please retry');
+
+      if (!result) throw new Error('the engine returned nothing — please retry');
 
       project.stages[stage] = result;
       save();

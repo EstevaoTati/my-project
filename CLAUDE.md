@@ -141,13 +141,19 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   of the column. ~50 KB for six pages. A **Print** button keeps the browser
   dialog as a second route. See
   `docs/decisions/2026-08-26-dossier-pdf-without-a-library.md`.
-- `netlify/functions/bi.mjs` — six-stage generation engine. Structured output
-  via tool-use; streams NDJSON because a stage runs 20-120s, past the
-  synchronous response window. **The model proposes financial assumptions
+- `netlify/functions/bi.mjs` + `bi-run-background.mjs` + `bi-status.mjs` +
+  `_jobs.mjs` + `_bi_stages.mjs` — the six-stage generation engine. Structured
+  output via tool-use. **A stage takes 20-120s, so it cannot run in a
+  synchronous function**: `bi.mjs` validates and rate-limits, then dispatches
+  to the `-background` worker (15 min ceiling) and returns a job id in
+  milliseconds; the browser polls `bi-status`. The two halves meet in a
+  **Netlify Blobs** job record. Streaming NDJSON was tried first and could
+  never work — the platform killed the invocation mid-stream and the browser
+  reported "no result received". **The model proposes financial assumptions
   only — the arithmetic runs in `bi.js`**, so figures stay consistent and
   editable. Truncated generations are returned as errors, never as partial
   data. Env: `BI_MODEL` (default `claude-sonnet-5`), `BI_ENABLED=false` kills
-  it. See `docs/decisions/2026-08-22-ai-business-intelligence.md`.
+  it. See `docs/decisions/2026-08-26-bi-generation-runs-in-the-background.md`.
 - `netlify/functions/_reference.mjs` + `data/reference/*.json` — the grounding
   layer for the BI engine. **Facts and portals are never blurred:** World Bank
   (WDI / WGI / B-READY) and UNDP HDR figures are ingested on a schedule and
