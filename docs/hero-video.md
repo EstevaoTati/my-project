@@ -9,9 +9,10 @@ content scrolls over it. Both pages play a video there today.
 | `assets/hero-platform.mp4` | `index.html`, `os.html` | `assets/hero-platform.jpg` |
 | `assets/hero-bi.mp4` | `bi.html` | `assets/hero-bi.jpg` |
 
-Kling v3.0, generated from the founder's bulb stills to a beat-by-beat brief:
-1280×720, 16:9, 10 s, H.264 Main profile level 3.2, fast-start (`moov` before
-`mdat`), **no audio track at all**. Both files are committed.
+Kling v3.0, generated from the founder's bulb stills to a beat-by-beat brief,
+then **recomposed and re-encoded** (see below): 1080x1080, 10 s, H.264 Main
+profile level 4.0, fast-start (`moov` before `mdat`), **no audio track at all**.
+Both files are committed.
 
 **No audio, deliberately.** A background video must be muted or the browser
 refuses to autoplay it, so an audio track is dead weight — and on iOS, a file
@@ -21,6 +22,52 @@ with no audio track is the strongest position autoplay can be in.
 in warm steady light, so a seamless loop is impossible by construction: it would
 need the last frame to return to the first. The clip reads as the bulb
 re-igniting on each cycle, which suits "Bringing Light to Your Ideas".
+
+## The clips were recomposed, and it mattered
+
+The originals were **1088x844** and **780x1176** — one nearly square, the other
+**portrait** — at 9.4 and 6.7 Mbit/s. (This file previously claimed 1280x720,
+16:9. It was wrong; nobody had been able to decode them to check.)
+
+Used as a full-viewport background with `object-fit: cover`, that was bad in
+two different ways. On a 16:9 desktop the near-square clip was cropped straight
+through the glass, and the **portrait** clip was cropped to a narrow horizontal
+slice of itself and upscaled — neither read as a light bulb any more, just an
+abstract glass close-up. The founder kept asking for the videos to be "more
+visible"; they were visible, they were just enormously cropped.
+
+Both are now composed on a **1080x1080 square canvas**: the source scaled to sit
+whole and centred (at 38% height, matching `object-position: center 38%`), over
+a heavily blurred, darkened enlargement of the same frame, with the inset's
+edges feathered out so there is no rectangle to see. A square master with the
+subject at roughly 45% of the frame survives `cover` at every aspect ratio worth
+caring about — checked at 1440x900 and at 390x844, where the whole bulb stays in
+frame with margin.
+
+### And they got 94% smaller
+
+| | Before | After |
+|---|---|---|
+| `hero-platform.mp4` | 11.2 MB | **0.66 MB** |
+| `hero-bi.mp4` | 8.0 MB | **0.49 MB** |
+| posters (2 JPEGs) | 300 KB | **55 KB** |
+| **total** | **20.4 MB** | **1.22 MB** |
+
+The old bitrate was absurd for a veiled background. This audience is on mobile
+data in Kinshasa; 20 MB of background video is real money out of a founder's
+pocket, on a layer they are not even meant to look at directly. The posters were
+regenerated from the new composition so the poster-to-video reveal does not jump.
+
+Verified on the encoded files, not assumed: `ftyp` then `moov` then `mdat`
+(fast-start), no audio stream, H.264 Main.
+
+### The drift animation had to stop on the video
+
+`.site-bg-img, .site-bg video` shared a 46-second `siteDrift` that scales the
+layer 1.08 to 1.16. That silently ate the framing margin above — and it was
+transforming a full-viewport *video* layer on every frame, which is GPU and
+battery spent to move something that already moves. The drift now applies to
+the still poster only; `.site-bg video` sets `animation: none; transform: none`.
 
 ## The playback logic lives in one file
 
@@ -120,15 +167,29 @@ marked ready, the artwork stays, attempts stop climbing (1 → 2 over 5 s rather
 than a loop of retries), and the first touch starts it and flips the layer to
 `video-ready`.
 
-### Why the clips could not be viewed in the sandbox
+### Playing them in the sandbox, and looking at them
 
-They are H.264 Main profile level 3.2 — as conservative and widely supported as
-video gets. The Chromium build available here is the open-source one, which
-ships without proprietary codecs and answers
-`DEMUXER_ERROR_NO_SUPPORTED_STREAMS`. The files themselves are correct: valid
-`ftyp`, `moov` before `mdat`, no audio track. Chrome, Safari, Edge and Firefox
-play them. Nothing about their *content* could be verified here, which is why
-the source artwork was measured instead.
+The Chromium build available here is the open-source one: no proprietary
+codecs, so it answers `DEMUXER_ERROR_NO_SUPPORTED_STREAMS` on H.264 and cannot
+play these files. For a long time that meant nobody working on this repo had
+ever *seen* the clips, and the framing bug above went unnoticed for weeks — the
+source stills were measured as a proxy instead.
+
+**ffmpeg removes that blind spot.** `npm i ffmpeg-static` puts a binary in the
+scratch directory that decodes H.264 perfectly, so frames can be extracted and
+looked at, and a browser crop can be reproduced exactly:
+
+```bash
+# a frame, and what `cover` will do with it at 1440x900, object-position 38%
+ffmpeg -ss 4 -i assets/hero-platform.mp4 -frames:v 1 frame.png
+ffmpeg -i frame.png -vf "scale=1440:1440,crop=1440:900:0:205" desktop.png
+# and on a phone: 390x844
+ffmpeg -i frame.png -vf "scale=844:844,crop=390:844:227:0" phone.png
+```
+
+Do this before trusting any claim about how a background clip is framed. The
+playback tests still need a decodable stand-in (`WORST_CASE=1` in `serve.mjs`),
+because the *browser* still cannot play H.264 here.
 
 ## A missing asset 404s
 
@@ -174,13 +235,6 @@ reported a *worse* number after both darkening the backdrop and whitening the
 label — an impossible direction. For anything sitting over the bulb, look at the
 render.
 
-## The clips are large
-
-12 MB and 8 MB, against a target of 4 MB. `preload="metadata"` limits the
-initial fetch, but autoplay means a visitor downloads the whole file — which is
-why the data-saver path exists. Re-encoding smaller is the outstanding item
-here.
-
 ## The Three.js hero is gone
 
 `index.html` used to carry a gold wireframe icosahedron with orbital rings over
@@ -190,10 +244,10 @@ each other for the reader's eye.
 
 - `index.html` no longer loads the three.js CDN script at all — the heaviest
   dependency the page had.
-- `cdnjs.cloudflare.com` stays in the CSP because **`preview.html` still loads
-  three.js**. That file is the self-contained snapshot of the site and does not
-  track changes to the external assets — it is stale in this respect, as
-  `CLAUDE.md` warns it can be. Regenerate or retire it when convenient.
+- `cdnjs.cloudflare.com` is **gone from the CSP**. It was only ever there for
+  the three.js that `preview.html` loaded, and that page has been retired —
+  it had drifted so far it still showed the removed 3D shapes and the old
+  "MWINDA GROUP" name. `/preview` now 301s to `/`.
 
 ## The CSS ignition, for when there is no video
 

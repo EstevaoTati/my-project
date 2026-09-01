@@ -498,7 +498,11 @@
    the video fades in only once it is genuinely playing. Keying this off the
    element's mere presence would let a 404, a rejected codec or a refused
    autoplay hide the artwork and leave a black rectangle. */
-.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+.site-bg video {
+  z-index: 1; opacity: 0; transition: opacity .9s ease;
+  /* The drift is for the still; a playing video moves on its own. */
+  animation: none; transform: none;
+}
 .site-bg.video-ready video { opacity: 1; }
 .site-bg.video-ready .site-bg-ignite { display: none; }
 

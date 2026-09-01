@@ -531,7 +531,12 @@ footer.site { border-top: 1px solid var(--line); padding: 26px 0 40px; margin-to
    video-bg.js adds .video-ready on the `playing` event. Keying this off the mere
    presence of the element meant a 404, an unsupported codec or a browser
    refusing autoplay would hide the artwork and leave a black rectangle. */
-.site-bg video { z-index: 1; opacity: 0; transition: opacity .9s ease; }
+/* The drift keeps a STILL background alive; a playing video already moves. The
+   extra zoom only crops the framing and burns GPU on a full-viewport layer. */
+.site-bg video {
+  z-index: 1; opacity: 0; transition: opacity .9s ease;
+  animation: none; transform: none;
+}
 .site-bg.video-ready video { opacity: 1; }
 .site-bg.video-ready .site-bg-ignite { display: none; }
 

@@ -1,5 +1,5 @@
 # MWINDA DIGITAL — Netlify redirects
-/preview    /preview.html    200
+/preview    /                301
 /demo       /demo.html       200
 /os         /os.html         200
 /bi         /bi.html         200

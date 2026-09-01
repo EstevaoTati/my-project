@@ -39,7 +39,12 @@ function scriptHashes() {
 function buildPolicy(frameAncestors) {
   return [
     "default-src 'self'",
-    `script-src 'self' ${scriptHashes().join(" ")} https://cdnjs.cloudflare.com https://cdn.jsdelivr.net`,
+    // cdnjs.cloudflare.com is gone: it was there only for the three.js that
+    // preview.html loaded, and preview.html has been retired. jsdelivr stays
+    // for GSAP on index.html. Every allowed script origin is a place someone
+    // else's code can enter the site from — keep the list as short as the
+    // pages actually require.
+    `script-src 'self' ${scriptHashes().join(" ")} https://cdn.jsdelivr.net`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data:",

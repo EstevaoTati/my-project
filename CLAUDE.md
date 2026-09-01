@@ -83,12 +83,16 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 ### Pages and assets
 
 - `index.html` — main site (single page, anchor navigation). Loads
-  `styles.css`, `i18n.js`, `script.js`, plus Three.js and GSAP/ScrollTrigger
-  from CDN.
-- `preview.html` — self-contained single-file copy of the site (CSS + JS
-  inlined). It does **not** pick up changes to the external files — update it
-  separately or note that it is stale.
-- `demo.html` — side-by-side desktop/mobile preview viewer.
+  `styles.css`, `i18n.js`, `script.js`, `video-bg.js`, plus GSAP/ScrollTrigger
+  from jsDelivr. Three.js is gone.
+- `demo.html` — side-by-side desktop/mobile preview viewer. It iframes
+  `index.html`, so it always shows the current site.
+- **`preview.html` is retired.** It was a self-contained single-file copy that
+  did not track the external files, so it drifted — it still showed the removed
+  3D shapes and the old "MWINDA GROUP" name. `/preview` now **301s to `/`**,
+  which can never go stale. Retiring it also removed `cdnjs.cloudflare.com`
+  from the CSP: nothing else loaded three.js. Do not reintroduce a snapshot
+  file; point people at `/` or `/demo`.
 - `os.html` — MWINDA OS page. Fully self-contained (own inline CSS/JS); it
   does not use `styles.css` or `i18n.js`. **Public part is only the hero and
   Layer 05 "Talk to the OS"** (the demo chat about Mwinda Digital). The
@@ -232,8 +236,14 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   fingerprinting. After editing `styles.css`, `script.js`, or `i18n.js`,
   returning visitors may see stale assets — bump a query string on the
   `<link>`/`<script>` tags (e.g. `styles.css?v=2`) when it matters.
-- `_redirects` / `netlify.toml`: `/preview` and `/demo` are pretty URLs;
-  everything else falls back to `index.html`.
+- `_redirects` / `netlify.toml`: `/demo` is a pretty URL, `/preview` 301s to
+  `/`; everything else falls back to `index.html`.
+- **The CSP is generated — never hand-edit it.** `scripts/update-csp.mjs`
+  rewrites every line tagged `# csp:default` / `# csp:strict` in both
+  `netlify.toml` and `_headers`. A policy line without that tag is not
+  managed and will drift: the `/*` entry in `_headers` sat unmanaged for weeks,
+  keeping four dead script hashes and an origin no page used. Run
+  `node scripts/update-csp.mjs --check` before committing.
 
 ### MWINDA OS infrastructure in this repo
 
