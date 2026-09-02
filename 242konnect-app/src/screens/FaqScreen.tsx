@@ -46,6 +46,10 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
         a: "MTN Mobile Money, Airtel Money, carte bancaire et virement. En Mobile Money, 242Konnect envoie une demande de paiement sur votre téléphone : vous la validez avec votre code PIN, et rien n'est débité tant que vous ne l'avez pas saisi. Tous les paiements passent par 242Konnect : vous ne réglez jamais le prestataire directement, pas même un pourboire.",
       },
       {
+        q: 'Puis-je contacter directement un prestataire ?',
+        a: "Les échanges passent par la messagerie 242Konnect, et les numéros et adresses personnels des prestataires ne sont pas publiés. C'est ce qui permet de suivre la demande, la conversation et la prestation sur la plateforme, et de vous appuyer dessus en cas de litige. Aux États-Unis, le contact direct pourra être proposé selon le fonctionnement retenu.",
+      },
+      {
         q: 'Pourquoi payer avant la prestation ?',
         a: "Le paiement confirme la mission et permet au prestataire de se mettre en route. 242Konnect conserve la somme et ne la verse qu'après votre validation du travail. En cas de litige, elle reste bloquée jusqu'à la décision de la plateforme.",
       },

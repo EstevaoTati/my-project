@@ -77,16 +77,21 @@ export function AccountScreen({ navigation }: Props) {
                   {PROFILE_LABELS[kind]}
                 </Text>
                 {!owned && <Text style={styles.profileChipAdd}>+ activer</Text>}
+                {kind !== 'particulier' && (
+                  <Text style={styles.profileChipPending}>en attente</Text>
+                )}
               </Pressable>
             );
           })}
         </View>
-        {account.activeProfile !== 'particulier' && (
-          <Text style={styles.profilesNote}>
-            L'espace {PROFILE_LABELS[account.activeProfile]} n'est pas encore construit. Vous
-            continuez à utiliser l'application comme particulier.
-          </Text>
-        )}
+        {/* The founder's sequencing: finish Particulier first, then the other
+            two. Their spaces exist but are explicitly on hold, so switching
+            says so rather than looking half-finished. */}
+        <Text style={styles.profilesNote}>
+          {account.activeProfile === 'particulier'
+            ? "L'espace Particulier est celui en cours de finalisation. Les espaces Prestataire et Business suivront."
+            : `L'espace ${PROFILE_LABELS[account.activeProfile]} est en attente : il sera finalisé après l'espace Particulier.`}
+        </Text>
       </View>
 
       <View style={styles.stats}>
@@ -198,6 +203,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius['2xl'],
+  },
+  profileChipPending: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 10,
+    letterSpacing: 0.3,
+    color: colors.warning,
+    marginTop: 1,
   },
   profilesLabel: {
     fontFamily: fonts.sansBold,

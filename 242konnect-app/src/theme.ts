@@ -29,8 +29,16 @@ export const colors = {
   muted: '#f4f4f5',
   mutedForeground: '#6b7280',
 
-  /** The brand yellow. Highlights, badges, selected states — used sparingly. */
-  accent: '#ffcb05',
+  /**
+   * The brand yellow. Highlights, badges, selected states — used sparingly.
+   *
+   * Deliberately the *same* value as `logoYellow`. The interface used to carry
+   * #ffcb05 while the mark carried #fbd218: two yellows a few degrees apart,
+   * which is exactly the "plusieurs autres couleurs" the correction note asks
+   * to avoid, and the kind of difference that reads as a printing error rather
+   * than a decision.
+   */
+  accent: '#fbd218',
   accentForeground: '#0a0a0a',
 
   card: '#ffffff',
@@ -40,9 +48,15 @@ export const colors = {
   ring: '#111111',
 
   /**
-   * Semantic status colours, deliberately separate from the brand palette:
-   * a validated mission and a failed payment have to be legible as states, and
-   * the charte's three colours cannot carry that on their own.
+   * Semantic status colours, deliberately separate from the brand palette.
+   *
+   * The charte is black, grey and yellow, and the correction note asks not to
+   * add colours beyond it. These three stay because they are not decoration: a
+   * validated mission, a pending one and a failed payment have to be
+   * distinguishable at a glance, and greyscale plus one yellow cannot carry
+   * three states. They are used only for state — never for emphasis, never on a
+   * surface, never on a button that isn't reporting one — which is what keeps
+   * the interface reading as black, grey and yellow.
    */
   success: '#15803d',
   successSurface: '#f0fdf4',
