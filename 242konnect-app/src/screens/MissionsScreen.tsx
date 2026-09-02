@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import { ProAvatar } from '../components/Avatar';
@@ -28,8 +28,10 @@ import {
   pollCollection,
   requestToPay,
 } from '../momo';
-import { useStore, type Booking, type MissionStatus } from '../store';
-import { useAuth } from '../auth';
+import { useStore, type Booking, type MissionStatus, type Payment } from '../store';
+import { downloadReceipt } from '../receipt';
+import { pickAvatar } from '../photo';
+import { formatStored, useAuth } from '../auth';
 import {
   DEFAULT_COUNTRY,
   formatNational,
@@ -41,7 +43,8 @@ import {
 import { colors, fonts, radius, shadow } from '../theme';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
-  confirmee: { label: 'À payer', bg: colors.warningSurface, fg: colors.warning },
+  demandee: { label: 'En attente', bg: colors.muted, fg: colors.mutedForeground },
+  acceptee: { label: 'À payer', bg: colors.warningSurface, fg: colors.warning },
   payee: { label: 'Fonds bloqués', bg: colors.muted, fg: colors.foreground },
   validee: { label: 'Validée', bg: colors.successSurface, fg: colors.success },
   litige: { label: 'Litige', bg: colors.destructiveSurface, fg: colors.destructive },
@@ -52,8 +55,10 @@ const pct = (r: number) => `${(r * 100).toLocaleString('fr-FR')} %`;
 
 export function MissionsScreen() {
   const insets = useSafeAreaInsets();
-  const { bookings, payments, payBooking, cancelBooking, validateMission, disputeMission, totalPaid, heldInEscrow } =
-    useStore();
+  const {
+    bookings, payments, payBooking, cancelBooking, validateMission, disputeMission,
+    acceptBooking, reviewMission, totalPaid, heldInEscrow,
+  } = useStore();
   const { account } = useAuth();
 
   const [paying, setPaying] = useState<Booking | null>(null);
@@ -79,6 +84,12 @@ export function MissionsScreen() {
   const [secondsLeft, setSecondsLeft] = useState(PIN_PROMPT_TIMEOUT_SECONDS);
   const [payError, setPayError] = useState<string | null>(null);
   const momoAbort = useRef<AbortController | null>(null);
+
+  const [reviewing, setReviewing] = useState<Booking | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [reviewPhoto, setReviewPhoto] = useState<string | undefined>();
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const [validating, setValidating] = useState<Booking | null>(null);
   const [speed, setSpeed] = useState<PayoutSpeed>('standard');
@@ -168,6 +179,44 @@ export function MissionsScreen() {
     } finally {
       momoAbort.current = null;
     }
+  };
+
+  const openReview = (booking: Booking) => {
+    setReviewing(booking);
+    setRating(5);
+    setComment('');
+    setReviewPhoto(undefined);
+    setReviewError(null);
+  };
+
+  const addReviewPhoto = async () => {
+    setReviewError(null);
+    try {
+      // Same bounded pipeline as avatars: an unbounded photo here would refill
+      // the storage the avatar fix just emptied.
+      const next = await pickAvatar();
+      if (next) setReviewPhoto(next);
+    } catch (e) {
+      setReviewError(e instanceof Error ? e.message : "Impossible d'ajouter cette photo.");
+    }
+  };
+
+  const submitReview = () => {
+    if (!reviewing) return;
+    reviewMission(reviewing.id, { rating, comment: comment.trim(), photo: reviewPhoto });
+    setReviewing(null);
+  };
+
+  /** Builds the receipt for a paid mission and hands it to the person. */
+  const shareReceipt = async (booking: Booking, payment: Payment, pro: { name: string }) => {
+    await downloadReceipt({
+      booking,
+      payment,
+      professionalName: pro.name,
+      tradeLabel: professionalTrade(getProfessional(booking.professionalId)!)?.label ?? '',
+      clientName: account?.name ?? '',
+      clientPhone: account ? formatStored(account.phone) : '',
+    });
   };
 
   const openValidation = (booking: Booking) => {
@@ -280,13 +329,75 @@ export function MissionsScreen() {
                   </View>
                 )}
 
+                {booking.status === 'validee' && payment && (
+                  <View style={styles.actions}>
+                    <Pressable
+                      onPress={() => shareReceipt(booking, payment, pro)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Télécharger le reçu de la mission avec ${pro.name}`}
+                      style={styles.ghost}
+                    >
+                      <Text style={styles.ghostLabel}>Télécharger le reçu</Text>
+                    </Pressable>
+                    {!booking.review && (
+                      <Pressable
+                        onPress={() => openReview(booking)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Laisser un avis sur ${pro.name}`}
+                        style={styles.solid}
+                      >
+                        <Text style={styles.solidLabel}>Laisser un avis</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+
+                {booking.review && (
+                  <View style={styles.reviewDone}>
+                    <Text style={styles.reviewStars}>
+                      {'★'.repeat(booking.review.rating)}
+                      <Text style={styles.reviewStarsOff}>{'★'.repeat(5 - booking.review.rating)}</Text>
+                    </Text>
+                    {!!booking.review.comment && (
+                      <Text style={styles.reviewComment}>{booking.review.comment}</Text>
+                    )}
+                    {!!booking.review.photo && (
+                      <Image source={{ uri: booking.review.photo }} style={styles.reviewPhoto} />
+                    )}
+                  </View>
+                )}
+
                 {booking.status === 'litige' && (
                   <Text style={styles.disputeLine}>
                     Les fonds restent bloqués jusqu'à la décision de 242Konnect.
                   </Text>
                 )}
 
-                {booking.status === 'confirmee' && (
+                {booking.status === 'demandee' && (
+                  <View style={styles.actions}>
+                    <Pressable
+                      onPress={() => cancelBooking(booking.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Annuler la demande à ${pro.name}`}
+                      style={styles.ghost}
+                    >
+                      <Text style={styles.ghostLabel}>Annuler</Text>
+                    </Pressable>
+                    {/* Stands in for the prestataire, who has no app yet. The
+                        state machine is real; only the actor is simulated, and
+                        the label says so rather than pretending otherwise. */}
+                    <Pressable
+                      onPress={() => acceptBooking(booking.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Simuler l'acceptation par ${pro.name}`}
+                      style={styles.solid}
+                    >
+                      <Text style={styles.solidLabel}>Simuler l'acceptation</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {booking.status === 'acceptee' && (
                   <View style={styles.actions}>
                     <Pressable
                       onPress={() => cancelBooking(booking.id)}
@@ -390,6 +501,21 @@ export function MissionsScreen() {
                 comptes marchands MTN MoMo et Airtel Money côté serveur.
               </Text>
             )}
+            {/* The note asks for the receipt to be downloadable, not merely
+                shown, so it is offered at the moment it is generated. */}
+            <Pressable
+              onPress={() => {
+                const booking = paying;
+                const payment = payments.find((p) => p.reference === receipt.reference);
+                const pro = booking ? getProfessional(booking.professionalId) : null;
+                if (booking && payment && pro) shareReceipt(booking, payment, pro);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Télécharger le reçu"
+              style={styles.ghostWide}
+            >
+              <Text style={styles.ghostLabel}>Télécharger le reçu</Text>
+            </Pressable>
             <Pressable onPress={closePayment} accessibilityRole="button" style={styles.solidWide}>
               <Text style={styles.solidLabel}>Terminé</Text>
             </Pressable>
@@ -479,6 +605,68 @@ export function MissionsScreen() {
             )}
           </>
         )}
+      </Sheet>
+
+      {/* ---- Review, after the service ---- */}
+      <Sheet visible={!!reviewing} title="Votre avis" onClose={() => setReviewing(null)}>
+        <Text style={styles.sheetEscrow}>
+          Votre avis aide les autres clients à choisir, et le prestataire à progresser.
+        </Text>
+
+        <Text style={styles.sheetHint}>Votre note</Text>
+        <View style={styles.starRow}>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <Pressable
+              key={value}
+              onPress={() => setRating(value)}
+              accessibilityRole="button"
+              accessibilityLabel={`Donner ${value} étoile${value > 1 ? 's' : ''}`}
+              accessibilityState={{ selected: rating === value }}
+              hitSlop={4}
+            >
+              <Text style={[styles.star, value <= rating && styles.starOn]}>★</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.sheetHint}>Votre commentaire</Text>
+        <TextInput
+          value={comment}
+          onChangeText={setComment}
+          multiline
+          placeholder="Comment s'est passée la prestation ?"
+          placeholderTextColor={colors.mutedForeground}
+          accessibilityLabel="Votre commentaire"
+          style={styles.reviewInput}
+        />
+
+        <Text style={styles.sheetHint}>Photo (facultatif)</Text>
+        <View style={styles.photoRow}>
+          {!!reviewPhoto && <Image source={{ uri: reviewPhoto }} style={styles.reviewPhoto} />}
+          <Pressable
+            onPress={addReviewPhoto}
+            accessibilityRole="button"
+            accessibilityLabel="Ajouter une photo à l'avis"
+            style={styles.ghost}
+          >
+            <Text style={styles.ghostLabel}>{reviewPhoto ? 'Changer la photo' : 'Ajouter une photo'}</Text>
+          </Pressable>
+        </View>
+
+        {!!reviewError && (
+          <View style={styles.payError}>
+            <Text style={styles.payErrorText}>{reviewError}</Text>
+          </View>
+        )}
+
+        <Pressable
+          onPress={submitReview}
+          accessibilityRole="button"
+          accessibilityLabel="Publier mon avis"
+          style={styles.solidWide}
+        >
+          <Text style={styles.solidLabel}>Publier mon avis</Text>
+        </Pressable>
       </Sheet>
 
       {/* ---- Validation and settlement ---- */}
@@ -707,6 +895,33 @@ const styles = StyleSheet.create({
   methodLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
   methodLabelSelected: { color: colors.foreground },
   methodHint: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
+  reviewDone: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.muted,
+    gap: 6,
+  },
+  reviewStars: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.accent },
+  reviewStarsOff: { color: colors.border },
+  reviewComment: { fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: colors.foreground },
+  reviewPhoto: { width: 84, height: 84, borderRadius: radius.lg, marginTop: 2 },
+  starRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', marginVertical: 4 },
+  star: { fontSize: 32, color: colors.border },
+  starOn: { color: colors.accent },
+  reviewInput: {
+    minHeight: 92,
+    padding: 12,
+    borderRadius: radius.xl,
+    backgroundColor: colors.input,
+    borderWidth: 1,
+    borderColor: colors.border,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.foreground,
+    textAlignVertical: 'top',
+  },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   payPhone: { marginBottom: 12 },
   payPhoneHint: {
     fontFamily: fonts.sans,

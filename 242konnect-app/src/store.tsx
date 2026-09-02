@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CONGO_CITIES } from './countries';
+import { getProfessional } from './data';
 import { useAuth } from './auth';
 import { settle, type PaymentMethod, type PayoutSpeed, type Settlement } from './payments';
 
@@ -14,8 +16,16 @@ import { settle, type PaymentMethod, type PayoutSpeed, type Settlement } from '.
  * Still device-local. Swapping in a backend means replacing `load` and `save`.
  */
 
-export const CITIES = ['Pointe-Noire, Rép. du Congo', 'Brazzaville, Rép. du Congo'] as const;
-export type City = (typeof CITIES)[number];
+/**
+ * The cities the marketplace can be browsed in.
+ *
+ * Drawn from `countries.ts` rather than hard-coded, so the two places that name
+ * Congolese cities — this picker and the sign-up location field — cannot drift
+ * apart. The United States is a served country for *accounts*, but there are no
+ * prestataires there yet, so it is deliberately absent from the browse picker.
+ */
+export const CITIES = CONGO_CITIES.map((c) => `${c}, Rép. du Congo`);
+export type City = string;
 
 /**
  * Mission lifecycle, following §5.5–5.8.
@@ -28,7 +38,15 @@ export type City = (typeof CITIES)[number];
  * because the Espace Prestataire does not exist yet; a client can validate a
  * paid mission directly rather than the app inventing a counterparty's actions.
  */
-export type MissionStatus = 'confirmee' | 'payee' | 'validee' | 'litige' | 'annulee';
+export type MissionStatus =
+  /** Sent, waiting for the prestataire to accept. Nothing is payable yet. */
+  | 'demandee'
+  /** Accepted; the client can now pay. */
+  | 'acceptee'
+  | 'payee'
+  | 'validee'
+  | 'litige'
+  | 'annulee';
 
 export type Booking = {
   id: string;
@@ -41,6 +59,27 @@ export type Booking = {
   paymentId?: string;
   /** Recorded when the client validates, so the receipt can show the split. */
   settlement?: Settlement;
+  /** When the prestataire accepted, which is what makes the mission payable. */
+  acceptedAt?: number;
+  /** The client's review, left after the service (§11 of the correction note). */
+  review?: Review;
+};
+
+/**
+ * What the client says about a finished prestation.
+ *
+ * The correction note asks for all three: "laisser un commentaire sur le
+ * service", "donner une note", "ajouter une photo si nécessaire". The photo
+ * goes through the same bounded pipeline as avatars — an unbounded one here
+ * would refill the storage the avatar fix just emptied.
+ */
+export type Review = {
+  /** 1 to 5. */
+  rating: number;
+  comment: string;
+  /** Optional, as a data URI. */
+  photo?: string;
+  at: number;
 };
 
 export type Payment = {
@@ -60,6 +99,15 @@ export type Payment = {
   releasedAt?: number;
   /** Set if the mission was cancelled and the money returned (§6.9). */
   refundedAt?: number;
+};
+
+/** A notification the client sees in the bell menu. */
+export type Notice = {
+  id: string;
+  title: string;
+  body: string;
+  at: number;
+  read: boolean;
 };
 
 export type Message = {
@@ -129,12 +177,17 @@ type UserData = {
   threads: Record<string, Thread>;
   establishments: Establishment[];
   collaborators: Collaborator[];
+  notices: Notice[];
 };
 
 const EMPTY: UserData = {
   favorites: {},
-  city: CITIES[0],
+  // Pointe-Noire explicitly, not CITIES[0]: the list is alphabetical-ish by
+  // département and starts at Brazzaville, but the marketplace's prestataires
+  // are in Pointe-Noire.
+  city: 'Pointe-Noire, Rép. du Congo',
   bookings: [],
+  notices: [],
   payments: [],
   threads: {},
   establishments: [],
@@ -150,6 +203,13 @@ type Store = UserData & {
   favoriteCount: number;
   setCity: (city: City) => void;
   addBooking: (input: { professionalId: string; slot: string; rate: number }) => Booking;
+  /** Marks a request accepted, which is what makes it payable. */
+  acceptBooking: (bookingId: string) => void;
+  /** Records the client's rating, comment and optional photo. */
+  reviewMission: (bookingId: string, review: Omit<Review, 'at'>) => void;
+  /** Notifications for acceptance and payment (§11 of the correction note). */
+  notices: Notice[];
+  markNoticesRead: () => void;
   cancelBooking: (id: string) => void;
   /** Client pays 242Konnect; the money is held, not forwarded (§6.4). */
   /**
@@ -234,11 +294,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         professionalId,
         slot,
         rate,
-        status: 'confirmee',
+        // A request, not yet payable. The note's sequence is Demande →
+        // Acceptation → Paiement, and paying before anyone accepted skips the
+        // step where the prestataire agrees to the job.
+        status: 'demandee',
         createdAt: Date.now(),
       };
       update((prev) => ({ ...prev, bookings: [booking, ...prev.bookings] }));
       return booking;
+    };
+
+    /**
+     * The prestataire accepting the request.
+     *
+     * There is no Espace Prestataire yet, and no second user to drive it, so
+     * this is invoked from the client's own screen behind a label that says so.
+     * The state machine is real; the actor is stood in for. That is the
+     * opposite of inventing an acceptance the client never sees.
+     */
+    const acceptBooking: Store['acceptBooking'] = (bookingId) => {
+      const booking = data.bookings.find((b) => b.id === bookingId);
+      if (!booking || booking.status !== 'demandee') return;
+      const pro = getProfessional(booking.professionalId);
+      update((prev) => ({
+        ...prev,
+        bookings: prev.bookings.map((b) =>
+          b.id === bookingId ? { ...b, status: 'acceptee', acceptedAt: Date.now() } : b
+        ),
+        notices: [
+          {
+            id: uid(),
+            title: 'Demande acceptée',
+            body: `${pro?.name ?? 'Le prestataire'} a accepté votre demande. Vous pouvez procéder au paiement.`,
+            at: Date.now(),
+            read: false,
+          },
+          ...prev.notices,
+        ],
+      }));
+    };
+
+    const reviewMission: Store['reviewMission'] = (bookingId, review) => {
+      update((prev) => ({
+        ...prev,
+        bookings: prev.bookings.map((b) =>
+          b.id === bookingId ? { ...b, review: { ...review, at: Date.now() } } : b
+        ),
+      }));
+    };
+
+    const markNoticesRead: Store['markNoticesRead'] = () => {
+      update((prev) => ({ ...prev, notices: prev.notices.map((n) => ({ ...n, read: true })) }));
     };
 
     const payBooking: Store['payBooking'] = (bookingId, method, amount, details = {}) => {
@@ -258,6 +364,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         bookings: prev.bookings.map((b) =>
           b.id === bookingId ? { ...b, status: 'payee', paymentId: payment.id } : b
         ),
+        notices: [
+          {
+            id: uid(),
+            title: 'Paiement reçu',
+            body: `Votre paiement de ${amount.toLocaleString('fr-FR')} FCFA est conservé par 242Konnect jusqu'à votre validation. Reçu ${payment.reference}.`,
+            at: Date.now(),
+            read: false,
+          },
+          ...prev.notices,
+        ],
       }));
       return payment;
     };
@@ -301,6 +417,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       favoriteCount: Object.values(data.favorites).filter(Boolean).length,
       setCity: (city) => update((prev) => ({ ...prev, city })),
       addBooking,
+      acceptBooking,
+      reviewMission,
+      notices: data.notices,
+      markNoticesRead,
       cancelBooking: (id) =>
         update((prev) => {
           const booking = prev.bookings.find((b) => b.id === id);
