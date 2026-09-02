@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { captureAvatar, pickAvatar } from '../photo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
@@ -22,20 +22,6 @@ import { colors, fonts, radius, shadow } from '../theme';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'ModifierProfil'>;
 
-/**
- * Profile photos are stored inside the account record as a data URI, so they
- * have to stay small — AsyncStorage is not a filesystem. 512 px at 0.5 quality
- * is plenty for a 52 px avatar and keeps the encoded string well under the
- * point where writes start to hurt.
- */
-const IMAGE_OPTIONS: ImagePicker.ImagePickerOptions = {
-  mediaTypes: ['images'],
-  allowsEditing: true,
-  aspect: [1, 1],
-  quality: 0.5,
-  base64: true,
-};
-
 export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { account, updateProfile } = useAuth();
@@ -46,38 +32,32 @@ export function EditProfileScreen({ navigation }: Props) {
   const [avatar, setAvatar] = useState(account?.avatar);
   const [showTrades, setShowTrades] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!account) return null;
   const isPro = account.profiles.includes('prestataire');
 
-  const useResult = (result: ImagePicker.ImagePickerResult) => {
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    // base64 comes back without the prefix; an <Image> needs the full data URI.
-    if (asset.base64) setAvatar(`data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}`);
-    else if (asset.uri) setAvatar(asset.uri);
+  /**
+   * Both pickers go through `photo.ts`, which resizes and compresses before
+   * encoding. Storing the picker's own output filled the device's quota after a
+   * couple of photos and took profile saving down with it.
+   */
+  const choose = async (take: () => Promise<string | null>) => {
+    setError(null);
+    setPicking(true);
+    try {
+      const next = await take();
+      if (next) setAvatar(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible d'utiliser cette image.");
+    } finally {
+      setPicking(false);
+    }
   };
 
-  const pickFromLibrary = async () => {
-    setError(null);
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setError("Autorisez l'accès aux photos pour choisir une image.");
-      return;
-    }
-    useResult(await ImagePicker.launchImageLibraryAsync(IMAGE_OPTIONS));
-  };
-
-  const takePhoto = async () => {
-    setError(null);
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      setError("Autorisez l'accès à la caméra pour prendre une photo.");
-      return;
-    }
-    useResult(await ImagePicker.launchCameraAsync(IMAGE_OPTIONS));
-  };
+  const pickFromLibrary = () => choose(pickAvatar);
+  const takePhoto = () => choose(captureAvatar);
 
   const save = async () => {
     setError(null);

@@ -203,6 +203,10 @@ const DEMO_ACCOUNT: StoredAccount = {
   createdAt: 0,
 };
 
+/** Shown when the device has no room left for the account data. */
+export const STORAGE_FULL_MESSAGE =
+  "La mémoire de cette application est pleine sur cet appareil. Choisissez une photo de profil plus légère, ou libérez de l'espace, puis réessayez.";
+
 /** The refusal the spec dictates, quoted rather than paraphrased. */
 export const DUPLICATE_ACCOUNT_MESSAGE =
   'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
@@ -261,6 +265,24 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+/**
+ * A write that turns a quota failure into something a person can act on.
+ *
+ * On web AsyncStorage is localStorage, so a large avatar surfaces as a
+ * `QuotaExceededError` whose own message is "Storage Full" — which is what the
+ * founder saw, with nothing to do about it. Photos are bounded in `photo.ts`;
+ * this is the backstop and, more importantly, the explanation.
+ */
+async function setItemChecked(key: string, value: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(key, value);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (/quota|storage|full/i.test(message)) throw new Error(STORAGE_FULL_MESSAGE);
+    throw e;
+  }
+}
+
 async function readAccounts(): Promise<StoredAccount[]> {
   try {
     const raw = await AsyncStorage.getItem(ACCOUNTS_KEY);
@@ -312,21 +334,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const persistSession = useCallback(async (next: Account | null) => {
-    setAccount(next);
-    if (next) await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    if (next) await setItemChecked(SESSION_KEY, JSON.stringify(next));
     else await AsyncStorage.removeItem(SESSION_KEY);
+    // Only after the write succeeds. Updating state first is what made a failed
+    // write look like a save that silently undid itself on the next launch.
+    setAccount(next);
   }, []);
 
-  /** Writes an updated account to both the roster and the live session. */
+  /**
+   * Writes an updated account to both the roster and the live session.
+   *
+   * Storage first, memory second, and both writes before either is announced.
+   * The previous order set React state before the write, so a full quota left
+   * the edit on screen and nowhere else — which is exactly the "changes not
+   * saved" the founder reported, with "Storage Full" as its other face.
+   */
   const persistAccount = useCallback(
     async (next: Account) => {
       // The stored record also holds the password, so merge into it rather than
       // replacing the row with a password-less copy — that would lock the user out.
       const accounts = await readAccounts();
-      await AsyncStorage.setItem(
-        ACCOUNTS_KEY,
-        JSON.stringify(accounts.map((a) => (a.phone === next.phone ? { ...a, ...next } : a)))
-      );
+      const merged = accounts.map((a) => (a.phone === next.phone ? { ...a, ...next } : a));
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify(merged));
       await persistSession(next);
     },
     [persistSession]
@@ -423,7 +452,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         business: pending.business,
         createdAt: Date.now(),
       };
-      await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
       const { password: _omit, ...safe } = created;
       setPending(null);
       await persistSession(safe);

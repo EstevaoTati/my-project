@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { pickAvatar } from '../photo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
@@ -51,14 +51,6 @@ const CHANNELS: { id: OtpChannel; label: string }[] = [
   { id: 'sms', label: 'SMS' },
 ];
 
-const PHOTO_OPTIONS: ImagePicker.ImagePickerOptions = {
-  mediaTypes: ['images'],
-  allowsEditing: true,
-  aspect: [1, 1],
-  quality: 0.5,
-  base64: true,
-};
-
 type Step = 'type' | 'identity' | 'details';
 
 export function SignUpScreen({ navigation }: Props) {
@@ -106,18 +98,18 @@ export function SignUpScreen({ navigation }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Resized and compressed before it is ever held in memory as base64 — see
+   * `photo.ts`. Encoding the picker's original filled the device's storage.
+   */
   const pickImage = async (onPicked: (uri: string) => void) => {
     setError(null);
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setError("Autorisez l'accès aux photos pour choisir une image.");
-      return;
+    try {
+      const next = await pickAvatar();
+      if (next) onPicked(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Impossible d'utiliser cette image.");
     }
-    const result = await ImagePicker.launchImageLibraryAsync(PHOTO_OPTIONS);
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    if (asset.base64) onPicked(`data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}`);
-    else if (asset.uri) onPicked(asset.uri);
   };
 
   const toggle = (list: string[], value: string, set: (next: string[]) => void) =>
