@@ -55,20 +55,29 @@ export const colors = {
   black: '#0a0a0a',
 
   /**
-   * Logo palette — the flag of the Republic of the Congo.
+   * "Noir anthracite premium — gris clair métallique", the pairing the founder
+   * named for the opening screen. Anthracite is a touch lighter and cooler than
+   * `black`, which reads as a considered ground rather than an absence; the
+   * metal is the light grey that sits on it.
+   */
+  anthracite: '#16181d',
+  metal: '#e9ecef',
+
+  /**
+   * Logo palette — the official 242Konnect mark.
    *
-   * Sampled from the reference flag, not carried over from the design export:
-   * that had drifted to #00a651 / #ffcb05 / #ed1c24, a brighter green and an
-   * orange-leaning red.
+   * Sampled pixel-for-pixel from the official brand file the founder supplied
+   * — the interlocking-links mark — rather than from the flag or the design
+   * export, both of which had drifted.
    *
    * Deliberately separate from the interface tokens above. The directives fix
    * the *interface* charte as black, grey and yellow; the mark carries the
    * national colours the brand is named after. Keeping them in different
    * buckets stops the flag colours leaking back into buttons and chips.
    */
-  logoGreen: '#009739',
-  logoYellow: '#ffd100',
-  logoRed: '#dc241f',
+  logoGreen: '#029b4f',
+  logoYellow: '#fbd218',
+  logoRed: '#e4181f',
 
   /**
    * Neutral tones for generated avatars. Varied enough to tell people apart in

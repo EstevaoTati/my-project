@@ -1,63 +1,61 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Logo } from '../components/Logo';
 import { colors, fonts } from '../theme';
 
 /**
- * Opening animation, per the directives.
+ * Opening sequence: the official mark, then the name, then the app.
  *
- * Black ground, the wordmark appearing letter by letter with a faint glow in
- * the brand colours, held briefly, then faded out — 2 to 3 seconds in total.
- * The directives are explicit that the logo must be the only thing on screen,
- * so there is no tagline, spinner or version string here.
+ * The founder's correction was specific — show "le logo officiel original de
+ * 242Konnect puis le Nom et après la page de s'inscrire ou se connecter, et non
+ * simplement le nom « 242Konnect » écrit en texte". So the mark now leads and
+ * the wordmark follows it, where before there was only type.
  *
- * The wordmark is set in Manrope rather than drawn from a logo file: the brand
- * has no exported logo asset in this repo yet. Dropping a real one in and
- * swapping this Text for an Image is the intended next step — the timing and
- * sequencing below stay as they are.
+ * The ground is the anthracite the same note asks for, not flat black, with the
+ * name in the metallic light grey beside it.
+ *
+ * Three beats: the mark scales up and fades in, the name reveals letter by
+ * letter beneath it, both hold, then the whole thing fades. Around 2.6 s, inside
+ * the 2–3 s the directives allow.
  */
 
 const WORD = '242Konnect';
 
-/**
- * The mark carries the Congolese flag — green, yellow, red — which is what the
- * brand is named after. The interface charte (black, grey, yellow) is a
- * separate palette and is untouched by this.
- *
- * "242" takes the three colours one digit each; "Konnect" stays white so the
- * flag reads as a mark rather than as rainbow text.
- */
-const DIGIT_COLORS = [colors.logoGreen, colors.logoYellow, colors.logoRed];
-
-const LETTER_STAGGER = 55;
-const LETTER_FADE = 260;
-const HOLD = 1100;
+const MARK_IN = 620;
+const LETTER_STAGGER = 46;
+const LETTER_FADE = 240;
+const HOLD = 820;
 const FADE_OUT = 380;
 
 type Props = { onDone: () => void };
 
 export function SplashScreen({ onDone }: Props) {
   const letters = useMemo(() => WORD.split(''), []);
-  // One value per letter, plus one for the whole wordmark's exit.
+  const mark = useRef(new Animated.Value(0)).current;
   const progress = useRef(letters.map(() => new Animated.Value(0))).current;
   const exit = useRef(new Animated.Value(1)).current;
   const done = useRef(onDone);
   done.current = onDone;
 
   useEffect(() => {
-    const reveal = Animated.stagger(
-      LETTER_STAGGER,
-      progress.map((value) =>
-        Animated.timing(value, {
-          toValue: 1,
-          duration: LETTER_FADE,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        })
-      )
-    );
-
     const sequence = Animated.sequence([
-      reveal,
+      Animated.timing(mark, {
+        toValue: 1,
+        duration: MARK_IN,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.stagger(
+        LETTER_STAGGER,
+        progress.map((value) =>
+          Animated.timing(value, {
+            toValue: 1,
+            duration: LETTER_FADE,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          })
+        )
+      ),
       Animated.delay(HOLD),
       Animated.timing(exit, {
         toValue: 0,
@@ -74,64 +72,78 @@ export function SplashScreen({ onDone }: Props) {
     // If the animation is interrupted — backgrounded mid-splash, or a fast
     // remount — the callback never fires and the app would sit on black
     // forever. This guarantees the handoff.
-    const failsafe = setTimeout(() => done.current(), 3200);
+    const failsafe = setTimeout(() => done.current(), 3600);
     return () => {
       clearTimeout(failsafe);
       sequence.stop();
     };
-  }, [progress, exit]);
+  }, [mark, progress, exit]);
 
   return (
     <View style={styles.root}>
-      <Animated.View style={[styles.word, { opacity: exit }]}>
-        {letters.map((letter, i) => (
-          <Animated.Text
-            key={`${letter}-${i}`}
-            style={[
-              styles.letter,
-              i < DIGIT_COLORS.length
-                ? { color: DIGIT_COLORS[i], textShadowColor: DIGIT_COLORS[i] }
-                : styles.plain,
-              {
-                opacity: progress[i],
-                transform: [
-                  {
-                    translateY: progress[i].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [10, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            {letter}
-          </Animated.Text>
-        ))}
+      <Animated.View style={[styles.stack, { opacity: exit }]}>
+        <Animated.View
+          style={{
+            opacity: mark,
+            transform: [
+              { scale: mark.interpolate({ inputRange: [0, 1], outputRange: [0.86, 1] }) },
+            ],
+          }}
+        >
+          <Logo width={210} label="242Konnect" />
+        </Animated.View>
+
+        <View style={styles.word}>
+          {letters.map((letter, i) => (
+            <Animated.Text
+              key={`${letter}-${i}`}
+              style={[
+                styles.letter,
+                {
+                  opacity: progress[i],
+                  transform: [
+                    {
+                      translateY: progress[i].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [8, 0],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              {letter}
+            </Animated.Text>
+          ))}
+        </View>
       </Animated.View>
     </View>
   );
 }
 
 /** Total run time, so callers can reason about the handoff without guessing. */
-export const SPLASH_DURATION_MS = WORD.length * LETTER_STAGGER + LETTER_FADE + HOLD + FADE_OUT;
+export const SPLASH_DURATION_MS =
+  MARK_IN + WORD.length * LETTER_STAGGER + LETTER_FADE + HOLD + FADE_OUT;
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.black,
+    // "Noir anthracite premium", not flat black.
+    backgroundColor: colors.anthracite,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stack: { alignItems: 'center', gap: 26 },
   word: { flexDirection: 'row' },
   letter: {
     fontFamily: fonts.headingBold,
-    fontSize: 38,
-    letterSpacing: -0.5,
-    // The "léger effet lumineux" the directives ask for — a glow rather than a
-    // drop shadow, so it reads as light coming off the mark on black.
+    fontSize: 30,
+    letterSpacing: 0.5,
+    // "Gris clair métallique" — the mark carries the colour, the name doesn't
+    // compete with it.
+    color: colors.metal,
+    textShadowColor: 'rgba(233,236,239,0.28)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 18,
+    textShadowRadius: 16,
   },
-  plain: { color: colors.white, textShadowColor: 'rgba(255,255,255,0.35)' },
 });

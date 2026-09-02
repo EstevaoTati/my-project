@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
-import { FlagMark } from '../components/FlagMark';
+import { Logo } from '../components/Logo';
 import { promo } from '../data';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -59,13 +59,10 @@ export function WelcomeScreen({ navigation }: Props) {
 
       <View style={[styles.content, { paddingTop: insets.top + 32, paddingBottom: Math.max(24, insets.bottom + 12) }]}>
         <View style={styles.brandRow}>
-          <FlagMark width={36} rounded />
-          <Text style={styles.brand}>
-            <Text style={{ color: colors.logoGreen }}>2</Text>
-            <Text style={{ color: colors.logoYellow }}>4</Text>
-            <Text style={{ color: colors.logoRed }}>2</Text>
-            <Text style={{ color: colors.white }}>Konnect</Text>
-          </Text>
+          <Logo width={64} />
+          {/* The mark carries the national colours; the name stays plain so
+              the two read as one lockup rather than as rainbow text. */}
+          <Text style={styles.brand}>242Konnect</Text>
         </View>
 
         <View style={styles.spacer} />
