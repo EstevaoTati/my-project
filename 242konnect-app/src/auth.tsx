@@ -1,6 +1,23 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  hashPassword,
+  passwordProblem,
+  verifyPassword,
+  type StoredSecret,
+} from './credentials';
+import {
+  COUNTRY_CODES,
+  DEFAULT_COUNTRY,
+  DEFAULT_LOCATION,
+  formatStored,
+  isCompleteNumber,
+  normalizeNational,
+  toE164,
+  type CountryCode,
+  type Location,
+} from './countries';
+import {
   canSendOtp,
   checkCode,
   otpProvider,
@@ -101,8 +118,16 @@ export const INTERESTS = [
 ];
 
 export type Account = {
-  /** Local number without the +242 prefix, digits only. Part of the identity. */
+  /**
+   * Canonical number: dial code plus national digits, e.g. "242061234567".
+   * One unambiguous string across countries, and the identity the account is
+   * keyed on. Use `formatStored` to display it.
+   */
   phone: string;
+  /** Which numbering plan `phone` belongs to, so it can be edited back. */
+  phoneCountry: CountryCode;
+  /** Where the person is. Congo uses a city; the US uses a state and a city. */
+  location: Location;
   /** The other half of the identity (§2.2 — OTP goes to one or the other). */
   email: string;
   name: string;
@@ -128,9 +153,11 @@ export type ProfileEdits = Partial<
 /** Everything collected across the sign-up steps, before the code is confirmed. */
 export type SignUpDraft = {
   name: string;
+  /** National digits as typed; combined with `phoneCountry` on submission. */
   phone: string;
+  phoneCountry: CountryCode;
   email: string;
-  password: string;
+  location: Location;
   profile: ProfileKind;
   channel: OtpChannel;
   avatar?: string;
@@ -151,7 +178,11 @@ export function ageFrom(isoDate: string): number | null {
   return age;
 }
 
-type StoredAccount = Account & { password: string };
+/**
+ * The account as written to storage. The password is never among these fields:
+ * only a salt and a hash, so reading the store does not hand over credentials.
+ */
+type StoredAccount = Account & { secret: StoredSecret };
 
 const ACCOUNTS_KEY = '242k.accounts';
 const SESSION_KEY = '242k.session';
@@ -162,13 +193,18 @@ const SESSION_KEY = '242k.session';
  */
 const LAUNCHED_KEY = '242k.launched';
 
-/** Congolese mobile numbers are nine digits, conventionally starting 0. */
-export const PHONE_LENGTH = 9;
-export const MIN_PASSWORD = 6;
 export const OTP_LENGTH = 6;
 
 /** Re-exported so screens don't need to know where the verification service lives. */
 export { canSendOtp, otpProvider, OTP_UNAVAILABLE_MESSAGE };
+export { MIN_PASSWORD, passwordProblem, passwordStrength } from './credentials';
+/**
+ * Numbers are international now, so display goes through the country-aware
+ * helper. The old Congo-only `formatPhone`/`normalizePhone`/`PHONE_LENGTH` are
+ * gone rather than kept as aliases: leaving them would let a nine-digit
+ * assumption creep back in.
+ */
+export { formatStored, fromE164 } from './countries';
 
 /**
  * A ready-made account for shared preview builds, enabled by
@@ -185,23 +221,35 @@ export { canSendOtp, otpProvider, OTP_UNAVAILABLE_MESSAGE };
  */
 export const DEMO_ENABLED = process.env.EXPO_PUBLIC_DEMO_ACCOUNT === '1';
 
-export const DEMO_CREDENTIALS = { phone: '060000000', password: 'demo2024' };
+export const DEMO_CREDENTIALS = { phone: '060000000', password: 'Demo2024' };
 
-const DEMO_ACCOUNT: StoredAccount = {
-  phone: DEMO_CREDENTIALS.phone,
-  email: 'demo@242konnect.cg',
-  name: 'Compte Démo',
-  password: DEMO_CREDENTIALS.password,
-  bio: "Compte de démonstration pour tester l'application.",
-  profiles: ['particulier'],
-  activeProfile: 'particulier',
-  particulier: {
-    address: 'Avenue Charles de Gaulle, Pointe-Noire',
-    addressReference: 'En face de la pharmacie du Centre',
-    interests: ['Maison', 'Automobile'],
-  },
-  createdAt: 0,
-};
+/** Canonical form of the demo number, so it matches like any other account. */
+const DEMO_PHONE = toE164(DEMO_CREDENTIALS.phone, 'CG');
+
+/**
+ * Built rather than declared, because the password has to be hashed and hashing
+ * is async. The demo account is stored exactly like a real one — no plaintext
+ * shortcut — so signing into it exercises the same code path a real account does.
+ */
+async function buildDemoAccount(): Promise<StoredAccount> {
+  return {
+    phone: DEMO_PHONE,
+    phoneCountry: 'CG',
+    email: 'demo@242konnect.cg',
+    name: 'Compte Démo',
+    location: { country: 'CG', city: 'Pointe-Noire' },
+    secret: await hashPassword(DEMO_CREDENTIALS.password),
+    bio: "Compte de démonstration pour tester l'application.",
+    profiles: ['particulier'],
+    activeProfile: 'particulier',
+    particulier: {
+      address: 'Avenue Charles de Gaulle, Pointe-Noire',
+      addressReference: 'En face de la pharmacie du Centre',
+      interests: ['Maison', 'Automobile'],
+    },
+    createdAt: 0,
+  };
+}
 
 /** Shown when the device has no room left for the account data. */
 export const STORAGE_FULL_MESSAGE =
@@ -211,16 +259,6 @@ export const STORAGE_FULL_MESSAGE =
 export const DUPLICATE_ACCOUNT_MESSAGE =
   'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
 
-export function normalizePhone(input: string): string {
-  return input.replace(/\D/g, '').slice(0, PHONE_LENGTH);
-}
-
-/** "061234567" -> "06 123 45 67", the way it's written locally. */
-export function formatPhone(digits: string): string {
-  const d = normalizePhone(digits);
-  const parts = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean);
-  return parts.join(' ');
-}
 
 export function isValidEmail(input: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.trim());
@@ -236,6 +274,16 @@ export type PendingSignUp = SignUpDraft & {
    * nothing on this device — and nothing on this screen — can reveal it.
    */
   delivery: OtpDelivery;
+  /**
+   * Set once the code has been accepted. The account still does not exist:
+   * the password is chosen after this point, which is the order the founder
+   * asked for — Informations, Vérification, Création du mot de passe, Compte
+   * créé. Collecting the password first is what produced a verification e-mail
+   * that said nothing about the password the screen was already demanding.
+   */
+  verified: boolean;
+  /** The canonical number, computed once the draft is accepted. */
+  storedPhone: string;
 };
 
 type AuthState = {
@@ -246,12 +294,21 @@ type AuthState = {
   pending: PendingSignUp | null;
   /** Validates the whole draft and issues a code; no account is created yet. */
   startSignUp: (draft: SignUpDraft) => Promise<void>;
-  /** Creates the account once the code matches. */
+  /** Checks the code and moves on to choosing a password. No account yet. */
   confirmSignUp: (code: string) => Promise<void>;
+  /** Creates the account with the chosen password. The last step. */
+  completeSignUp: (password: string) => Promise<void>;
   /** Issues a fresh code for the pending sign-up. */
   resendCode: () => Promise<void>;
   cancelSignUp: () => void;
   signIn: (input: { identifier: string; password: string }) => Promise<void>;
+  /** Sends a code to the address on file so a forgotten password can be reset. */
+  startPasswordReset: (identifier: string) => Promise<{ email: string }>;
+  /** Checks that code and sets the new password. */
+  completePasswordReset: (code: string, password: string) => Promise<void>;
+  /** Set while a reset is in progress, so the navigator can show its screens. */
+  resetting: { email: string; phone: string; verified: boolean } | null;
+  cancelPasswordReset: () => void;
   signOut: () => Promise<void>;
   updateProfile: (edits: ProfileEdits) => Promise<void>;
   /** Switches which profile is in use (§9.10). */
@@ -283,6 +340,41 @@ async function setItemChecked(key: string, value: string): Promise<void> {
   }
 }
 
+/**
+ * A fixed salt/hash used only to spend the same work when no account matched.
+ *
+ * Without it, an unknown identifier returns immediately while a known one pays
+ * for a hash, and the difference is measurable — which turns sign-in into a way
+ * to test whether a number is registered.
+ */
+const DECOY_SECRET = {
+  salt: '242konnect-decoy',
+  hash: '0'.repeat(64),
+};
+
+/**
+ * Finds an account by phone number or e-mail (§3.2 allows either).
+ *
+ * Numbers are matched on the canonical form, and a bare national number is
+ * tried against every served country — someone typing "06 123 45 67" is not
+ * going to type their dial code first.
+ */
+async function findAccount(identifier: string): Promise<StoredAccount | undefined> {
+  const raw = identifier.trim().toLowerCase();
+  const digits = identifier.replace(/\D/g, '');
+  const accounts = await readAccounts();
+
+  const byEmail = accounts.find((a) => a.email === raw);
+  if (byEmail) return byEmail;
+  if (!digits) return undefined;
+
+  return accounts.find((a) => {
+    if (a.phone === digits) return true;
+    // Typed without the dial code.
+    return COUNTRY_CODES.some((code: CountryCode) => toE164(digits, code) === a.phone);
+  });
+}
+
 async function readAccounts(): Promise<StoredAccount[]> {
   try {
     const raw = await AsyncStorage.getItem(ACCOUNTS_KEY);
@@ -302,8 +394,9 @@ async function seedDemoAccount(): Promise<void> {
   if (!DEMO_ENABLED) return;
   try {
     const accounts = await readAccounts();
-    if (accounts.some((a) => a.phone === DEMO_ACCOUNT.phone)) return;
-    await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, DEMO_ACCOUNT]));
+    if (accounts.some((a) => a.phone === DEMO_PHONE)) return;
+    const demo = await buildDemoAccount();
+    await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, demo]));
   } catch {
     // A tester without storage is already broken in more visible ways.
   }
@@ -314,6 +407,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [restoring, setRestoring] = useState(true);
   const [firstLaunch, setFirstLaunch] = useState(false);
   const [pending, setPending] = useState<PendingSignUp | null>(null);
+  const [resetting, setResetting] = useState<AuthState['resetting']>(null);
 
   useEffect(() => {
     (async () => {
@@ -363,16 +457,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const startSignUp = useCallback<AuthState['startSignUp']>(
     async (draft) => {
-      const digits = normalizePhone(draft.phone);
       const mail = draft.email.trim().toLowerCase();
+      const country = draft.phoneCountry ?? DEFAULT_COUNTRY;
+      const stored = toE164(draft.phone, country);
 
-      // Shared identity rules.
+      // Shared identity rules. No password here any more: it is chosen after
+      // verification, so the code can be requested before one exists.
       if (draft.name.trim().length < 2) throw new Error('Entrez votre nom complet.');
-      if (digits.length !== PHONE_LENGTH)
-        throw new Error(`Le numéro doit contenir ${PHONE_LENGTH} chiffres.`);
+      if (!isCompleteNumber(draft.phone, country))
+        throw new Error('Entrez un numéro de téléphone complet.');
       if (!isValidEmail(mail)) throw new Error('Entrez une adresse e-mail valide.');
-      if (draft.password.length < MIN_PASSWORD)
-        throw new Error(`Le mot de passe doit contenir au moins ${MIN_PASSWORD} caractères.`);
+      if (!draft.location?.city?.trim()) throw new Error('Indiquez votre ville.');
+      if (draft.location.country === 'US' && !draft.location.state)
+        throw new Error("Choisissez votre État.");
 
       // Per-profile rules — §2.2 asks for a different set from each.
       if (draft.profile === 'particulier') {
@@ -410,17 +507,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
-      if (accounts.some((a) => a.phone === digits || a.email === mail))
+      if (accounts.some((a) => a.phone === stored || a.email === mail))
         throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
 
       // Mailing the code can fail (offline, service down, nothing configured);
       // the sign-up must not look started if no code actually went out.
-      const delivery = await requestCode(digits, mail, {
+      const delivery = await requestCode(stored, mail, {
         name: draft.name.trim(),
-        phone: digits,
+        phone: stored,
         profile: draft.profile,
       });
-      setPending({ ...draft, name: draft.name.trim(), phone: digits, email: mail, delivery });
+      setPending({
+        ...draft,
+        name: draft.name.trim(),
+        phoneCountry: country,
+        email: mail,
+        storedPhone: stored,
+        delivery,
+        verified: false,
+      });
     },
     []
   );
@@ -430,19 +535,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!pending) throw new Error('Aucune inscription en cours.');
       // Always server-side: the device holds nothing to compare against, so
       // attempts are capped and the code expires where it was issued.
-      await checkCode(pending.phone, pending.email, code, pending.delivery);
+      await checkCode(pending.storedPhone, pending.email, code, pending.delivery);
+
+      // Verified, but deliberately not created. The password comes next.
+      setPending((prev) => (prev ? { ...prev, verified: true } : prev));
+    },
+    [pending]
+  );
+
+  const completeSignUp = useCallback<AuthState['completeSignUp']>(
+    async (password) => {
+      if (!pending) throw new Error('Aucune inscription en cours.');
+      if (!pending.verified) throw new Error("Vérifiez d'abord le code reçu.");
+
+      const problem = passwordProblem(password);
+      if (problem) throw new Error(problem);
 
       const accounts = await readAccounts();
-      // Re-check: another profile could have claimed the number while the code
-      // was being entered.
-      if (accounts.some((a) => a.phone === pending.phone || a.email === pending.email))
+      // Re-check: another sign-up could have claimed the number or the address
+      // while this one was being verified.
+      if (accounts.some((a) => a.phone === pending.storedPhone || a.email === pending.email))
         throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
 
       const created: StoredAccount = {
-        phone: pending.phone,
+        phone: pending.storedPhone,
+        phoneCountry: pending.phoneCountry,
         email: pending.email,
         name: pending.name,
-        password: pending.password,
+        location: pending.location,
+        secret: await hashPassword(password),
         avatar: pending.avatar,
         bio: pending.bio,
         profiles: [pending.profile],
@@ -453,7 +574,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         createdAt: Date.now(),
       };
       await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
-      const { password: _omit, ...safe } = created;
+      const { secret: _omit, ...safe } = created;
       setPending(null);
       await persistSession(safe);
     },
@@ -462,9 +583,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendCode = useCallback(async () => {
     if (!pending) return;
-    const delivery = await requestCode(pending.phone, pending.email, {
+    const delivery = await requestCode(pending.storedPhone, pending.email, {
       name: pending.name,
-      phone: pending.phone,
+      phone: pending.storedPhone,
       profile: pending.profile,
     });
     setPending((prev) => (prev ? { ...prev, delivery } : prev));
@@ -474,22 +595,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback<AuthState['signIn']>(
     async ({ identifier, password }) => {
-      // §3.2: sign in with either the phone number or the e-mail address.
-      const raw = identifier.trim().toLowerCase();
-      const digits = normalizePhone(identifier);
-      const accounts = await readAccounts();
-      const found = accounts.find(
-        (a) => (digits.length === PHONE_LENGTH && a.phone === digits) || a.email === raw
-      );
+      const found = await findAccount(identifier);
+
       // Same message whether the account is unknown or the password is wrong —
-      // saying which one is wrong tells an attacker which numbers are registered.
-      if (!found || found.password !== password)
-        throw new Error('Identifiant ou mot de passe incorrect.');
-      const { password: _omit, ...safe } = found;
+      // saying which is wrong tells an attacker which numbers are registered,
+      // which is exactly the "knowing the number should not be enough" the
+      // correction note asks for. The hash is still computed when no account
+      // matched, so the two paths take comparable time.
+      const ok = found
+        ? await verifyPassword(password, found.secret)
+        : await verifyPassword(password, DECOY_SECRET).then(() => false);
+      if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
+
+      const { secret: _omit, ...safe } = found;
       await persistSession(safe);
     },
     [persistSession]
   );
+
+  /* ---------------------------------------------------------------- *
+   * Forgotten passwords
+   * ---------------------------------------------------------------- */
+
+  const startPasswordReset = useCallback<AuthState['startPasswordReset']>(
+    async (identifier) => {
+      const found = await findAccount(identifier);
+      // Deliberately the same outcome either way: confirming that an address is
+      // unknown turns this screen into a way to enumerate accounts.
+      if (!found) {
+        setResetting(null);
+        throw new Error(
+          "Si un compte existe pour cet identifiant, un code vient d'être envoyé à l'adresse e-mail associée."
+        );
+      }
+      await requestCode(found.phone, found.email, { name: found.name, phone: found.phone });
+      setResetting({ email: found.email, phone: found.phone, verified: false });
+      return { email: found.email };
+    },
+    []
+  );
+
+  const completePasswordReset = useCallback<AuthState['completePasswordReset']>(
+    async (code, password) => {
+      if (!resetting) throw new Error('Aucune réinitialisation en cours.');
+      const problem = passwordProblem(password);
+      if (problem) throw new Error(problem);
+
+      const delivery: OtpDelivery = { provider: otpProvider === 'supabase' ? 'supabase' : 'api', expiresIn: 600 };
+      await checkCode(resetting.phone, resetting.email, code, delivery);
+
+      const accounts = await readAccounts();
+      const secret = await hashPassword(password);
+      const next = accounts.map((a) => (a.phone === resetting.phone ? { ...a, secret } : a));
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify(next));
+      setResetting(null);
+    },
+    [resetting]
+  );
+
+  const cancelPasswordReset = useCallback(() => setResetting(null), []);
 
   const signOut = useCallback(() => persistSession(null), [persistSession]);
 
@@ -541,10 +705,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pending,
       startSignUp,
       confirmSignUp,
+      completeSignUp,
       resendCode,
       cancelSignUp,
       signIn,
       signOut,
+      startPasswordReset,
+      completePasswordReset,
+      cancelPasswordReset,
+      resetting,
       updateProfile,
       switchProfile,
       activateProfile,
@@ -557,10 +726,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pending,
       startSignUp,
       confirmSignUp,
+      completeSignUp,
       resendCode,
       cancelSignUp,
       signIn,
       signOut,
+      startPasswordReset,
+      completePasswordReset,
+      cancelPasswordReset,
+      resetting,
       updateProfile,
       switchProfile,
       activateProfile,

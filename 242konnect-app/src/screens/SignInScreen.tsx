@@ -3,8 +3,8 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
-import { FormError, Field, SubmitButton } from '../components/form';
-import { DEMO_CREDENTIALS, DEMO_ENABLED, isValidEmail, normalizePhone, useAuth } from '../auth';
+import { FormError, Field, PasswordField, SubmitButton } from '../components/form';
+import { DEMO_CREDENTIALS, DEMO_ENABLED, isValidEmail, useAuth } from '../auth';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 
@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Connexion'>;
 
 export function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { signIn } = useAuth();
+  const { signIn, startPasswordReset } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -31,10 +31,29 @@ export function SignInScreen({ navigation }: Props) {
     }
   };
 
-  // §3.2 allows signing in with either identifier, so accept a full local
-  // number or a valid e-mail.
-  const ready =
-    (normalizePhone(identifier).length === 9 || isValidEmail(identifier)) && password.length > 0;
+  // §3.2 allows signing in with either identifier. Any run of digits long
+  // enough to be a phone number qualifies now that numbers are international,
+  // and the exact country is worked out when the account is looked up.
+  const digits = identifier.replace(/\D/g, '');
+  const ready = (digits.length >= 9 || isValidEmail(identifier)) && password.length > 0;
+
+  const forgot = async () => {
+    setError(null);
+    if (!identifier.trim()) {
+      setError("Entrez d'abord votre numéro ou votre e-mail, puis touchez « Mot de passe oublié ».");
+      return;
+    }
+    setBusy(true);
+    try {
+      await startPasswordReset(identifier);
+    } catch (e) {
+      // Includes the deliberately vague "if an account exists" reply, which is
+      // shown as-is so an unknown address looks the same as a known one.
+      setError(e instanceof Error ? e.message : 'Impossible de lancer la récupération.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -65,15 +84,23 @@ export function SignInScreen({ navigation }: Props) {
             inputMode="email"
             placeholder="06 123 45 67 ou vous@exemple.com"
           />
-          <Field
-            label="Mot de passe"
+          <PasswordField
             value={password}
             onChangeText={setPassword}
             placeholder="Votre mot de passe"
-            secureTextEntry
             textContentType="password"
             onSubmitEditing={submit}
           />
+
+          <Pressable
+            onPress={forgot}
+            accessibilityRole="button"
+            accessibilityLabel="Mot de passe oublié"
+            hitSlop={6}
+            style={styles.forgotRow}
+          >
+            <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+          </Pressable>
           <FormError message={error} />
           <SubmitButton label="Se connecter" onPress={submit} busy={busy} disabled={!ready} />
         </View>
@@ -130,6 +157,8 @@ export function SignInScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  forgotRow: { alignSelf: 'flex-end', paddingVertical: 2 },
+  forgotText: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.primary },
   demo: {
     padding: 14,
     gap: 6,

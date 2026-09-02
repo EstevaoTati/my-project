@@ -6,6 +6,14 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { UserAvatar } from '../components/Avatar';
 import { Field, FormError, PhoneField, SubmitButton } from '../components/form';
+import { LocationField } from '../components/LocationField';
+import {
+  DEFAULT_COUNTRY,
+  DEFAULT_LOCATION,
+  isCompleteNumber,
+  type CountryCode,
+  type Location,
+} from '../countries';
 import { Sheet } from '../components/Sheet';
 import {
   ageFrom,
@@ -13,7 +21,6 @@ import {
   INTERESTS,
   isValidEmail,
   MIN_PRESTATAIRE_AGE,
-  normalizePhone,
   PROFILE_LABELS,
   useAuth,
   type OtpChannel,
@@ -65,7 +72,8 @@ export function SignUpScreen({ navigation }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const [location, setLocation] = useState<Location>(DEFAULT_LOCATION);
   const [avatar, setAvatar] = useState<string | undefined>();
 
   // Particulier.
@@ -117,9 +125,10 @@ export function SignUpScreen({ navigation }: Props) {
 
   const identityReady =
     name.trim().length >= 2 &&
-    normalizePhone(phone).length === 9 &&
+    isCompleteNumber(phone, phoneCountry) &&
     isValidEmail(email) &&
-    password.length >= 6 &&
+    !!location.city.trim() &&
+    (location.country !== 'US' || !!location.state) &&
     // Only the prestataire is required to supply a photo (§2.2).
     (profile !== 'prestataire' || !!avatar);
 
@@ -144,8 +153,9 @@ export function SignUpScreen({ navigation }: Props) {
       await startSignUp({
         name,
         phone,
+        phoneCountry,
         email,
-        password,
+        location,
         profile,
         channel,
         avatar,
@@ -303,7 +313,12 @@ export function SignUpScreen({ navigation }: Props) {
                 onChangeText={setName}
                 autoCapitalize="words"
               />
-              <PhoneField value={phone} onChangeText={(v) => setPhone(normalizePhone(v))} />
+              <PhoneField
+                value={phone}
+                onChangeText={setPhone}
+                country={phoneCountry}
+                onCountryChange={setPhoneCountry}
+              />
               <Field
                 label={profile === 'business' ? 'E-mail professionnel' : 'Adresse e-mail'}
                 value={email}
@@ -313,13 +328,12 @@ export function SignUpScreen({ navigation }: Props) {
                 inputMode="email"
                 placeholder="vous@exemple.com"
               />
-              <Field
-                label="Mot de passe"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder="6 caractères minimum"
-              />
+              {/* Where the person is, which is separate from the dial code:
+                  a Congolese number can belong to someone in Houston. */}
+              <LocationField value={location} onChange={setLocation} />
+
+              {/* No password here. It is chosen after the code is verified,
+                  which is the order the correction note asks for. */}
 
               <View style={styles.channel}>
                 <Text style={styles.sectionLabel}>Recevoir le code de vérification par</Text>

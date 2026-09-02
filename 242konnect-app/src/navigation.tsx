@@ -20,6 +20,8 @@ import { SignUpScreen } from './screens/SignUpScreen';
 import { SignInScreen } from './screens/SignInScreen';
 import { SplashScreen } from './screens/SplashScreen';
 import { OtpScreen } from './screens/OtpScreen';
+import { CreatePasswordScreen } from './screens/CreatePasswordScreen';
+import { ResetPasswordScreen } from './screens/ResetPasswordScreen';
 import { useAuth } from './auth';
 import type { CategoryId } from './data';
 import { colors } from './theme';
@@ -132,7 +134,7 @@ function AuthFlow({ firstLaunch }: { firstLaunch: boolean }) {
 }
 
 export function RootNavigator() {
-  const { account, restoring, firstLaunch, markLaunched, pending } = useAuth();
+  const { account, restoring, firstLaunch, markLaunched, pending, resetting } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
   // Captured before markLaunched clears it, so the routing decision isn't
   // changed underneath the navigator by its own side effect.
@@ -154,8 +156,13 @@ export function RootNavigator() {
   if (restoring) return <View style={{ flex: 1, backgroundColor: colors.black }} />;
 
   if (account) return <AppTabs />;
+  // A password reset owns the screen while it runs, for the same reason a
+  // pending sign-up does: there is one thing to finish and nowhere else to be.
+  if (resetting) return <ResetPasswordScreen />;
+
   // A pending sign-up owns the screen until the code is entered or cancelled,
   // so verification can't be skipped by navigating around it.
-  if (pending) return <OtpScreen />;
+  // Verification, then the password. The account is created by the second one.
+  if (pending) return pending.verified ? <CreatePasswordScreen /> : <OtpScreen />;
   return <AuthFlow firstLaunch={wasFirstLaunch.current} />;
 }

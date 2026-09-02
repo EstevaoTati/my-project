@@ -1,7 +1,13 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import { Icon } from './Icon';
-import { formatPhone, PHONE_LENGTH } from '../auth';
+import {
+  COUNTRIES,
+  countryFor,
+  formatNational,
+  normalizeNational,
+  type CountryCode,
+} from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
 
 type FieldProps = TextInputProps & {
@@ -28,38 +34,140 @@ export function Field({ label, error, style, ...input }: FieldProps) {
 type PhoneFieldProps = {
   value: string;
   onChangeText: (v: string) => void;
+  /** Selected dial code. */
+  country: CountryCode;
+  onCountryChange: (code: CountryCode) => void;
   error?: string;
   onSubmitEditing?: () => void;
+  label?: string;
 };
 
 /**
- * Phone entry with a fixed +242 prefix.
+ * Phone entry with a country picker.
  *
- * The country code is shown but not editable: 242Konnect serves Congo-Brazzaville
- * only, so making it a free field would invite numbers the service can't reach.
- * Digits are grouped as they're typed the way people write them locally.
+ * The dial code used to be a fixed, unselectable "+242", which locked sign-up
+ * to Congolese numbers. The founder asked for the country to be selectable —
+ * "🇨🇬 +242, 🇺🇸 +1, etc." — so it is now a button opening the served countries,
+ * and the digits are grouped and length-checked per country rather than always
+ * as nine Congolese ones.
  */
-export function PhoneField({ value, onChangeText, error, onSubmitEditing }: PhoneFieldProps) {
+export function PhoneField({
+  value,
+  onChangeText,
+  country,
+  onCountryChange,
+  error,
+  onSubmitEditing,
+  label = 'Numéro de téléphone',
+}: PhoneFieldProps) {
+  const [picking, setPicking] = useState(false);
+  const selected = countryFor(country);
+
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>Numéro de téléphone</Text>
+      <Text style={styles.label}>{label}</Text>
       <View style={[styles.phoneRow, !!error && styles.inputError]}>
-        <View style={styles.prefix}>
-          <Text style={styles.prefixText}>+242</Text>
-        </View>
+        <Pressable
+          onPress={() => setPicking(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`Indicatif pays : +${selected.dial}. Changer de pays`}
+          style={styles.prefix}
+        >
+          <Text style={styles.prefixText}>
+            {selected.flag} +{selected.dial}
+          </Text>
+          <Icon name="solar:alt-arrow-down-linear" size={14} color={colors.mutedForeground} />
+        </Pressable>
         <TextInput
-          value={formatPhone(value)}
-          onChangeText={onChangeText}
+          value={formatNational(value, country)}
+          onChangeText={(next) => onChangeText(normalizeNational(next, country))}
           onSubmitEditing={onSubmitEditing}
           keyboardType="phone-pad"
           inputMode="tel"
           textContentType="telephoneNumber"
-          maxLength={PHONE_LENGTH + 3} // room for the spaces the formatter adds
-          placeholder="06 123 45 67"
+          // Room for the spaces the formatter adds.
+          maxLength={selected.nationalDigits + selected.grouping.length}
+          placeholder={selected.example}
           placeholderTextColor={colors.mutedForeground}
-          accessibilityLabel="Numéro de téléphone"
+          accessibilityLabel={label}
           style={styles.phoneInput}
         />
+      </View>
+      {!!error && <Text style={styles.error}>{error}</Text>}
+
+      <Modal visible={picking} animationType="fade" transparent onRequestClose={() => setPicking(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setPicking(false)}>
+          <Pressable style={styles.sheetCard} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>Indicatif du pays</Text>
+            <ScrollView>
+              {COUNTRIES.map((c) => {
+                const active = c.code === country;
+                return (
+                  <Pressable
+                    key={c.code}
+                    onPress={() => {
+                      onCountryChange(c.code);
+                      // The old digits belong to the old numbering plan.
+                      onChangeText('');
+                      setPicking(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${c.nameFr}, +${c.dial}`}
+                    accessibilityState={{ selected: active }}
+                    style={[styles.countryRow, active && styles.countryRowActive]}
+                  >
+                    <Text style={styles.countryFlag}>{c.flag}</Text>
+                    <Text style={styles.countryName}>{c.nameFr}</Text>
+                    <Text style={styles.countryDial}>+{c.dial}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+/**
+ * A password field with a reveal toggle.
+ *
+ * Asked for directly: "prévoir un moyen simple de voir le mot de passe saisi".
+ * Typing a password blind on a phone keyboard is where most sign-in failures
+ * start, and hiding it protects nothing when the person is alone with their own
+ * screen.
+ */
+export function PasswordField({
+  label = 'Mot de passe',
+  value,
+  onChangeText,
+  error,
+  ...input
+}: Omit<FieldProps, 'label'> & { label?: string }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={[styles.phoneRow, !!error && styles.inputError]}>
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={!shown}
+          accessibilityLabel={label}
+          placeholderTextColor={colors.mutedForeground}
+          style={[styles.phoneInput, styles.passwordInput]}
+          {...input}
+        />
+        <Pressable
+          onPress={() => setShown((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={shown ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          hitSlop={8}
+          style={styles.reveal}
+        >
+          <Text style={styles.revealText}>{shown ? 'Masquer' : 'Afficher'}</Text>
+        </Pressable>
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </View>
@@ -106,6 +214,44 @@ export function FormError({ message }: { message?: string | null }) {
 }
 
 const styles = StyleSheet.create({
+  passwordInput: { paddingRight: 4 },
+  reveal: { paddingHorizontal: 12, justifyContent: 'center' },
+  revealText: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.mutedForeground },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(10,10,10,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  sheetCard: {
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '70%',
+    borderRadius: radius['2xl'],
+    backgroundColor: colors.card,
+    padding: 18,
+    gap: 8,
+    ...shadow.lg,
+  },
+  sheetTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 17,
+    color: colors.foreground,
+    marginBottom: 4,
+  },
+  countryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 12,
+    borderRadius: radius.lg,
+  },
+  countryRowActive: { backgroundColor: colors.muted },
+  countryFlag: { fontSize: 20 },
+  countryName: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 15, color: colors.foreground },
+  countryDial: { fontFamily: fonts.sansSemibold, fontSize: 15, color: colors.mutedForeground },
   field: { gap: 6 },
   label: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },
   input: {
@@ -133,8 +279,10 @@ const styles = StyleSheet.create({
   },
   prefix: {
     height: '100%',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
     backgroundColor: colors.muted,
     borderRightWidth: 1,
     borderRightColor: colors.border,

@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
-import { formatPhone, useAuth } from '../auth';
+import { formatStored, useAuth } from '../auth';
 import { useStore } from '../store';
 import { PROFILE_LABELS, type ProfileKind } from '../auth';
 import { UserAvatar } from '../components/Avatar';
@@ -42,7 +42,7 @@ export function AccountScreen({ navigation }: Props) {
         <UserAvatar name={account.name} avatar={account.avatar} size={52} />
         <View style={styles.identity}>
           <Text style={styles.name}>{account.name}</Text>
-          <Text style={styles.phone}>+242 {formatPhone(account.phone)}</Text>
+          <Text style={styles.phone}>{formatStored(account.phone)}</Text>
           <Text style={styles.email} numberOfLines={1}>
             {account.email}
           </Text>

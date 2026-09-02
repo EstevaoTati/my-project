@@ -29,7 +29,15 @@ import {
   requestToPay,
 } from '../momo';
 import { useStore, type Booking, type MissionStatus } from '../store';
-import { formatPhone, normalizePhone, useAuth } from '../auth';
+import { useAuth } from '../auth';
+import {
+  DEFAULT_COUNTRY,
+  formatNational,
+  fromE164,
+  isCompleteNumber,
+  normalizeNational,
+  type CountryCode,
+} from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
@@ -50,7 +58,10 @@ export function MissionsScreen() {
 
   const [paying, setPaying] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
-  const [payPhone, setPayPhone] = useState(account?.phone ?? '');
+  const [payPhone, setPayPhone] = useState(
+    account ? fromE164(account.phone).national : ''
+  );
+  const [payCountry, setPayCountry] = useState<CountryCode>(account?.phoneCountry ?? DEFAULT_COUNTRY);
   const [receipt, setReceipt] = useState<{
     reference: string;
     amount: number;
@@ -79,7 +90,7 @@ export function MissionsScreen() {
     setReceipt(null);
     setPayError(null);
     setMomoPhase('idle');
-    setPayPhone(account?.phone ?? '');
+    setPayPhone(account ? fromE164(account.phone).national : '');
   };
 
   /** Abandons any in-flight collection; called on close and on "Annuler". */
@@ -110,7 +121,7 @@ export function MissionsScreen() {
       return;
     }
 
-    const phone = normalizePhone(payPhone);
+    const phone = normalizeNational(payPhone, payCountry);
     const controller = new AbortController();
     momoAbort.current = controller;
 
@@ -170,14 +181,15 @@ export function MissionsScreen() {
     setSettled(validateMission(validating.id, speed) ?? null);
   };
 
-  const canPay = !!method && (!methodNeedsPhone(method) || normalizePhone(payPhone).length === 9);
+  const canPay = !!method && (!methodNeedsPhone(method) || isCompleteNumber(payPhone, payCountry));
 
   /**
    * The operator the entered number looks like, when that disagrees with the one
    * selected. Paying from an Airtel line with MTN selected is the single most
    * common mobile money failure, and the operator's own error for it is opaque.
    */
-  const detected = operatorForPhone(payPhone);
+  // Operator prefixes are a Congolese notion; a US number has no MTN/Airtel line.
+  const detected = payCountry === 'CG' ? operatorForPhone(payPhone) : null;
   const operatorMismatch =
     (method === 'mtn' || method === 'airtel') && detected && detected !== method ? detected : null;
 
@@ -344,7 +356,7 @@ export function MissionsScreen() {
             <Text style={styles.doneBody}>
               {momoPhase === 'prompting'
                 ? 'Envoi de la demande à votre opérateur…'
-                : `Une demande de paiement de ${formatFcfaFull(paying?.rate ?? 0)} FCFA a été envoyée au ${formatPhone(normalizePhone(payPhone))}. Saisissez votre code PIN Mobile Money pour confirmer.`}
+                : `Une demande de paiement de ${formatFcfaFull(paying?.rate ?? 0)} FCFA a été envoyée au ${formatNational(payPhone, payCountry)}. Saisissez votre code PIN Mobile Money pour confirmer.`}
             </Text>
             {momoPhase === 'waiting' && (
               <Text style={styles.countdown}>{secondsLeft} s restantes</Text>
@@ -415,7 +427,13 @@ export function MissionsScreen() {
 
             {methodNeedsPhone(method) && (
               <View style={styles.payPhone}>
-                <PhoneField value={payPhone} onChangeText={setPayPhone} />
+                <PhoneField
+                  value={payPhone}
+                  onChangeText={setPayPhone}
+                  country={payCountry}
+                  onCountryChange={setPayCountry}
+                  label="Numéro Mobile Money"
+                />
                 <Text style={styles.payPhoneHint}>
                   Le numéro du compte Mobile Money à débiter. Vous recevrez une demande de code PIN
                   sur ce téléphone.

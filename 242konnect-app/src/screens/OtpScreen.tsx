@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import { FormError, SubmitButton } from '../components/form';
-import { formatPhone, OTP_LENGTH, useAuth } from '../auth';
+import { formatStored, OTP_LENGTH, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
 
 /**
@@ -37,7 +37,7 @@ export function OtpScreen() {
   if (!pending) return null;
 
   const destination =
-    pending.channel === 'sms' ? `+242 ${formatPhone(pending.phone)}` : pending.email;
+    pending.channel === 'sms' ? formatStored(pending.storedPhone) : pending.email;
 
   const submit = async (value = code) => {
     setError(null);
