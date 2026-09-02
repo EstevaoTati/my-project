@@ -4,6 +4,7 @@ import { Icon } from './Icon';
 import { formatFcfa, professionalTrade, type Professional } from '../data';
 import { ProAvatar } from './Avatar';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = {
   professional: Professional;
@@ -14,6 +15,7 @@ type Props = {
 
 /** The large, image-led card used on the search results screen. */
 export function ResultCard({ professional: pro, favorite, onPress, onToggleFavorite }: Props) {
+  const t = useT();
   return (
     <Pressable
       onPress={onPress}
@@ -47,7 +49,7 @@ export function ResultCard({ professional: pro, favorite, onPress, onToggleFavor
         </Pressable>
         {pro.verified && (
           <View style={styles.verifiedBadge}>
-            <Text style={styles.verifiedLabel}>Vérifié par 242K</Text>
+            <Text style={styles.verifiedLabel}>{t('Vérifié par 242K')}</Text>
           </View>
         )}
       </View>
@@ -78,7 +80,7 @@ export function ResultCard({ professional: pro, favorite, onPress, onToggleFavor
         <View style={styles.priceBlock}>
           <Text style={styles.price}>
             {formatFcfa(pro.hourlyRate)}
-            <Text style={styles.priceUnit}> FCFA/h</Text>
+            <Text style={styles.priceUnit}>{t('FCFA/h')}</Text>
           </Text>
           <Text style={[styles.availability, pro.availableNow && styles.availabilityNow]}>
             {pro.availability}

@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { colors, fonts, radius } from '../theme';
+import { useT } from '../i18n';
 
 type Props = {
   visible: boolean;
@@ -20,11 +21,12 @@ type Props = {
  * scrim closes, which is the gesture people try first.
  */
 export function Sheet({ visible, title, onClose, children }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Fermer" />
+      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel={t('Fermer')} />
       <View style={[styles.sheet, { paddingBottom: Math.max(24, insets.bottom + 8) }]}>
         <View style={styles.grabber} />
         <View style={styles.header}>
@@ -32,7 +34,7 @@ export function Sheet({ visible, title, onClose, children }: Props) {
           <Pressable
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={t('Fermer')}
             hitSlop={8}
             style={styles.close}
           >

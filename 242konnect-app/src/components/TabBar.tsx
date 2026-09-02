@@ -8,6 +8,7 @@ import { Sheet } from './Sheet';
 import { categories } from '../data';
 import type { IconName } from '../icons';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 /**
  * Custom tab bar, because the design puts a raised circular action in the
@@ -19,21 +20,21 @@ import { colors, fonts, radius, shadow } from '../theme';
  */
 
 const TAB_ICONS: Record<string, { active: IconName; inactive: IconName; label: string }> = {
-  Accueil: { active: 'solar:home-2-bold', inactive: 'solar:home-2-bold', label: 'Accueil' },
+  Accueil: { active: 'solar:home-2-bold', inactive: 'solar:home-2-bold', label: T('Accueil') },
   Missions: {
     active: 'solar:calendar-mark-linear',
     inactive: 'solar:calendar-mark-linear',
-    label: 'Missions',
+    label: T('Missions'),
   },
   Messages: {
     active: 'solar:chat-round-dots-bold',
     inactive: 'solar:chat-round-dots-linear',
-    label: 'Messages',
+    label: T('Messages'),
   },
   Profil: {
     active: 'solar:user-rounded-linear',
     inactive: 'solar:user-rounded-linear',
-    label: 'Profil',
+    label: T('Profil'),
   },
 };
 
@@ -44,6 +45,7 @@ const BADGED = new Set(['Messages']);
 const FULL_BLEED_ROUTES = new Set(['Profil']);
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [showPost, setShowPost] = useState(false);
   const [posted, setPosted] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         key={routeKey}
         accessibilityRole="tab"
         accessibilityState={{ selected: focused }}
-        accessibilityLabel={meta.label}
+        accessibilityLabel={t(meta.label)}
         onPress={() => {
           const event = navigation.emit({ type: 'tabPress', target: routeKey, canPreventDefault: true });
           if (event.defaultPrevented) return;
@@ -104,7 +106,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           {BADGED.has(routeName) && <View style={styles.badge} />}
         </View>
         <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>
-          {meta.label}
+          {t(meta.label)}
         </Text>
       </Pressable>
     );
@@ -124,7 +126,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               setShowPost(true);
             }}
             accessibilityRole="button"
-            accessibilityLabel="Publier une demande"
+            accessibilityLabel={t('Publier une demande')}
             style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
           >
             <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
@@ -144,7 +146,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             <View style={styles.postedIcon}>
               <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.postedTitle}>Votre demande est en ligne</Text>
+            <Text style={styles.postedTitle}>{t('Votre demande est en ligne')}</Text>
             <Text style={styles.postedBody}>
               Les professionnels en {posted.toLowerCase()} près de chez vous vont recevoir votre
               demande et vous répondre directement.
@@ -154,12 +156,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityRole="button"
               style={styles.postedButton}
             >
-              <Text style={styles.postedButtonLabel}>Terminé</Text>
+              <Text style={styles.postedButtonLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
-            <Text style={styles.postHint}>De quel service avez-vous besoin ?</Text>
+            <Text style={styles.postHint}>{t('De quel service avez-vous besoin ?')}</Text>
             {categories.map((category) => (
               <Pressable
                 key={category.id}

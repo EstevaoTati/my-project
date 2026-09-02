@@ -13,6 +13,7 @@ import {
 } from '../data';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Metiers'>;
 
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'Metiers'>;
  * typing what you need in your own words.
  */
 export function TradesScreen({ navigation, route }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState<CategoryId | undefined>(route.params?.category);
   const [query, setQuery] = useState('');
@@ -51,14 +53,14 @@ export function TradesScreen({ navigation, route }: Props) {
           <Pressable
             onPress={() => navigation.goBack()}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('Retour')}
             hitSlop={8}
             style={styles.back}
           >
             <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
           </Pressable>
           <View style={styles.titleBlock}>
-            <Text style={styles.title}>Tous les métiers</Text>
+            <Text style={styles.title}>{t('Tous les métiers')}</Text>
             <Text style={styles.subtitle}>
               {results.length} métier{results.length > 1 ? 's' : ''} dans {categories.length} catégories
             </Text>
@@ -72,9 +74,9 @@ export function TradesScreen({ navigation, route }: Props) {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Décrivez votre besoin"
+            placeholder={t('Décrivez votre besoin')}
             placeholderTextColor={colors.mutedForeground}
-            accessibilityLabel="Rechercher un métier"
+            accessibilityLabel={t('Rechercher un métier')}
             style={styles.searchInput}
           />
         </View>
@@ -83,11 +85,11 @@ export function TradesScreen({ navigation, route }: Props) {
           <Pressable
             onPress={() => setActive(undefined)}
             accessibilityRole="button"
-            accessibilityLabel="Toutes les catégories"
+            accessibilityLabel={t('Toutes les catégories')}
             accessibilityState={{ selected: !active }}
             style={[styles.chip, !active && styles.chipActive]}
           >
-            <Text style={[styles.chipLabel, !active && styles.chipLabelActive]}>Tout</Text>
+            <Text style={[styles.chipLabel, !active && styles.chipLabelActive]}>{t('Tout')}</Text>
           </Pressable>
           {categories.map((category) => {
             const selected = active === category.id;
@@ -96,12 +98,12 @@ export function TradesScreen({ navigation, route }: Props) {
                 key={category.id}
                 onPress={() => setActive(selected ? undefined : category.id)}
                 accessibilityRole="button"
-                accessibilityLabel={`Catégorie ${category.label}`}
+                accessibilityLabel={`Catégorie ${t(category.label)}`}
                 accessibilityState={{ selected }}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
                 <Icon name={category.icon} size={16} color={colors.foreground} />
-                <Text style={styles.chipLabel}>{category.label}</Text>
+                <Text style={styles.chipLabel}>{t(category.label)}</Text>
               </Pressable>
             );
           })}
@@ -111,8 +113,8 @@ export function TradesScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {grouped.length === 0 && (
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>Aucun métier trouvé</Text>
-            <Text style={styles.emptyBody}>Essayez un autre mot, par exemple « fuite » ou « clim ».</Text>
+            <Text style={styles.emptyTitle}>{t('Aucun métier trouvé')}</Text>
+            <Text style={styles.emptyBody}>{t('Essayez un autre mot, par exemple « fuite » ou « clim ».')}</Text>
           </View>
         )}
 
@@ -123,9 +125,9 @@ export function TradesScreen({ navigation, route }: Props) {
             <View key={categoryId} style={styles.group}>
               <View style={styles.groupHeader}>
                 <View style={styles.groupDot} />
-                <Text style={styles.groupTitle}>{category.label}</Text>
+                <Text style={styles.groupTitle}>{t(category.label)}</Text>
               </View>
-              <Text style={styles.groupBlurb}>{category.blurb}</Text>
+              <Text style={styles.groupBlurb}>{t(category.blurb)}</Text>
 
               {list.map((trade) => {
                 const count = searchProfessionals({ tradeId: trade.id }).length;
@@ -134,16 +136,16 @@ export function TradesScreen({ navigation, route }: Props) {
                     key={trade.id}
                     onPress={() => navigation.navigate('Resultats', { tradeId: trade.id })}
                     accessibilityRole="button"
-                    accessibilityLabel={`${trade.label}, ${count} professionnel${count > 1 ? 's' : ''}`}
+                    accessibilityLabel={`${t(trade.label)}, ${count} professionnel${count > 1 ? 's' : ''}`}
                     style={({ pressed }) => [styles.trade, pressed && styles.pressed]}
                   >
                     <View style={styles.tradeTop}>
-                      <Text style={styles.tradeLabel}>{trade.label}</Text>
+                      <Text style={styles.tradeLabel}>{t(trade.label)}</Text>
                       <Text style={styles.tradeRate}>
                         {formatFcfa(trade.minRate)}–{formatFcfa(trade.maxRate)} FCFA/h
                       </Text>
                     </View>
-                    <Text style={styles.tradeDesc}>{trade.description}</Text>
+                    <Text style={styles.tradeDesc}>{t(trade.description)}</Text>
                     <View style={styles.tradeFoot}>
                       <Text style={styles.tradeCount}>
                         {count} professionnel{count > 1 ? 's' : ''}

@@ -7,6 +7,7 @@ import { formatFcfaFull, getTrade } from '../data';
 import { COMMISSION_RATE, PAYOUT_EXPRESS_RATE, PAYOUT_STANDARD_RATE, PAYOUT_STANDARD_DELAY_DAYS } from '../payments';
 import { useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * Espace Prestataire — the dashboard of §2.2.
@@ -29,6 +30,7 @@ const SUBSCRIPTIONS = [
 ];
 
 export function EspacePrestataireScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { account } = useAuth();
   if (!account) return null;
@@ -42,7 +44,7 @@ export function EspacePrestataireScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.screenTitle}>Espace Prestataire</Text>
+      <Text style={styles.screenTitle}>{t('Espace Prestataire')}</Text>
 
       <View style={styles.identity}>
         <UserAvatar name={account.name} avatar={account.avatar} size={56} />
@@ -71,23 +73,20 @@ export function EspacePrestataireScreen() {
         </View>
       )}
 
-      <Section title="Revenus">
+      <Section title={t('Revenus')}>
         <View style={styles.grid}>
           {['Aujourd’hui', 'Cette semaine', 'Ce mois', 'Cette année'].map((label) => (
             <View key={label} style={styles.gridCell}>
               <Text style={styles.gridValue}>0</Text>
-              <Text style={styles.gridUnit}>FCFA</Text>
+              <Text style={styles.gridUnit}>{t('FCFA')}</Text>
               <Text style={styles.gridLabel}>{label}</Text>
             </View>
           ))}
         </View>
-        <Text style={styles.sectionNote}>
-          Aucune mission reçue : il n'y a pas encore de clients sur cette version. Les revenus
-          apparaîtront ici dès qu'une prestation sera validée.
-        </Text>
+        <Text style={styles.sectionNote}>{t("Aucune mission reçue : il n'y a pas encore de clients sur cette version. Les revenus apparaîtront ici dès qu'une prestation sera validée.")}</Text>
       </Section>
 
-      <Section title="Demandes et missions">
+      <Section title={t('Demandes et missions')}>
         {[
           ['Demandes en attente', 'Les demandes correspondant à votre métier arriveront ici.'],
           ['Missions acceptées', 'Rien pour le moment.'],
@@ -104,21 +103,21 @@ export function EspacePrestataireScreen() {
         ))}
       </Section>
 
-      <Section title="Performance">
+      <Section title={t('Performance')}>
         <View style={styles.scoreRow}>
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreValue}>—</Text>
-            <Text style={styles.gridLabel}>Score 242K</Text>
+            <Text style={styles.gridLabel}>{t('Score 242K')}</Text>
           </View>
           <View style={styles.scoreDivider} />
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreValue}>0</Text>
-            <Text style={styles.gridLabel}>Services réalisés</Text>
+            <Text style={styles.gridLabel}>{t('Services réalisés')}</Text>
           </View>
           <View style={styles.scoreDivider} />
           <View style={styles.scoreBlock}>
             <Text style={styles.scoreValue}>0</Text>
-            <Text style={styles.gridLabel}>Clients</Text>
+            <Text style={styles.gridLabel}>{t('Clients')}</Text>
           </View>
         </View>
         <Text style={styles.sectionNote}>
@@ -127,41 +126,36 @@ export function EspacePrestataireScreen() {
         </Text>
       </Section>
 
-      <Section title="Vos conditions">
-        <InfoRow label="Tarif horaire" value={details?.hourlyRate ? `${formatFcfaFull(details.hourlyRate)} FCFA` : '—'} />
-        <InfoRow label="Commission 242Konnect" value={`${COMMISSION_RATE * 100} %`} />
+      <Section title={t('Vos conditions')}>
+        <InfoRow label={t('Tarif horaire')} value={details?.hourlyRate ? `${formatFcfaFull(details.hourlyRate)} FCFA` : '—'} />
+        <InfoRow label={t('Commission 242Konnect')} value={`${COMMISSION_RATE * 100} %`} />
         <InfoRow
-          label="Versement standard"
+          label={t('Versement standard')}
           value={`${PAYOUT_STANDARD_DELAY_DAYS} jours · ${(PAYOUT_STANDARD_RATE * 100).toLocaleString('fr-FR')} %`}
         />
-        <InfoRow label="Versement express" value={`Immédiat · ${PAYOUT_EXPRESS_RATE * 100} %`} />
-        <Text style={styles.sectionNote}>
-          Vous ne recevez jamais d'argent directement du client. 242Konnect encaisse, conserve
-          les fonds, puis vous verse après validation de la prestation.
-        </Text>
+        <InfoRow label={t('Versement express')} value={`Immédiat · ${PAYOUT_EXPRESS_RATE * 100} %`} />
+        <Text style={styles.sectionNote}>{t("Vous ne recevez jamais d'argent directement du client. 242Konnect encaisse, conserve les fonds, puis vous verse après validation de la prestation.")}</Text>
       </Section>
 
-      <Section title="Documents">
+      <Section title={t('Documents')}>
         {details?.documents?.length ? (
           details.documents.map((_, i) => (
             <View key={i} style={styles.row}>
               <View style={styles.rowBody}>
                 <Text style={styles.rowLabel}>Pièce justificative {i + 1}</Text>
-                <Text style={styles.rowHint}>En attente de vérification par 242Konnect</Text>
+                <Text style={styles.rowHint}>{t('En attente de vérification par 242Konnect')}</Text>
               </View>
               <View style={styles.pending}>
-                <Text style={styles.pendingLabel}>En cours</Text>
+                <Text style={styles.pendingLabel}>{t('En cours')}</Text>
               </View>
             </View>
           ))
         ) : (
-          <Text style={styles.sectionNote}>
-            Aucune pièce transmise. Les documents accélèrent la vérification de votre compte.
-          </Text>
+          <Text style={styles.sectionNote}>{t('Aucune pièce transmise. Les documents accélèrent la vérification de votre compte.')}</Text>
         )}
       </Section>
 
-      <Section title="Abonnement">
+      <Section title={t('Abonnement')}>
         {SUBSCRIPTIONS.map((plan, i) => (
           <View key={plan.id} style={[styles.plan, i === 0 && styles.planActive]}>
             <View style={styles.planHead}>
@@ -173,21 +167,14 @@ export function EspacePrestataireScreen() {
                 · {perk}
               </Text>
             ))}
-            {i === 0 && <Text style={styles.planCurrent}>Votre formule actuelle</Text>}
+            {i === 0 && <Text style={styles.planCurrent}>{t('Votre formule actuelle')}</Text>}
           </View>
         ))}
-        <Text style={styles.sectionNote}>
-          Les tarifs Premium et Business ne sont pas encore fixés, et la souscription demande le
-          système de paiement des abonnements.
-        </Text>
+        <Text style={styles.sectionNote}>{t('Les tarifs Premium et Business ne sont pas encore fixés, et la souscription demande le système de paiement des abonnements.')}</Text>
       </Section>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Cet espace affiche la structure décrite au cahier des charges §2.2. Les sections qui
-          dépendent d'autres utilisateurs — demandes, revenus, avis — restent vides tant qu'il n'y
-          a pas de serveur : elles ne sont pas simulées.
-        </Text>
+        <Text style={styles.footerText}>{t("Cet espace affiche la structure décrite au cahier des charges §2.2. Les sections qui dépendent d'autres utilisateurs — demandes, revenus, avis — restent vides tant qu'il n'y a pas de serveur : elles ne sont pas simulées.")}</Text>
       </View>
     </ScrollView>
   );

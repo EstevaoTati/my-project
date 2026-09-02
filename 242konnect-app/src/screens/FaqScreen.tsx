@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'FAQ'>;
 
@@ -73,7 +74,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
-    title: 'Compte et données',
+    title: T('Compte et données'),
     items: [
       {
         q: 'Pourquoi mon numéro sert-il d’identifiant ?',
@@ -94,7 +95,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
-    title: 'Sécurité',
+    title: T('Sécurité'),
     items: [
       {
         q: 'Que faire en cas de problème avec un professionnel ?',
@@ -109,6 +110,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
 ];
 
 export function FaqScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState<string | null>(SECTIONS[0].items[0].q);
 
@@ -123,32 +125,32 @@ export function FaqScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
-        <Text style={styles.title}>Questions fréquentes</Text>
+        <Text style={styles.title}>{t('Questions fréquentes')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View key={t(section.title)} style={styles.section}>
+            <Text style={styles.sectionTitle}>{t(section.title)}</Text>
             {section.items.map((item) => {
               const expanded = open === item.q;
               return (
                 <Pressable
-                  key={item.q}
+                  key={t(item.q)}
                   onPress={() => toggle(item.q)}
                   accessibilityRole="button"
-                  accessibilityLabel={item.q}
+                  accessibilityLabel={t(item.q)}
                   accessibilityState={{ expanded }}
                   style={[styles.item, expanded && styles.itemOpen]}
                 >
                   <View style={styles.itemHead}>
-                    <Text style={[styles.question, expanded && styles.questionOpen]}>{item.q}</Text>
+                    <Text style={[styles.question, expanded && styles.questionOpen]}>{t(item.q)}</Text>
                     <View style={expanded ? styles.chevronOpen : undefined}>
                       <Icon
                         name="solar:alt-arrow-down-linear"
@@ -157,17 +159,14 @@ export function FaqScreen({ navigation }: Props) {
                       />
                     </View>
                   </View>
-                  {expanded && <Text style={styles.answer}>{item.a}</Text>}
+                  {expanded && <Text style={styles.answer}>{t(item.a)}</Text>}
                 </Pressable>
               );
             })}
           </View>
         ))}
 
-        <Text style={styles.footer}>
-          Une question qui n'est pas ici ? Écrivez-nous depuis l'onglet Profil une fois le support
-          en ligne.
-        </Text>
+        <Text style={styles.footer}>{t("Une question qui n'est pas ici ? Écrivez-nous depuis l'onglet Profil une fois le support en ligne.")}</Text>
       </ScrollView>
     </View>
   );

@@ -9,6 +9,7 @@ import {
   type CountryCode,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type FieldProps = TextInputProps & {
   label: string;
@@ -17,6 +18,7 @@ type FieldProps = TextInputProps & {
 };
 
 export function Field({ label, error, style, ...input }: FieldProps) {
+  const t = useT();
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -60,6 +62,7 @@ export function PhoneField({
   onSubmitEditing,
   label = 'Numéro de téléphone',
 }: PhoneFieldProps) {
+  const t = useT();
   const [picking, setPicking] = useState(false);
   const selected = countryFor(country);
 
@@ -98,7 +101,7 @@ export function PhoneField({
       <Modal visible={picking} animationType="fade" transparent onRequestClose={() => setPicking(false)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setPicking(false)}>
           <Pressable style={styles.sheetCard} onPress={() => {}}>
-            <Text style={styles.sheetTitle}>Indicatif du pays</Text>
+            <Text style={styles.sheetTitle}>{t('Indicatif du pays')}</Text>
             <ScrollView>
               {COUNTRIES.map((c) => {
                 const active = c.code === country;

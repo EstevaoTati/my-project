@@ -7,10 +7,12 @@ import { FormError, Field, PasswordField, SubmitButton } from '../components/for
 import { DEMO_CREDENTIALS, DEMO_ENABLED, isValidEmail, useAuth } from '../auth';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Connexion'>;
 
 export function SignInScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { signIn, startPasswordReset } = useAuth();
 
@@ -65,29 +67,29 @@ export function SignInScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
 
-        <Text style={styles.title}>Bon retour</Text>
-        <Text style={styles.lede}>Connectez-vous avec votre numéro ou votre adresse e-mail.</Text>
+        <Text style={styles.title}>{t('Bon retour')}</Text>
+        <Text style={styles.lede}>{t('Connectez-vous avec votre numéro ou votre adresse e-mail.')}</Text>
 
         <View style={styles.form}>
           <Field
-            label="Numéro de téléphone ou e-mail"
+            label={t('Numéro de téléphone ou e-mail')}
             value={identifier}
             onChangeText={setIdentifier}
             autoCapitalize="none"
             inputMode="email"
-            placeholder="06 123 45 67 ou vous@exemple.com"
+            placeholder={t('06 123 45 67 ou vous@exemple.com')}
           />
           <PasswordField
             value={password}
             onChangeText={setPassword}
-            placeholder="Votre mot de passe"
+            placeholder={t('Votre mot de passe')}
             textContentType="password"
             onSubmitEditing={submit}
           />
@@ -95,25 +97,22 @@ export function SignInScreen({ navigation }: Props) {
           <Pressable
             onPress={forgot}
             accessibilityRole="button"
-            accessibilityLabel="Mot de passe oublié"
+            accessibilityLabel={t('Mot de passe oublié')}
             hitSlop={6}
             style={styles.forgotRow}
           >
-            <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+            <Text style={styles.forgotText}>{t('Mot de passe oublié ?')}</Text>
           </Pressable>
           <FormError message={error} />
-          <SubmitButton label="Se connecter" onPress={submit} busy={busy} disabled={!ready} />
+          <SubmitButton label={t('Se connecter')} onPress={submit} busy={busy} disabled={!ready} />
         </View>
 
         {/* Preview builds only. Creating a new account still needs a real code
             by e-mail — this signs into an account that already exists. */}
         {DEMO_ENABLED && (
           <View style={styles.demo}>
-            <Text style={styles.demoTitle}>Version de démonstration</Text>
-            <Text style={styles.demoText}>
-              Pour tester l'application sans attendre un e-mail, connectez-vous au compte de
-              démonstration.
-            </Text>
+            <Text style={styles.demoTitle}>{t('Version de démonstration')}</Text>
+            <Text style={styles.demoText}>{t("Pour tester l'application sans attendre un e-mail, connectez-vous au compte de démonstration.")}</Text>
             <Pressable
               onPress={async () => {
                 setError(null);
@@ -132,10 +131,10 @@ export function SignInScreen({ navigation }: Props) {
                 }
               }}
               accessibilityRole="button"
-              accessibilityLabel="Se connecter avec le compte de démonstration"
+              accessibilityLabel={t('Se connecter avec le compte de démonstration')}
               style={styles.demoButton}
             >
-              <Text style={styles.demoButtonLabel}>Ouvrir le compte de démonstration</Text>
+              <Text style={styles.demoButtonLabel}>{t('Ouvrir le compte de démonstration')}</Text>
             </Pressable>
           </View>
         )}
@@ -143,11 +142,10 @@ export function SignInScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.navigate('Inscription')}
           accessibilityRole="button"
-          accessibilityLabel="Créer un compte"
+          accessibilityLabel={t('Créer un compte')}
           style={styles.altRow}
         >
-          <Text style={styles.altText}>
-            Pas encore de compte ? <Text style={styles.altLink}>Créer un compte</Text>
+          <Text style={styles.altText}>{t('Pas encore de compte ?')}<Text style={styles.altLink}>{t('Créer un compte')}</Text>
           </Text>
         </Pressable>
       </ScrollView>

@@ -20,6 +20,7 @@ import { useAuth } from '../auth';
 import { CITIES, useStore, type City } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Accueil'>;
 
@@ -34,25 +35,26 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'Accueil'>;
 const SAMPLE_NOTIFICATIONS = [
   {
     id: '1',
-    title: 'Jean-Paul K. a accepté votre demande',
-    body: "Intervention prévue aujourd'hui à 14h.",
+    title: T('Jean-Paul K. a accepté votre demande'),
+    body: T("Intervention prévue aujourd'hui à 14h."),
     unread: true,
   },
   {
     id: '2',
-    title: 'Nouveau professionnel vérifié',
-    body: 'Un électricien vérifié vient de rejoindre votre quartier.',
+    title: T('Nouveau professionnel vérifié'),
+    body: T('Un électricien vérifié vient de rejoindre votre quartier.'),
     unread: true,
   },
   {
     id: '3',
-    title: 'Notez votre dernière mission',
-    body: 'Votre avis aide les autres clients à choisir.',
+    title: T('Notez votre dernière mission'),
+    body: T('Votre avis aide les autres clients à choisir.'),
     unread: false,
   },
 ];
 
 export function HomeScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -92,7 +94,7 @@ export function HomeScreen({ navigation }: Props) {
               <View style={styles.presenceDot} />
             </View>
             <View>
-              <Text style={styles.greeting}>Bienvenue,</Text>
+              <Text style={styles.greeting}>{t('Bienvenue,')}</Text>
               <Text style={styles.name}>{account?.name ?? ''}</Text>
             </View>
           </View>
@@ -129,15 +131,15 @@ export function HomeScreen({ navigation }: Props) {
             onChangeText={setQuery}
             onSubmitEditing={submitSearch}
             returnKeyType="search"
-            placeholder="Quel service recherchez-vous ?"
+            placeholder={t('Quel service recherchez-vous ?')}
             placeholderTextColor={colors.mutedForeground}
-            accessibilityLabel="Quel service recherchez-vous ?"
+            accessibilityLabel={t('Quel service recherchez-vous ?')}
             style={styles.searchInput}
           />
           <Pressable
             onPress={submitSearch}
             accessibilityRole="button"
-            accessibilityLabel="Rechercher"
+            accessibilityLabel={t('Rechercher')}
             style={styles.searchButton}
           >
             <Icon name="solar:tuning-square-2-bold" size={20} color={colors.primaryForeground} />
@@ -169,13 +171,13 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Catégories</Text>
+          <Text style={styles.sectionTitle}>{t('Catégories')}</Text>
           <Pressable
             onPress={() => navigation.navigate('Metiers')}
             accessibilityRole="button"
-            accessibilityLabel="Voir tous les métiers"
+            accessibilityLabel={t('Voir tous les métiers')}
           >
-            <Text style={styles.sectionAction}>Voir tout</Text>
+            <Text style={styles.sectionAction}>{t('Voir tout')}</Text>
           </Pressable>
         </View>
         <ScrollView
@@ -193,9 +195,9 @@ export function HomeScreen({ navigation }: Props) {
         </ScrollView>
 
         <View style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-          <Text style={styles.sectionTitle}>Top Professionnels</Text>
+          <Text style={styles.sectionTitle}>{t('Top Professionnels')}</Text>
           <Pressable onPress={() => navigation.navigate('Resultats', {})} accessibilityRole="button">
-            <Text style={styles.sectionAction}>Voir plus</Text>
+            <Text style={styles.sectionAction}>{t('Voir plus')}</Text>
           </Pressable>
         </View>
         <View style={styles.proList}>
@@ -211,13 +213,11 @@ export function HomeScreen({ navigation }: Props) {
 
       <Sheet
         visible={showNotifications}
-        title="Notifications"
+        title={t('Notifications')}
         onClose={() => setShowNotifications(false)}
       >
         {notices.length === 0 && (
-          <Text style={styles.notificationText}>
-            Vos notifications de demande et de paiement apparaîtront ici.
-          </Text>
+          <Text style={styles.notificationText}>{t('Vos notifications de demande et de paiement apparaîtront ici.')}</Text>
         )}
         {notices.map((item) => (
           <View key={item.id} style={styles.notification}>
@@ -243,7 +243,7 @@ export function HomeScreen({ navigation }: Props) {
         ))}
       </Sheet>
 
-      <Sheet visible={showCities} title="Votre ville" onClose={() => setShowCities(false)}>
+      <Sheet visible={showCities} title={t('Votre ville')} onClose={() => setShowCities(false)}>
         {CITIES.map((option) => {
           const selected = option === city;
           return (

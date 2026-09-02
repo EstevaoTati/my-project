@@ -8,6 +8,7 @@ import { getProfessional, professionalTrade } from '../data';
 import { useStore } from '../store';
 import type { MessagesStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Conversations'>;
 
@@ -23,6 +24,7 @@ export function relativeTime(at: number): string {
 }
 
 export function MessagesScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { threads } = useStore();
 
@@ -38,7 +40,7 @@ export function MessagesScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.title}>{t('Messages')}</Text>
       </View>
 
       {list.length === 0 ? (
@@ -46,11 +48,8 @@ export function MessagesScreen({ navigation }: Props) {
           <View style={styles.emptyIcon}>
             <Icon name="solar:chat-round-dots-linear" size={32} color={colors.mutedForeground} />
           </View>
-          <Text style={styles.emptyTitle}>Aucune conversation</Text>
-          <Text style={styles.emptyBody}>
-            Ouvrez le profil d'un professionnel et appuyez sur le bouton message pour démarrer un
-            échange.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('Aucune conversation')}</Text>
+          <Text style={styles.emptyBody}>{t("Ouvrez le profil d'un professionnel et appuyez sur le bouton message pour démarrer un échange.")}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>

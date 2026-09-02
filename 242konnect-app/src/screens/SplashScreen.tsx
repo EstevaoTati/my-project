@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { Logo } from '../components/Logo';
 import { colors, fonts } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * Opening sequence: the official mark, then the name, then the app.
@@ -30,6 +31,7 @@ const FADE_OUT = 380;
 type Props = { onDone: () => void };
 
 export function SplashScreen({ onDone }: Props) {
+  const t = useT();
   const letters = useMemo(() => WORD.split(''), []);
   const mark = useRef(new Animated.Value(0)).current;
   const progress = useRef(letters.map(() => new Animated.Value(0))).current;
@@ -90,7 +92,7 @@ export function SplashScreen({ onDone }: Props) {
             ],
           }}
         >
-          <Logo width={210} label="242Konnect" />
+          <Logo width={210} label={t('242Konnect')} />
         </Animated.View>
 
         <View style={styles.word}>

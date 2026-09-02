@@ -15,6 +15,7 @@ import {
   type Establishment,
 } from '../store';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * Espace Business — the dashboard of §2.2.
@@ -28,6 +29,7 @@ import { colors, fonts, radius, shadow } from '../theme';
  * stated empty state rather than invented figures.
  */
 export function EspaceBusinessScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { account } = useAuth();
   const {
@@ -88,7 +90,7 @@ export function EspaceBusinessScreen() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.screenTitle}>Espace Business</Text>
+        <Text style={styles.screenTitle}>{t('Espace Business')}</Text>
 
         <View style={styles.identity}>
           <UserAvatar name={business?.companyName ?? account.name} avatar={business?.logo} size={56} />
@@ -98,7 +100,7 @@ export function EspaceBusinessScreen() {
             {!!business?.rccm && <Text style={styles.legal}>RCCM {business.rccm} · NIF {business.nif}</Text>}
           </View>
           <View style={styles.badgeOff}>
-            <Text style={styles.badgeLabelOff}>En attente</Text>
+            <Text style={styles.badgeLabelOff}>{t('En attente')}</Text>
           </View>
         </View>
 
@@ -114,7 +116,7 @@ export function EspaceBusinessScreen() {
           </Text>
         </View>
 
-        <Section title="Gestion des demandes">
+        <Section title={t('Gestion des demandes')}>
           {[
             ['Demandes en attente', 0],
             ['Demandes publiées', 0],
@@ -128,21 +130,15 @@ export function EspaceBusinessScreen() {
               <Text style={styles.rowCount}>{count}</Text>
             </View>
           ))}
-          <Text style={styles.note}>
-            Les appels d'offres et la comparaison de devis demandent que des prestataires puissent
-            répondre — donc un serveur.
-          </Text>
+          <Text style={styles.note}>{t("Les appels d'offres et la comparaison de devis demandent que des prestataires puissent répondre — donc un serveur.")}</Text>
         </Section>
 
         <Section
-          title="Établissements"
+          title={t('Établissements')}
           action={{ label: 'Ajouter', onPress: () => setShowEstablishment(true), a11y: 'Ajouter un établissement' }}
         >
           {establishments.length === 0 ? (
-            <Text style={styles.note}>
-              Aucun établissement. Ajoutez vos agences, bureaux, magasins ou chantiers pour
-              rattacher chaque demande à un site.
-            </Text>
+            <Text style={styles.note}>{t('Aucun établissement. Ajoutez vos agences, bureaux, magasins ou chantiers pour rattacher chaque demande à un site.')}</Text>
           ) : (
             establishments.map((e) => (
               <View key={e.id} style={styles.itemRow}>
@@ -158,7 +154,7 @@ export function EspaceBusinessScreen() {
                   accessibilityLabel={`Supprimer l'établissement ${e.name}`}
                   hitSlop={8}
                 >
-                  <Text style={styles.remove}>Supprimer</Text>
+                  <Text style={styles.remove}>{t('Supprimer')}</Text>
                 </Pressable>
               </View>
             ))
@@ -166,14 +162,11 @@ export function EspaceBusinessScreen() {
         </Section>
 
         <Section
-          title="Collaborateurs"
+          title={t('Collaborateurs')}
           action={{ label: 'Inviter', onPress: () => setShowCollaborator(true), a11y: 'Inviter un collaborateur' }}
         >
           {collaborators.length === 0 ? (
-            <Text style={styles.note}>
-              Aucun collaborateur. Invitez vos équipes avec des niveaux d'accès différents :
-              administrateur, responsable, comptable, acheteur, maintenance.
-            </Text>
+            <Text style={styles.note}>{t("Aucun collaborateur. Invitez vos équipes avec des niveaux d'accès différents : administrateur, responsable, comptable, acheteur, maintenance.")}</Text>
           ) : (
             collaborators.map((c) => (
               <View key={c.id} style={styles.itemRow}>
@@ -184,7 +177,7 @@ export function EspaceBusinessScreen() {
                   </Text>
                 </View>
                 <View style={styles.pending}>
-                  <Text style={styles.pendingLabel}>Invité</Text>
+                  <Text style={styles.pendingLabel}>{t('Invité')}</Text>
                 </View>
                 <Pressable
                   onPress={() => removeCollaborator(c.id)}
@@ -192,30 +185,25 @@ export function EspaceBusinessScreen() {
                   accessibilityLabel={`Retirer ${c.name}`}
                   hitSlop={8}
                 >
-                  <Text style={styles.remove}>Retirer</Text>
+                  <Text style={styles.remove}>{t('Retirer')}</Text>
                 </Pressable>
               </View>
             ))
           )}
           {collaborators.length > 0 && (
-            <Text style={styles.note}>
-              Les invitations ne partent pas encore : l'envoi et l'acceptation demandent un
-              serveur. Les rôles sont enregistrés sur cet appareil.
-            </Text>
+            <Text style={styles.note}>{t("Les invitations ne partent pas encore : l'envoi et l'acceptation demandent un serveur. Les rôles sont enregistrés sur cet appareil.")}</Text>
           )}
         </Section>
 
-        <Section title="Gestion financière">
-          <InfoRow label="Dépenses engagées" value={`${formatFcfaFull(totalPaid)} FCFA`} />
-          <InfoRow label="En attente de validation" value={`${formatFcfaFull(heldInEscrow)} FCFA`} />
-          <InfoRow label="Devis reçus" value="0" />
-          <InfoRow label="Factures" value="0" />
-          <Text style={styles.note}>
-            Les devis, factures et rapports PDF/Excel demandent la facturation côté serveur.
-          </Text>
+        <Section title={t('Gestion financière')}>
+          <InfoRow label={t('Dépenses engagées')} value={`${formatFcfaFull(totalPaid)} FCFA`} />
+          <InfoRow label={t('En attente de validation')} value={`${formatFcfaFull(heldInEscrow)} FCFA`} />
+          <InfoRow label={t('Devis reçus')} value="0" />
+          <InfoRow label={t('Factures')} value="0" />
+          <Text style={styles.note}>{t('Les devis, factures et rapports PDF/Excel demandent la facturation côté serveur.')}</Text>
         </Section>
 
-        <Section title="Circuit de validation interne">
+        <Section title={t('Circuit de validation interne')}>
           <Text style={styles.note}>
             Optionnel (§2.2) : un employé crée la demande, le responsable la valide, le
             responsable financier approuve le budget, puis elle est publiée. Ce circuit demande
@@ -234,10 +222,10 @@ export function EspaceBusinessScreen() {
 
       <Sheet
         visible={showEstablishment}
-        title="Ajouter un établissement"
+        title={t('Ajouter un établissement')}
         onClose={() => setShowEstablishment(false)}
       >
-        <Field label="Nom" value={estName} onChangeText={setEstName} placeholder="Agence Centre-ville" />
+        <Field label={t('Nom')} value={estName} onChangeText={setEstName} placeholder={t('Agence Centre-ville')} />
         <View style={styles.kinds}>
           {ESTABLISHMENT_KINDS.map((k) => {
             const on = estKind === k.id;
@@ -255,32 +243,32 @@ export function EspaceBusinessScreen() {
             );
           })}
         </View>
-        <Field label="Adresse" value={estAddress} onChangeText={setEstAddress} placeholder="Quartier, avenue" />
+        <Field label={t('Adresse')} value={estAddress} onChangeText={setEstAddress} placeholder={t('Quartier, avenue')} />
         <Pressable
           onPress={saveEstablishment}
           accessibilityRole="button"
-          accessibilityLabel="Enregistrer l'établissement"
+          accessibilityLabel={t("Enregistrer l'établissement")}
           style={[styles.submit, (!estName.trim() || !estAddress.trim()) && styles.submitOff]}
         >
-          <Text style={styles.submitLabel}>Enregistrer</Text>
+          <Text style={styles.submitLabel}>{t('Enregistrer')}</Text>
         </Pressable>
       </Sheet>
 
       <Sheet
         visible={showCollaborator}
-        title="Inviter un collaborateur"
+        title={t('Inviter un collaborateur')}
         onClose={() => setShowCollaborator(false)}
       >
-        <Field label="Nom" value={colName} onChangeText={setColName} autoCapitalize="words" />
+        <Field label={t('Nom')} value={colName} onChangeText={setColName} autoCapitalize="words" />
         <Field
-          label="E-mail"
+          label={t('E-mail')}
           value={colEmail}
           onChangeText={setColEmail}
           autoCapitalize="none"
           inputMode="email"
-          placeholder="collaborateur@entreprise.cg"
+          placeholder={t('collaborateur@entreprise.cg')}
         />
-        <Text style={styles.roleLabel}>Niveau d'accès</Text>
+        <Text style={styles.roleLabel}>{t("Niveau d'accès")}</Text>
         {COLLABORATOR_ROLES.map((r) => {
           const on = colRole === r.id;
           return (
@@ -304,10 +292,10 @@ export function EspaceBusinessScreen() {
         <Pressable
           onPress={saveCollaborator}
           accessibilityRole="button"
-          accessibilityLabel="Envoyer l'invitation"
+          accessibilityLabel={t("Envoyer l'invitation")}
           style={styles.submit}
         >
-          <Text style={styles.submitLabel}>Inviter</Text>
+          <Text style={styles.submitLabel}>{t('Inviter')}</Text>
         </Pressable>
       </Sheet>
     </View>

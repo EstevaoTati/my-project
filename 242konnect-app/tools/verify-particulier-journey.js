@@ -34,7 +34,14 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
 (async () => {
   await new Promise((r) => server.listen(PORT, r));
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
+  // Locale is pinned so the suite is deterministic. The app follows the
+  // device language on first launch, so a browser reporting en-US opens it
+  // in English and every French selector below silently misses.
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    acceptDownloads: true,
+    locale: "fr-FR",
+  });
   const page = await ctx.newPage();
   const errs = []; page.on("pageerror", (e) => errs.push(e.message.slice(0, 140)));
 

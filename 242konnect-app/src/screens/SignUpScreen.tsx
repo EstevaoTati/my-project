@@ -30,6 +30,7 @@ import { trades } from '../data';
 import type { IconName } from '../icons';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Inscription'>;
 
@@ -54,13 +55,14 @@ const PROFILES: { id: ProfileKind; hint: string; icon: IconName }[] = [
 ];
 
 const CHANNELS: { id: OtpChannel; label: string }[] = [
-  { id: 'email', label: 'E-mail' },
+  { id: 'email', label: T('E-mail') },
   { id: 'sms', label: 'SMS' },
 ];
 
 type Step = 'type' | 'identity' | 'details';
 
 export function SignUpScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { startSignUp } = useAuth();
 
@@ -208,7 +210,7 @@ export function SignUpScreen({ navigation }: Props) {
         <Pressable
           onPress={back}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
@@ -225,11 +227,8 @@ export function SignUpScreen({ navigation }: Props) {
 
         {step === 'type' && (
           <>
-            <Text style={styles.title}>Quel type de compte ?</Text>
-            <Text style={styles.lede}>
-              Les informations demandées changent selon le type. Un seul compte suffit : vous
-              pourrez activer les autres profils plus tard, avec le même identifiant.
-            </Text>
+            <Text style={styles.title}>{t('Quel type de compte ?')}</Text>
+            <Text style={styles.lede}>{t('Les informations demandées changent selon le type. Un seul compte suffit : vous pourrez activer les autres profils plus tard, avec le même identifiant.')}</Text>
 
             <View style={styles.typeList}>
               {PROFILES.map((option) => {
@@ -262,7 +261,7 @@ export function SignUpScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.requires}>
-              <Text style={styles.requiresTitle}>Ce compte demande</Text>
+              <Text style={styles.requiresTitle}>{t('Ce compte demande')}</Text>
               {(profile === 'particulier'
                 ? ['Nom, téléphone et e-mail', 'Adresse complète et un repère pour vous trouver', 'Vos centres d’intérêt (optionnel)']
                 : profile === 'prestataire'
@@ -276,13 +275,13 @@ export function SignUpScreen({ navigation }: Props) {
               ))}
             </View>
 
-            <SubmitButton label="Continuer" onPress={() => setStep('identity')} accessibilityLabel="Continuer" />
+            <SubmitButton label={t('Continuer')} onPress={() => setStep('identity')} accessibilityLabel={t('Continuer')} />
           </>
         )}
 
         {step === 'identity' && (
           <>
-            <Text style={styles.title}>Vos identifiants</Text>
+            <Text style={styles.title}>{t('Vos identifiants')}</Text>
             <Text style={styles.lede}>
               Compte {PROFILE_LABELS[profile].toLowerCase()}. Votre numéro et votre e-mail
               identifient le compte et ne peuvent pas servir deux fois.
@@ -293,7 +292,7 @@ export function SignUpScreen({ navigation }: Props) {
               <Pressable
                 onPress={() => pickImage(setAvatar)}
                 accessibilityRole="button"
-                accessibilityLabel="Ajouter une photo de profil"
+                accessibilityLabel={t('Ajouter une photo de profil')}
                 style={styles.photoButton}
               >
                 <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
@@ -302,7 +301,7 @@ export function SignUpScreen({ navigation }: Props) {
                 </Text>
               </Pressable>
               {profile === 'prestataire' && !avatar && (
-                <Text style={styles.photoRequired}>Obligatoire pour un prestataire.</Text>
+                <Text style={styles.photoRequired}>{t('Obligatoire pour un prestataire.')}</Text>
               )}
             </View>
 
@@ -326,7 +325,7 @@ export function SignUpScreen({ navigation }: Props) {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 inputMode="email"
-                placeholder="vous@exemple.com"
+                placeholder={t('vous@exemple.com')}
               />
               {/* Where the person is, which is separate from the dial code:
                   a Congolese number can belong to someone in Houston. */}
@@ -336,7 +335,7 @@ export function SignUpScreen({ navigation }: Props) {
                   which is the order the correction note asks for. */}
 
               <View style={styles.channel}>
-                <Text style={styles.sectionLabel}>Recevoir le code de vérification par</Text>
+                <Text style={styles.sectionLabel}>{t('Recevoir le code de vérification par')}</Text>
                 <View style={styles.channelRow}>
                   {CHANNELS.map((option) => {
                     const selected = channel === option.id;
@@ -360,13 +359,13 @@ export function SignUpScreen({ navigation }: Props) {
 
               <FormError message={error} />
               <SubmitButton
-                label="Continuer"
+                label={t('Continuer')}
                 onPress={() => {
                   setError(null);
                   setStep('details');
                 }}
                 disabled={!identityReady}
-                accessibilityLabel="Continuer vers les informations"
+                accessibilityLabel={t('Continuer vers les informations')}
               />
             </View>
           </>
@@ -376,18 +375,16 @@ export function SignUpScreen({ navigation }: Props) {
           <View style={styles.form}>
             {profile === 'particulier' && (
               <>
-                <Text style={styles.title}>Où intervenir ?</Text>
-                <Text style={styles.lede}>
-                  Les prestataires en ont besoin pour venir chez vous.
-                </Text>
+                <Text style={styles.title}>{t('Où intervenir ?')}</Text>
+                <Text style={styles.lede}>{t('Les prestataires en ont besoin pour venir chez vous.')}</Text>
                 <Field
-                  label="Adresse complète"
+                  label={t('Adresse complète')}
                   value={address}
                   onChangeText={setAddress}
-                  placeholder="Quartier, avenue, numéro"
+                  placeholder={t('Quartier, avenue, numéro')}
                 />
                 <Field
-                  label="Référence de l'adresse"
+                  label={t("Référence de l'adresse")}
                   value={addressReference}
                   onChangeText={setAddressReference}
                   placeholder="Près de quel repère ? (école, marché, station)"
@@ -417,26 +414,23 @@ export function SignUpScreen({ navigation }: Props) {
 
             {profile === 'prestataire' && (
               <>
-                <Text style={styles.title}>Votre activité</Text>
-                <Text style={styles.lede}>
-                  Ces informations sont vérifiées par 242Konnect avant l'attribution du badge
-                  « Prestataire vérifié ».
-                </Text>
+                <Text style={styles.title}>{t('Votre activité')}</Text>
+                <Text style={styles.lede}>{t("Ces informations sont vérifiées par 242Konnect avant l'attribution du badge « Prestataire vérifié ».")}</Text>
 
                 <Field
-                  label="Date de naissance"
+                  label={t('Date de naissance')}
                   value={birthDate}
                   onChangeText={setBirthDate}
-                  placeholder="AAAA-MM-JJ"
+                  placeholder={t('AAAA-MM-JJ')}
                   error={tooYoung ? `Réservé aux ${MIN_PRESTATAIRE_AGE} ans et plus.` : undefined}
                 />
 
                 <View style={styles.field}>
-                  <Text style={styles.sectionLabel}>Métier</Text>
+                  <Text style={styles.sectionLabel}>{t('Métier')}</Text>
                   <Pressable
                     onPress={() => setShowTrades(true)}
                     accessibilityRole="button"
-                    accessibilityLabel="Choisir votre métier"
+                    accessibilityLabel={t('Choisir votre métier')}
                     style={styles.select}
                   >
                     <Text style={[styles.selectValue, !tradeId && styles.selectPlaceholder]}>
@@ -447,10 +441,10 @@ export function SignUpScreen({ navigation }: Props) {
                 </View>
 
                 <Field
-                  label="Zone d'intervention"
+                  label={t("Zone d'intervention")}
                   value={zone}
                   onChangeText={setZone}
-                  placeholder="Quartiers ou communes couverts"
+                  placeholder={t('Quartiers ou communes couverts')}
                 />
                 <Field
                   label="Tarif horaire (FCFA)"
@@ -461,10 +455,10 @@ export function SignUpScreen({ navigation }: Props) {
                   placeholder="15000"
                 />
                 <Field
-                  label="Biographie"
+                  label={t('Biographie')}
                   value={bio}
                   onChangeText={setBio}
-                  placeholder="Votre expérience et ce que vous proposez"
+                  placeholder={t('Votre expérience et ce que vous proposez')}
                   multiline
                   numberOfLines={4}
                   style={styles.textarea}
@@ -473,29 +467,27 @@ export function SignUpScreen({ navigation }: Props) {
                   label="Formations (optionnel)"
                   value={formations}
                   onChangeText={setFormations}
-                  placeholder="Écoles, centres de formation"
+                  placeholder={t('Écoles, centres de formation')}
                 />
                 <Field
                   label="Diplômes et certificats (optionnel)"
                   value={diplomas}
                   onChangeText={setDiplomas}
-                  placeholder="CAP, BTS, certifications"
+                  placeholder={t('CAP, BTS, certifications')}
                 />
                 <Field
                   label="Expériences professionnelles (optionnel)"
                   value={experience}
                   onChangeText={setExperience}
-                  placeholder="Employeurs, chantiers, années"
+                  placeholder={t('Employeurs, chantiers, années')}
                   multiline
                   numberOfLines={3}
                   style={styles.textarea}
                 />
 
                 <View style={styles.field}>
-                  <Text style={styles.sectionLabel}>Pièces justificatives</Text>
-                  <Text style={styles.hint}>
-                    Pièce d'identité, attestation, certificat. Vérifiées par 242Konnect.
-                  </Text>
+                  <Text style={styles.sectionLabel}>{t('Pièces justificatives')}</Text>
+                  <Text style={styles.hint}>{t("Pièce d'identité, attestation, certificat. Vérifiées par 242Konnect.")}</Text>
                   {documents.map((doc, i) => (
                     <View key={`${doc}-${i}`} style={styles.docRow}>
                       <Icon name="242k:briefcase" size={16} color={colors.mutedForeground} />
@@ -507,18 +499,18 @@ export function SignUpScreen({ navigation }: Props) {
                         accessibilityRole="button"
                         accessibilityLabel={`Retirer le document ${i + 1}`}
                       >
-                        <Text style={styles.docRemove}>Retirer</Text>
+                        <Text style={styles.docRemove}>{t('Retirer')}</Text>
                       </Pressable>
                     </View>
                   ))}
                   <Pressable
                     onPress={() => pickImage((uri) => setDocuments((prev) => [...prev, uri]))}
                     accessibilityRole="button"
-                    accessibilityLabel="Ajouter une pièce justificative"
+                    accessibilityLabel={t('Ajouter une pièce justificative')}
                     style={styles.addDoc}
                   >
                     <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
-                    <Text style={styles.addDocLabel}>Ajouter une pièce</Text>
+                    <Text style={styles.addDocLabel}>{t('Ajouter une pièce')}</Text>
                   </Pressable>
                 </View>
               </>
@@ -526,17 +518,15 @@ export function SignUpScreen({ navigation }: Props) {
 
             {profile === 'business' && (
               <>
-                <Text style={styles.title}>Votre entreprise</Text>
-                <Text style={styles.lede}>
-                  Les documents légaux sont vérifiés par 242Konnect avant validation du compte.
-                </Text>
+                <Text style={styles.title}>{t('Votre entreprise')}</Text>
+                <Text style={styles.lede}>{t('Les documents légaux sont vérifiés par 242Konnect avant validation du compte.')}</Text>
 
                 <View style={styles.photoBlock}>
                   <UserAvatar name={companyName || '?'} avatar={logo} size={72} border={colors.border} />
                   <Pressable
                     onPress={() => pickImage(setLogo)}
                     accessibilityRole="button"
-                    accessibilityLabel="Ajouter le logo"
+                    accessibilityLabel={t('Ajouter le logo')}
                     style={styles.photoButton}
                   >
                     <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
@@ -544,16 +534,16 @@ export function SignUpScreen({ navigation }: Props) {
                   </Pressable>
                 </View>
 
-                <Field label="Raison sociale" value={companyName} onChangeText={setCompanyName} />
-                <Field label="RCCM" value={rccm} onChangeText={setRccm} placeholder="CG-PNR-01-2026-B12-00001" />
-                <Field label="NIF" value={nif} onChangeText={setNif} placeholder="Numéro d'identification fiscale" />
+                <Field label={t('Raison sociale')} value={companyName} onChangeText={setCompanyName} />
+                <Field label={t('RCCM')} value={rccm} onChangeText={setRccm} placeholder={t('CG-PNR-01-2026-B12-00001')} />
+                <Field label={t('NIF')} value={nif} onChangeText={setNif} placeholder={t("Numéro d'identification fiscale")} />
 
                 <View style={styles.field}>
-                  <Text style={styles.sectionLabel}>Secteur d'activité</Text>
+                  <Text style={styles.sectionLabel}>{t("Secteur d'activité")}</Text>
                   <Pressable
                     onPress={() => setShowSectors(true)}
                     accessibilityRole="button"
-                    accessibilityLabel="Choisir le secteur d'activité"
+                    accessibilityLabel={t("Choisir le secteur d'activité")}
                     style={styles.select}
                   >
                     <Text style={[styles.selectValue, !sector && styles.selectPlaceholder]}>
@@ -564,10 +554,10 @@ export function SignUpScreen({ navigation }: Props) {
                 </View>
 
                 <Field
-                  label="Adresse de l'entreprise"
+                  label={t("Adresse de l'entreprise")}
                   value={companyAddress}
                   onChangeText={setCompanyAddress}
-                  placeholder="Quartier, avenue, numéro"
+                  placeholder={t('Quartier, avenue, numéro')}
                 />
                 <Field
                   label="Site web (optionnel)"
@@ -581,11 +571,11 @@ export function SignUpScreen({ navigation }: Props) {
 
             <FormError message={error} />
             <SubmitButton
-              label="Créer mon compte"
+              label={t('Créer mon compte')}
               onPress={submit}
               busy={busy}
               disabled={!detailsReady || tooYoung}
-              accessibilityLabel="Créer mon compte"
+              accessibilityLabel={t('Créer mon compte')}
             />
           </View>
         )}
@@ -594,17 +584,16 @@ export function SignUpScreen({ navigation }: Props) {
           <Pressable
             onPress={() => navigation.navigate('Connexion')}
             accessibilityRole="button"
-            accessibilityLabel="J'ai déjà un compte, se connecter"
+            accessibilityLabel={t("J'ai déjà un compte, se connecter")}
             style={styles.altRow}
           >
-            <Text style={styles.altText}>
-              J'ai déjà un compte · <Text style={styles.altLink}>Se connecter</Text>
+            <Text style={styles.altText}>{t("J'ai déjà un compte ·")}<Text style={styles.altLink}>{t('Se connecter')}</Text>
             </Text>
           </Pressable>
         )}
       </ScrollView>
 
-      <Sheet visible={showTrades} title="Votre métier" onClose={() => setShowTrades(false)}>
+      <Sheet visible={showTrades} title={t('Votre métier')} onClose={() => setShowTrades(false)}>
         {trades.map((trade) => (
           <Pressable
             key={trade.id}
@@ -625,7 +614,7 @@ export function SignUpScreen({ navigation }: Props) {
         ))}
       </Sheet>
 
-      <Sheet visible={showSectors} title="Secteur d'activité" onClose={() => setShowSectors(false)}>
+      <Sheet visible={showSectors} title={t("Secteur d'activité")} onClose={() => setShowSectors(false)}>
         {BUSINESS_SECTORS.map((item) => (
           <Pressable
             key={item}

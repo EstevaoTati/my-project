@@ -10,6 +10,7 @@ import {
   type Location,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * Where someone is, asked the way each country is actually addressed.
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }: Props) {
+  const t = useT();
   const [picking, setPicking] = useState<null | 'country' | 'city' | 'state'>(null);
   const country = countryFor(value.country);
 
@@ -106,9 +108,9 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
         <TextInput
           value={value.city}
           onChangeText={(city) => onChange({ ...value, city })}
-          placeholder="Ville"
+          placeholder={t('Ville')}
           placeholderTextColor={colors.mutedForeground}
-          accessibilityLabel="Ville"
+          accessibilityLabel={t('Ville')}
           style={styles.input}
         />
       )}

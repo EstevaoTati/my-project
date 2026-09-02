@@ -8,6 +8,7 @@ import { getCategory, getTrade, searchProfessionals, type Professional } from '.
 import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Resultats'>;
 
@@ -41,6 +42,7 @@ function applySort(list: Professional[], sort: SortId): Professional[] {
 }
 
 export function SearchResultsScreen({ route, navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { category, tradeId, query } = route.params ?? {};
   const [sort, setSort] = useState<SortId>('pertinence');
@@ -65,7 +67,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
           <Pressable
             onPress={() => navigation.goBack()}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('Retour')}
             hitSlop={8}
             style={styles.back}
           >
@@ -123,7 +125,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
         {results.length === 0 ? (
           <View style={styles.empty}>
             <Icon name="solar:magnifer-linear" size={32} color={colors.mutedForeground} />
-            <Text style={styles.emptyTitle}>Aucun professionnel trouvé</Text>
+            <Text style={styles.emptyTitle}>{t('Aucun professionnel trouvé')}</Text>
             <Text style={styles.emptyBody}>
               Essayez une autre catégorie ou retirez le filtre « {SORTS.find((s) => s.id === sort)?.label} ».
             </Text>

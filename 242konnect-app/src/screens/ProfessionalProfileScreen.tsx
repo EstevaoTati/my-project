@@ -20,6 +20,7 @@ import { ProAvatar } from '../components/Avatar';
 import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Profil'>;
 
@@ -27,6 +28,7 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'Profil'>;
 const SLOTS = ["Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
 
 export function ProfessionalProfileScreen({ route, navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const pro = getProfessional(route.params.id);
   const { isFavorite, toggleFavorite, addBooking, ensureThread } = useStore();
@@ -38,9 +40,9 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
   if (!pro) {
     return (
       <View style={[styles.root, styles.missing]}>
-        <Text style={styles.missingText}>Ce professionnel n'est plus disponible.</Text>
+        <Text style={styles.missingText}>{t("Ce professionnel n'est plus disponible.")}</Text>
         <Pressable onPress={() => navigation.goBack()} accessibilityRole="button">
-          <Text style={styles.missingLink}>Retour</Text>
+          <Text style={styles.missingLink}>{t('Retour')}</Text>
         </Pressable>
       </View>
     );
@@ -89,7 +91,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             <Pressable
               onPress={() => navigation.goBack()}
               accessibilityRole="button"
-              accessibilityLabel="Retour"
+              accessibilityLabel={t('Retour')}
               style={styles.glassButton}
             >
               <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.white} />
@@ -98,7 +100,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               <Pressable
                 onPress={share}
                 accessibilityRole="button"
-                accessibilityLabel="Partager"
+                accessibilityLabel={t('Partager')}
                 style={styles.glassButton}
               >
                 <Icon name="solar:share-linear" size={24} color={colors.white} />
@@ -123,7 +125,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             <View style={styles.heroBadges}>
               {pro.verified && (
                 <View style={styles.expertBadge}>
-                  <Text style={styles.expertLabel}>Expert Vérifié</Text>
+                  <Text style={styles.expertLabel}>{t('Expert Vérifié')}</Text>
                 </View>
               )}
               <View style={styles.ratingBadge}>
@@ -139,19 +141,19 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
         <View style={styles.body}>
           <View style={styles.stats}>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Missions</Text>
+              <Text style={styles.statLabel}>{t('Missions')}</Text>
               <Text style={styles.statValue}>{profile?.missions ?? '—'}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Avis</Text>
+              <Text style={styles.statLabel}>{t('Avis')}</Text>
               <Text style={styles.statValue}>{pro.reviewCount}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Tarif</Text>
+              <Text style={styles.statLabel}>{t('Tarif')}</Text>
               <Text style={[styles.statValue, styles.statValueAccent]}>
-                {formatFcfa(pro.hourlyRate)} <Text style={styles.statUnit}>FCFA</Text>
+                {formatFcfa(pro.hourlyRate)} <Text style={styles.statUnit}>{t('FCFA')}</Text>
               </Text>
             </View>
           </View>
@@ -159,12 +161,12 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
           {profile && (
             <>
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>À propos</Text>
+                <Text style={styles.sectionTitle}>{t('À propos')}</Text>
                 <Text style={styles.about}>{profile.about}</Text>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Compétences</Text>
+                <Text style={styles.sectionTitle}>{t('Compétences')}</Text>
                 <View style={styles.skills}>
                   {profile.skills.map((skill) => (
                     <View key={skill} style={styles.skill}>
@@ -176,13 +178,13 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
 
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Portfolio</Text>
+                  <Text style={styles.sectionTitle}>{t('Portfolio')}</Text>
                   <Pressable
                     onPress={() => setViewerIndex(0)}
                     accessibilityRole="button"
-                    accessibilityLabel="Voir tout le portfolio"
+                    accessibilityLabel={t('Voir tout le portfolio')}
                   >
-                    <Text style={styles.sectionAction}>Voir tout</Text>
+                    <Text style={styles.sectionAction}>{t('Voir tout')}</Text>
                   </Pressable>
                 </View>
                 <ScrollView
@@ -241,7 +243,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
           accessibilityLabel={`Réserver ${pro.name} maintenant`}
           style={styles.bookButton}
         >
-          <Text style={styles.bookLabel}>Réserver maintenant</Text>
+          <Text style={styles.bookLabel}>{t('Réserver maintenant')}</Text>
           <Icon name="solar:arrow-right-bold" size={20} color={colors.primaryForeground} />
         </Pressable>
       </View>
@@ -256,7 +258,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             <View style={styles.confirmIcon}>
               <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.confirmTitle}>C'est noté</Text>
+            <Text style={styles.confirmTitle}>{t("C'est noté")}</Text>
             <Text style={styles.confirmBody}>
               {pro.name} a reçu votre demande pour {slot?.toLowerCase()}. Retrouvez-la dans
               l'onglet Missions pour la payer ou l'annuler.
@@ -266,12 +268,12 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               accessibilityRole="button"
               style={styles.confirmButton}
             >
-              <Text style={styles.bookLabel}>Terminé</Text>
+              <Text style={styles.bookLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
-            <Text style={styles.sheetHint}>Choisissez un créneau</Text>
+            <Text style={styles.sheetHint}>{t('Choisissez un créneau')}</Text>
             {SLOTS.map((option) => {
               const selected = slot === option;
               return (
@@ -295,7 +297,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
               );
             })}
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Tarif horaire</Text>
+              <Text style={styles.totalLabel}>{t('Tarif horaire')}</Text>
               <Text style={styles.totalValue}>{formatFcfa(pro.hourlyRate)} FCFA/h</Text>
             </View>
             <Pressable
@@ -305,7 +307,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             }}
               disabled={!slot}
               accessibilityRole="button"
-              accessibilityLabel="Confirmer la réservation"
+              accessibilityLabel={t('Confirmer la réservation')}
               accessibilityState={{ disabled: !slot }}
               style={[styles.confirmButton, !slot && styles.confirmButtonDisabled]}
             >
@@ -326,7 +328,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
         <Pressable
           style={styles.viewer}
           onPress={() => setViewerIndex(null)}
-          accessibilityLabel="Fermer la galerie"
+          accessibilityLabel={t('Fermer la galerie')}
         >
           <ScrollView
             horizontal

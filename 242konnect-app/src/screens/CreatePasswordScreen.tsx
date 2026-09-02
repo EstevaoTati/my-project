@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon';
 import { FormError, PasswordField, SubmitButton } from '../components/form';
 import { MIN_PASSWORD, passwordProblem, passwordStrength, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * The last step of sign-up: choosing a password, after the code has been
@@ -23,6 +24,7 @@ import { colors, fonts, radius, shadow } from '../theme';
 const STRENGTH_LABELS = ['Trop faible', 'Faible', 'Correct', 'Solide'];
 
 export function CreatePasswordScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { pending, completeSignUp, cancelSignUp } = useAuth();
 
@@ -63,7 +65,7 @@ export function CreatePasswordScreen() {
         <Pressable
           onPress={cancelSignUp}
           accessibilityRole="button"
-          accessibilityLabel="Annuler l'inscription"
+          accessibilityLabel={t("Annuler l'inscription")}
           hitSlop={8}
           style={styles.back}
         >
@@ -72,12 +74,10 @@ export function CreatePasswordScreen() {
 
         <View style={styles.verified}>
           <Icon name="solar:shield-check-bold" size={18} color={colors.success} />
-          <Text style={styles.verifiedText}>
-            Adresse vérifiée. Dernière étape : choisissez votre mot de passe.
-          </Text>
+          <Text style={styles.verifiedText}>{t('Adresse vérifiée. Dernière étape : choisissez votre mot de passe.')}</Text>
         </View>
 
-        <Text style={styles.title}>Créer votre mot de passe</Text>
+        <Text style={styles.title}>{t('Créer votre mot de passe')}</Text>
         <Text style={styles.lede}>
           Il protège votre compte 242Konnect. Au moins {MIN_PASSWORD} caractères, avec des lettres
           et des chiffres.
@@ -111,7 +111,7 @@ export function CreatePasswordScreen() {
           )}
 
           <PasswordField
-            label="Confirmer le mot de passe"
+            label={t('Confirmer le mot de passe')}
             value={confirm}
             onChangeText={setConfirm}
             autoCapitalize="none"
@@ -121,11 +121,11 @@ export function CreatePasswordScreen() {
 
           <FormError message={error} />
           <SubmitButton
-            label="Créer mon compte"
+            label={t('Créer mon compte')}
             onPress={submit}
             busy={busy}
             disabled={!ready}
-            accessibilityLabel="Créer mon compte"
+            accessibilityLabel={t('Créer mon compte')}
           />
         </View>
       </ScrollView>

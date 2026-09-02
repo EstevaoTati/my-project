@@ -70,7 +70,14 @@ const mailedCode = () => {
     // Falls back to Playwright's own resolution when the env var is unset.
     executablePath: process.env.CHROMIUM_PATH || undefined,
   });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  // Locale is pinned so the suite is deterministic. The app follows the
+  // device language on first launch, so a browser reporting en-US opens it
+  // in English and every French selector below silently misses.
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    locale: "fr-FR",
+  });
   const page = await ctx.newPage();
 
   const runtime = [];

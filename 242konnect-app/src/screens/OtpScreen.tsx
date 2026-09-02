@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon';
 import { FormError, SubmitButton } from '../components/form';
 import { formatStored, OTP_LENGTH, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * OTP verification (§3.2, §9.1).
@@ -27,6 +28,7 @@ import { colors, fonts, radius, shadow } from '../theme';
  * to that service.
  */
 export function OtpScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { pending, confirmSignUp, resendCode, cancelSignUp } = useAuth();
   const [code, setCode] = useState('');
@@ -70,14 +72,14 @@ export function OtpScreen() {
         <Pressable
           onPress={cancelSignUp}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
 
-        <Text style={styles.title}>Vérification</Text>
+        <Text style={styles.title}>{t('Vérification')}</Text>
         <Text style={styles.lede}>
           Nous avons envoyé un code à {OTP_LENGTH} chiffres à{' '}
           <Text style={styles.destination}>{destination}</Text>.
@@ -106,7 +108,7 @@ export function OtpScreen() {
             maxLength={OTP_LENGTH}
             autoFocus
             caretHidden
-            accessibilityLabel="Code de vérification"
+            accessibilityLabel={t('Code de vérification')}
             style={styles.overlayInput}
           />
         </View>
@@ -122,11 +124,11 @@ export function OtpScreen() {
 
         <FormError message={error} />
         <SubmitButton
-          label="Vérifier"
+          label={t('Vérifier')}
           onPress={() => submit()}
           busy={busy}
           disabled={code.length !== OTP_LENGTH}
-          accessibilityLabel="Vérifier le code"
+          accessibilityLabel={t('Vérifier le code')}
         />
 
         <Pressable
@@ -140,11 +142,10 @@ export function OtpScreen() {
             }
           }}
           accessibilityRole="button"
-          accessibilityLabel="Renvoyer le code"
+          accessibilityLabel={t('Renvoyer le code')}
           style={styles.resend}
         >
-          <Text style={styles.resendText}>
-            Vous n'avez rien reçu ? <Text style={styles.resendLink}>Renvoyer le code</Text>
+          <Text style={styles.resendText}>{t("Vous n'avez rien reçu ?")}<Text style={styles.resendLink}>{t('Renvoyer le code')}</Text>
           </Text>
         </Pressable>
       </ScrollView>

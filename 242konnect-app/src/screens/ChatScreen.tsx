@@ -17,10 +17,12 @@ import { getProfessional, professionalTrade } from '../data';
 import { useStore } from '../store';
 import type { MessagesStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Discussion'>;
 
 export function ChatScreen({ route, navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { threads, sendMessage, ensureThread } = useStore();
   const [draft, setDraft] = useState('');
@@ -56,7 +58,7 @@ export function ChatScreen({ route, navigation }: Props) {
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
@@ -76,10 +78,7 @@ export function ChatScreen({ route, navigation }: Props) {
       {/* Said plainly, because a thread that never answers otherwise reads as a
           bug rather than as a prototype without a counterparty. */}
       <View style={styles.notice}>
-        <Text style={styles.noticeText}>
-          Démonstration : vos messages sont enregistrés sur cet appareil, mais personne ne les
-          reçoit encore.
-        </Text>
+        <Text style={styles.noticeText}>{t('Démonstration : vos messages sont enregistrés sur cet appareil, mais personne ne les reçoit encore.')}</Text>
       </View>
 
       <ScrollView
@@ -88,10 +87,7 @@ export function ChatScreen({ route, navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {messages.length === 0 && (
-          <Text style={styles.hint}>
-            Présentez votre besoin en quelques mots : le lieu, le problème et quand vous êtes
-            disponible.
-          </Text>
+          <Text style={styles.hint}>{t('Présentez votre besoin en quelques mots : le lieu, le problème et quand vous êtes disponible.')}</Text>
         )}
         {messages.map((m) => {
           const mine = m.from === 'me';
@@ -110,9 +106,9 @@ export function ChatScreen({ route, navigation }: Props) {
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={send}
-          placeholder="Écrivez votre message"
+          placeholder={t('Écrivez votre message')}
           placeholderTextColor={colors.mutedForeground}
-          accessibilityLabel="Écrivez votre message"
+          accessibilityLabel={t('Écrivez votre message')}
           returnKeyType="send"
           style={styles.input}
         />
@@ -120,7 +116,7 @@ export function ChatScreen({ route, navigation }: Props) {
           onPress={send}
           disabled={!draft.trim()}
           accessibilityRole="button"
-          accessibilityLabel="Envoyer"
+          accessibilityLabel={t('Envoyer')}
           accessibilityState={{ disabled: !draft.trim() }}
           style={[styles.send, !draft.trim() && styles.sendOff]}
         >

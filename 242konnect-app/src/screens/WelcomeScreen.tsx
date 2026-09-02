@@ -9,14 +9,15 @@ import { Logo } from '../components/Logo';
 import { promo } from '../data';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Bienvenue'>;
 
 /** Three reasons to trust the marketplace, stated plainly. */
 const PROMISES = [
-  { icon: 'solar:shield-check-bold', text: 'Prestataires vérifiés près de chez vous' },
-  { icon: 'solar:bolt-bold-duotone', text: 'Une réponse le jour même, souvent en urgence' },
-  { icon: 'solar:star-bold', text: 'Tarifs annoncés à l’avance, en FCFA' },
+  { icon: 'solar:shield-check-bold', text: T('Prestataires vérifiés près de chez vous') },
+  { icon: 'solar:bolt-bold-duotone', text: T('Une réponse le jour même, souvent en urgence') },
+  { icon: 'solar:star-bold', text: T('Tarifs annoncés à l’avance, en FCFA') },
 ] as const;
 
 /**
@@ -25,22 +26,23 @@ const PROMISES = [
  * values — taken from the cahier des charges rather than invented marketing.
  */
 const STEPS = [
-  { n: '1', title: 'Décrivez votre besoin', body: 'Choisissez un métier, indiquez la date, le lieu et votre budget.' },
-  { n: '2', title: 'Recevez des propositions', body: 'Les prestataires qualifiés répondent, avec leur prix et leurs délais.' },
-  { n: '3', title: 'Payez via 242Konnect', body: "Le montant est conservé par la plateforme jusqu'à ce que vous validiez le travail." },
-  { n: '4', title: 'Validez et évaluez', body: 'Le prestataire est payé après votre validation, et vous notez la prestation.' },
+  { n: '1', title: T('Décrivez votre besoin'), body: T('Choisissez un métier, indiquez la date, le lieu et votre budget.') },
+  { n: '2', title: T('Recevez des propositions'), body: T('Les prestataires qualifiés répondent, avec leur prix et leurs délais.') },
+  { n: '3', title: T('Payez via 242Konnect'), body: T("Le montant est conservé par la plateforme jusqu'à ce que vous validiez le travail.") },
+  { n: '4', title: T('Validez et évaluez'), body: T('Le prestataire est payé après votre validation, et vous notez la prestation.') },
 ];
 
 const VALUES = [
-  ['Confiance', 'Transparence, fiabilité et respect des engagements.'],
-  ['Compétence', 'Des professionnels qualifiés, encouragés à l’excellence.'],
-  ['Connexion', 'Des mises en relation simples, rapides et efficaces.'],
-  ['Sécurité', 'Vos données et vos paiements sont protégés.'],
-  ['Simplicité', 'Accéder à un service en quelques clics.'],
-  ['Réactivité', 'Des réponses rapides et une communication fluide.'],
+  [T('Confiance'), T('Transparence, fiabilité et respect des engagements.')],
+  [T('Compétence'), T('Des professionnels qualifiés, encouragés à l’excellence.')],
+  [T('Connexion'), T('Des mises en relation simples, rapides et efficaces.')],
+  [T('Sécurité'), T('Vos données et vos paiements sont protégés.')],
+  [T('Simplicité'), T('Accéder à un service en quelques clics.')],
+  [T('Réactivité'), T('Des réponses rapides et une communication fluide.')],
 ];
 
 export function WelcomeScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const [showDiscover, setShowDiscover] = useState(false);
 
@@ -62,22 +64,19 @@ export function WelcomeScreen({ navigation }: Props) {
           <Logo width={64} />
           {/* The mark carries the national colours; the name stays plain so
               the two read as one lockup rather than as rainbow text. */}
-          <Text style={styles.brand}>242Konnect</Text>
+          <Text style={styles.brand}>{t('242Konnect')}</Text>
         </View>
 
         <View style={styles.spacer} />
 
-        <Text style={styles.headline}>Chaque problème est un besoin de compétence.</Text>
-        <Text style={styles.sub}>
-          Trouvez un plombier, un électricien, une aide-ménagère ou un mécanicien vérifié à
-          Pointe-Noire. Just One Click.
-        </Text>
+        <Text style={styles.headline}>{t('Chaque problème est un besoin de compétence.')}</Text>
+        <Text style={styles.sub}>{t('Trouvez un plombier, un électricien, une aide-ménagère ou un mécanicien vérifié à Pointe-Noire. Just One Click.')}</Text>
 
         <View style={styles.promises}>
           {PROMISES.map((p) => (
-            <View key={p.text} style={styles.promise}>
+            <View key={t(p.text)} style={styles.promise}>
               <Icon name={p.icon} size={20} color={colors.accent} />
-              <Text style={styles.promiseText}>{p.text}</Text>
+              <Text style={styles.promiseText}>{t(p.text)}</Text>
             </View>
           ))}
         </View>
@@ -87,57 +86,53 @@ export function WelcomeScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.navigate('Inscription')}
           accessibilityRole="button"
-          accessibilityLabel="Créer un compte"
+          accessibilityLabel={t('Créer un compte')}
           style={({ pressed }) => [styles.primary, pressed && styles.pressed]}
         >
-          <Text style={styles.primaryLabel}>Créer un compte</Text>
+          <Text style={styles.primaryLabel}>{t('Créer un compte')}</Text>
           <Icon name="solar:arrow-right-bold" size={20} color={colors.accentForeground} />
         </Pressable>
 
         <Pressable
           onPress={() => navigation.navigate('Connexion')}
           accessibilityRole="button"
-          accessibilityLabel="J'ai déjà un compte, se connecter"
+          accessibilityLabel={t("J'ai déjà un compte, se connecter")}
           style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
         >
-          <Text style={styles.secondaryLabel}>J'ai déjà un compte</Text>
+          <Text style={styles.secondaryLabel}>{t("J'ai déjà un compte")}</Text>
         </Pressable>
 
         <Pressable
           onPress={() => setShowDiscover(true)}
           accessibilityRole="button"
-          accessibilityLabel="Découvrir 242Konnect"
+          accessibilityLabel={t('Découvrir 242Konnect')}
           style={({ pressed }) => [styles.tertiary, pressed && styles.pressed]}
         >
-          <Text style={styles.tertiaryLabel}>Découvrir 242Konnect</Text>
+          <Text style={styles.tertiaryLabel}>{t('Découvrir 242Konnect')}</Text>
         </Pressable>
       </View>
 
-      <Sheet visible={showDiscover} title="Découvrir 242Konnect" onClose={() => setShowDiscover(false)}>
-        <Text style={styles.discoverLead}>
-          242Konnect met en relation les particuliers, les entreprises et les professionnels
-          qualifiés, et centralise tout le parcours : recherche, réservation, paiement, suivi et
-          évaluation.
-        </Text>
+      <Sheet visible={showDiscover} title={t('Découvrir 242Konnect')} onClose={() => setShowDiscover(false)}>
+        <Text style={styles.discoverLead}>{t('242Konnect met en relation les particuliers, les entreprises et les professionnels qualifiés, et centralise tout le parcours : recherche, réservation, paiement, suivi et évaluation.')}</Text>
 
-        <Text style={styles.discoverHeading}>Comment ça marche</Text>
+        <Text style={styles.discoverHeading}>{t('Comment ça marche')}</Text>
         {STEPS.map((step) => (
           <View key={step.n} style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberLabel}>{step.n}</Text>
             </View>
             <View style={styles.stepBody}>
-              <Text style={styles.stepTitle}>{step.title}</Text>
-              <Text style={styles.stepText}>{step.body}</Text>
+              <Text style={styles.stepTitle}>{t(step.title)}</Text>
+              <Text style={styles.stepText}>{t(step.body)}</Text>
             </View>
           </View>
         ))}
 
-        <Text style={styles.discoverHeading}>Nos valeurs</Text>
+        <Text style={styles.discoverHeading}>{t('Nos valeurs')}</Text>
         {VALUES.map(([name, body]) => (
           <View key={name} style={styles.value}>
-            <Text style={styles.valueName}>{name}</Text>
-            <Text style={styles.valueText}>{body}</Text>
+            <Text style={styles.valueName}>{t(name)}</Text>
+            <Text style={styles.valueText}>{t(body)}</Text>
           </View>
         ))}
 
@@ -147,10 +142,10 @@ export function WelcomeScreen({ navigation }: Props) {
             navigation.navigate('Inscription');
           }}
           accessibilityRole="button"
-          accessibilityLabel="Créer un compte maintenant"
+          accessibilityLabel={t('Créer un compte maintenant')}
           style={styles.discoverCta}
         >
-          <Text style={styles.discoverCtaLabel}>Créer un compte</Text>
+          <Text style={styles.discoverCtaLabel}>{t('Créer un compte')}</Text>
         </Pressable>
       </Sheet>
     </View>

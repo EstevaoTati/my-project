@@ -39,9 +39,12 @@ const check = (ok, label) => { if (ok) { console.log("  ✓ " + label); pass++; 
   await new Promise((r) => server.listen(PORT, r));
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   // The visible area a phone actually gives the page, toolbars included.
+  // Locale is pinned so the suite is deterministic. The app follows the
+  // device language on first launch, so a browser reporting en-US opens it
+  // in English and every French selector below silently misses.
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 - CHROME_PX },
-    isMobile: true, hasTouch: true, deviceScaleFactor: 2,
+    isMobile: true, hasTouch: true, deviceScaleFactor: 2, locale: "fr-FR",
   });
   const page = await ctx.newPage();
   const errs = []; page.on("pageerror", (e) => errs.push(e.message.slice(0, 140)));

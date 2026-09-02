@@ -11,7 +11,7 @@ const check=async(l,fn)=>{try{const r=await fn(); if(!r) throw new Error("falsy"
   catch(e){console.log("  ✗ "+l+" — "+e.message.split("\n")[0]); fails.push(l);}};
 (async()=>{await new Promise(r=>s.listen(8996,r));
 const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH});
-const p=await(await b.newContext({viewport:{width:390,height:844}})).newPage();
+const p=await(await b.newContext({viewport:{width:390,height:844},locale:"fr-FR"})).newPage();
 const errs=[];p.on("pageerror",e=>errs.push(e.message.slice(0,140)));
 const vis=async sel=>{for(const e of (await p.locator(sel).all()).reverse()) if(await e.isVisible()) return e; return null;};
 const tap=async sel=>{const e=await vis(sel); if(!e) throw new Error("not visible: "+sel); await e.click(); await p.waitForTimeout(650);};

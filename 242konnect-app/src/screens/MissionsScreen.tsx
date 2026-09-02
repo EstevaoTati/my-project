@@ -41,11 +41,12 @@ import {
   type CountryCode,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
+import { T, useT } from '../i18n';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
   demandee: { label: 'En attente', bg: colors.muted, fg: colors.mutedForeground },
-  acceptee: { label: 'À payer', bg: colors.warningSurface, fg: colors.warning },
-  payee: { label: 'Fonds bloqués', bg: colors.muted, fg: colors.foreground },
+  acceptee: { label: T('À payer'), bg: colors.warningSurface, fg: colors.warning },
+  payee: { label: T('Fonds bloqués'), bg: colors.muted, fg: colors.foreground },
   validee: { label: 'Validée', bg: colors.successSurface, fg: colors.success },
   litige: { label: 'Litige', bg: colors.destructiveSurface, fg: colors.destructive },
   annulee: { label: 'Annulée', bg: colors.muted, fg: colors.mutedForeground },
@@ -54,6 +55,7 @@ const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> =
 const pct = (r: number) => `${(r * 100).toLocaleString('fr-FR')} %`;
 
 export function MissionsScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const {
     bookings, payments, payBooking, cancelBooking, validateMission, disputeMission,
@@ -247,7 +249,7 @@ export function MissionsScreen() {
   return (
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <Text style={styles.title}>Missions</Text>
+        <Text style={styles.title}>{t('Missions')}</Text>
         {(totalPaid > 0 || heldInEscrow > 0) && (
           <Text style={styles.subtitle}>
             {formatFcfaFull(totalPaid)} FCFA payés
@@ -261,10 +263,8 @@ export function MissionsScreen() {
           <View style={styles.emptyIcon}>
             <Icon name="solar:calendar-mark-linear" size={32} color={colors.mutedForeground} />
           </View>
-          <Text style={styles.emptyTitle}>Aucune mission</Text>
-          <Text style={styles.emptyBody}>
-            Réservez un prestataire depuis son profil : la mission apparaîtra ici, avec le paiement.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('Aucune mission')}</Text>
+          <Text style={styles.emptyBody}>{t('Réservez un prestataire depuis son profil : la mission apparaîtra ici, avec le paiement.')}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
@@ -272,10 +272,7 @@ export function MissionsScreen() {
               never goes directly to the prestataire. */}
           <View style={styles.rule}>
             <Icon name="solar:shield-check-bold" size={18} color={colors.foreground} />
-            <Text style={styles.ruleText}>
-              Tous les paiements passent par 242Konnect. Ne remettez jamais d'argent directement au
-              prestataire, même en pourboire.
-            </Text>
+            <Text style={styles.ruleText}>{t("Tous les paiements passent par 242Konnect. Ne remettez jamais d'argent directement au prestataire, même en pourboire.")}</Text>
           </View>
 
           {bookings.map((booking) => {
@@ -292,7 +289,7 @@ export function MissionsScreen() {
                     <Text style={styles.cardTrade}>{professionalTrade(pro)?.label ?? ''}</Text>
                   </View>
                   <View style={[styles.status, { backgroundColor: status.bg }]}>
-                    <Text style={[styles.statusLabel, { color: status.fg }]}>{status.label}</Text>
+                    <Text style={[styles.statusLabel, { color: status.fg }]}>{t(status.label)}</Text>
                   </View>
                 </View>
 
@@ -313,14 +310,14 @@ export function MissionsScreen() {
 
                 {booking.status === 'validee' && booking.settlement && (
                   <View style={styles.breakdown}>
-                    <Text style={styles.breakdownTitle}>Répartition</Text>
-                    <Row label="Montant de la prestation" value={booking.settlement.total} />
+                    <Text style={styles.breakdownTitle}>{t('Répartition')}</Text>
+                    <Row label={t('Montant de la prestation')} value={booking.settlement.total} />
                     <Row label={`Commission 242Konnect (${pct(COMMISSION_RATE)})`} value={-booking.settlement.commission} />
                     <Row
                       label={`Frais de versement (${pct(booking.settlement.speed === 'express' ? PAYOUT_EXPRESS_RATE : PAYOUT_STANDARD_RATE)})`}
                       value={-booking.settlement.payoutFee}
                     />
-                    <Row label="Versé au prestataire" value={booking.settlement.net} strong />
+                    <Row label={t('Versé au prestataire')} value={booking.settlement.net} strong />
                     <Text style={styles.breakdownNote}>
                       {booking.settlement.speed === 'express'
                         ? 'Versement express, immédiat.'
@@ -337,7 +334,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Télécharger le reçu de la mission avec ${pro.name}`}
                       style={styles.ghost}
                     >
-                      <Text style={styles.ghostLabel}>Télécharger le reçu</Text>
+                      <Text style={styles.ghostLabel}>{t('Télécharger le reçu')}</Text>
                     </Pressable>
                     {!booking.review && (
                       <Pressable
@@ -346,7 +343,7 @@ export function MissionsScreen() {
                         accessibilityLabel={`Laisser un avis sur ${pro.name}`}
                         style={styles.solid}
                       >
-                        <Text style={styles.solidLabel}>Laisser un avis</Text>
+                        <Text style={styles.solidLabel}>{t('Laisser un avis')}</Text>
                       </Pressable>
                     )}
                   </View>
@@ -368,9 +365,7 @@ export function MissionsScreen() {
                 )}
 
                 {booking.status === 'litige' && (
-                  <Text style={styles.disputeLine}>
-                    Les fonds restent bloqués jusqu'à la décision de 242Konnect.
-                  </Text>
+                  <Text style={styles.disputeLine}>{t("Les fonds restent bloqués jusqu'à la décision de 242Konnect.")}</Text>
                 )}
 
                 {booking.status === 'demandee' && (
@@ -381,7 +376,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Annuler la demande à ${pro.name}`}
                       style={styles.ghost}
                     >
-                      <Text style={styles.ghostLabel}>Annuler</Text>
+                      <Text style={styles.ghostLabel}>{t('Annuler')}</Text>
                     </Pressable>
                     {/* Stands in for the prestataire, who has no app yet. The
                         state machine is real; only the actor is simulated, and
@@ -392,7 +387,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Simuler l'acceptation par ${pro.name}`}
                       style={styles.solid}
                     >
-                      <Text style={styles.solidLabel}>Simuler l'acceptation</Text>
+                      <Text style={styles.solidLabel}>{t("Simuler l'acceptation")}</Text>
                     </Pressable>
                   </View>
                 )}
@@ -405,7 +400,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Annuler la mission avec ${pro.name}`}
                       style={styles.ghost}
                     >
-                      <Text style={styles.ghostLabel}>Annuler</Text>
+                      <Text style={styles.ghostLabel}>{t('Annuler')}</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => openPayment(booking)}
@@ -413,7 +408,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Payer la mission avec ${pro.name}`}
                       style={styles.solid}
                     >
-                      <Text style={styles.solidLabel}>Payer</Text>
+                      <Text style={styles.solidLabel}>{t('Payer')}</Text>
                     </Pressable>
                   </View>
                 )}
@@ -426,7 +421,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Signaler un problème sur la mission avec ${pro.name}`}
                       style={styles.ghost}
                     >
-                      <Text style={styles.ghostLabel}>Signaler un problème</Text>
+                      <Text style={styles.ghostLabel}>{t('Signaler un problème')}</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => openValidation(booking)}
@@ -434,7 +429,7 @@ export function MissionsScreen() {
                       accessibilityLabel={`Valider la prestation de ${pro.name}`}
                       style={styles.solid}
                     >
-                      <Text style={styles.solidLabel}>Valider</Text>
+                      <Text style={styles.solidLabel}>{t('Valider')}</Text>
                     </Pressable>
                   </View>
                 )}
@@ -475,10 +470,10 @@ export function MissionsScreen() {
             <Pressable
               onPress={stopMomo}
               accessibilityRole="button"
-              accessibilityLabel="Annuler le paiement"
+              accessibilityLabel={t('Annuler le paiement')}
               style={styles.ghostWide}
             >
-              <Text style={styles.ghostLabel}>Annuler</Text>
+              <Text style={styles.ghostLabel}>{t('Annuler')}</Text>
             </Pressable>
           </View>
         ) : receipt ? (
@@ -491,15 +486,9 @@ export function MissionsScreen() {
               {paymentMethodLabel(receipt.method)} · référence {receipt.reference}
               {receipt.operatorReference ? `\nTransaction opérateur ${receipt.operatorReference}` : ''}
             </Text>
-            <Text style={styles.doneEscrow}>
-              242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation
-              de la prestation.
-            </Text>
+            <Text style={styles.doneEscrow}>{t("242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation de la prestation.")}</Text>
             {receipt.simulated && (
-              <Text style={styles.demoNote}>
-                Démonstration : aucun argent n'a été débité. Les paiements réels nécessitent les
-                comptes marchands MTN MoMo et Airtel Money côté serveur.
-              </Text>
+              <Text style={styles.demoNote}>{t("Démonstration : aucun argent n'a été débité. Les paiements réels nécessitent les comptes marchands MTN MoMo et Airtel Money côté serveur.")}</Text>
             )}
             {/* The note asks for the receipt to be downloadable, not merely
                 shown, so it is offered at the moment it is generated. */}
@@ -511,26 +500,23 @@ export function MissionsScreen() {
                 if (booking && payment && pro) shareReceipt(booking, payment, pro);
               }}
               accessibilityRole="button"
-              accessibilityLabel="Télécharger le reçu"
+              accessibilityLabel={t('Télécharger le reçu')}
               style={styles.ghostWide}
             >
-              <Text style={styles.ghostLabel}>Télécharger le reçu</Text>
+              <Text style={styles.ghostLabel}>{t('Télécharger le reçu')}</Text>
             </Pressable>
             <Pressable onPress={closePayment} accessibilityRole="button" style={styles.solidWide}>
-              <Text style={styles.solidLabel}>Terminé</Text>
+              <Text style={styles.solidLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
             <Text style={styles.sheetAmount}>
-              {paying ? formatFcfaFull(paying.rate) : 0} <Text style={styles.sheetCurrency}>FCFA</Text>
+              {paying ? formatFcfaFull(paying.rate) : 0} <Text style={styles.sheetCurrency}>{t('FCFA')}</Text>
             </Text>
-            <Text style={styles.sheetEscrow}>
-              Vous payez 242Konnect maintenant. Le prestataire se met en route une fois le paiement
-              confirmé, et n'est payé qu'après votre validation.
-            </Text>
+            <Text style={styles.sheetEscrow}>{t("Vous payez 242Konnect maintenant. Le prestataire se met en route une fois le paiement confirmé, et n'est payé qu'après votre validation.")}</Text>
 
-            <Text style={styles.sheetHint}>Moyen de paiement</Text>
+            <Text style={styles.sheetHint}>{t('Moyen de paiement')}</Text>
             {PAYMENT_METHODS.map((m) => {
               const selected = method === m.id;
               return (
@@ -558,12 +544,9 @@ export function MissionsScreen() {
                   onChangeText={setPayPhone}
                   country={payCountry}
                   onCountryChange={setPayCountry}
-                  label="Numéro Mobile Money"
+                  label={t('Numéro Mobile Money')}
                 />
-                <Text style={styles.payPhoneHint}>
-                  Le numéro du compte Mobile Money à débiter. Vous recevrez une demande de code PIN
-                  sur ce téléphone.
-                </Text>
+                <Text style={styles.payPhoneHint}>{t('Le numéro du compte Mobile Money à débiter. Vous recevrez une demande de code PIN sur ce téléphone.')}</Text>
                 {/* A warning, not a block: number portability and prefix
                     reallocations both mean the customer knows their own line
                     better than our table does. */}
@@ -586,7 +569,7 @@ export function MissionsScreen() {
               onPress={confirmPayment}
               disabled={!canPay}
               accessibilityRole="button"
-              accessibilityLabel="Confirmer le paiement"
+              accessibilityLabel={t('Confirmer le paiement')}
               accessibilityState={{ disabled: !canPay }}
               style={[styles.solidWide, !canPay && styles.solidOff]}
             >
@@ -608,12 +591,10 @@ export function MissionsScreen() {
       </Sheet>
 
       {/* ---- Review, after the service ---- */}
-      <Sheet visible={!!reviewing} title="Votre avis" onClose={() => setReviewing(null)}>
-        <Text style={styles.sheetEscrow}>
-          Votre avis aide les autres clients à choisir, et le prestataire à progresser.
-        </Text>
+      <Sheet visible={!!reviewing} title={t('Votre avis')} onClose={() => setReviewing(null)}>
+        <Text style={styles.sheetEscrow}>{t('Votre avis aide les autres clients à choisir, et le prestataire à progresser.')}</Text>
 
-        <Text style={styles.sheetHint}>Votre note</Text>
+        <Text style={styles.sheetHint}>{t('Votre note')}</Text>
         <View style={styles.starRow}>
           {[1, 2, 3, 4, 5].map((value) => (
             <Pressable
@@ -629,14 +610,14 @@ export function MissionsScreen() {
           ))}
         </View>
 
-        <Text style={styles.sheetHint}>Votre commentaire</Text>
+        <Text style={styles.sheetHint}>{t('Votre commentaire')}</Text>
         <TextInput
           value={comment}
           onChangeText={setComment}
           multiline
-          placeholder="Comment s'est passée la prestation ?"
+          placeholder={t("Comment s'est passée la prestation ?")}
           placeholderTextColor={colors.mutedForeground}
-          accessibilityLabel="Votre commentaire"
+          accessibilityLabel={t('Votre commentaire')}
           style={styles.reviewInput}
         />
 
@@ -646,7 +627,7 @@ export function MissionsScreen() {
           <Pressable
             onPress={addReviewPhoto}
             accessibilityRole="button"
-            accessibilityLabel="Ajouter une photo à l'avis"
+            accessibilityLabel={t("Ajouter une photo à l'avis")}
             style={styles.ghost}
           >
             <Text style={styles.ghostLabel}>{reviewPhoto ? 'Changer la photo' : 'Ajouter une photo'}</Text>
@@ -662,10 +643,10 @@ export function MissionsScreen() {
         <Pressable
           onPress={submitReview}
           accessibilityRole="button"
-          accessibilityLabel="Publier mon avis"
+          accessibilityLabel={t('Publier mon avis')}
           style={styles.solidWide}
         >
-          <Text style={styles.solidLabel}>Publier mon avis</Text>
+          <Text style={styles.solidLabel}>{t('Publier mon avis')}</Text>
         </Pressable>
       </Sheet>
 
@@ -684,21 +665,16 @@ export function MissionsScreen() {
             <Text style={styles.doneBody}>
               versés au prestataire{settled.speed === 'express' ? ' immédiatement' : ` sous ${settled.delayDays} jours`}
             </Text>
-            <Text style={styles.demoNote}>
-              Démonstration : aucun versement réel n'a lieu.
-            </Text>
+            <Text style={styles.demoNote}>{t("Démonstration : aucun versement réel n'a lieu.")}</Text>
             <Pressable onPress={() => setValidating(null)} accessibilityRole="button" style={styles.solidWide}>
-              <Text style={styles.solidLabel}>Terminé</Text>
+              <Text style={styles.solidLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
-            <Text style={styles.sheetEscrow}>
-              En validant, vous confirmez que la prestation a été réalisée. Les fonds sont alors
-              débloqués et versés au prestataire.
-            </Text>
+            <Text style={styles.sheetEscrow}>{t('En validant, vous confirmez que la prestation a été réalisée. Les fonds sont alors débloqués et versés au prestataire.')}</Text>
 
-            <Text style={styles.sheetHint}>Mode de versement au prestataire</Text>
+            <Text style={styles.sheetHint}>{t('Mode de versement au prestataire')}</Text>
             {(['standard', 'express'] as PayoutSpeed[]).map((option) => {
               const selected = speed === option;
               return (
@@ -726,23 +702,23 @@ export function MissionsScreen() {
 
             {preview && (
               <View style={styles.breakdown}>
-                <Row label="Montant de la prestation" value={preview.total} />
+                <Row label={t('Montant de la prestation')} value={preview.total} />
                 <Row label={`Commission 242Konnect (${pct(COMMISSION_RATE)})`} value={-preview.commission} />
                 <Row
                   label={`Frais de versement (${pct(speed === 'express' ? PAYOUT_EXPRESS_RATE : PAYOUT_STANDARD_RATE)})`}
                   value={-preview.payoutFee}
                 />
-                <Row label="Versé au prestataire" value={preview.net} strong />
+                <Row label={t('Versé au prestataire')} value={preview.net} strong />
               </View>
             )}
 
             <Pressable
               onPress={confirmValidation}
               accessibilityRole="button"
-              accessibilityLabel="Confirmer la validation"
+              accessibilityLabel={t('Confirmer la validation')}
               style={styles.solidWide}
             >
-              <Text style={styles.solidLabel}>Valider et débloquer les fonds</Text>
+              <Text style={styles.solidLabel}>{t('Valider et débloquer les fonds')}</Text>
             </Pressable>
           </>
         )}

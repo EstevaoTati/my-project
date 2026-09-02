@@ -4,6 +4,7 @@ import { Icon } from './Icon';
 import { formatFcfa, professionalTrade, type Professional } from '../data';
 import { ProAvatar } from './Avatar';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = {
   professional: Professional;
@@ -12,6 +13,7 @@ type Props = {
 
 /** The compact "Top Professionnels" card on the home screen. */
 export function ProCard({ professional: pro, onPress }: Props) {
+  const t = useT();
   const trade = professionalTrade(pro);
   return (
     <Pressable
@@ -37,12 +39,12 @@ export function ProCard({ professional: pro, onPress }: Props) {
         <View style={styles.footer}>
           <Text style={styles.price}>
             {formatFcfa(pro.hourlyRate)} FCFA
-            <Text style={styles.priceUnit}>/h</Text>
+            <Text style={styles.priceUnit}>{t('/h')}</Text>
           </Text>
           {/* Visual affordance only: the whole card is the touch target, so a
               nested pressable here would just compete with it. */}
           <View style={styles.cta}>
-            <Text style={styles.ctaLabel}>Réserver</Text>
+            <Text style={styles.ctaLabel}>{t('Réserver')}</Text>
           </View>
         </View>
       </View>

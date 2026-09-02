@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components/Icon';
 import type { IconName } from '../icons';
 import { colors, fonts } from '../theme';
+import { useT } from '../i18n';
 
 type Props = {
   title: string;
@@ -18,6 +19,7 @@ type Props = {
  * instead of a tap that silently does nothing.
  */
 export function PlaceholderScreen({ title, icon, body }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.root, { paddingTop: insets.top + 24 }]}>
@@ -26,7 +28,7 @@ export function PlaceholderScreen({ title, icon, body }: Props) {
         <View style={styles.iconWrap}>
           <Icon name={icon} size={32} color={colors.mutedForeground} />
         </View>
-        <Text style={styles.heading}>Bientôt disponible</Text>
+        <Text style={styles.heading}>{t('Bientôt disponible')}</Text>
         <Text style={styles.body}>{body}</Text>
       </View>
     </View>

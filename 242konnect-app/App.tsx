@@ -16,6 +16,7 @@ import { Manrope_700Bold } from '@expo-google-fonts/manrope/700Bold';
 import { RootNavigator } from './src/navigation';
 import { AppProvider } from './src/store';
 import { AuthProvider } from './src/auth';
+import { I18nProvider } from './src/i18n';
 import { colors } from './src/theme';
 
 /**
@@ -70,14 +71,16 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
         <AppProvider>
           <NavigationContainer>
             <StatusBar style="dark" />
             <RootNavigator />
           </NavigationContainer>
         </AppProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </I18nProvider>
     </SafeAreaProvider>
   );
 }

@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon';
 import { Field, FormError, PasswordField, SubmitButton } from '../components/form';
 import { MIN_PASSWORD, OTP_LENGTH, passwordProblem, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 /**
  * "Mot de passe oublié ?" — recovery by the same code the rest of the app uses.
@@ -18,6 +19,7 @@ import { colors, fonts, radius, shadow } from '../theme';
  * cannot be used to test whether an address is registered.
  */
 export function ResetPasswordScreen() {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { resetting, completePasswordReset, cancelPasswordReset } = useAuth();
 
@@ -54,17 +56,15 @@ export function ResetPasswordScreen() {
         <View style={styles.doneIcon}>
           <Icon name="solar:shield-check-bold" size={34} color={colors.success} />
         </View>
-        <Text style={styles.title}>Mot de passe modifié</Text>
-        <Text style={styles.lede}>
-          Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
-        </Text>
+        <Text style={styles.title}>{t('Mot de passe modifié')}</Text>
+        <Text style={styles.lede}>{t('Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.')}</Text>
         <Pressable
           onPress={cancelPasswordReset}
           accessibilityRole="button"
-          accessibilityLabel="Retourner à la connexion"
+          accessibilityLabel={t('Retourner à la connexion')}
           style={styles.cta}
         >
-          <Text style={styles.ctaLabel}>Se connecter</Text>
+          <Text style={styles.ctaLabel}>{t('Se connecter')}</Text>
         </Pressable>
       </View>
     );
@@ -83,23 +83,21 @@ export function ResetPasswordScreen() {
         <Pressable
           onPress={cancelPasswordReset}
           accessibilityRole="button"
-          accessibilityLabel="Annuler"
+          accessibilityLabel={t('Annuler')}
           hitSlop={8}
           style={styles.back}
         >
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
 
-        <Text style={styles.title}>Nouveau mot de passe</Text>
+        <Text style={styles.title}>{t('Nouveau mot de passe')}</Text>
         <Text style={styles.lede}>
           Un code à {OTP_LENGTH} chiffres a été envoyé à{' '}
-          <Text style={styles.address}>{resetting.email}</Text>. Saisissez-le, puis choisissez votre
-          nouveau mot de passe.
-        </Text>
+          <Text style={styles.address}>{resetting.email}</Text>{t('. Saisissez-le, puis choisissez votre nouveau mot de passe.')}</Text>
 
         <View style={styles.form}>
           <Field
-            label="Code reçu par e-mail"
+            label={t('Code reçu par e-mail')}
             value={code}
             onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, OTP_LENGTH))}
             keyboardType="number-pad"
@@ -108,7 +106,7 @@ export function ResetPasswordScreen() {
             placeholder="123456"
           />
           <PasswordField
-            label="Nouveau mot de passe"
+            label={t('Nouveau mot de passe')}
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
@@ -116,7 +114,7 @@ export function ResetPasswordScreen() {
             error={problem ?? undefined}
           />
           <PasswordField
-            label="Confirmer"
+            label={t('Confirmer')}
             value={confirm}
             onChangeText={setConfirm}
             autoCapitalize="none"
@@ -126,11 +124,11 @@ export function ResetPasswordScreen() {
 
           <FormError message={error} />
           <SubmitButton
-            label="Modifier le mot de passe"
+            label={t('Modifier le mot de passe')}
             onPress={submit}
             busy={busy}
             disabled={!ready}
-            accessibilityLabel="Modifier le mot de passe"
+            accessibilityLabel={t('Modifier le mot de passe')}
           />
         </View>
       </ScrollView>

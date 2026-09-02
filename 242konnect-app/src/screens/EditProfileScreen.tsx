@@ -19,10 +19,12 @@ import { useAuth } from '../auth';
 import { trades } from '../data';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'ModifierProfil'>;
 
 export function EditProfileScreen({ navigation }: Props) {
+  const t = useT();
   const insets = useSafeAreaInsets();
   const { account, updateProfile } = useAuth();
 
@@ -93,14 +95,14 @@ export function EditProfileScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('Retour')}
           hitSlop={8}
           style={styles.back}
         >
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
 
-        <Text style={styles.title}>Modifier le profil</Text>
+        <Text style={styles.title}>{t('Modifier le profil')}</Text>
 
         <View style={styles.photoBlock}>
           <UserAvatar name={name || account.name} avatar={avatar} size={96} border={colors.primary} />
@@ -108,53 +110,51 @@ export function EditProfileScreen({ navigation }: Props) {
             <Pressable
               onPress={pickFromLibrary}
               accessibilityRole="button"
-              accessibilityLabel="Choisir une photo"
+              accessibilityLabel={t('Choisir une photo')}
               style={styles.photoButton}
             >
               <Icon name="solar:add-square-bold" size={18} color={colors.primary} />
-              <Text style={styles.photoButtonLabel}>Galerie</Text>
+              <Text style={styles.photoButtonLabel}>{t('Galerie')}</Text>
             </Pressable>
             <Pressable
               onPress={takePhoto}
               accessibilityRole="button"
-              accessibilityLabel="Prendre une photo"
+              accessibilityLabel={t('Prendre une photo')}
               style={styles.photoButton}
             >
               <Icon name="solar:monitor-smartphone-bold-duotone" size={18} color={colors.primary} />
-              <Text style={styles.photoButtonLabel}>Caméra</Text>
+              <Text style={styles.photoButtonLabel}>{t('Caméra')}</Text>
             </Pressable>
             {!!avatar && (
               <Pressable
                 onPress={() => setAvatar(undefined)}
                 accessibilityRole="button"
-                accessibilityLabel="Retirer la photo"
+                accessibilityLabel={t('Retirer la photo')}
                 style={styles.photoButton}
               >
                 <Icon name="solar:heart-linear" size={18} color={colors.destructive} />
-                <Text style={[styles.photoButtonLabel, styles.removeLabel]}>Retirer</Text>
+                <Text style={[styles.photoButtonLabel, styles.removeLabel]}>{t('Retirer')}</Text>
               </Pressable>
             )}
           </View>
         </View>
 
         <View style={styles.form}>
-          <Field label="Nom complet" value={name} onChangeText={setName} autoCapitalize="words" />
+          <Field label={t('Nom complet')} value={name} onChangeText={setName} autoCapitalize="words" />
 
           <View style={styles.readonly}>
-            <Text style={styles.readonlyLabel}>Numéro de téléphone</Text>
+            <Text style={styles.readonlyLabel}>{t('Numéro de téléphone')}</Text>
             <Text style={styles.readonlyValue}>+242 {account.phone}</Text>
-            <Text style={styles.readonlyHint}>
-              Votre numéro est votre identifiant et ne peut pas être modifié ici.
-            </Text>
+            <Text style={styles.readonlyHint}>{t('Votre numéro est votre identifiant et ne peut pas être modifié ici.')}</Text>
           </View>
 
           {isPro && (
             <View style={styles.field}>
-              <Text style={styles.label}>Votre métier</Text>
+              <Text style={styles.label}>{t('Votre métier')}</Text>
               <Pressable
                 onPress={() => setShowTrades(true)}
                 accessibilityRole="button"
-                accessibilityLabel="Choisir votre métier"
+                accessibilityLabel={t('Choisir votre métier')}
                 style={styles.select}
               >
                 <Text style={[styles.selectValue, !selectedTrade && styles.selectPlaceholder]}>
@@ -166,7 +166,7 @@ export function EditProfileScreen({ navigation }: Props) {
           )}
 
           <Field
-            label="À propos de vous"
+            label={t('À propos de vous')}
             value={bio}
             onChangeText={setBio}
             placeholder={isPro ? 'Décrivez votre expérience et vos services' : 'Quelques mots sur vous'}
@@ -176,11 +176,11 @@ export function EditProfileScreen({ navigation }: Props) {
           />
 
           <FormError message={error} />
-          <SubmitButton label="Enregistrer" onPress={save} busy={busy} accessibilityLabel="Enregistrer le profil" />
+          <SubmitButton label={t('Enregistrer')} onPress={save} busy={busy} accessibilityLabel={t('Enregistrer le profil')} />
         </View>
       </ScrollView>
 
-      <Sheet visible={showTrades} title="Votre métier" onClose={() => setShowTrades(false)}>
+      <Sheet visible={showTrades} title={t('Votre métier')} onClose={() => setShowTrades(false)}>
         {trades.map((trade) => (
           <Pressable
             key={trade.id}

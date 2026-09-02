@@ -9,6 +9,7 @@ import { PROFILE_LABELS, type ProfileKind } from '../auth';
 import { UserAvatar } from '../components/Avatar';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
+import { LANGUAGES, T, useI18n, useT } from '../i18n';
 
 /**
  * The Profil tab, once there's an account behind it.
@@ -17,13 +18,15 @@ import { colors, fonts, radius, shadow } from '../theme';
  * a setting that silently ignores you reads worse than one labelled as coming.
  */
 const SOON = [
-  { icon: 'solar:bell-bing-bold-duotone', label: 'Préférences de notification' },
-  { icon: 'solar:shield-check-bold', label: 'Vérification du compte' },
+  { icon: 'solar:bell-bing-bold-duotone', label: T('Préférences de notification') },
+  { icon: 'solar:shield-check-bold', label: T('Vérification du compte') },
 ] as const;
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'MonCompte'>;
 
 export function AccountScreen({ navigation }: Props) {
+  const t = useT();
+  const { language, setLanguage } = useI18n();
   const insets = useSafeAreaInsets();
   const { account, signOut, switchProfile, activateProfile } = useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
@@ -36,7 +39,7 @@ export function AccountScreen({ navigation }: Props) {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.title}>Profil</Text>
+      <Text style={styles.title}>{t('Profil')}</Text>
 
       <View style={styles.card}>
         <UserAvatar name={account.name} avatar={account.avatar} size={52} />
@@ -57,7 +60,7 @@ export function AccountScreen({ navigation }: Props) {
       {/* §9.10: one account, several profiles, switched from here — not three
           separate accounts. Profiles not yet activated can be added in place. */}
       <View style={styles.profiles}>
-        <Text style={styles.profilesLabel}>Profil actif</Text>
+        <Text style={styles.profilesLabel}>{t('Profil actif')}</Text>
         <View style={styles.profileRow}>
           {(Object.keys(PROFILE_LABELS) as ProfileKind[]).map((kind) => {
             const active = account.activeProfile === kind;
@@ -76,9 +79,9 @@ export function AccountScreen({ navigation }: Props) {
                 <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
                   {PROFILE_LABELS[kind]}
                 </Text>
-                {!owned && <Text style={styles.profileChipAdd}>+ activer</Text>}
+                {!owned && <Text style={styles.profileChipAdd}>{t('+ activer')}</Text>}
                 {kind !== 'particulier' && (
-                  <Text style={styles.profileChipPending}>en attente</Text>
+                  <Text style={styles.profileChipPending}>{t('en attente')}</Text>
                 )}
               </Pressable>
             );
@@ -94,22 +97,48 @@ export function AccountScreen({ navigation }: Props) {
         </Text>
       </View>
 
+      {/* French and English, as the correction note asks for. Placed on the
+          account screen rather than buried in settings: someone who needs
+          English needs it on their first visit, not after finding a submenu. */}
+      <View style={styles.languages}>
+        <Text style={styles.profilesLabel}>{t('Langue')}</Text>
+        <View style={styles.profileRow}>
+          {LANGUAGES.map((option) => {
+            const active = option.code === language;
+            return (
+              <Pressable
+                key={option.code}
+                onPress={() => setLanguage(option.code)}
+                accessibilityRole="button"
+                accessibilityLabel={option.label}
+                accessibilityState={{ selected: active }}
+                style={[styles.profileChip, active && styles.profileChipActive]}
+              >
+                <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
+                  {option.flag}  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       <View style={styles.stats}>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{favoriteCount}</Text>
-          <Text style={styles.statLabel}>Favoris</Text>
+          <Text style={styles.statLabel}>{t('Favoris')}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>{bookings.length}</Text>
-          <Text style={styles.statLabel}>Missions</Text>
+          <Text style={styles.statLabel}>{t('Missions')}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={[styles.stat, styles.statWide]}>
           <Text style={styles.statCity} numberOfLines={1}>
             {city.split(',')[0]}
           </Text>
-          <Text style={styles.statLabel}>Ville</Text>
+          <Text style={styles.statLabel}>{t('Ville')}</Text>
         </View>
       </View>
 
@@ -124,28 +153,28 @@ export function AccountScreen({ navigation }: Props) {
         <Pressable
           onPress={() => navigation.navigate('ModifierProfil')}
           accessibilityRole="button"
-          accessibilityLabel="Modifier le profil"
+          accessibilityLabel={t('Modifier le profil')}
           style={({ pressed }) => [styles.row, pressed && styles.pressed]}
         >
           <Icon name="solar:user-rounded-linear" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>Modifier le profil</Text>
+          <Text style={styles.rowLabel}>{t('Modifier le profil')}</Text>
           <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
         </Pressable>
         <Pressable
           onPress={() => navigation.navigate('FAQ')}
           accessibilityRole="button"
-          accessibilityLabel="Questions fréquentes"
+          accessibilityLabel={t('Questions fréquentes')}
           style={({ pressed }) => [styles.row, pressed && styles.pressed]}
         >
           <Icon name="solar:chat-round-dots-linear" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>Questions fréquentes</Text>
+          <Text style={styles.rowLabel}>{t('Questions fréquentes')}</Text>
           <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
         </Pressable>
         {SOON.map((row) => (
           <View key={row.label} style={styles.row}>
             <Icon name={row.icon} size={20} color={colors.mutedForeground} />
             <Text style={styles.rowLabel}>{row.label}</Text>
-            <Text style={styles.rowSoon}>Bientôt</Text>
+            <Text style={styles.rowSoon}>{t('Bientôt')}</Text>
           </View>
         ))}
       </View>
@@ -153,16 +182,13 @@ export function AccountScreen({ navigation }: Props) {
       <Pressable
         onPress={signOut}
         accessibilityRole="button"
-        accessibilityLabel="Se déconnecter"
+        accessibilityLabel={t('Se déconnecter')}
         style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
       >
-        <Text style={styles.signOutLabel}>Se déconnecter</Text>
+        <Text style={styles.signOutLabel}>{t('Se déconnecter')}</Text>
       </Pressable>
 
-      <Text style={styles.disclaimer}>
-        Ce compte est enregistré sur cet appareil uniquement. Il n'existe pas encore de serveur :
-        vous ne pourrez pas vous connecter depuis un autre téléphone.
-      </Text>
+      <Text style={styles.disclaimer}>{t("Ce compte est enregistré sur cet appareil uniquement. Il n'existe pas encore de serveur : vous ne pourrez pas vous connecter depuis un autre téléphone.")}</Text>
     </ScrollView>
   );
 }
@@ -211,6 +237,7 @@ const styles = StyleSheet.create({
     color: colors.warning,
     marginTop: 1,
   },
+  languages: { marginTop: 18, gap: 10 },
   profilesLabel: {
     fontFamily: fonts.sansBold,
     fontSize: 11,

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from './Icon';
 import type { Category } from '../data';
 import { colors, fonts, radius, shadow } from '../theme';
+import { useT } from '../i18n';
 
 type Props = {
   category: Category;
@@ -12,11 +13,12 @@ type Props = {
 };
 
 export function CategoryChip({ category, onPress, selected }: Props) {
+  const t = useT();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Catégorie ${category.label}`}
+      accessibilityLabel={`Catégorie ${t(category.label)}`}
       accessibilityState={{ selected: !!selected }}
       style={({ pressed }) => [styles.wrap, pressed && styles.pressed]}
     >
@@ -24,7 +26,7 @@ export function CategoryChip({ category, onPress, selected }: Props) {
         <Icon name={category.icon} size={30} color={colors.foreground} />
       </View>
       <Text style={styles.label} numberOfLines={1}>
-        {category.label}
+        {t(category.label)}
       </Text>
     </Pressable>
   );
