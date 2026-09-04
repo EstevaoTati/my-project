@@ -49,6 +49,9 @@ const BASE_URL = process.env.BASE_URL || null;
 const API_LOG = process.env.API_LOG || "/tmp/242konnect-api.log";
 let mailWatermark = 0;
 
+/** Chosen after verification now, so the suite needs one that passes the rules. */
+const SIGNUP_PASSWORD = "Mwinda2026";
+
 /** Marks the current end of the outbox, so the next read gets only new mail. */
 const markOutbox = () => {
   mailWatermark = fs.existsSync(API_LOG) ? fs.readFileSync(API_LOG, "utf8").length : 0;
@@ -160,20 +163,36 @@ const mailedCode = () => {
   };
   const section = (name) => console.log(`\n── ${name} ──`);
 
+  /**
+   * The identity step asks where you live, so every path through it has to
+   * answer. Congo defaults in, and the city is picked from the sheet.
+   */
+  const pickCity = async (city = "Pointe-Noire") => {
+    await tap('[aria-label*="Choisir la ville"], [aria-label*="Ville :"]');
+    await tap(`[aria-label="${city}"]`);
+    return true;
+  };
+
   await page.goto(BASE_URL || `http://localhost:${PORT}/`, { waitUntil: "networkidle" });
 
   section("Splash & first launch");
   // The directives put a 2-3s logo animation before anything else. Assert it is
   // actually on screen rather than just waiting it out.
-  await check("splash shows the wordmark on black", async () => {
-    const ok = await seen("text=242Konnect");
-    const ground = await page.evaluate(() => {
-      const el = [...document.querySelectorAll("div")].find(
-        (d) => getComputedStyle(d).backgroundColor === "rgb(10, 10, 10)"
+  await check("splash shows the mark on the brand ground", async () => {
+    // The splash draws the official logo as SVG, not the word "242Konnect", and
+    // its ground is theme.anthracite (#16181d) since the charte landed — the
+    // near-black rgb(10,10,10) this used to look for is gone. Colours and
+    // geometry of the mark itself are verify-logo.js's job; here it only has to
+    // be on screen, at splash size rather than the small header lockup.
+    return page.evaluate(() => {
+      const mark = [...document.querySelectorAll("svg")].some(
+        (s) => s.getBoundingClientRect().width > 150
       );
-      return !!el;
+      const ground = [...document.querySelectorAll("div")].some(
+        (d) => getComputedStyle(d).backgroundColor === "rgb(22, 24, 29)"
+      );
+      return mark && ground;
     });
-    return ok && ground;
   });
   await page.screenshot({ path: `${OUT}/s0-splash.png` });
   await check("splash hands off to Commencer on first launch", async () => {
@@ -227,7 +246,7 @@ const mailedCode = () => {
     await fill('[aria-label="Nom du responsable"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
     await fill('[aria-label="E-mail professionnel"]', "contact@mwinda.cg");
-    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await pickCity();
     await tap('[aria-label="Continuer vers les informations"]');
     return (await seen('[aria-label="RCCM"]')) && (await seen('[aria-label="NIF"]')) &&
            (await seen("text=Votre entreprise"));
@@ -247,7 +266,7 @@ const mailedCode = () => {
     await fill('[aria-label="Nom complet"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
     await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
-    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await pickCity();
     const el = await visible('[aria-label="Continuer vers les informations"]');
     const blocked = el && (await el.getAttribute("aria-disabled")) === "true";
     return blocked && (await seen("text=Obligatoire pour un prestataire"));
@@ -265,7 +284,7 @@ const mailedCode = () => {
     await fill('[aria-label="Nom complet"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
     await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
-    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await pickCity();
     await tap('[aria-label="Continuer vers les informations"]');
     return seen("text=Où intervenir ?");
   });
@@ -290,10 +309,24 @@ const mailedCode = () => {
     await page.waitForTimeout(1200);
     return seen("text=Code incorrect");
   });
-  await check("the code from the e-mail creates the account", async () => {
+  // Verification no longer creates the account: it unlocks the password step,
+  // and that step creates it. Nothing exists until the address is proved.
+  await check("the code from the e-mail unlocks the password step", async () => {
     const real = mailedCode();
     if (!real) throw new Error("no code in the outbox — is the API running?");
     await fill('[aria-label="Code de vérification"]', real);
+    await page.waitForTimeout(1800);
+    return seen('[aria-label="Mot de passe"]');
+  });
+  await check("a weak password is refused", async () => {
+    await fill('[aria-label="Mot de passe"]', "1234");
+    const el = await visible('[aria-label="Créer mon compte"]');
+    return el && (await el.getAttribute("aria-disabled")) === "true";
+  });
+  await check("the password creates the account", async () => {
+    await fill('[aria-label="Mot de passe"]', SIGNUP_PASSWORD);
+    await fill('[aria-label="Confirmer le mot de passe"]', SIGNUP_PASSWORD);
+    await tap('[aria-label="Créer mon compte"]');
     await page.waitForTimeout(1800);
     return seen("text=Catégories");
   });
@@ -426,6 +459,12 @@ const mailedCode = () => {
   section("Missions, escrow & settlement");
   await check("mission listed", async () => { await tap('[aria-label="Missions"]'); return seen("text=Demain, 09h00"); });
   await check("the no-direct-payment rule is stated", () => seen("text=Ne remettez jamais d'argent directement"));
+  // Nothing is payable until the prestataire has accepted — the Payer button
+  // only exists on an accepted mission, which is the rule, not a step to skip.
+  await check("an accepted mission becomes payable", async () => {
+    await tap("[aria-label^=\"Simuler l'acceptation\"]");
+    return seen('[aria-label^="Payer la mission"]');
+  });
   await check("payment opens", async () => {
     await tap('[aria-label^="Payer la mission"]');
     return seen("text=Moyen de paiement");
@@ -438,18 +477,18 @@ const mailedCode = () => {
   });
   await check("Mobile Money asks for a number", async () => {
     await tap('[aria-label="MTN Mobile Money"]');
-    return seen('[aria-label="Numéro de téléphone"]');
+    return seen('[aria-label="Numéro Mobile Money"]');
   });
   await check("card does not ask for a number", async () => {
     await tap('[aria-label="Carte bancaire"]');
-    return !(await seen('[aria-label="Numéro de téléphone"]'));
+    return !(await seen('[aria-label="Numéro Mobile Money"]'));
   });
   // Mobile Money is asynchronous — the operator prompts the handset and we wait
   // — so it is checked on its own below. The escrow and settlement rules are
   // about the money, not the rail, so they run over the single-step card path.
   await check("Mobile Money warns when the number looks like the other operator", async () => {
     await tap('[aria-label="MTN Mobile Money"]');
-    await fill('[aria-label="Numéro de téléphone"]', "045550000");
+    await fill('[aria-label="Numéro Mobile Money"]', "045550000");
     await page.waitForTimeout(400);
     return seen("text=ressemble à un numéro Airtel Money");
   });
@@ -625,11 +664,22 @@ const mailedCode = () => {
     await page.waitForTimeout(1200);
     return (await seen("text=Bon retour")) && !(await seen("text=Just One Click."));
   });
-  await check("sign back in", async () => {
+  // The password is only the first factor now: a correct one sends a code and
+  // stops there. Getting into the app still means reading the outbox.
+  await check("the right password alone does not sign anyone in", async () => {
+    markOutbox();
     await fill('[aria-label="Numéro de téléphone ou e-mail"]', "061234567");
-    await fill('[aria-label="Mot de passe"]', "motdepasse");
+    await fill('[aria-label="Mot de passe"]', SIGNUP_PASSWORD);
     await tap('[aria-label="Se connecter"]');
-    await page.waitForTimeout(1400);
+    await page.waitForTimeout(1600);
+    return (await seen("text=Vérification")) && !(await seen("text=Catégories"));
+  });
+  await check("sign-in shows no code either", async () => !(await codeOnScreen()));
+  await check("the mailed code completes the sign-in", async () => {
+    const real = mailedCode();
+    if (!real) throw new Error("no code in the outbox — did sign-in ask for one?");
+    await fill('[aria-label="Code de vérification"]', real);
+    await page.waitForTimeout(1800);
     return seen("text=Catégories");
   });
   await check("account data still there", async () => {

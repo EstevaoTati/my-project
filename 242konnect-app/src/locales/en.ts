@@ -108,6 +108,14 @@ export const en: Record<string, string> = {
   Vérifier: 'Verify',
   'Vérifier le code': 'Verify the code',
   'Code de vérification': 'Verification code',
+  'Nous avons envoyé un code à {digits} chiffres à': 'We sent a {digits}-digit code to',
+  'Votre mot de passe est correct. Ce code termine la connexion.':
+    'Your password is correct. This code completes the sign-in.',
+  'Consultez vos messages.': 'Check your messages.',
+  'Consultez votre boîte e-mail, y compris les courriers indésirables.':
+    'Check your inbox, including your spam folder.',
+  "Le code expire dans {minutes} minutes et ne peut servir qu'une fois.":
+    'The code expires in {minutes} minutes and can only be used once.',
   'Code reçu par e-mail': 'Code received by e-mail',
   'Recevoir le code de vérification par': 'Receive the verification code by',
   'Renvoyer le code': 'Resend the code',

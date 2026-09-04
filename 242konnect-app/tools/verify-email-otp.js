@@ -23,7 +23,9 @@ const check = async (label, fn) => { try { const r = await fn(); if (!r) throw n
 (async () => {
   await new Promise(r => server.listen(Number(process.env.PORT || 8988), r));
   const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  // Pinned: the app follows the device language, so a browser reporting en-US
+  // opens it in English and every French selector below silently misses.
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, locale: "fr-FR" });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", e => errs.push(e.message.slice(0,120)));
 
@@ -38,12 +40,21 @@ const check = async (label, fn) => { try { const r = await fn(); if (!r) throw n
 
   const before = fs.readFileSync(LOG, "utf8").length;
 
+  // Sign-up opens on the account type, then identity, then the profile's own
+  // details — and only then is a code sent. No password is asked for anywhere
+  // before this point; it is chosen after the address is proved.
   await tap('[aria-label="Créer un compte"]');
-  await p.waitForSelector("text=Créer votre compte", { timeout: 15000 });
+  await p.waitForSelector("text=Quel type de compte ?", { timeout: 15000 });
+  await tap('[aria-label="Continuer"]');
   await fill('[aria-label="Nom complet"]', "Estevao Macumba");
   await fill('[aria-label="Numéro de téléphone"]', "066554433");
   await fill('[aria-label="Adresse e-mail"]', "estevao@mwinda.cg");
-  await fill('[aria-label="Mot de passe"]', "motdepasse");
+  await tap('[aria-label*="Choisir la ville"], [aria-label*="Ville :"]');
+  await tap('[aria-label="Pointe-Noire"]');
+  await tap('[aria-label="Continuer vers les informations"]');
+  await p.waitForSelector("text=Où intervenir ?", { timeout: 15000 });
+  await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
+  await fill("[aria-label=\"Référence de l'adresse\"]", "En face du marché");
   await tap('[aria-label="Créer mon compte"]');
   await p.waitForSelector("text=Vérification", { timeout: 20000 });
   await p.waitForTimeout(1200);
@@ -69,10 +80,20 @@ const check = async (label, fn) => { try { const r = await fn(); if (!r) throw n
     return seen("text=Code incorrect");
   });
 
-  await check("the mailed code creates the account", async () => {
+  // Verifying unlocks the password step; that step creates the account. The
+  // order matters — nothing exists until the address has been proved.
+  await check("the mailed code unlocks the password step", async () => {
     const fresh = fs.readFileSync(LOG, "utf8").slice(before);
     const real = fresh.match(/est : (\d{6})/)[1];
     await fill('[aria-label="Code de vérification"]', real);
+    await p.waitForSelector('[aria-label="Confirmer le mot de passe"]', { timeout: 20000 });
+    return true;
+  });
+
+  await check("the password creates the account", async () => {
+    await fill('[aria-label="Mot de passe"]', "Mwinda2026");
+    await fill('[aria-label="Confirmer le mot de passe"]', "Mwinda2026");
+    await tap('[aria-label="Créer mon compte"]');
     await p.waitForSelector("text=Catégories", { timeout: 20000 });
     return true;
   });

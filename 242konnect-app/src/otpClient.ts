@@ -34,8 +34,14 @@
  * live in the bundle and the Resend key cannot.
  */
 
-const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').replace(/\/+$/, '');
-const SUPABASE_KEY = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
+import {
+  SUPABASE_KEY,
+  SUPABASE_URL,
+  sessionFromPayload,
+  supabaseConfigured,
+  type SupabaseSession,
+} from './supabase';
+
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
 /**
@@ -48,8 +54,7 @@ const SUPABASE_TTL = Number(process.env.EXPO_PUBLIC_SUPABASE_OTP_TTL ?? '') || 3
 export type OtpProvider = 'supabase' | 'api' | 'none';
 
 /** Which service will send the mail. Screens use this to warn before a form is filled in. */
-export const otpProvider: OtpProvider =
-  SUPABASE_URL && SUPABASE_KEY ? 'supabase' : API_URL ? 'api' : 'none';
+export const otpProvider: OtpProvider = supabaseConfigured ? 'supabase' : API_URL ? 'api' : 'none';
 
 /** True when a real e-mail can be sent. */
 export const canSendOtp = otpProvider !== 'none';
@@ -169,17 +174,22 @@ export async function requestCode(
  * Checks a code against the service that issued it. Always a round trip: the
  * device has nothing to compare against, which is the point — attempts are
  * capped and codes expire server-side.
+ *
+ * Returns the Supabase session the accepted code buys. That session is the only
+ * proof of identity the app ever holds, and it is what lets the account row be
+ * written under row-level security — see `profileStore.ts`. The 242Konnect API
+ * has no equivalent, so it returns null there.
  */
 export async function checkCode(
   key: string,
   email: string,
   code: string,
   delivery: OtpDelivery
-): Promise<void> {
+): Promise<SupabaseSession | null> {
   const token = code.replace(/\D/g, '');
 
   if (delivery.provider === 'supabase') {
-    await postJson(
+    const payload = await postJson(
       `${SUPABASE_URL}/auth/v1/verify`,
       { email, token, type: 'email' },
       supabaseHeaders(),
@@ -192,7 +202,7 @@ export async function checkCode(
         return reason ?? 'La vérification a échoué. Réessayez.';
       }
     );
-    return;
+    return sessionFromPayload(payload);
   }
 
   await postJson(
@@ -201,4 +211,5 @@ export async function checkCode(
     {},
     (_status, reason) => reason ?? 'Code incorrect. Vérifiez les chiffres reçus par e-mail.'
   );
+  return null;
 }

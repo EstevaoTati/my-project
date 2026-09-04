@@ -134,7 +134,8 @@ function AuthFlow({ firstLaunch }: { firstLaunch: boolean }) {
 }
 
 export function RootNavigator() {
-  const { account, restoring, firstLaunch, markLaunched, pending, resetting } = useAuth();
+  const { account, restoring, firstLaunch, markLaunched, pending, pendingSignIn, resetting } =
+    useAuth();
   const [splashDone, setSplashDone] = useState(false);
   // Captured before markLaunched clears it, so the routing decision isn't
   // changed underneath the navigator by its own side effect.
@@ -164,5 +165,9 @@ export function RootNavigator() {
   // so verification can't be skipped by navigating around it.
   // Verification, then the password. The account is created by the second one.
   if (pending) return pending.verified ? <CreatePasswordScreen /> : <OtpScreen />;
+
+  // The password was right, but it is only the first factor: the session does
+  // not exist until the code sent to the address on the account is entered.
+  if (pendingSignIn) return <OtpScreen mode="signin" />;
   return <AuthFlow firstLaunch={wasFirstLaunch.current} />;
 }

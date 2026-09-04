@@ -27,25 +27,59 @@ import { useT } from '../i18n';
  * and in the service that issued it, nowhere else. Verification is a round trip
  * to that service.
  */
-export function OtpScreen() {
+type Props = {
+  /**
+   * Which flow this code belongs to. Sign-up creates an account afterwards;
+   * sign-in completes a session whose password has already been checked.
+   */
+  mode?: 'signup' | 'signin';
+};
+
+export function OtpScreen({ mode = 'signup' }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
-  const { pending, confirmSignUp, resendCode, cancelSignUp } = useAuth();
+  const {
+    pending,
+    confirmSignUp,
+    resendCode,
+    cancelSignUp,
+    pendingSignIn,
+    confirmSignIn,
+    resendSignInCode,
+    cancelSignIn,
+  } = useAuth();
+
+  const signingIn = mode === 'signin';
+  const flow = signingIn
+    ? pendingSignIn && {
+        email: pendingSignIn.account.email,
+        phone: pendingSignIn.account.phone,
+        channel: 'email' as const,
+        delivery: pendingSignIn.delivery,
+      }
+    : pending && {
+        email: pending.email,
+        phone: pending.storedPhone,
+        channel: pending.channel,
+        delivery: pending.delivery,
+      };
+  const confirm = signingIn ? confirmSignIn : confirmSignUp;
+  const resend = signingIn ? resendSignInCode : resendCode;
+  const cancel = signingIn ? cancelSignIn : cancelSignUp;
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const input = useRef<TextInput>(null);
 
-  if (!pending) return null;
+  if (!flow) return null;
 
-  const destination =
-    pending.channel === 'sms' ? formatStored(pending.storedPhone) : pending.email;
+  const destination = flow.channel === 'sms' ? formatStored(flow.phone) : flow.email;
 
   const submit = async (value = code) => {
     setError(null);
     setBusy(true);
     try {
-      await confirmSignUp(value);
+      await confirm(value);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Vérification impossible.');
       setCode('');
@@ -70,7 +104,7 @@ export function OtpScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Pressable
-          onPress={cancelSignUp}
+          onPress={cancel}
           accessibilityRole="button"
           accessibilityLabel={t('Retour')}
           hitSlop={8}
@@ -81,9 +115,10 @@ export function OtpScreen() {
 
         <Text style={styles.title}>{t('Vérification')}</Text>
         <Text style={styles.lede}>
-          Nous avons envoyé un code à {OTP_LENGTH} chiffres à{' '}
+          {t('Nous avons envoyé un code à {digits} chiffres à', { digits: OTP_LENGTH })}{' '}
           <Text style={styles.destination}>{destination}</Text>.
         </Text>
+        {signingIn ? <Text style={styles.lede}>{t('Votre mot de passe est correct. Ce code termine la connexion.')}</Text> : null}
 
         {/* The boxes are the visual affordance; the real field is a single
             input laid over them, which is what accepts paste and the SMS
@@ -116,9 +151,12 @@ export function OtpScreen() {
         <View style={styles.sent}>
           <Icon name="solar:shield-check-bold" size={18} color={colors.success} />
           <Text style={styles.sentText}>
-            Consultez votre boîte e-mail. Le code expire dans{' '}
-            {Math.round(pending.delivery.expiresIn / 60)} minutes et ne peut servir qu'une fois.
-            Pensez à vérifier vos courriers indésirables.
+            {flow.channel === 'sms'
+              ? t('Consultez vos messages.')
+              : t('Consultez votre boîte e-mail, y compris les courriers indésirables.')}{' '}
+            {t('Le code expire dans {minutes} minutes et ne peut servir qu\'une fois.', {
+              minutes: Math.round(flow.delivery.expiresIn / 60),
+            })}
           </Text>
         </View>
 
@@ -136,7 +174,7 @@ export function OtpScreen() {
             setCode('');
             setError(null);
             try {
-              await resendCode();
+              await resend();
             } catch (e) {
               setError(e instanceof Error ? e.message : "Impossible d'envoyer un nouveau code.");
             }

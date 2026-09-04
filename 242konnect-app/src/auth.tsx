@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   hashPassword,
@@ -25,6 +33,8 @@ import {
   requestCode,
   type OtpDelivery,
 } from './otpClient';
+import { ProfileConflictError, pullProfile, pushProfile } from './profileStore';
+import { freshSession, type SupabaseSession } from './supabase';
 
 /**
  * Accounts, stored on the device.
@@ -187,6 +197,12 @@ type StoredAccount = Account & { secret: StoredSecret };
 const ACCOUNTS_KEY = '242k.accounts';
 const SESSION_KEY = '242k.session';
 /**
+ * The Supabase session that goes with the local one, so a profile edit made an
+ * hour after signing in can still reach the server. Refreshed on use rather
+ * than on a timer — see `freshSession`.
+ */
+const SUPABASE_SESSION_KEY = '242k.supabase';
+/**
  * Set the first time the app finishes launching. The directives route the very
  * first open to "Commencer" and every later open straight to Connexion (or the
  * dashboard), so that distinction has to survive a restart.
@@ -284,6 +300,19 @@ export type PendingSignUp = SignUpDraft & {
   verified: boolean;
   /** The canonical number, computed once the draft is accepted. */
   storedPhone: string;
+  /**
+   * The Supabase session the accepted code bought. Null until then, and null on
+   * builds pointed at the 242Konnect API instead. It is what authorises the row
+   * in `public.profiles` once the password is chosen.
+   */
+  session: SupabaseSession | null;
+};
+
+/** A sign-in that has passed the password and is waiting on the e-mail code. */
+export type PendingSignIn = {
+  /** Resolved from storage, but not signed in until the code is accepted. */
+  account: Account;
+  delivery: OtpDelivery;
 };
 
 type AuthState = {
@@ -301,7 +330,16 @@ type AuthState = {
   /** Issues a fresh code for the pending sign-up. */
   resendCode: () => Promise<void>;
   cancelSignUp: () => void;
+  /**
+   * Checks the password and sends a code. Does **not** sign anyone in: the
+   * session is created by `confirmSignIn` once that code is entered.
+   */
   signIn: (input: { identifier: string; password: string }) => Promise<void>;
+  /** Set between a correct password and the code that completes the sign-in. */
+  pendingSignIn: PendingSignIn | null;
+  confirmSignIn: (code: string) => Promise<void>;
+  resendSignInCode: () => Promise<void>;
+  cancelSignIn: () => void;
   /** Sends a code to the address on file so a forgotten password can be reset. */
   startPasswordReset: (identifier: string) => Promise<{ email: string }>;
   /** Checks that code and sets the new password. */
@@ -408,16 +446,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firstLaunch, setFirstLaunch] = useState(false);
   const [pending, setPending] = useState<PendingSignUp | null>(null);
   const [resetting, setResetting] = useState<AuthState['resetting']>(null);
+  const [pendingSignIn, setPendingSignIn] = useState<PendingSignIn | null>(null);
+  // Held in a ref, not state: nothing renders from it, and a profile edit must
+  // read the token that exists now rather than the one captured when the
+  // callback was created.
+  const supabaseSession = useRef<SupabaseSession | null>(null);
+
+  const rememberSupabaseSession = useCallback(async (next: SupabaseSession | null) => {
+    supabaseSession.current = next;
+    try {
+      if (next) await AsyncStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(next));
+      else await AsyncStorage.removeItem(SUPABASE_SESSION_KEY);
+    } catch {
+      // Losing it costs a sync, not a sign-in: the account is on the device and
+      // the next verification issues a new one.
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
       try {
         await seedDemoAccount();
-        const [raw, launched] = await Promise.all([
+        const [raw, launched, supa] = await Promise.all([
           AsyncStorage.getItem(SESSION_KEY),
           AsyncStorage.getItem(LAUNCHED_KEY),
+          AsyncStorage.getItem(SUPABASE_SESSION_KEY),
         ]);
         if (raw) setAccount(JSON.parse(raw) as Account);
+        if (supa) supabaseSession.current = JSON.parse(supa) as SupabaseSession;
         setFirstLaunch(launched === null);
       } catch {
         // A corrupt session is not worth blocking sign-in over; start signed out.
@@ -451,6 +507,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const merged = accounts.map((a) => (a.phone === next.phone ? { ...a, ...next } : a));
       await setItemChecked(ACCOUNTS_KEY, JSON.stringify(merged));
       await persistSession(next);
+
+      // Then the server, and only then — the device is the copy that must never
+      // be lost, and it works offline. A failed sync leaves the edit saved here
+      // and re-sent on the next one; interrupting someone because Pointe-Noire's
+      // network dropped a request would be the wrong trade.
+      const live = await freshSession(supabaseSession.current);
+      if (!live) return;
+      supabaseSession.current = live;
+      try {
+        await pushProfile(live, next);
+      } catch {
+        // Including a conflict: the row already belongs to this user by id, so
+        // a unique violation here means someone else took the address between
+        // sign-up and now. That is a support matter, not a lost edit.
+      }
     },
     [persistSession]
   );
@@ -525,6 +596,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         storedPhone: stored,
         delivery,
         verified: false,
+        session: null,
       });
     },
     []
@@ -535,10 +607,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!pending) throw new Error('Aucune inscription en cours.');
       // Always server-side: the device holds nothing to compare against, so
       // attempts are capped and the code expires where it was issued.
-      await checkCode(pending.storedPhone, pending.email, code, pending.delivery);
+      const session = await checkCode(pending.storedPhone, pending.email, code, pending.delivery);
 
       // Verified, but deliberately not created. The password comes next.
-      setPending((prev) => (prev ? { ...prev, verified: true } : prev));
+      // The session is kept because it is the one moment identity is proven;
+      // `completeSignUp` spends it on the row in public.profiles.
+      setPending((prev) => (prev ? { ...prev, verified: true, session } : prev));
     },
     [pending]
   );
@@ -573,12 +647,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         business: pending.business,
         createdAt: Date.now(),
       };
-      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
       const { secret: _omit, ...safe } = created;
+
+      // The server first, this time, and on purpose: `email` and `phone` are
+      // UNIQUE in public.profiles, so this is where a number already registered
+      // from someone else's phone is refused. The local check above only ever
+      // saw this device. Nothing is written here if the row is rejected — an
+      // account that exists on the phone but not on the platform is worse than
+      // no account.
+      if (pending.session) {
+        try {
+          await pushProfile(pending.session, safe);
+        } catch (e) {
+          if (e instanceof ProfileConflictError) throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+          throw e;
+        }
+        await rememberSupabaseSession(pending.session);
+      }
+
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
       setPending(null);
       await persistSession(safe);
     },
-    [pending, persistSession]
+    [pending, persistSession, rememberSupabaseSession]
   );
 
   const resendCode = useCallback(async () => {
@@ -608,10 +699,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
 
       const { secret: _omit, ...safe } = found;
-      await persistSession(safe);
+
+      // The demo account is the one exemption, and it has to be: its address,
+      // demo@242konnect.cg, is a placeholder nobody receives mail at, so a
+      // second factor sent there is not a stronger check but a locked door with
+      // no key. Requiring it would end every shared preview at the sign-in
+      // screen. Real accounts get the code; this one never leaves the device.
+      if (DEMO_ENABLED && safe.phone === DEMO_PHONE) {
+        await persistSession(safe);
+        return;
+      }
+
+      // The password is only the first factor. A code goes to the address on
+      // the account and must be entered before the session exists — asked for
+      // directly: the verification service must run on sign-in as well as
+      // sign-up, and it must be Supabase that sends it.
+      //
+      // The account is resolved here but deliberately not persisted. Nothing is
+      // signed in until confirmSignIn succeeds.
+      const delivery = await requestCode(safe.phone, safe.email, {
+        name: safe.name,
+        phone: safe.phone,
+      });
+      setPendingSignIn({ account: safe, delivery });
     },
     [persistSession]
   );
+
+  const confirmSignIn = useCallback<AuthState['confirmSignIn']>(
+    async (code) => {
+      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      // Server-side, so attempts are capped and the code expires where it was
+      // issued rather than on this device.
+      const session = await checkCode(
+        pendingSignIn.account.phone,
+        pendingSignIn.account.email,
+        code,
+        pendingSignIn.delivery
+      );
+
+      // The profile as last saved from any device wins over this one's copy.
+      // That is the difference between an account and a file on a phone: sign
+      // in after a reinstall and the profile is there.
+      let signedIn = pendingSignIn.account;
+      if (session) {
+        await rememberSupabaseSession(session);
+        try {
+          const remote = await pullProfile(session);
+          if (remote) signedIn = { ...signedIn, ...remote };
+        } catch {
+          // Offline, or the row isn't written yet. The device's copy is a
+          // perfectly good account to sign in to; the next edit pushes it up.
+        }
+      }
+
+      setPendingSignIn(null);
+      await persistAccount(signedIn);
+    },
+    [pendingSignIn, persistAccount, rememberSupabaseSession]
+  );
+
+  const resendSignInCode = useCallback(async () => {
+    if (!pendingSignIn) return;
+    const delivery = await requestCode(pendingSignIn.account.phone, pendingSignIn.account.email, {
+      name: pendingSignIn.account.name,
+      phone: pendingSignIn.account.phone,
+    });
+    setPendingSignIn((prev) => (prev ? { ...prev, delivery } : prev));
+  }, [pendingSignIn]);
+
+  const cancelSignIn = useCallback(() => setPendingSignIn(null), []);
 
   /* ---------------------------------------------------------------- *
    * Forgotten passwords
@@ -655,7 +812,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const cancelPasswordReset = useCallback(() => setResetting(null), []);
 
-  const signOut = useCallback(() => persistSession(null), [persistSession]);
+  const signOut = useCallback(async () => {
+    // The server token goes with the local session, so the next sign-in has to
+    // go through the code again rather than inheriting a still-valid one.
+    await rememberSupabaseSession(null);
+    await persistSession(null);
+  }, [persistSession, rememberSupabaseSession]);
 
   const markLaunched = useCallback(() => {
     setFirstLaunch(false);
@@ -709,6 +871,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendCode,
       cancelSignUp,
       signIn,
+      pendingSignIn,
+      confirmSignIn,
+      resendSignInCode,
+      cancelSignIn,
       signOut,
       startPasswordReset,
       completePasswordReset,
@@ -730,6 +896,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendCode,
       cancelSignUp,
       signIn,
+      pendingSignIn,
+      confirmSignIn,
+      resendSignInCode,
+      cancelSignIn,
       signOut,
       startPasswordReset,
       completePasswordReset,
