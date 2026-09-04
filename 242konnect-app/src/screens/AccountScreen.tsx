@@ -28,7 +28,7 @@ export function AccountScreen({ navigation }: Props) {
   const t = useT();
   const { language, setLanguage } = useI18n();
   const insets = useSafeAreaInsets();
-  const { account, signOut, switchProfile, activateProfile } = useAuth();
+  const { account, signOut, switchProfile, activateProfile, hasPin, startPinSetup } = useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
 
   if (!account) return null;
@@ -161,6 +161,18 @@ export function AccountScreen({ navigation }: Props) {
           <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
         </Pressable>
         <Pressable
+          onPress={() => startPinSetup(hasPin)}
+          accessibilityRole="button"
+          accessibilityLabel={hasPin ? t('Changer mon code confidentiel') : t('Définir un code confidentiel')}
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        >
+          <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />
+          <Text style={styles.rowLabel}>
+            {hasPin ? t('Changer mon code confidentiel') : t('Définir un code confidentiel')}
+          </Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable
           onPress={() => navigation.navigate('FAQ')}
           accessibilityRole="button"
           accessibilityLabel={t('Questions fréquentes')}
@@ -188,7 +200,7 @@ export function AccountScreen({ navigation }: Props) {
         <Text style={styles.signOutLabel}>{t('Se déconnecter')}</Text>
       </Pressable>
 
-      <Text style={styles.disclaimer}>{t("Ce compte est enregistré sur cet appareil uniquement. Il n'existe pas encore de serveur : vous ne pourrez pas vous connecter depuis un autre téléphone.")}</Text>
+      <Text style={styles.disclaimer}>{t("Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.")}</Text>
     </ScrollView>
   );
 }

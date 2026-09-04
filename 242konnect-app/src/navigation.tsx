@@ -21,6 +21,8 @@ import { SignInScreen } from './screens/SignInScreen';
 import { SplashScreen } from './screens/SplashScreen';
 import { OtpScreen } from './screens/OtpScreen';
 import { CreatePasswordScreen } from './screens/CreatePasswordScreen';
+import { PinScreen } from './screens/PinScreen';
+import { SetPinScreen } from './screens/SetPinScreen';
 import { ResetPasswordScreen } from './screens/ResetPasswordScreen';
 import { useAuth } from './auth';
 import type { CategoryId } from './data';
@@ -134,8 +136,16 @@ function AuthFlow({ firstLaunch }: { firstLaunch: boolean }) {
 }
 
 export function RootNavigator() {
-  const { account, restoring, firstLaunch, markLaunched, pending, pendingSignIn, resetting } =
-    useAuth();
+  const {
+    account,
+    restoring,
+    firstLaunch,
+    markLaunched,
+    pending,
+    pendingSignIn,
+    pendingPinSetup,
+    resetting,
+  } = useAuth();
   const [splashDone, setSplashDone] = useState(false);
   // Captured before markLaunched clears it, so the routing decision isn't
   // changed underneath the navigator by its own side effect.
@@ -156,6 +166,9 @@ export function RootNavigator() {
   // someone who is already signed in.
   if (restoring) return <View style={{ flex: 1, backgroundColor: colors.black }} />;
 
+  // Choosing or changing the PIN sits over the app: it is reached from the
+  // account screen and offered once, straight after sign-up.
+  if (pendingPinSetup) return <SetPinScreen />;
   if (account) return <AppTabs />;
   // A password reset owns the screen while it runs, for the same reason a
   // pending sign-up does: there is one thing to finish and nowhere else to be.
@@ -167,7 +180,9 @@ export function RootNavigator() {
   if (pending) return pending.verified ? <CreatePasswordScreen /> : <OtpScreen />;
 
   // The password was right, but it is only the first factor: the session does
-  // not exist until the code sent to the address on the account is entered.
-  if (pendingSignIn) return <OtpScreen mode="signin" />;
+  // not exist until the second one is proved. Which one depends on whether this
+  // device already knows the account — the PIN if so, a mailed code if not.
+  if (pendingSignIn)
+    return pendingSignIn.method === 'pin' ? <PinScreen /> : <OtpScreen mode="signin" />;
   return <AuthFlow firstLaunch={wasFirstLaunch.current} />;
 }

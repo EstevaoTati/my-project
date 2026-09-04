@@ -329,8 +329,6 @@ export const en: Record<string, string> = {
   'Bientôt disponible': 'Coming soon',
 
   /* ---- Notes about what is not built yet ------------------------------ */
-  "Ce compte est enregistré sur cet appareil uniquement. Il n'existe pas encore de serveur : vous ne pourrez pas vous connecter depuis un autre téléphone.":
-    'This account is stored on this device only. There is no server yet, so you will not be able to sign in from another phone.',
   "Démonstration : aucun argent n'a été débité. Les paiements réels nécessitent les comptes marchands MTN MoMo et Airtel Money côté serveur.":
     'Demo: no money was debited. Real payments need the MTN MoMo and Airtel Money merchant accounts on the server.',
   "Démonstration : aucun versement réel n'a lieu.": 'Demo: no real payout takes place.',
@@ -646,4 +644,32 @@ export const en: Record<string, string> = {
   'Un électricien vérifié vient de rejoindre votre quartier.': 'A verified electrician has just joined your area.',
   'Notez votre dernière mission': 'Rate your last job',
   'Votre avis aide les autres clients à choisir.': 'Your review helps other clients choose.',
+
+  /* ---- Code confidentiel (PIN) ---------------------------------------- */
+  'Votre code confidentiel': 'Your PIN',
+  'Changer votre code': 'Change your PIN',
+  'Code confidentiel': 'PIN',
+  'Code actuel': 'Current PIN',
+  'Nouveau code': 'New PIN',
+  'Confirmer le code': 'Confirm the PIN',
+  'Les deux codes ne correspondent pas.': 'The two PINs do not match.',
+  'Définir mon code': 'Set my PIN',
+  'Changer mon code': 'Change my PIN',
+  'Définir un code confidentiel': 'Set a PIN',
+  'Changer mon code confidentiel': 'Change my PIN',
+  'Valider le code confidentiel': 'Confirm the PIN',
+  'Recevoir un code par e-mail': 'Receive a code by e-mail',
+  'Code oublié ? Recevoir un code par e-mail': 'Forgot your PIN? Get a code by e-mail',
+  'Envoi en cours…': 'Sending…',
+  'Plus tard': 'Later',
+  'Saisissez vos {digits} chiffres pour terminer la connexion.':
+    'Enter your {digits} digits to finish signing in.',
+  'Six chiffres pour vous reconnecter sans attendre un e-mail. Choisissez un code que vous seul connaissez, et ne le notez pas sur votre téléphone.':
+    'Six digits to sign back in without waiting for an e-mail. Choose one only you know, and do not write it down on your phone.',
+  "Le code n'est jamais enregistré sur cet appareil. Après cinq essais incorrects, il est bloqué quinze minutes.":
+    'The PIN is never stored on this device. After five wrong tries it is locked for fifteen minutes.',
+  'Plus tard — je recevrai un code par e-mail à chaque connexion.':
+    'Later — I will get a code by e-mail at every sign-in.',
+  "Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.":
+    'Your profile is saved on our servers and follows you from one device to the next. Your password stays on this phone: to sign in elsewhere, use account recovery.',
 };

@@ -35,6 +35,13 @@ import {
 } from './otpClient';
 import { ProfileConflictError, pullProfile, pushProfile } from './profileStore';
 import { freshSession, type SupabaseSession } from './supabase';
+import {
+  knownToHavePin,
+  rememberHasPin,
+  setPin as storePin,
+  verifyPin as checkPin,
+  PIN_LENGTH,
+} from './pin';
 
 /**
  * Accounts, stored on the device.
@@ -148,6 +155,12 @@ export type Account = {
   profiles: ProfileKind[];
   /** The profile currently in use; switched from the Profil tab. */
   activeProfile: ProfileKind;
+  /**
+   * The `auth.users` id, learned the first time a code is accepted. It is what
+   * ties this account to its row in public.profiles and to its PIN, and what
+   * stops a device token belonging to one account being spent on another.
+   */
+  supabaseUserId?: string;
   /** Populated only for the profiles this account has activated. */
   particulier?: ParticulierDetails;
   prestataire?: PrestataireDetails;
@@ -308,12 +321,31 @@ export type PendingSignUp = SignUpDraft & {
   session: SupabaseSession | null;
 };
 
-/** A sign-in that has passed the password and is waiting on the e-mail code. */
+/** A sign-in that has passed the password and is waiting on its second factor. */
 export type PendingSignIn = {
-  /** Resolved from storage, but not signed in until the code is accepted. */
+  /** Resolved from storage, but not signed in until the factor is accepted. */
   account: Account;
-  delivery: OtpDelivery;
+  /**
+   * Which second factor is being asked for.
+   *
+   * `pin` when this device has been signed into by this account before and a
+   * PIN exists — the fast path, and the one that keeps two-factor switched on,
+   * because waiting for an e-mail at every sign-in is what makes people turn it
+   * off. `email` otherwise, and whenever the PIN is forgotten or locked.
+   */
+  method: 'pin' | 'email';
+  /** Set on the `email` path only: what was sent, and for how long. */
+  delivery: OtpDelivery | null;
+  /**
+   * The device's Supabase session, refreshed from the token left behind by the
+   * last successful sign-in. Present only on the `pin` path — the PIN function
+   * needs a bearer token, and at sign-in there is no other way to have one.
+   */
+  session: SupabaseSession | null;
 };
+
+/** Set when the app is offering to define or replace the PIN. */
+export type PendingPinSetup = { replacing: boolean };
 
 type AuthState = {
   account: Account | null;
@@ -340,6 +372,19 @@ type AuthState = {
   confirmSignIn: (code: string) => Promise<void>;
   resendSignInCode: () => Promise<void>;
   cancelSignIn: () => void;
+  /** Checks the 6-digit PIN. Server-side, like every other factor here. */
+  confirmPin: (pin: string) => Promise<void>;
+  /** Abandons the PIN and mails a code instead — forgotten, or locked out. */
+  useEmailCodeInstead: () => Promise<void>;
+  /** Set while the app is offering to define or replace the PIN. */
+  pendingPinSetup: PendingPinSetup | null;
+  /** Opens that screen. `replacing` demands the current PIN as well. */
+  startPinSetup: (replacing: boolean) => void;
+  /** Stores the chosen PIN. Hashed by the Edge Function, never here. */
+  definePin: (pin: string, current?: string) => Promise<void>;
+  skipPinSetup: () => void;
+  /** Whether this account can sign in with a PIN on this device. */
+  hasPin: boolean;
   /** Sends a code to the address on file so a forgotten password can be reset. */
   startPasswordReset: (identifier: string) => Promise<{ email: string }>;
   /** Checks that code and sets the new password. */
@@ -447,6 +492,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pending, setPending] = useState<PendingSignUp | null>(null);
   const [resetting, setResetting] = useState<AuthState['resetting']>(null);
   const [pendingSignIn, setPendingSignIn] = useState<PendingSignIn | null>(null);
+  const [pendingPinSetup, setPendingPinSetup] = useState<PendingPinSetup | null>(null);
+  const [hasPin, setHasPin] = useState(false);
   // Held in a ref, not state: nothing renders from it, and a profile edit must
   // read the token that exists now rather than the one captured when the
   // callback was created.
@@ -472,8 +519,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(LAUNCHED_KEY),
           AsyncStorage.getItem(SUPABASE_SESSION_KEY),
         ]);
-        if (raw) setAccount(JSON.parse(raw) as Account);
+        const restored = raw ? (JSON.parse(raw) as Account) : null;
+        if (restored) setAccount(restored);
         if (supa) supabaseSession.current = JSON.parse(supa) as SupabaseSession;
+        if (restored?.supabaseUserId) setHasPin(await knownToHavePin(restored.supabaseUserId));
         setFirstLaunch(launched === null);
       } catch {
         // A corrupt session is not worth blocking sign-in over; start signed out.
@@ -513,7 +562,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // and re-sent on the next one; interrupting someone because Pointe-Noire's
       // network dropped a request would be the wrong trade.
       const live = await freshSession(supabaseSession.current);
-      if (!live) return;
+      // The token that survives sign-out could belong to whoever used this
+      // phone last, so it is only spent on the row it actually owns.
+      if (!live || (next.supabaseUserId && live.userId !== next.supabaseUserId)) return;
       supabaseSession.current = live;
       try {
         await pushProfile(live, next);
@@ -647,7 +698,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         business: pending.business,
         createdAt: Date.now(),
       };
-      const { secret: _omit, ...safe } = created;
+      const withId: StoredAccount = pending.session
+        ? { ...created, supabaseUserId: pending.session.userId }
+        : created;
+      const { secret: _omit, ...safe } = withId;
 
       // The server first, this time, and on purpose: `email` and `phone` are
       // UNIQUE in public.profiles, so this is where a number already registered
@@ -665,9 +719,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await rememberSupabaseSession(pending.session);
       }
 
-      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, created]));
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, withId]));
       setPending(null);
       await persistSession(safe);
+      // Offered, not imposed. An account with no PIN still works — it just asks
+      // for a mailed code at every sign-in. Demanding one more secret at the end
+      // of a long sign-up is how people end up choosing 123456.
+      if (pending.session) setPendingPinSetup({ replacing: false });
     },
     [pending, persistSession, rememberSupabaseSession]
   );
@@ -710,18 +768,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // The password is only the first factor. A code goes to the address on
-      // the account and must be entered before the session exists — asked for
-      // directly: the verification service must run on sign-in as well as
-      // sign-up, and it must be Supabase that sends it.
+      // The password is only the first factor. Something else must be proved
+      // before the session exists, and there are two ways to prove it.
       //
-      // The account is resolved here but deliberately not persisted. Nothing is
-      // signed in until confirmSignIn succeeds.
+      // The PIN, when this device already holds a refreshable Supabase token
+      // for this exact account. That token is what makes the PIN checkable at
+      // all — the Edge Function needs a bearer token, and before any factor is
+      // proved there is no other source of one. It is also why the PIN is a
+      // genuine second factor rather than a shortcut past one: it takes the
+      // password (known), this device (the token), and the PIN (known) — and
+      // the token alone signs nobody in, because the app's session is the
+      // separate record that sign-out clears.
+      //
+      // Otherwise the mailed code, which needs nothing but the address.
+      //
+      // Either way the account is resolved here and deliberately not persisted.
+      const device = safe.supabaseUserId ? await freshSession(supabaseSession.current) : null;
+      if (device && device.userId === safe.supabaseUserId && (await knownToHavePin(device.userId))) {
+        supabaseSession.current = device;
+        setPendingSignIn({ account: safe, method: 'pin', delivery: null, session: device });
+        return;
+      }
+
       const delivery = await requestCode(safe.phone, safe.email, {
         name: safe.name,
         phone: safe.phone,
       });
-      setPendingSignIn({ account: safe, delivery });
+      setPendingSignIn({ account: safe, method: 'email', delivery, session: null });
     },
     [persistSession]
   );
@@ -731,6 +804,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
       // Server-side, so attempts are capped and the code expires where it was
       // issued rather than on this device.
+      if (!pendingSignIn.delivery) throw new Error('Aucun code en attente.');
       const session = await checkCode(
         pendingSignIn.account.phone,
         pendingSignIn.account.email,
@@ -743,7 +817,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // in after a reinstall and the profile is there.
       let signedIn = pendingSignIn.account;
       if (session) {
+        // Learned here and kept: it is what lets the next sign-in on this
+        // device recognise the account and offer the PIN.
+        signedIn = { ...signedIn, supabaseUserId: session.userId };
         await rememberSupabaseSession(session);
+        setHasPin(await knownToHavePin(session.userId));
         try {
           const remote = await pullProfile(session);
           if (remote) signedIn = { ...signedIn, ...remote };
@@ -765,8 +843,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: pendingSignIn.account.name,
       phone: pendingSignIn.account.phone,
     });
-    setPendingSignIn((prev) => (prev ? { ...prev, delivery } : prev));
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
   }, [pendingSignIn]);
+
+  /**
+   * The PIN as the second factor.
+   *
+   * The comparison is the Edge Function's, not this file's — a check the device
+   * could perform is a check an attacker holding the device can perform 10^6
+   * times. All that happens here is that a success is turned into a session.
+   */
+  const confirmPin = useCallback<AuthState['confirmPin']>(
+    async (pin) => {
+      if (!pendingSignIn?.session) throw new Error('Aucune connexion en cours.');
+      await checkPin(pendingSignIn.session, pin);
+
+      let signedIn = { ...pendingSignIn.account, supabaseUserId: pendingSignIn.session.userId };
+      try {
+        const remote = await pullProfile(pendingSignIn.session);
+        if (remote) signedIn = { ...signedIn, ...remote };
+      } catch {
+        // The device's copy is a perfectly good account to sign in to.
+      }
+      setPendingSignIn(null);
+      setHasPin(true);
+      await persistAccount(signedIn);
+    },
+    [pendingSignIn, persistAccount]
+  );
+
+  /** Forgotten PIN, or locked out: fall back to the code, which proves the same address. */
+  const useEmailCodeInstead = useCallback(async () => {
+    if (!pendingSignIn) return;
+    const delivery = await requestCode(pendingSignIn.account.phone, pendingSignIn.account.email, {
+      name: pendingSignIn.account.name,
+      phone: pendingSignIn.account.phone,
+    });
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
+  }, [pendingSignIn]);
+
+  const startPinSetup = useCallback(
+    (replacing: boolean) => setPendingPinSetup({ replacing }),
+    []
+  );
+  const skipPinSetup = useCallback(() => setPendingPinSetup(null), []);
+
+  const definePin = useCallback<AuthState['definePin']>(
+    async (pin, current) => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live)
+        throw new Error(
+          'Votre session de vérification a expiré. Reconnectez-vous pour définir un code.'
+        );
+      supabaseSession.current = live;
+      await storePin(live, pin, current);
+      setHasPin(true);
+      setPendingPinSetup(null);
+    },
+    []
+  );
 
   const cancelSignIn = useCallback(() => setPendingSignIn(null), []);
 
@@ -813,11 +948,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const cancelPasswordReset = useCallback(() => setResetting(null), []);
 
   const signOut = useCallback(async () => {
-    // The server token goes with the local session, so the next sign-in has to
-    // go through the code again rather than inheriting a still-valid one.
-    await rememberSupabaseSession(null);
+    // The Supabase token deliberately stays behind.
+    //
+    // It is not the app's session — that is the record `persistSession(null)`
+    // clears, and clearing it is what signs someone out. What remains is a
+    // device token: proof that this account has been verified on this phone
+    // before, which is exactly what the PIN path needs and cannot obtain any
+    // other way. On its own it signs nobody in and unlocks nothing; the PIN
+    // function still demands the PIN, and the app still demands the password.
+    //
+    // Someone who wants the device forgotten uninstalls, or clears the app's
+    // data — both drop it, and the next sign-in falls back to the mailed code.
     await persistSession(null);
-  }, [persistSession, rememberSupabaseSession]);
+    setHasPin(false);
+    setPendingPinSetup(null);
+  }, [persistSession]);
 
   const markLaunched = useCallback(() => {
     setFirstLaunch(false);
@@ -875,6 +1020,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmSignIn,
       resendSignInCode,
       cancelSignIn,
+      confirmPin,
+      useEmailCodeInstead,
+      pendingPinSetup,
+      startPinSetup,
+      definePin,
+      skipPinSetup,
+      hasPin,
       signOut,
       startPasswordReset,
       completePasswordReset,
@@ -900,6 +1052,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmSignIn,
       resendSignInCode,
       cancelSignIn,
+      confirmPin,
+      useEmailCodeInstead,
+      pendingPinSetup,
+      startPinSetup,
+      definePin,
+      skipPinSetup,
+      hasPin,
       signOut,
       startPasswordReset,
       completePasswordReset,

@@ -50,8 +50,10 @@ export function OtpScreen({ mode = 'signup' }: Props) {
   } = useAuth();
 
   const signingIn = mode === 'signin';
+  // On the sign-in side this screen only exists once a code has actually been
+  // sent — `delivery` null means the PIN is the factor and PinScreen has it.
   const flow = signingIn
-    ? pendingSignIn && {
+    ? pendingSignIn?.delivery && {
         email: pendingSignIn.account.email,
         phone: pendingSignIn.account.phone,
         channel: 'email' as const,
