@@ -10,11 +10,11 @@ const SITE = {
   // Amber "draft preview" banner. Set to false once the values below are real.
   draft: true,
 
-  // Service times. Shown on the visit cards and in the contact panel.
+  // Service time. Shown on the visit card and in the contact panel.
+  // Add another entry here (and a card in index.html) only for a gathering
+  // that actually runs — nothing on this page invents a schedule.
   times: {
-    sunday:  { en: 'Sunday · 10:00 AM',        fr: 'Dimanche · 10h00' },            // TODO confirm
-    worship: { en: 'Last Friday · 7:00 PM',    fr: 'Dernier vendredi · 19h00' },   // TODO confirm
-    prayer:  { en: 'Wednesday · 7:00 PM',      fr: 'Mercredi · 19h00' }            // TODO confirm
+    sunday: { en: 'Sunday · 10:00 AM', fr: 'Dimanche · 10h00' }   // TODO confirm
   },
 
   // Meeting place.
@@ -55,15 +55,15 @@ const FR = {
 
   'visit.eyebrow': 'Rassemblons-nous',
   'visit.title': 'Venez comme vous êtes.<br>Vous serez reçus comme la famille.',
-  'visit.lede': 'Pas de code vestimentaire, pas de formalités, rien à payer. Arrivez quelques minutes en avance : notre équipe d’accueil vous rencontrera à la porte, vous aidera à trouver une place et répondra à vos questions.',
+  'visit.lede': 'Le dimanche est le rassemblement autour duquel nous vous invitons à vous organiser. Ce qu’il faut savoir avant une première visite est ci-dessous ; s’il manque quelque chose, écrivez-nous et nous répondrons.',
   'visit.c1k': 'Culte du dimanche',
-  'visit.c1m': 'Louange, Parole, prière et sainte cène. Environ deux heures, avec un accueil des nouveaux à la fin.',
-  'visit.c2k': 'Nuit de louange',
-  'visit.c2m': 'Une soirée entièrement consacrée à la louange et à la présence de Dieu, conduite par notre équipe.',
-  'visit.c3k': 'Prière &amp; étude biblique',
-  'visit.c3m': 'Enseignement et intercession en semaine, sur place et en ligne pour ceux qui ne peuvent pas se déplacer.',
+  'visit.c1m': 'Louange, Parole et prière, avec un accueil des nouveaux à la fin du culte.',
+  'visit.c2k': 'À quoi s’attendre', 'visit.c2t': 'Venez comme vous êtes',
+  'visit.c2m': 'Pas de code vestimentaire, rien à payer. Quelqu’un de l’équipe d’accueil vous rencontrera à la porte et s’assiéra avec vous si vous préférez ne pas entrer seul.',
+  'visit.c3k': 'Venir avec des enfants', 'visit.c3t': 'Ils sont les bienvenus',
+  'visit.c3m': 'Les enfants restent avec leur famille pendant le culte. Personne ici ne s’offusque du bruit d’un enfant.',
   'visit.placek': 'Où nous nous réunissons',
-  'visit.placem': 'Stationnement gratuit sur place. Bâtiment accessible de plain-pied. Les enfants sont les bienvenus au culte.',
+  'visit.placem': 'Écrivez-nous pour l’itinéraire et pour tout ce que vous aimeriez savoir avant votre première visite.',
   'visit.directions': 'Obtenir l’itinéraire', 'visit.ask': 'Poser une question',
 
   'about.eyebrow': 'Qui nous sommes',
@@ -98,7 +98,7 @@ const FR = {
   'min.m1t': 'Louange &amp; musique',
   'min.m1d': 'Chanteurs, musiciens et techniciens du son qui conduisent l’assemblée dans la présence de Dieu, semaine après semaine.',
   'min.m2t': 'Prière &amp; intercession',
-  'min.m2d': 'La salle des machines de l’église. Nous prions pour notre ville, nos familles, les malades et les nations, sur place et par téléphone.',
+  'min.m2d': 'La salle des machines de l’église. Nous prions pour notre ville, nos familles, les malades et les nations.',
   'min.m3t': 'Jeunesse &amp; enfants',
   'min.m3d': 'Un enseignement qui prend les jeunes au sérieux, afin que la génération suivante s’approprie la foi au lieu d’hériter d’une habitude.',
   'min.m4t': 'Missions &amp; évangélisation',
@@ -109,7 +109,7 @@ const FR = {
   'min.m6d': 'Hospitalité, aide pratique aux nouveaux arrivés aux États-Unis, visite des malades et soutien dans le deuil.',
 
   'life.eyebrow': 'Vie d’église', 'life.title': 'Nuit de louange.',
-  'life.lede': 'Un soir par mois, nous posons le programme et donnons toute la soirée à la louange. Voici à quoi cela ressemble.',
+  'life.lede': 'La Nuit de louange est une soirée entièrement consacrée à la louange et à la présence de Dieu, conduite par notre équipe. Voici à quoi cela ressemble.',
   'watch.title': 'Vous avez manqué un culte ? Revoyez-le.',
   'watch.lede': 'Les messages, les nuits de louange et les cultes spéciaux sont publiés sur notre chaîne YouTube. Abonnez-vous pour être averti dès que nous sommes en direct.',
   'watch.cta': 'Regarder sur YouTube',

@@ -92,33 +92,30 @@
 <main id="main">
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="top">
-  <div class="hero__bg" aria-hidden="true"><i></i><i></i></div>
-  <div class="wrap hero__grid">
-    <div class="hero__copy">
-      <p class="hero__eyebrow"><span class="hero__dot"></span><span data-i18n="hero.eyebrow">Washington, D.C. · Everyone is welcome</span></p>
-      <h1>
-        <span data-i18n="hero.l1">Holy Mountain</span>
-        <span class="l2" data-i18n="hero.l2">Washington Church</span>
-      </h1>
-      <p class="hero__verse" data-i18n="hero.verse">Communauté Évangélique Missionnaire La Montagne Sainte. A missionary family sent to go out into the world and make disciples of Jesus.</p>
-      <div class="hero__cta">
-        <a class="btn btn--flame" href="#visit" data-i18n="hero.cta1">Plan your visit</a>
-        <a class="btn btn--ghost" href="#life" data-i18n="hero.cta2">See church life</a>
-      </div>
-      <a class="hero__scroll" href="#visit"><i></i><span data-i18n="hero.scroll">Scroll</span></a>
-    </div>
-
-    <figure class="hero__frame">
-      <video id="heroVideo" autoplay muted loop playsinline preload="metadata"
-             poster="assets/img/emblem-frame.jpg" aria-label="The emblem of Holy Mountain Washington Church, turning continuously">
-        <source src="assets/clips/msw-logo-8s.mp4" type="video/mp4">
-        <img src="assets/img/emblem-frame.jpg" alt="Emblem of Holy Mountain Washington Church on a deep blue background">
-      </video>
-      <button class="hero__sound" id="motionToggle" type="button" aria-label="Pause the animation" title="Pause the animation">
-        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>
-      </button>
-    </figure>
+  <div class="hero__media">
+    <video id="heroVideo" autoplay muted loop playsinline preload="metadata"
+           poster="assets/img/emblem-frame.jpg" aria-hidden="true" tabindex="-1">
+      <source src="assets/clips/msw-logo-8s.mp4" type="video/mp4">
+    </video>
   </div>
+
+  <div class="wrap hero__inner">
+    <p class="hero__eyebrow"><span class="hero__dot"></span><span data-i18n="hero.eyebrow">Washington, D.C. · Everyone is welcome</span></p>
+    <h1>
+      <span data-i18n="hero.l1">Holy Mountain</span>
+      <span class="l2" data-i18n="hero.l2">Washington Church</span>
+    </h1>
+    <p class="hero__verse" data-i18n="hero.verse">Communauté Évangélique Missionnaire La Montagne Sainte. A missionary family sent to go out into the world and make disciples of Jesus.</p>
+    <div class="hero__cta">
+      <a class="btn btn--flame" href="#visit" data-i18n="hero.cta1">Plan your visit</a>
+      <a class="btn btn--ghost" href="#life" data-i18n="hero.cta2">See church life</a>
+    </div>
+    <a class="hero__scroll" href="#visit"><i></i><span data-i18n="hero.scroll">Scroll</span></a>
+  </div>
+
+  <button class="hero__sound" id="motionToggle" type="button" aria-label="Pause the background animation" title="Pause the background animation">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>
+  </button>
 </section>
 
 <!-- ===================== MARQUEE ===================== -->
@@ -140,7 +137,7 @@
     <div class="rv">
       <p class="eyebrow" data-i18n="visit.eyebrow">Gather with us</p>
       <h2 class="h-display" data-i18n="visit.title">Come as you are.<br>You will be received as family.</h2>
-      <p class="lede" data-i18n="visit.lede">No dress code, no formalities, no fee. Arrive a few minutes early and someone from our welcome team will meet you at the door, help you find a seat and answer any question you have.</p>
+      <p class="lede" data-i18n="visit.lede">Sunday is the gathering we ask you to plan around. What you need to know before a first visit is below, and if something is missing, write to us and we will answer.</p>
     </div>
 
     <div class="grid grid--3" style="margin-top:48px">
@@ -148,19 +145,19 @@
         <div class="card__rule"></div>
         <p class="card__k" data-i18n="visit.c1k">Sunday worship</p>
         <p class="card__time" data-time="sunday">—</p>
-        <p class="card__meta" data-i18n="visit.c1m">Praise, the Word, prayer and communion. Roughly two hours, with a welcome for first-time guests at the end.</p>
+        <p class="card__meta" data-i18n="visit.c1m">Praise, the Word and prayer, with a welcome for first-time guests at the end of the service.</p>
       </article>
       <article class="card rv rv-d2">
         <div class="card__rule"></div>
-        <p class="card__k" data-i18n="visit.c2k">Worship night</p>
-        <p class="card__time" data-time="worship">—</p>
-        <p class="card__meta" data-i18n="visit.c2m">An evening given entirely to praise and to the presence of God, led by our worship team.</p>
+        <p class="card__k" data-i18n="visit.c2k">What to expect</p>
+        <p class="card__time" data-i18n="visit.c2t">Come as you are</p>
+        <p class="card__meta" data-i18n="visit.c2m">No dress code and nothing to pay. Someone from the welcome team will meet you at the door and sit with you if you would rather not walk in alone.</p>
       </article>
       <article class="card rv rv-d3">
         <div class="card__rule"></div>
-        <p class="card__k" data-i18n="visit.c3k">Prayer &amp; Bible study</p>
-        <p class="card__time" data-time="prayer">—</p>
-        <p class="card__meta" data-i18n="visit.c3m">Midweek teaching and intercession, in person and online for those who cannot travel.</p>
+        <p class="card__k" data-i18n="visit.c3k">Bringing children</p>
+        <p class="card__time" data-i18n="visit.c3t">They are welcome</p>
+        <p class="card__meta" data-i18n="visit.c3m">Children stay with their families in the service. Nobody here minds the noise a child makes.</p>
       </article>
 
       <article class="card card--place rv">
@@ -168,7 +165,7 @@
           <div class="card__rule"></div>
           <p class="card__k" data-i18n="visit.placek">Where we meet</p>
           <p style="font-size:20px; font-weight:600" data-address>—</p>
-          <p class="card__meta" data-i18n="visit.placem">Free parking on site. The building is accessible at ground level. Children are welcome in the service.</p>
+          <p class="card__meta" data-i18n="visit.placem">Write to us for directions and for anything else you would like to know before your first visit.</p>
         </div>
         <div style="display:grid; gap:12px">
           <a class="btn btn--flame" data-maps href="#contact" data-i18n="visit.directions">Get directions</a>
@@ -284,7 +281,7 @@
       <article class="min rv rv-d2">
         <div class="min__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></div>
         <h3 data-i18n="min.m2t">Prayer &amp; intercession</h3>
-        <p data-i18n="min.m2d">The engine room of the church. We pray for our city, our families, the sick and the nations, in person and on the phone.</p>
+        <p data-i18n="min.m2d">The engine room of the church. We pray for our city, our families, the sick and the nations.</p>
       </article>
       <article class="min rv rv-d3">
         <div class="min__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l10-4 10 4-10 4z"/><path d="M6 10v6c0 1.7 2.7 3 6 3s6-1.3 6-3v-6"/></svg></div>
@@ -316,7 +313,7 @@
     <div class="rv" style="max-width:70ch">
       <p class="eyebrow" data-i18n="life.eyebrow">Church life</p>
       <h2 class="h-display" data-i18n="life.title">Worship night.</h2>
-      <p class="lede" data-i18n="life.lede">One evening a month we put the programme down and give the whole night to worship. This is what it looks like.</p>
+      <p class="lede" data-i18n="life.lede">Worship Night is an evening given entirely to praise and to the presence of God, led by our worship team. This is what it looks like.</p>
     </div>
     <div class="gal rv" style="margin-top:44px" id="gallery">
       <button type="button" data-full="assets/img/worship-room.jpg" aria-label="Open photo: the congregation worshipping">

@@ -24,7 +24,10 @@ holy-mountain/
 Everything editable lives in one block at the top of `assets/js/site.js`,
 between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be touched.
 
-- [ ] **Service times** — `SITE.times`. The current values are examples.
+- [ ] **Service time** — `SITE.times.sunday`. The current value is an example.
+      Only the Sunday service is listed. Nothing else on the page claims a
+      weekly programme, so add a card to the visit section (and an entry to
+      `SITE.times`) only for a gathering that actually runs.
 - [ ] **Address** — `SITE.address`, and `SITE.mapsUrl` pointing at the venue.
 - [ ] **Giving** — `SITE.giving.mobile` (Zelle / CashApp handle, or leave as is).
 - [ ] **Social links** — `SITE.social`. Each one currently points at the
@@ -40,8 +43,10 @@ between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be to
 
 ## The animated logo
 
-The 8-second clip in the hero was generated on Higgsfield from the emblem
-alone, with no lettering anywhere in the frame. The rings turn continuously at
+The 8-second clip plays full-bleed as the background of the hero. It was
+generated on Higgsfield from the emblem alone, with no lettering anywhere in
+the frame, which is what lets it sit behind the headline without two sets of
+words competing. The rings turn continuously at
 a constant speed, the globe keeps rotating, warm light breathes out from behind
 the emblem, waves of blue light drift across the background as if wind were
 moving through them, and dust rises through the air.
