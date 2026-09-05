@@ -29,6 +29,82 @@
     # passe par le proxy ci-dessus. media-src garde le CDN en secours.
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self'; frame-ancestors 'self';"
 
+# ---------------------------------------------------------------------------
+# PROTOTYPE 242KONNECT — /242konnect
+# La branche principale a supprimé _redirects et déplacé le routage ici ; cette
+# règle reprend la seule route qui s'y trouvait encore.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from = "/242konnect"
+  to = "/242konnect/index.html"
+  status = 200
+
+# Le prototype compile Tailwind dans le navigateur depuis jsDelivr et charge
+# deux polices Google. La CSP stricte de la landing page les bloquerait toutes
+# les trois, et la page s'afficherait sans styles ni icônes.
+#
+# Cette exception est délibérément limitée à /242konnect/* : la landing page
+# garde sa CSP d'origine, entièrement auto-hébergée. À supprimer dès que le
+# prototype précompilera son CSS (voir 242konnect/README).
+[[headers]]
+  for = "/242konnect/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self';"
+
+# ===========================================================================
+# TRANSITIONAL — 242Konnect served from this site
+#
+# 242Konnect is a separate product and now carries its own deployment config:
+# `npm run build:web` writes netlify.toml, _headers and _redirects into
+# 242konnect-web/, so that folder is a complete site on its own. See
+# 242konnect-app/DEPLOY.md.
+#
+# Everything from this banner to the end of the 242Konnect section exists only
+# so the current preview links keep working until that separate Netlify site is
+# live. Delete it once https://242konnect.netlify.app (or the custom domain) is
+# up and checked — at that point the landing page stops carrying the app's
+# routing, its CSP exception for Supabase, and its cache rules.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# APPLICATION 242KONNECT — /242konnect-web
+# Le build web de l'application React Native, servi tel quel.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from = "/242konnect-web"
+  to = "/242konnect-web/index.html"
+  status = 200
+
+# L'application appelle Supabase pour envoyer et vérifier le code de
+# confirmation. La CSP de la landing page impose connect-src 'self' : sans
+# cette exception, l'inscription échouerait silencieusement — la requête serait
+# bloquée par le navigateur, pas par le serveur, donc rien ne le signalerait
+# côté déploiement.
+#
+# Limitée à /242konnect-web/* : la landing page garde sa CSP d'origine.
+# connect-src n'autorise que le projet Supabase, pas un hôte générique.
+#
+# Les deux chemins sont déclarés volontairement. Pour une réécriture (status
+# 200), Netlify choisit les en-têtes d'après l'URL demandée, pas d'après le
+# fichier servi : « /242konnect-web » sans barre oblique ne correspond donc pas
+# à « /242konnect-web/* » et retomberait sur la CSP stricte de /*, ce qui
+# casserait l'inscription — silencieusement, puisque le blocage vient du
+# navigateur.
+[[headers]]
+  for = "/242konnect-web"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://abdmdtftnuyjzkdkcwiq.supabase.co; frame-ancestors 'self';"
+
+[[headers]]
+  for = "/242konnect-web/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://abdmdtftnuyjzkdkcwiq.supabase.co; frame-ancestors 'self';"
+
+[[headers]]
+  for = "/242konnect-web/_expo/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/vendor/*"
   [headers.values]
