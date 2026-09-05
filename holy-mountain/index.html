@@ -93,7 +93,7 @@
 <!-- ===================== HERO ===================== -->
 <section class="hero" id="top">
   <div class="hero__media">
-    <video id="heroVideo" autoplay muted loop playsinline preload="metadata"
+    <video id="heroVideo" data-bg="hero" autoplay muted loop playsinline preload="metadata"
            poster="assets/img/emblem-frame.jpg" aria-hidden="true" tabindex="-1">
       <source src="assets/clips/msw-logo-8s.mp4" type="video/mp4">
     </video>
@@ -140,7 +140,7 @@
       <p class="lede" data-i18n="visit.lede">Sunday is the gathering we ask you to plan around. What you need to know before a first visit is below, and if something is missing, write to us and we will answer.</p>
     </div>
 
-    <div class="grid grid--3" style="margin-top:48px">
+    <div class="grid grid--3 mt-xl">
       <article class="card rv rv-d1">
         <div class="card__rule"></div>
         <p class="card__k" data-i18n="visit.c1k">Sunday worship</p>
@@ -164,10 +164,10 @@
         <div>
           <div class="card__rule"></div>
           <p class="card__k" data-i18n="visit.placek">Where we meet</p>
-          <p style="font-size:20px; font-weight:600" data-address>—</p>
+          <p class="addr-line" data-address>—</p>
           <p class="card__meta" data-i18n="visit.placem">Write to us for directions and for anything else you would like to know before your first visit.</p>
         </div>
-        <div style="display:grid; gap:12px">
+        <div class="stack-12">
           <a class="btn btn--flame" data-maps href="#contact" data-i18n="visit.directions">Get directions</a>
           <a class="btn btn--ghost" href="#contact" data-i18n="visit.ask">Ask us a question</a>
         </div>
@@ -204,13 +204,13 @@
 <!-- ===================== LEADERSHIP ===================== -->
 <section class="section" id="leadership">
   <div class="wrap">
-    <div class="rv" style="max-width:70ch">
+    <div class="rv measure">
       <p class="eyebrow" data-i18n="lead.eyebrow">Leadership</p>
       <h2 class="h-display" data-i18n="lead.title">The people who carry this house.</h2>
       <p class="lede" data-i18n="lead.lede">You should know who is leading before you walk through the door. These are the people who carry this church, and who you will meet on a Sunday.</p>
     </div>
 
-    <div class="leaders" style="margin-top:48px">
+    <div class="leaders mt-xl">
       <article class="leader rv rv-d1">
         <div class="leader__ph">
           <img src="assets/img/pastor-israel-kalakala.webp" width="1000" height="1250"
@@ -241,9 +241,13 @@
 </section>
 
 <!-- ===================== VISION / MISSION ===================== -->
-<section class="section section--dark" id="vision">
+<section class="section section--dark has-vidbg" id="vision">
+  <div class="vidbg" aria-hidden="true">
+    <video data-bg="soft" data-src="assets/clips/msw-logo-8s.mp4" muted loop playsinline
+           preload="none" poster="assets/img/emblem-frame.jpg" tabindex="-1"></video>
+  </div>
   <div class="wrap">
-    <div class="rv" style="max-width:70ch">
+    <div class="rv measure">
       <p class="eyebrow" data-i18n="vision.eyebrow">Vision &amp; mission</p>
       <h2 class="h-display" data-i18n="vision.title">Two sentences that decide everything we do.</h2>
     </div>
@@ -267,12 +271,12 @@
 <!-- ===================== MINISTRIES ===================== -->
 <section class="section" id="ministries">
   <div class="wrap">
-    <div class="rv" style="max-width:70ch">
+    <div class="rv measure">
       <p class="eyebrow" data-i18n="min.eyebrow">Ministries</p>
       <h2 class="h-display" data-i18n="min.title">There is a place here for what God put in you.</h2>
       <p class="lede" data-i18n="min.lede">Every ministry is open to members and to guests who want to serve. Tell us where you would like to start and we will connect you with the person who leads it.</p>
     </div>
-    <div class="grid grid--3" style="margin-top:48px">
+    <div class="grid grid--3 mt-xl">
       <article class="min rv rv-d1">
         <div class="min__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
         <h3 data-i18n="min.m1t">Worship &amp; music</h3>
@@ -310,12 +314,12 @@
 <!-- ===================== CHURCH LIFE / GALLERY ===================== -->
 <section class="section section--paper2" id="life">
   <div class="wrap">
-    <div class="rv" style="max-width:70ch">
+    <div class="rv measure">
       <p class="eyebrow" data-i18n="life.eyebrow">Church life</p>
       <h2 class="h-display" data-i18n="life.title">Worship night.</h2>
       <p class="lede" data-i18n="life.lede">Worship Night is an evening given entirely to praise and to the presence of God, led by our worship team. This is what it looks like.</p>
     </div>
-    <div class="gal rv" style="margin-top:44px" id="gallery">
+    <div class="gal rv mt-l" id="gallery">
       <button type="button" data-full="assets/img/worship-room.jpg" aria-label="Open photo: the congregation worshipping">
         <img src="assets/img/worship-room-sm.webp" alt="The worship team leading the congregation, a screen behind them reading Welcome to the presence of God" loading="lazy" decoding="async">
       </button>
@@ -330,13 +334,13 @@
       </button>
     </div>
 
-    <div class="watch rv" style="margin-top:64px">
+    <div class="watch rv mt-2xl">
       <img src="assets/img/worship-choir.jpg" alt="" loading="lazy" decoding="async" width="1080" height="1350">
       <div class="watch__in">
         <div class="watch__play"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div>
         <h3 class="h-display h-display--sm" data-i18n="watch.title">Missed a service? Watch it again.</h3>
-        <p class="lede" style="color:rgba(255,255,255,.8)" data-i18n="watch.lede">Messages, worship nights and special services are posted on our YouTube channel. Subscribe and you will know the moment we go live.</p>
-        <p style="margin-top:26px"><a class="btn btn--flame" data-social="youtube" href="#contact" target="_blank" rel="noopener" data-i18n="watch.cta">Watch on YouTube</a></p>
+        <p class="lede lede--dark" data-i18n="watch.lede">Messages, worship nights and special services are posted on our YouTube channel. Subscribe and you will know the moment we go live.</p>
+        <p class="mt-s"><a class="btn btn--flame" data-social="youtube" href="#contact" target="_blank" rel="noopener noreferrer" data-i18n="watch.cta">Watch on YouTube</a></p>
       </div>
     </div>
   </div>
@@ -355,30 +359,38 @@
       <div class="give__row"><span data-i18n="give.r1">In person, during the service</span><b data-i18n="give.r1b">Cash or check</b></div>
       <div class="give__row"><span data-i18n="give.r2">By mobile transfer</span><b data-give="mobile">—</b></div>
       <div class="give__row"><span data-i18n="give.r3">By bank transfer</span><b data-i18n="give.r3b">On request</b></div>
-      <p style="margin-top:22px"><a class="btn btn--ink" href="#contact" data-i18n="give.cta">Ask for giving details</a></p>
+      <p class="mt-s"><a class="btn btn--ink" href="#contact" data-i18n="give.cta">Ask for giving details</a></p>
     </div>
   </div>
 </section>
 
 <!-- ===================== CONTACT ===================== -->
-<section class="section section--dark" id="contact">
+<section class="section section--dark has-vidbg" id="contact">
+  <div class="vidbg" aria-hidden="true">
+    <video data-bg="soft" data-src="assets/clips/msw-logo-8s.mp4" muted loop playsinline
+           preload="none" poster="assets/img/emblem-frame.jpg" tabindex="-1"></video>
+  </div>
   <div class="wrap split">
     <div class="rv">
       <p class="eyebrow" data-i18n="contact.eyebrow">Contact &amp; prayer</p>
       <h2 class="h-display h-display--sm" data-i18n="contact.title">Tell us you are coming — or tell us how to pray.</h2>
       <p class="lede" data-i18n="contact.lede">Requests sent here are read by the pastoral team and treated confidentially. If you would like someone to call you, leave a phone number in your message.</p>
 
-      <form class="form" name="contact" method="POST" data-netlify="true" netlify-honeypot="company" action="#contact-sent" style="margin-top:32px">
+      <form class="form mt-m" id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="company" action="thanks/" novalidate>
         <input type="hidden" name="form-name" value="contact">
         <p class="hp"><label>Do not fill this in: <input name="company" tabindex="-1" autocomplete="off"></label></p>
         <div class="form__row">
           <div class="field">
             <label for="f-name" data-i18n="contact.fname">Your name</label>
-            <input id="f-name" name="name" type="text" required autocomplete="name" data-i18n-ph="contact.phname" placeholder="First and last name">
+            <input id="f-name" name="name" type="text" required maxlength="80" autocomplete="name"
+                   data-i18n-ph="contact.phname" placeholder="First and last name">
+            <p class="field__err" id="err-name" hidden data-i18n="contact.errname">Please tell us your name.</p>
           </div>
           <div class="field">
             <label for="f-email" data-i18n="contact.femail">Email</label>
-            <input id="f-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+            <input id="f-email" name="email" type="email" required maxlength="120" autocomplete="email"
+                   inputmode="email" placeholder="you@example.com">
+            <p class="field__err" id="err-email" hidden data-i18n="contact.erremail">Please check this email address.</p>
           </div>
         </div>
         <div class="field">
@@ -393,9 +405,12 @@
         </div>
         <div class="field">
           <label for="f-msg" data-i18n="contact.fmsg">Message</label>
-          <textarea id="f-msg" name="message" required data-i18n-ph="contact.phmsg" placeholder="Write freely — we read every message."></textarea>
+          <textarea id="f-msg" name="message" required maxlength="4000" data-i18n-ph="contact.phmsg"
+                    placeholder="Write freely — we read every message."></textarea>
+          <p class="field__err" id="err-msg" hidden data-i18n="contact.errmsg">Please write a short message.</p>
         </div>
         <button class="btn btn--flame" type="submit" data-i18n="contact.send">Send message</button>
+        <p class="form__status" id="formStatus" role="status" aria-live="polite"></p>
         <p class="form__note" data-i18n="contact.note">We reply by email, usually within two days.</p>
       </form>
     </div>
@@ -413,13 +428,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <div><b data-i18n="contact.itimes">Sunday worship</b><span data-time="sunday">—</span></div>
       </div>
-      <div style="margin-top:6px">
-        <b style="display:block; font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:12px" data-i18n="contact.follow">Follow the church</b>
+      <div class="mt-xs">
+        <b class="label-sm" data-i18n="contact.follow">Follow the church</b>
         <div class="socials">
-          <a data-social="instagram" href="#" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a>
-          <a data-social="facebook" href="#" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
-          <a data-social="youtube" href="#" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.3-.4-4.8a2.6 2.6 0 0 0-1.8-1.9C18.2 5 12 5 12 5s-6.2 0-7.8.3a2.6 2.6 0 0 0-1.8 1.9C2 8.7 2 12 2 12s0 3.3.4 4.8c.2.9.9 1.6 1.8 1.9C5.8 19 12 19 12 19s6.2 0 7.8-.3a2.6 2.6 0 0 0 1.8-1.9C22 15.3 22 12 22 12zM10 15V9l5.2 3z"/></svg></a>
-          <a data-social="tiktok" href="#" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.4 2.2 1.7 3.6 3.9 3.8v2.7c-1.3.1-2.5-.2-3.8-.9v5.9c0 4.3-3.9 7.1-7.8 5.4-2.4-1.1-3.6-3.8-3-6.4.6-2.6 3-4.3 5.7-4v2.9c-.4-.1-.8-.2-1.2-.2-1.4 0-2.5 1.2-2.4 2.6.1 1.3 1.2 2.3 2.5 2.3 1.4 0 2.5-1.1 2.5-2.5V3H16z"/></svg></a>
+          <a data-social="instagram" href="#" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a>
+          <a data-social="facebook" href="#" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+          <a data-social="youtube" href="#" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.3-.4-4.8a2.6 2.6 0 0 0-1.8-1.9C18.2 5 12 5 12 5s-6.2 0-7.8.3a2.6 2.6 0 0 0-1.8 1.9C2 8.7 2 12 2 12s0 3.3.4 4.8c.2.9.9 1.6 1.8 1.9C5.8 19 12 19 12 19s6.2 0 7.8-.3a2.6 2.6 0 0 0 1.8-1.9C22 15.3 22 12 22 12zM10 15V9l5.2 3z"/></svg></a>
+          <a data-social="tiktok" href="#" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.4 2.2 1.7 3.6 3.9 3.8v2.7c-1.3.1-2.5-.2-3.8-.9v5.9c0 4.3-3.9 7.1-7.8 5.4-2.4-1.1-3.6-3.8-3-6.4.6-2.6 3-4.3 5.7-4v2.9c-.4-.1-.8-.2-1.2-.2-1.4 0-2.5 1.2-2.4 2.6.1 1.3 1.2 2.3 2.5 2.3 1.4 0 2.5-1.1 2.5-2.5V3H16z"/></svg></a>
         </div>
       </div>
     </div>
@@ -434,11 +449,11 @@
         <div class="ftr__brand">
           <img src="assets/img/emblem.png" alt="" width="54" height="54" loading="lazy">
           <div>
-            <div style="font-family:var(--display); text-transform:uppercase; color:#fff; font-size:18px; line-height:1.1">Holy Mountain Washington Church</div>
-            <div style="font-size:12.5px">Montagne Sainte Washington · CEMMS</div>
+            <div class="ftr__name">Holy Mountain Washington Church</div>
+            <div class="ftr__sub">Montagne Sainte Washington · CEMMS</div>
           </div>
         </div>
-        <p style="max-width:44ch" data-i18n="ftr.blurb">An evangelical missionary community in the Washington area. Go out into the world. Make disciples of Jesus.</p>
+        <p class="measure-sm" data-i18n="ftr.blurb">An evangelical missionary community in the Washington area. Go out into the world. Make disciples of Jesus.</p>
       </div>
       <div>
         <h4 data-i18n="ftr.h1">The church</h4>
@@ -456,7 +471,7 @@
           <li><a href="mailto:holymountainwashingtonchurch@gmail.com">Email us</a></li>
           <li><a href="#contact" data-i18n="ftr.prayer">Prayer request</a></li>
           <li><a href="#give" data-i18n="nav.give">Give</a></li>
-          <li><a data-social="youtube" href="#" target="_blank" rel="noopener">YouTube</a></li>
+          <li><a data-social="youtube" href="#" target="_blank" rel="noopener noreferrer">YouTube</a></li>
         </ul>
       </div>
     </div>

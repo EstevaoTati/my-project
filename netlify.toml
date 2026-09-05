@@ -46,6 +46,33 @@
   to = "/holy-mountain/"
   status = 301
 
+# ---------------------------------------------------------------------------
+# HOLY MOUNTAIN — security headers.
+# Stricter than the site-wide policy above. Both are sent for these paths and
+# a browser enforces every policy it receives, so the effective rules are the
+# intersection: the tightest of the two always wins.
+#
+# script-src carries no 'unsafe-inline'. The page has exactly one inline
+# script, the JSON-LD block, allowed by its sha256 hash. If you edit that
+# block, run ./holy-mountain/tools/csp-hash.sh and paste the new line here,
+# or the structured data stops working.
+#
+# style-src carries no 'unsafe-inline' either. The page has no style
+# attributes; every rule lives in assets/css/site.css. Keep it that way.
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/holy-mountain/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-bJkOdHqaBqrodh46l7Xpn2sRcJs3Nzm8Rgmhl0tyhIw='; style-src 'self'; img-src 'self' data:; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; font-src 'self'; connect-src 'self'; form-action 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    X-DNS-Prefetch-Control = "off"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+
 [[headers]]
   for = "/holy-mountain/assets/fonts/*"
   [headers.values]

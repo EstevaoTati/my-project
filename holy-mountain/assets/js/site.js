@@ -132,8 +132,21 @@ const FR = {
   'contact.fmsg': 'Message', 'contact.phmsg': 'Écrivez librement — nous lisons chaque message.',
   'contact.send': 'Envoyer le message',
   'contact.note': 'Nous répondons par courriel, généralement sous deux jours.',
+  'contact.errname': 'Merci d’indiquer votre nom.',
+  'contact.erremail': 'Merci de vérifier cette adresse courriel.',
+  'contact.errmsg': 'Merci d’écrire un court message.',
+  'contact.fix': 'Merci de vérifier les champs signalés ci-dessus.',
+  'contact.sending': 'Envoi…',
+  'motion.pause': 'Mettre l’animation en pause',
+  'motion.play': 'Lancer l’animation',
   'contact.iemail': 'Courriel', 'contact.iplace': 'Adresse', 'contact.itimes': 'Culte du dimanche',
   'contact.follow': 'Suivre l’église',
+
+  'thanks.eyebrow': 'Message reçu',
+  'thanks.title': 'Merci. Votre message nous est parvenu.',
+  'thanks.lede': 'L’équipe pastorale lit chaque message et le traite confidentiellement. Nous répondons par courriel, généralement sous deux jours. Si votre demande est urgente, écrivez-nous directement à l’adresse ci-dessous.',
+  'thanks.home': 'Retour au site',
+  'thanks.verse': '« Allez, faites de toutes les nations des disciples. » — Matthieu 28:19',
 
   'ftr.blurb': 'Une communauté évangélique missionnaire dans la région de Washington. Allez dans le monde. Faites des disciples de Jésus.',
   'ftr.h1': 'L’église', 'ftr.h2': 'Nous contacter', 'ftr.prayer': 'Sujet de prière',
@@ -165,6 +178,14 @@ function translate(lang) {
     if (!cache.has(el)) cache.set(el, el.innerHTML);
     el.innerHTML = lang === 'fr' ? (FR[key] ?? cache.get(el)) : cache.get(el);
   });
+  $$('[data-i18n-aria]').forEach(el => {
+    const key = el.dataset.i18nAria;
+    const en = cache.has(el) ? cache.get(el) : el.getAttribute('aria-label');
+    if (!cache.has(el)) cache.set(el, en);
+    const txt = lang === 'fr' ? (FR[key] ?? en) : en;
+    el.setAttribute('aria-label', txt);
+    el.setAttribute('title', txt);
+  });
   $$('[data-i18n-ph]').forEach(el => {
     const key = el.dataset.i18nPh;
     if (!cache.has(el)) cache.set(el, el.placeholder);
@@ -189,9 +210,11 @@ function initLang() {
 /* ---------------------------------------------------------------- header */
 function initHeader() {
   const hdr = $('#hdr'), drawer = $('#drawer'), burger = $('#burger');
+  if (!hdr) return;                       // pages without a sticky header
   const onScroll = () => hdr.classList.toggle('is-stuck', window.scrollY > 40);
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
+  if (!drawer || !burger) return;         // pages without a mobile drawer
 
   const close = () => { drawer.classList.remove('is-open'); burger.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; };
   burger.addEventListener('click', () => {
@@ -235,32 +258,136 @@ function initMarquee() {
 }
 
 /* ----------------------------------------------------------------- video */
+/* One manager for every clip on the page: the full-bleed hero and the softened
+   backgrounds in the dark sections. A single control pauses all of them, the
+   choice is remembered, and a clip only ever plays while it is on screen.
+
+   Guards, in order of how often they bite:
+   - reduced motion         -> nothing autoplays, ever
+   - the visitor pressed pause -> nothing resumes behind their back
+   - small screen / Save-Data  -> the secondary clips never even load
+   - off screen or tab hidden  -> paused, so one clip decodes at a time
+   - autoplay refused by the browser -> retried once on first interaction   */
 function initVideo() {
-  const v = $('#heroVideo'), btn = $('#motionToggle');
-  if (!v) return;
-  const play = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
-  if (reduced) { v.pause(); v.removeAttribute('autoplay'); }
-  else {
-    play();
-    // Pause off-screen to save battery, resume on return — unless the visitor paused it.
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) v.pause();
-      else if (!v.dataset.userPaused) play();
-    });
-    ['click', 'touchstart', 'keydown'].forEach(ev =>
-      document.addEventListener(ev, () => { if (v.paused && !v.dataset.userPaused) play(); }, { once: true, passive: true }));
+  const vids = $$('video[data-bg]');
+  if (!vids.length) return;
+  const btn = $('#motionToggle');
+
+  const lite = window.matchMedia('(max-width: 767px)').matches
+            || (navigator.connection && navigator.connection.saveData === true);
+
+  let stopped = false;
+  try { stopped = localStorage.getItem('msw-motion') === 'off'; } catch (e) { /* private mode */ }
+
+  const eligible = v => !reduced && !stopped && !(lite && v.dataset.bg === 'soft');
+
+  const load = v => {
+    if (v.dataset.src && !v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
+  };
+  const start = v => {
+    if (!eligible(v) || !v.isConnected) return;
+    load(v);
+    const p = v.play();
+    if (p && p.catch) p.catch(() => { /* autoplay refused; retried on interaction */ });
+  };
+  const halt = v => { if (!v.paused) v.pause(); };
+
+  const visible = new Set();
+  const syncAll = () => vids.forEach(v => (eligible(v) && visible.has(v) ? start(v) : halt(v)));
+
+  // Only play what is actually on screen.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) visible.add(en.target); else visible.delete(en.target);
+      });
+      syncAll();
+    }, { rootMargin: '120px 0px', threshold: 0.01 });
+    vids.forEach(v => io.observe(v));
+  } else {
+    vids.forEach(v => visible.add(v));
+    syncAll();
   }
-  // The animation is meant to run continuously: restart it if it ever stalls or ends.
-  ['ended', 'stalled', 'suspend'].forEach(ev =>
-    v.addEventListener(ev, () => { if (!v.dataset.userPaused && !reduced && v.paused) play(); }));
+
+  // Stop decoding while the tab is in the background.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) vids.forEach(halt); else syncAll();
+  });
+
+  // Some browsers refuse autoplay until the visitor interacts once.
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+    document.addEventListener(ev, syncAll, { once: true, passive: true }));
+
+  // Keep them running: a stalled or ended clip restarts itself.
+  vids.forEach(v => ['ended', 'stalled', 'suspend', 'pause'].forEach(ev =>
+    v.addEventListener(ev, () => {
+      if (eligible(v) && visible.has(v) && v.paused && !document.hidden) start(v);
+    })));
 
   if (!btn) return;
+  const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>';
+  const PLAY_ICON  = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+
+  const paintButton = () => {
+    btn.innerHTML = stopped ? PLAY_ICON : PAUSE_ICON;
+    btn.setAttribute('aria-pressed', String(stopped));
+    const key = stopped ? 'motion.play' : 'motion.pause';
+    btn.dataset.i18nAria = key;
+    const label = document.documentElement.lang === 'fr'
+      ? FR[key]
+      : (stopped ? 'Play the background animation' : 'Pause the background animation');
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  };
+
+  if (reduced) { btn.hidden = true; return; }   // nothing is moving, so nothing to pause
+  paintButton();
   btn.addEventListener('click', () => {
-    if (v.paused) { v.dataset.userPaused = ''; delete v.dataset.userPaused; play(); btn.setAttribute('aria-label', 'Pause background animation'); }
-    else { v.pause(); v.dataset.userPaused = '1'; btn.setAttribute('aria-label', 'Play background animation'); }
-    btn.innerHTML = v.paused
-      ? '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>';
+    stopped = !stopped;
+    try { localStorage.setItem('msw-motion', stopped ? 'off' : 'on'); } catch (e) {}
+    paintButton();
+    syncAll();
+  });
+}
+
+/* ------------------------------------------------------------------- form */
+/* Progressive enhancement only: the form posts to Netlify Forms with or
+   without JavaScript. This adds inline, translated, screen-reader-announced
+   errors and blocks a double submit. */
+function initForm() {
+  const form = $('#contactForm');
+  if (!form) return;
+  const status = $('#formStatus');
+  const fields = [
+    { el: $('#f-name'),  err: $('#err-name') },
+    { el: $('#f-email'), err: $('#err-email') },
+    { el: $('#f-msg'),   err: $('#err-msg') }
+  ].filter(f => f.el && f.err);
+
+  const check = f => {
+    const ok = f.el.checkValidity() && f.el.value.trim() !== '';
+    f.err.hidden = ok;
+    f.el.setAttribute('aria-invalid', String(!ok));
+    f.el.setAttribute('aria-describedby', ok ? '' : f.err.id);
+    return ok;
+  };
+
+  fields.forEach(f => {
+    f.el.addEventListener('blur', () => check(f));
+    f.el.addEventListener('input', () => { if (f.el.getAttribute('aria-invalid') === 'true') check(f); });
+  });
+
+  form.addEventListener('submit', e => {
+    const bad = fields.filter(f => !check(f));
+    if (bad.length) {
+      e.preventDefault();
+      bad[0].el.focus();
+      status.textContent = document.documentElement.lang === 'fr' ? FR['contact.fix'] : 'Please check the fields marked above.';
+      return;
+    }
+    status.textContent = document.documentElement.lang === 'fr' ? FR['contact.sending'] : 'Sending…';
+    const submit = form.querySelector('button[type=submit]');
+    if (submit) submit.disabled = true;          // one submission, not three
   });
 }
 
@@ -300,5 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initMarquee();
   initVideo();
+  initForm();
   initLightbox();
 });

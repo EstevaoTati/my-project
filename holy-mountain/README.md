@@ -41,7 +41,59 @@ between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be to
 - [ ] **Set `SITE.draft = false`** — this removes the amber banner at the top
       of the page. Leave it `true` while any value above is still an example.
 
+## Security
+
+The site is static: there is no application server, no database and no
+credentials anywhere in this folder, which removes most of the attack surface
+before anything is written. What remains is hardened in `netlify.toml` under
+`for = "/holy-mountain/*"`:
+
+| Header | What it stops |
+| --- | --- |
+| `Content-Security-Policy` | The main one. Scripts and styles load only from our own origin, so injected markup cannot execute. |
+| `frame-ancestors 'none'` / `X-Frame-Options: DENY` | Clickjacking: nobody can embed the site in a hidden frame over their own buttons. |
+| `form-action 'self'` | A script cannot redirect the contact form to somebody else's server. |
+| `base-uri 'none'` | A `<base>` tag cannot be injected to re-point every relative URL. |
+| `object-src 'none'` / `frame-src 'none'` | No plugins, no embedded frames. |
+| `X-Content-Type-Options: nosniff` | The browser will not re-interpret a file as script because its bytes look like one. |
+| `Referrer-Policy` | The full URL is not leaked to other sites. |
+| `Permissions-Policy` | Camera, microphone, location and the rest are denied to the page outright. |
+| `Cross-Origin-Opener-Policy` / `-Resource-Policy` | Other origins cannot hold a handle on our window or hotlink our assets. |
+| `Strict-Transport-Security` | The browser refuses plain HTTP for two years. |
+
+**Two rules keep that policy working.** The policy allows no inline script and
+no inline style, which is what makes it worth having.
+
+1. The page contains exactly one inline script, the JSON-LD block, allowed by
+   its SHA-256 hash. **Edit that block and you must run
+   `./tools/csp-hash.sh`** and paste the printed line into `netlify.toml`.
+2. There are no `style="..."` attributes anywhere. Every rule lives in
+   `assets/css/site.css`. Adding one inline style would force
+   `'unsafe-inline'` back into the policy and undo most of its value.
+
+**What this does not do.** Headers protect visitors' browsers. They do not
+protect the accounts that can change the site. The real risk to a small church
+site is a stolen password, so put two-factor authentication on the Netlify
+account, on the GitHub account and on the Gmail address the form notifies, and
+keep the number of people with deploy access small.
+
+The contact form is spam-filtered by Netlify and by a honeypot field that a
+human never sees. If spam still gets through, turn on Netlify's own filtering
+level in the dashboard before adding a CAPTCHA: a CAPTCHA loads Google code,
+which the policy above deliberately forbids.
+
 ## The animated logo
+
+The clip plays in three places: full-bleed behind the hero, and softened to a
+watermark behind the vision and contact sections. One control in the corner of
+the hero pauses all three at once and the choice is remembered.
+
+Only the clip you are looking at ever plays. The others are paused, and the two
+background copies are not even downloaded until they scroll into view. On a
+phone, or when the browser reports Save-Data, they are never downloaded at all
+and only the hero clip runs. Nothing autoplays for a visitor whose system asks
+for reduced motion, and the pause control hides itself for them because there
+is nothing left to pause.
 
 The 8-second clip plays full-bleed as the background of the hero. It was
 generated on Higgsfield from the emblem alone, with no lettering anywhere in
@@ -90,6 +142,15 @@ The form posts to **Netlify Forms** (`data-netlify="true"`), so submissions
 appear in the Netlify dashboard under *Forms → contact* with no server to run.
 Turn on email notifications there so the pastoral team is alerted. A hidden
 honeypot field blocks most spam bots.
+
+On success the visitor lands on `thanks/`, a page of ours rather than Netlify's
+default confirmation. It is marked `noindex`, so it will not turn up in search
+results on its own.
+
+Validation is layered. The browser enforces `required`, `type="email"` and
+`maxlength` on its own; JavaScript adds inline, translated messages that a
+screen reader announces and blocks a double submit; Netlify validates again on
+receipt. Turning JavaScript off degrades the messages, not the form.
 
 ## Notes for whoever edits this next
 

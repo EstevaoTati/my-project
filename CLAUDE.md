@@ -83,6 +83,11 @@ site with its own assets, fonts and EN/FR translations. Everything the church
 edits lives in one config block at the top of `holy-mountain/assets/js/site.js`.
 See `holy-mountain/README.md`.
 
+This folder is served under a strict Content-Security-Policy that forbids
+inline script and inline style. Two rules follow, and breaking either silently
+degrades the site: never add a `style="..."` attribute, and re-run
+`holy-mountain/tools/csp-hash.sh` after editing the JSON-LD block.
+
 - Keep all user-facing strings translatable. The church site does this with
   `data-i18n` keys and a French dictionary in its own `site.js`.
 - `netlify.toml` controls redirects, headers and the Content-Security-Policy;
