@@ -51,6 +51,21 @@
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self';"
 
+# ===========================================================================
+# TRANSITIONAL — 242Konnect served from this site
+#
+# 242Konnect is a separate product and now carries its own deployment config:
+# `npm run build:web` writes netlify.toml, _headers and _redirects into
+# 242konnect-web/, so that folder is a complete site on its own. See
+# 242konnect-app/DEPLOY.md.
+#
+# Everything from this banner to the end of the 242Konnect section exists only
+# so the current preview links keep working until that separate Netlify site is
+# live. Delete it once https://242konnect.netlify.app (or the custom domain) is
+# up and checked — at that point the landing page stops carrying the app's
+# routing, its CSP exception for Supabase, and its cache rules.
+# ===========================================================================
+
 # ---------------------------------------------------------------------------
 # APPLICATION 242KONNECT — /242konnect-web
 # Le build web de l'application React Native, servi tel quel.
