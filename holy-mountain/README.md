@@ -85,15 +85,23 @@ which the policy above deliberately forbids.
 ## The animated logo
 
 The clip plays in three places: full-bleed behind the hero, and softened to a
-watermark behind the vision and contact sections. One control in the corner of
-the hero pauses all three at once and the choice is remembered.
+watermark behind the vision and contact sections. It runs continuously and
+there is no pause control on the page: a clip that stalls or ends starts again
+on its own, and one that a browser refuses to autoplay is retried on the
+visitor's first interaction.
 
-Only the clip you are looking at ever plays. The others are paused, and the two
-background copies are not even downloaded until they scroll into view. On a
-phone, or when the browser reports Save-Data, they are never downloaded at all
-and only the hero clip runs. Nothing autoplays for a visitor whose system asks
-for reduced motion, and the pause control hides itself for them because there
-is nothing left to pause.
+Only the clip you are looking at is actually decoding. The others are paused
+off screen, which the viewer never sees but their battery does, and the two
+background copies are not downloaded until they scroll into view. On a phone,
+or when the browser reports Save-Data, they are never downloaded at all and
+only the hero clip runs.
+
+**Reduced motion is the one way out, so do not weaken it.** With the pause
+control gone, a visitor whose system asks for less motion is relying on that
+guard alone: nothing autoplays for them, the background clips are hidden by
+CSS, and they see the still poster frame. Some people need that — motion can
+trigger nausea or migraine, and for a few it triggers seizures. If a pause
+button is ever wanted back, it belongs in the corner of the hero.
 
 The 8-second clip plays full-bleed as the background of the hero. It was
 generated on Higgsfield from the emblem alone, with no lettering anywhere in
@@ -165,6 +173,7 @@ receipt. Turning JavaScript off degrades the messages, not the form.
   Facebook or Instagram. Regenerate it if the branding changes.
 - The page respects `prefers-reduced-motion`: the animation, the marquee and
   the scroll reveals all stop for visitors who ask their system for less motion.
+  This is the only mechanism they have, since the page carries no pause control.
 - Nothing loads from a third-party domain — fonts, scripts and images are all
   served from our own origin, which is what the site's Content-Security-Policy
   in `netlify.toml` enforces.

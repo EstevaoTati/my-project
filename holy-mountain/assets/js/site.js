@@ -137,8 +137,6 @@ const FR = {
   'contact.errmsg': 'Merci d’écrire un court message.',
   'contact.fix': 'Merci de vérifier les champs signalés ci-dessus.',
   'contact.sending': 'Envoi…',
-  'motion.pause': 'Mettre l’animation en pause',
-  'motion.play': 'Lancer l’animation',
   'contact.iemail': 'Courriel', 'contact.iplace': 'Adresse', 'contact.itimes': 'Culte du dimanche',
   'contact.follow': 'Suivre l’église',
 
@@ -177,14 +175,6 @@ function translate(lang) {
     const key = el.dataset.i18n;
     if (!cache.has(el)) cache.set(el, el.innerHTML);
     el.innerHTML = lang === 'fr' ? (FR[key] ?? cache.get(el)) : cache.get(el);
-  });
-  $$('[data-i18n-aria]').forEach(el => {
-    const key = el.dataset.i18nAria;
-    const en = cache.has(el) ? cache.get(el) : el.getAttribute('aria-label');
-    if (!cache.has(el)) cache.set(el, en);
-    const txt = lang === 'fr' ? (FR[key] ?? en) : en;
-    el.setAttribute('aria-label', txt);
-    el.setAttribute('title', txt);
   });
   $$('[data-i18n-ph]').forEach(el => {
     const key = el.dataset.i18nPh;
@@ -258,28 +248,27 @@ function initMarquee() {
 }
 
 /* ----------------------------------------------------------------- video */
-/* One manager for every clip on the page: the full-bleed hero and the softened
-   backgrounds in the dark sections. A single control pauses all of them, the
-   choice is remembered, and a clip only ever plays while it is on screen.
+/* The clips are decoration and run continuously: the full-bleed hero and the
+   softened backgrounds in the dark sections. There is no pause control on the
+   page, so `prefers-reduced-motion` is the only way out and is honoured
+   strictly — a visitor who asks their system for less motion gets the still
+   poster frame and nothing ever autoplays.
 
    Guards, in order of how often they bite:
-   - reduced motion         -> nothing autoplays, ever
-   - the visitor pressed pause -> nothing resumes behind their back
+   - reduced motion            -> nothing autoplays, ever
    - small screen / Save-Data  -> the secondary clips never even load
    - off screen or tab hidden  -> paused, so one clip decodes at a time
-   - autoplay refused by the browser -> retried once on first interaction   */
+                                  (invisible to the viewer, saves their battery)
+   - autoplay refused          -> retried on the first interaction
+   - stalled or ended          -> restarted, so a clip on screen never sits still */
 function initVideo() {
   const vids = $$('video[data-bg]');
-  if (!vids.length) return;
-  const btn = $('#motionToggle');
+  if (!vids.length || reduced) return;
 
   const lite = window.matchMedia('(max-width: 767px)').matches
             || (navigator.connection && navigator.connection.saveData === true);
 
-  let stopped = false;
-  try { stopped = localStorage.getItem('msw-motion') === 'off'; } catch (e) { /* private mode */ }
-
-  const eligible = v => !reduced && !stopped && !(lite && v.dataset.bg === 'soft');
+  const eligible = v => !(lite && v.dataset.bg === 'soft');
 
   const load = v => {
     if (v.dataset.src && !v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
@@ -295,7 +284,7 @@ function initVideo() {
   const visible = new Set();
   const syncAll = () => vids.forEach(v => (eligible(v) && visible.has(v) ? start(v) : halt(v)));
 
-  // Only play what is actually on screen.
+  // Only decode what is actually on screen.
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
       entries.forEach(en => {
@@ -309,7 +298,7 @@ function initVideo() {
     syncAll();
   }
 
-  // Stop decoding while the tab is in the background.
+  // Stop decoding while the tab is in the background, resume on return.
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) vids.forEach(halt); else syncAll();
   });
@@ -318,36 +307,12 @@ function initVideo() {
   ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
     document.addEventListener(ev, syncAll, { once: true, passive: true }));
 
-  // Keep them running: a stalled or ended clip restarts itself.
+  // Keep them running: a clip that stalls, ends or is paused by anything else
+  // starts again as long as it is on screen.
   vids.forEach(v => ['ended', 'stalled', 'suspend', 'pause'].forEach(ev =>
     v.addEventListener(ev, () => {
       if (eligible(v) && visible.has(v) && v.paused && !document.hidden) start(v);
     })));
-
-  if (!btn) return;
-  const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>';
-  const PLAY_ICON  = '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-
-  const paintButton = () => {
-    btn.innerHTML = stopped ? PLAY_ICON : PAUSE_ICON;
-    btn.setAttribute('aria-pressed', String(stopped));
-    const key = stopped ? 'motion.play' : 'motion.pause';
-    btn.dataset.i18nAria = key;
-    const label = document.documentElement.lang === 'fr'
-      ? FR[key]
-      : (stopped ? 'Play the background animation' : 'Pause the background animation');
-    btn.setAttribute('aria-label', label);
-    btn.setAttribute('title', label);
-  };
-
-  if (reduced) { btn.hidden = true; return; }   // nothing is moving, so nothing to pause
-  paintButton();
-  btn.addEventListener('click', () => {
-    stopped = !stopped;
-    try { localStorage.setItem('msw-motion', stopped ? 'off' : 'on'); } catch (e) {}
-    paintButton();
-    syncAll();
-  });
 }
 
 /* ------------------------------------------------------------------- form */

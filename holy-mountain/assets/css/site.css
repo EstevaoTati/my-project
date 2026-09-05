@@ -266,12 +266,6 @@ section[id]{scroll-margin-top:104px}
 .hero__scroll i{width:1px; height:34px; background:linear-gradient(rgba(255,255,255,.7),transparent); animation:drop 2.2s var(--ease) infinite}
 @keyframes drop{0%{transform:scaleY(.2); transform-origin:top}50%{transform:scaleY(1); transform-origin:top}51%{transform:scaleY(1); transform-origin:bottom}100%{transform:scaleY(.2); transform-origin:bottom}}
 
-.hero__sound{
-  position:absolute; right:var(--gut); bottom:clamp(56px,9vh,104px); z-index:3;
-  width:44px; height:44px; border-radius:50%; display:grid; place-items:center;
-  border:1px solid rgba(255,255,255,.28); background:rgba(6,18,56,.55); color:#fff;
-  cursor:pointer; backdrop-filter:blur(8px);
-}
 
 /* ---------- Marquee ----------------------------------------------------- */
 .marquee{
@@ -558,7 +552,6 @@ section[id]{scroll-margin-top:104px}
     background:linear-gradient(to top, #050f33 3%, rgba(3,9,32,.62) 42%, rgba(3,9,32,.30) 100%);
   }
   .hero__inner{padding-block:clamp(300px,52vh,430px) 56px}
-  .hero__sound{top:calc(60% - 116px); bottom:auto; right:16px}
   .vidbg{display:none}   /* the hero clip is enough on a phone */
   .stats{grid-template-columns:1fr 1fr}
   .gal button:nth-child(4){grid-column:span 2}
@@ -577,6 +570,6 @@ section[id]{scroll-margin-top:104px}
   .rv{opacity:1; transform:none}
 }
 @media print{
-  .hdr,.drawer,.marquee,.hero__media,.vidbg,.hero__sound,.lb{display:none !important}
+  .hdr,.drawer,.marquee,.hero__media,.vidbg,.lb{display:none !important}
   body{background:#fff; color:#000}
 }
