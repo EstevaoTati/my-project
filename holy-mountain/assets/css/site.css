@@ -307,6 +307,38 @@ section[id]{scroll-margin-top:104px}
 .stat b{font-family:var(--display); font-size:34px; color:var(--blue-700); display:block; line-height:1}
 .stat span{font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:rgba(5,16,51,.55); font-weight:600}
 
+/* ---------- Leadership -------------------------------------------------- */
+.leaders{display:grid; gap:clamp(18px,2.4vw,28px)}
+.leader{
+  background:#fff; border:1px solid var(--line-dark); border-radius:var(--r-xl); overflow:hidden;
+  box-shadow:var(--shadow-1); display:grid; grid-template-columns:.36fr .64fr; align-items:stretch;
+  transition:transform .35s var(--ease), box-shadow .35s;
+}
+.leader:hover{transform:translateY(-4px); box-shadow:var(--shadow-2)}
+.leader--rev{grid-template-columns:.64fr .36fr}   /* body first in the DOM, photo second */
+.leader--rev .leader__ph{order:2}
+.leader__ph{position:relative; overflow:hidden; background:var(--blue-800); min-height:100%}
+.leader__ph img{width:100%; height:100%; object-fit:cover; aspect-ratio:4/5; transition:transform .9s var(--ease)}
+.leader:hover .leader__ph img{transform:scale(1.035)}
+.leader__body{
+  padding:clamp(28px,3.4vw,54px); display:flex; flex-direction:column; justify-content:center;
+}
+.leader__role{
+  font-size:11.5px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--flame-600); margin-bottom:12px; display:flex; align-items:center; gap:12px;
+}
+.leader__role::before{content:""; width:26px; height:2px; background:var(--flame-500); flex:none}
+.leader__name{
+  font-family:var(--display); text-transform:uppercase; font-size:clamp(26px,3vw,42px);
+  line-height:1.01; margin-bottom:16px; text-wrap:balance;
+}
+.leader__d{color:rgba(5,16,51,.68); font-size:16.5px; max-width:52ch}
+.leader__cta{
+  margin-top:24px; text-decoration:none; font-weight:700; font-size:14.5px;
+  color:var(--blue-700); align-self:start; transition:color .2s;
+}
+.leader__cta:hover{color:var(--flame-600)}
+
 /* ---------- Vision / Mission ------------------------------------------- */
 .vm{display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(16px,2vw,26px); margin-top:46px}
 .vm__card{
@@ -472,6 +504,9 @@ section[id]{scroll-margin-top:104px}
   .grid--3,.grid--4{grid-template-columns:repeat(2,1fr)}
   .card--place{grid-column:span 2; grid-template-columns:1fr}
   .split,.give{grid-template-columns:1fr}
+  /* Stacked: keep the portrait crop so no one's head is cut off. */
+  .leader{grid-template-columns:1fr}
+  .leader--rev .leader__ph{order:0}
   .split--rev .split__media{order:0}
   .split__media img{aspect-ratio:16/11}
   .vm{grid-template-columns:1fr}

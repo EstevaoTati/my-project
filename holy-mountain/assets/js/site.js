@@ -44,6 +44,7 @@ const FR = {
   'draft.body': 'Les horaires, l’adresse et les liens sociaux sont des exemples — à confirmer avant publication.',
 
   'nav.visit': 'Visite', 'nav.about': 'À propos', 'nav.vision': 'Vision',
+  'nav.leadership': 'Direction',
   'nav.ministries': 'Ministères', 'nav.life': 'Vie d’église', 'nav.give': 'Donner',
   'nav.plan': 'Planifier une visite',
 
@@ -73,6 +74,16 @@ const FR = {
   'about.s1b': 'Bible', 'about.s1s': 'Notre seule règle de foi',
   'about.s2b': 'Mission', 'about.s2s': 'Chaque membre est envoyé',
   'about.s3b': 'Famille', 'about.s3s': 'Personne ne marche seul',
+
+  'lead.eyebrow': 'Direction',
+  'lead.title': 'Ceux qui portent cette maison.',
+  'lead.lede': 'Vous devez savoir qui conduit avant de franchir la porte. Voici les personnes qui portent cette église, et que vous rencontrerez le dimanche.',
+  'lead.r1': 'Pasteur principal',
+  'lead.d1': 'Shepherd Israel Kalakala conduit La Montagne Sainte Washington. Il porte la vision de la maison, prêche la Parole le dimanche et se donne au soin pastoral de la communauté. Sa porte est ouverte à quiconque a besoin de conseil ou de prière.',
+  'lead.c1': 'Demander un entretien →',
+  'lead.r2': 'Au service ensemble',
+  'lead.d2': 'Les Kalakala conduisent cette église ensemble. Le mariage, le foyer et la famille ne sont pas séparés du ministère ici : ils font partie de la manière dont la communauté est enseignée, accueillie et accompagnée.',
+  'lead.c2': 'Voir les ministères →',
 
   'vision.eyebrow': 'Vision &amp; mission',
   'vision.title': 'Deux phrases qui décident de tout ce que nous faisons.',

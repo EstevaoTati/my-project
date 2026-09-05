@@ -30,6 +30,11 @@ between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be to
 - [ ] **Social links** — `SITE.social`. Each one currently points at the
       platform's home page; replace with the church's own profile URLs
       (Instagram, Facebook, YouTube, TikTok).
+- [ ] **Leadership bios** — the two paragraphs in the leadership section are
+      written from the role, not from anyone's own history, precisely so that
+      nothing was invented. Replace them with the pastor's own words. They are
+      in `index.html` (`data-i18n="lead.d1"` and `lead.d2`) with the French in
+      the `FR` dictionary in `assets/js/site.js`.
 - [ ] **Set `SITE.draft = false`** — this removes the amber banner at the top
       of the page. Leave it `true` while any value above is still an example.
 
@@ -85,6 +90,11 @@ honeypot field blocks most spam bots.
 
 - Photos are pre-sized: `*-sm.webp` for the gallery grid, `*.jpg` for the
   lightbox. Re-export at the same widths (600 / 1200) when adding more.
+- Leadership portraits (`pastor-israel-kalakala`, `couple-kalakala`) are cropped
+  to 4:5 at 1000px. Keep that ratio when swapping them: the cards stack to a
+  single column on phones and the portrait crop is what stops heads being cut.
+- The proper names in the leadership cards are deliberately identical in both
+  languages. Only the role labels are translated.
 - `og-image.jpg` is what appears when the link is shared on WhatsApp,
   Facebook or Instagram. Regenerate it if the branding changes.
 - The page respects `prefers-reduced-motion`: the animation, the marquee and
