@@ -13,12 +13,17 @@ const SITE = {
   // Service time. Shown on the visit card and in the contact panel.
   // Add another entry here (and a card in index.html) only for a gathering
   // that actually runs — nothing on this page invents a schedule.
+  // \u00a0 is a non-breaking space: it keeps the time range on one line
+  // instead of splitting "11:00" from "AM" when the card is narrow.
   times: {
-    sunday: { en: 'Sunday · 10:00 AM', fr: 'Dimanche · 10h00' }   // TODO confirm
+    sunday: {
+      en: 'Sunday · 11:00\u00a0AM\u00a0–\u00a01:00\u00a0PM',
+      fr: 'Dimanche · 11h00\u00a0–\u00a013h00'
+    }
   },
 
   // Meeting place.
-  address: { en: 'Address to confirm — Washington, D.C. area', fr: 'Adresse à confirmer — région de Washington' }, // TODO
+  address: { en: 'Address to confirm — Tacoma, Washington', fr: 'Adresse à confirmer — Tacoma, Washington' }, // TODO
   mapsUrl: 'https://www.google.com/maps',          // TODO: link to the exact venue
 
   // Giving.
@@ -41,14 +46,14 @@ const SITE = {
 const FR = {
   'a11y.skip': 'Aller au contenu',
   'draft.tag': 'Aperçu provisoire.',
-  'draft.body': 'Les horaires, l’adresse et les liens sociaux sont des exemples — à confirmer avant publication.',
+  'draft.body': 'L’adresse et les liens sociaux sont encore des exemples — à confirmer avant publication.',
 
   'nav.visit': 'Visite', 'nav.about': 'À propos', 'nav.vision': 'Vision',
   'nav.leadership': 'Direction',
   'nav.ministries': 'Ministères', 'nav.life': 'Vie d’église', 'nav.give': 'Donner',
   'nav.plan': 'Planifier une visite',
 
-  'hero.eyebrow': 'Washington, D.C. · Tous sont les bienvenus',
+  'hero.eyebrow': 'Tacoma, Washington · Tous sont les bienvenus',
   'hero.l1': 'La Montagne', 'hero.l2': 'Sainte Washington',
   'hero.verse': 'Communauté Évangélique Missionnaire La Montagne Sainte. Une famille missionnaire envoyée dans le monde pour faire des disciples de Jésus.',
   'hero.cta1': 'Planifier votre visite', 'hero.cta2': 'Voir la vie d’église', 'hero.scroll': 'Défiler',
@@ -67,8 +72,8 @@ const FR = {
   'visit.directions': 'Obtenir l’itinéraire', 'visit.ask': 'Poser une question',
 
   'about.eyebrow': 'Qui nous sommes',
-  'about.title': 'Une communauté missionnaire, plantée à Washington, envoyée vers les nations.',
-  'about.p1': 'La Montagne Sainte Washington est l’assemblée de Washington de la Communauté Évangélique Missionnaire La Montagne Sainte (CEMMS). Nous sommes une communauté de croyants venus de plusieurs pays et langues, unis par une seule confession : Jésus-Christ est Seigneur.',
+  'about.title': 'Une communauté missionnaire, plantée à Tacoma, envoyée vers les nations.',
+  'about.p1': 'La Montagne Sainte Washington est l’assemblée de Tacoma de la Communauté Évangélique Missionnaire La Montagne Sainte (CEMMS). Nous sommes une communauté de croyants venus de plusieurs pays et langues, unis par une seule confession : Jésus-Christ est Seigneur.',
   'about.p2': 'Nous tenons à la Bible comme Parole de Dieu, au salut par grâce au moyen de la foi, à l’œuvre du Saint-Esprit dans la vie du croyant, et à la Grande Commission comme mission de chaque disciple — pas seulement des pasteurs.',
   'about.badgeb': 'Une famille', 'about.badges': 'Français, anglais, lingala — un seul Évangile',
   'about.s1b': 'Bible', 'about.s1s': 'Notre seule règle de foi',
@@ -102,7 +107,7 @@ const FR = {
   'min.m3t': 'Jeunesse &amp; enfants',
   'min.m3d': 'Un enseignement qui prend les jeunes au sérieux, afin que la génération suivante s’approprie la foi au lieu d’hériter d’une habitude.',
   'min.m4t': 'Missions &amp; évangélisation',
-  'min.m4d': 'Évangélisation dans la région de Washington et soutien à l’œuvre missionnaire de la CEMMS — la raison du nom que porte cette église.',
+  'min.m4d': 'Évangélisation à Tacoma et dans le South Sound, et soutien à l’œuvre missionnaire de la CEMMS — la raison du nom que porte cette église.',
   'min.m5t': 'Fraternités femmes &amp; hommes',
   'min.m5d': 'De petits cercles où le mariage, le travail, l’argent, le célibat et la foi se discutent honnêtement et se portent dans la prière.',
   'min.m6t': 'Accueil &amp; entraide',
@@ -146,7 +151,7 @@ const FR = {
   'thanks.home': 'Retour au site',
   'thanks.verse': '« Allez, faites de toutes les nations des disciples. » — Matthieu 28:19',
 
-  'ftr.blurb': 'Une communauté évangélique missionnaire dans la région de Washington. Allez dans le monde. Faites des disciples de Jésus.',
+  'ftr.blurb': 'Une communauté évangélique missionnaire à Tacoma, dans l’État de Washington. Allez dans le monde. Faites des disciples de Jésus.',
   'ftr.h1': 'L’église', 'ftr.h2': 'Nous contacter', 'ftr.prayer': 'Sujet de prière',
   'ftr.verse': '« Allez, faites de toutes les nations des disciples. » — Matthieu 28:19'
 };

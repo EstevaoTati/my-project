@@ -24,11 +24,17 @@ holy-mountain/
 Everything editable lives in one block at the top of `assets/js/site.js`,
 between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be touched.
 
-- [ ] **Service time** — `SITE.times.sunday`. The current value is an example.
-      Only the Sunday service is listed. Nothing else on the page claims a
-      weekly programme, so add a card to the visit section (and an entry to
-      `SITE.times`) only for a gathering that actually runs.
+- [x] **Service time** — `SITE.times.sunday`, confirmed as Sunday 11:00 AM to
+      1:00 PM. Only the Sunday service is listed. Nothing else on the page
+      claims a weekly programme, so add a card to the visit section (and an
+      entry to `SITE.times`) only for a gathering that actually runs.
 - [ ] **Address** — `SITE.address`, and `SITE.mapsUrl` pointing at the venue.
+      The church is in **Tacoma, Washington**, not Washington, D.C. The city is
+      also in the JSON-LD block in `index.html`; if you change it there, run
+      `./tools/csp-hash.sh` (see Security below).
+- [ ] **Canonical URL** — `index.html` carries no `<link rel="canonical">`,
+      because the church's domain is not settled. Add one pointing at the real
+      domain once it is, so search engines index a single address.
 - [ ] **Giving** — `SITE.giving.mobile` (Zelle / CashApp handle, or leave as is).
 - [ ] **Social links** — `SITE.social`. Each one currently points at the
       platform's home page; replace with the church's own profile URLs
