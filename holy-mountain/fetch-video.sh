@@ -4,7 +4,7 @@
 # proxies the same file from our own domain.
 set -euo pipefail
 cd "$(dirname "$0")"
-URL="https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260905_012723_c52ce0d9-c5f6-472d-b6eb-470936ce7c52.mp4"
+URL="https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260905_014712_4f0fe8f8-d359-462a-9690-67b6311b9e39.mp4"
 mkdir -p assets/clips
 echo "Downloading the animated logo clip…"
 curl -fL --retry 3 -o assets/clips/msw-logo-8s.mp4 "$URL"

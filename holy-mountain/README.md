@@ -35,10 +35,18 @@ between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be to
 
 ## The animated logo
 
-The 8-second clip in the hero was generated on Higgsfield from the church's
-logo card: the emblem's rings turn and glow, banners of light move across the
-background as if wind were blowing through them, and dust and light rise
-through the frame while the lettering stays still.
+The 8-second clip in the hero was generated on Higgsfield from the emblem
+alone, with no lettering anywhere in the frame. The rings turn continuously at
+a constant speed, the globe keeps rotating, warm light breathes out from behind
+the emblem, waves of blue light drift across the background as if wind were
+moving through them, and dust rises through the air.
+
+The camera is locked off and every motion runs at an even speed, so the clip
+loops back on itself with no visible seam. It is set to loop natively in the
+browser and restarts itself if playback ever stalls, so the animation runs
+without stopping. The pause control in the corner of the frame is the only
+thing that halts it, and visitors whose system asks for reduced motion get the
+still frame instead.
 
 It is **not** committed to the repo. `netlify.toml` proxies it from our own
 domain, so the browser never contacts an external host:
@@ -50,7 +58,9 @@ domain, so the browser never contacts an external host:
 To stop depending on the CDN entirely, run `./fetch-video.sh` from this folder
 and commit the downloaded file. The proxy rule uses `force = false`, so a local
 file automatically wins over the redirect. The `<video>` tag falls back to
-`assets/img/hero-poster.jpg` if the clip cannot load, so the page never breaks.
+`assets/img/emblem-frame.jpg` if the clip cannot load, so the page never breaks.
+That file is also the exact first frame of the clip, so the poster and the video
+line up with no visible jump when playback starts.
 
 ## Languages
 

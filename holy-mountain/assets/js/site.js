@@ -231,10 +231,18 @@ function initVideo() {
   if (reduced) { v.pause(); v.removeAttribute('autoplay'); }
   else {
     play();
-    document.addEventListener('visibilitychange', () => { document.hidden ? v.pause() : play(); });
+    // Pause off-screen to save battery, resume on return — unless the visitor paused it.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) v.pause();
+      else if (!v.dataset.userPaused) play();
+    });
     ['click', 'touchstart', 'keydown'].forEach(ev =>
       document.addEventListener(ev, () => { if (v.paused && !v.dataset.userPaused) play(); }, { once: true, passive: true }));
   }
+  // The animation is meant to run continuously: restart it if it ever stalls or ends.
+  ['ended', 'stalled', 'suspend'].forEach(ev =>
+    v.addEventListener(ev, () => { if (!v.dataset.userPaused && !reduced && v.paused) play(); }));
+
   if (!btn) return;
   btn.addEventListener('click', () => {
     if (v.paused) { v.dataset.userPaused = ''; delete v.dataset.userPaused; play(); btn.setAttribute('aria-label', 'Pause background animation'); }
