@@ -132,26 +132,25 @@ const NETLIFY_TOML = `# 242Konnect — the mobile app's web build, deployed as i
     Cache-Control = "public, max-age=0, must-revalidate"
 `;
 
-// _headers and _redirects repeat the same rules for hosts that read those
-// instead of netlify.toml — a drag-and-drop deploy at app.netlify.com/drop,
-// for one, which is how the standalone zip is meant to be used.
-const HEADERS = `/_expo/static/*
-  Cache-Control: public, max-age=31536000, immutable
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-/index.html
-  Cache-Control: public, max-age=0, must-revalidate
-
-/*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' ${SUPABASE}; frame-ancestors 'self';
-`;
-
-const REDIRECTS = "/*  /index.html  200\n";
+// `_headers` and `_redirects` are deliberately NOT written here.
+//
+// Netlify reads them from the *publish directory root*. While 242Konnect is
+// still served as a sub-path of the landing page, that root is the repo root,
+// so files sitting in this folder are inert — but "inert" is a claim about
+// another company's redirect resolution that cannot be tested from this
+// environment, and the downside if it is wrong is the landing page being
+// replaced wholesale by the app. A `/*  /index.html  200` rule is not something
+// to leave lying inside somebody else's published tree on the strength of an
+// assumption.
+//
+// Nothing is lost. `netlify.toml` above already declares the same redirect and
+// headers for a site whose base directory is this folder, which is the intended
+// separate deployment. The `_headers`/`_redirects` pair matters only for a
+// drag-and-drop deploy, where the drop root *is* this directory — so
+// tools/package-web.py injects them into the zip, where they are unambiguous.
 
 fs.writeFileSync(path.join(outDir, "netlify.toml"), NETLIFY_TOML);
-fs.writeFileSync(path.join(outDir, "_headers"), HEADERS);
-fs.writeFileSync(path.join(outDir, "_redirects"), REDIRECTS);
-console.log("Wrote netlify.toml, _headers, _redirects — the output is a deployable site.");
+console.log("Wrote netlify.toml — the output deploys as its own site.");
 
 // Fail loudly rather than shipping a build that only works at a root.
 const leftover = fs.readFileSync(indexPath, "utf8").match(/(src|href)="\/[^"]*"/g);

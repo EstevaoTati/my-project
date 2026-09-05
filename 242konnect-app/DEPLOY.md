@@ -17,12 +17,21 @@ self-contained site** into `242konnect-web/`:
 |---|---|
 | `index.html`, `_expo/`, `assets/` | the app, with every reference relative so it works at any depth |
 | `netlify.toml` | publish, SPA redirect, security headers, caching |
-| `_headers`, `_redirects` | the same rules for hosts that read those instead |
 
-All four are **generated**. Do not edit them in place — edit
-`tools/build-web.js`, or the next build silently discards your change. That is
-not hypothetical: the relative-path rewrite was once done by hand, lost on the
-next rebuild, and shipped two blank-page preview links.
+Both are **generated**. Do not edit them in place — edit `tools/build-web.js`,
+or the next build silently discards your change. That is not hypothetical: the
+relative-path rewrite was once done by hand, lost on the next rebuild, and
+shipped two blank-page preview links.
+
+`_headers` and `_redirects` are deliberately *not* in this folder. Netlify reads
+them from the publish directory root, which — while the app is still served as a
+sub-path of the landing page — is the repo root. Whether a copy sitting in a
+subfolder is ignored is a claim about Netlify's resolution that cannot be tested
+from the build environment, and if it were wrong a `/*  /index.html  200` rule
+would replace the landing page with the app. `netlify.toml` already covers the
+repo-connected deployment, so the pair lives only in the zip, where the drop root
+*is* this directory and there is no ambiguity. `python3 tools/package-web.py`
+builds it.
 
 ## Giving it its own site (one step, needs your Netlify account)
 
@@ -42,8 +51,8 @@ anywhere in the URL.
 
 ### Or without connecting the repo
 
-`242konnect-netlify-package.zip` at the repo root is this same directory,
-zipped. Drag it onto <https://app.netlify.com/drop>. Useful for a one-off
+`242konnect-netlify-package.zip` at the repo root is this directory plus
+`_headers` and `_redirects`; rebuild it with `python3 tools/package-web.py`. Drag it onto <https://app.netlify.com/drop>. Useful for a one-off
 share; the repo-connected site is better, because it redeploys on every push.
 
 ## Your own domain
