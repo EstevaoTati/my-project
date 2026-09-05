@@ -38,7 +38,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "verify": "bash tools/verify.sh",
-    "i18n:check": "node tools/i18n-check.js --strict"
+    "i18n:check": "node tools/i18n-check.js --strict",
+    "build:web": "node tools/build-web.js",
+    "verify:paths": "node tools/verify-paths.js"
   },
   "private": true
 }
