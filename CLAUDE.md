@@ -73,11 +73,19 @@ idea, say so and propose the better path.
 
 ## This repository
 
-Static marketing site for Mwinda Digital, deployed on Netlify.
+Two static sites, one Netlify deployment. No build step, no framework.
 
-- Plain HTML/CSS/JS — no build step, no framework. Main pages: `index.html`,
-  `demo.html`, `preview.html`.
-- `i18n.js` handles translations; keep all user-facing strings translatable.
-- `netlify.toml`, `_headers`, `_redirects` control deployment; see
-  `DEPLOY-NETLIFY.md` for the deploy process.
+**`/` — Mwinda Digital.** Landing page (`index.html`, `os.html`). Fonts in
+`vendor/fonts.css` (Chakra Petch, JetBrains Mono), GSAP vendored locally.
+
+**`/holy-mountain/` — Holy Mountain Washington Church** (CEMMS · MSW), a client
+site with its own assets, fonts and EN/FR translations. Everything the church
+edits lives in one config block at the top of `holy-mountain/assets/js/site.js`.
+See `holy-mountain/README.md`.
+
+- Keep all user-facing strings translatable. The church site does this with
+  `data-i18n` keys and a French dictionary in its own `site.js`.
+- `netlify.toml` controls redirects, headers and the Content-Security-Policy;
+  see `DEPLOY.md` for the deploy process. Nothing loads from a third-party
+  domain — vendor every font, script and asset.
 - Verify changes by opening the affected page before committing.
