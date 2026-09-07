@@ -137,11 +137,6 @@ export const en: Record<string, string> = {
   '. Saisissez-le, puis choisissez votre nouveau mot de passe.':
     '. Enter it, then choose your new password.',
   "Annuler l'inscription": 'Cancel sign-up',
-  'Version de démonstration': 'Demo version',
-  "Pour tester l'application sans attendre un e-mail, connectez-vous au compte de démonstration.":
-    'To try the app without waiting for an e-mail, sign in with the demo account.',
-  'Ouvrir le compte de démonstration': 'Open the demo account',
-  'Se connecter avec le compte de démonstration': 'Sign in with the demo account',
 
   /* ---- Provider sign-up ----------------------------------------------- */
   'Votre métier': 'Your trade',

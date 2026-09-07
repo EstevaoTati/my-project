@@ -15,6 +15,7 @@
  * path has no session to spend and must say so rather than quietly succeed.
  */
 const { chromium } = require("playwright");
+const { signUp } = require("./lib/account");
 
 const BASE = process.env.BASE_URL;
 let pass = 0;
@@ -60,9 +61,7 @@ const fails = [];
   await page.waitForSelector("text=Chaque problème est un besoin", { timeout: 30000 });
   await page.waitForTimeout(900);
 
-  await tap("text=J'ai déjà un compte");
-  await tap('[aria-label="Se connecter avec le compte de démonstration"]');
-  await page.waitForSelector("text=Catégories", { timeout: 20000 });
+  await signUp(page, { phone: "066440044", email: "pin@mwinda.cg" });
 
   await check("the account screen offers a PIN", async () => {
     await tap('[aria-label="Profil"]');

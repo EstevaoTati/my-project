@@ -7,6 +7,7 @@
  * all follow — then switch back.
  */
 const { chromium } = require("playwright");
+const { signUp } = require("./lib/account");
 const http = require("http"), fs = require("fs"), path = require("path");
 
 const DIST = process.env.APP_DIST || path.resolve(__dirname, "..", "dist");
@@ -53,9 +54,9 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
   await check("the app opens in French", async () =>
     (await text()).includes("Chaque problème est un besoin de compétence"));
 
-  await tap('[aria-label="J\'ai déjà un compte, se connecter"]');
-  await tap('[aria-label="Se connecter avec le compte de démonstration"]');
-  await page.waitForTimeout(1600);
+  // A real account, created through the real sign-up. There is no demo
+  // account any more — it put a working password in the shipped bundle.
+  await signUp(page, { phone: "066110011", email: "lang@mwinda.cg" });
   await tap('[aria-label="Profil"]');
 
   await check("the language switch is on the account screen", () => vis('[aria-label="English"]'));

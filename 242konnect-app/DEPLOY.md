@@ -82,10 +82,15 @@ unless you still want it as a lightweight no-install demo.
 npm run verify:paths     # the app paints at a root, a sub-path and deeper, no failed request
 ```
 
-Then open the deployed URL and sign in with the demo account — **06 000 00 00**
-/ `Demo2024` — which needs no e-mail and proves the bundle, fonts and images
-all resolved.
+Then open the deployed URL. The welcome screen painting proves the bundle,
+fonts and images all resolved.
 
-Real sign-up additionally needs `{{ .Token }}` in the Supabase **Magic Link**
-e-mail template. Without it Supabase mails a link instead of a six-digit code
-and verification cannot complete.
+**Getting past that screen needs a real verification code.** There is no demo
+account any more — it put a working password into the shipped JavaScript, which
+a production build must not carry — so the only way in is to sign up, and
+sign-up mails a six-digit code.
+
+That makes `{{ .Token }}` in the Supabase **Magic Link** e-mail template a hard
+prerequisite, not a nicety: without it Supabase mails a *link* instead of the
+code, the Vérification screen has nothing to accept, and nobody can create an
+account at all. Set it before sharing the link with anyone.

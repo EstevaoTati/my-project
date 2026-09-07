@@ -9,6 +9,7 @@
  * client can download, and a rating with a comment and an optional photo.
  */
 const { chromium } = require("playwright");
+const { signUp } = require("./lib/account");
 const http = require("http"), fs = require("fs"), path = require("path");
 
 const DIST = process.env.APP_DIST || path.resolve(__dirname, "..", "dist");
@@ -54,9 +55,7 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: "networkidle" });
   await page.waitForSelector("text=Chaque problème", { timeout: 30000 });
   await page.waitForTimeout(700);
-  await tap('[aria-label="J\'ai déjà un compte, se connecter"]');
-  await tap('[aria-label="Se connecter avec le compte de démonstration"]');
-  await page.waitForTimeout(1600);
+  await signUp(page, { phone: "066330033", email: "journey@mwinda.cg" });
 
   // Demande: book a professional from their profile.
   await tap("text=Voir plus");

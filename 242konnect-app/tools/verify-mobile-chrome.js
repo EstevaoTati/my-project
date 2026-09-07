@@ -11,6 +11,7 @@
  * not reproduce the bug, which is exactly why it survived earlier suites.
  */
 const { chromium } = require("playwright");
+const { signUp } = require("./lib/account");
 const http = require("http"), fs = require("fs"), path = require("path");
 
 const DIST = process.env.APP_DIST || path.resolve(__dirname, "..", "dist");
@@ -58,9 +59,7 @@ const check = (ok, label) => { if (ok) { console.log("  ✓ " + label); pass++; 
   await page.waitForSelector("text=Chaque problème", { timeout: 30000 });
   await page.waitForTimeout(600);
 
-  await tap('[aria-label="J\'ai déjà un compte, se connecter"]');
-  await tap('[aria-label="Se connecter avec le compte de démonstration"]');
-  await page.waitForTimeout(1600);
+  await signUp(page, { phone: "066220022", email: "mobile@mwinda.cg" });
   check(!!(await vis("text=Catégories")), "signed in");
 
   const viewportH = page.viewportSize().height;
