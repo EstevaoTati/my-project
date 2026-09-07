@@ -37,8 +37,12 @@ HEADERS = f"""/_expo/static/*
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' {SUPABASE}; frame-ancestors 'self';
 """
 
-# Single-page app: a deep link must open the app, not a 404.
-REDIRECTS = "/*  /index.html  200\n"
+# Anything that is not a real file goes to the root — a redirect, not a
+# rewrite. A 200 rewrite keeps the requested URL, and the build's references are
+# relative so that it works at any depth: at "/a/b" they would resolve under
+# "/a/", the browser would receive index.html where it expects JavaScript, and
+# the page would be blank with nothing failing to show for it.
+REDIRECTS = "/*  /  301\n"
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 build = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else REPO / "242konnect-web")

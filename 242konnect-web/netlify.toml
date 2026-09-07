@@ -8,12 +8,17 @@
   publish = "."
   command = ""
 
-# A single-page app: every path renders index.html, so a deep link opens the
-# app rather than a 404. Assets are matched first because they exist on disk.
+# Anything that is not a real file goes to the root — a redirect, not a
+# rewrite. A `status = 200` rewrite would keep the requested URL, and the
+# build's references are relative (`./_expo/…`) so that it works at any depth:
+# at `/a/b` they would resolve under `/a/`, the browser would receive
+# index.html where it expects JavaScript, and the page would be blank with no
+# failed request to show for it. The app has no client-side routing, so there
+# is no deep link worth preserving; revisit if that changes.
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/"
+  status = 301
 
 [[headers]]
   for = "/*"
