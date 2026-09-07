@@ -665,6 +665,8 @@ export const en: Record<string, string> = {
     'The PIN is never stored on this device. After five wrong tries it is locked for fifteen minutes.',
   'Plus tard — je recevrai un code par e-mail à chaque connexion.':
     'Later — I will get a code by e-mail at every sign-in.',
+  'Ce code est nécessaire pour finaliser votre compte.':
+    'This code is required to finish setting up your account.',
   "Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.":
     'Your profile is saved on our servers and follows you from one device to the next. Your password stays on this phone: to sign in elsewhere, use account recovery.',
 };

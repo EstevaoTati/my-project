@@ -12,10 +12,14 @@ import { useT } from '../i18n';
 /**
  * Choosing the 6-digit PIN.
  *
- * Offered right after an account is created, and again from the account screen.
- * Skippable on purpose: an account without a PIN still works — it just falls
- * back to the mailed code at every sign-in. Forcing a PIN on someone at the end
- * of a long sign-up is how people end up choosing 123456.
+ * Shown in two situations, told apart by `pendingPinSetup.required`:
+ *
+ *  - **Required** — right after an account is created (and again on launch if an
+ *    account somehow has none). Every account must establish a PIN, so this
+ *    screen is a gate: no back button, no "Plus tard". Force-closing the app
+ *    during the step just brings it back on the next launch.
+ *  - **Optional** — opened from the account screen to set or change a PIN. Here
+ *    the way out is offered, because leaving without one is a valid choice.
  *
  * The PIN is typed twice, and neither copy is stored on the device. Both go to
  * the `pin` Edge Function, which is the only place that can hash or compare
@@ -34,6 +38,7 @@ export function SetPinScreen() {
 
   if (!pendingPinSetup) return null;
   const replacing = pendingPinSetup.replacing;
+  const required = pendingPinSetup.required;
 
   const problem = pin.length === PIN_LENGTH ? pinProblem(pin) : null;
   const mismatch = confirm.length === PIN_LENGTH && confirm !== pin;
@@ -69,15 +74,17 @@ export function SetPinScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          onPress={skipPinSetup}
-          accessibilityRole="button"
-          accessibilityLabel={t('Retour')}
-          hitSlop={8}
-          style={styles.back}
-        >
-          <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
-        </Pressable>
+        {!required && (
+          <Pressable
+            onPress={skipPinSetup}
+            accessibilityRole="button"
+            accessibilityLabel={t('Retour')}
+            hitSlop={8}
+            style={styles.back}
+          >
+            <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
+          </Pressable>
+        )}
 
         <Text style={styles.title}>
           {replacing ? t('Changer votre code') : t('Votre code confidentiel')}
@@ -151,7 +158,7 @@ export function SetPinScreen() {
           accessibilityLabel={replacing ? t('Changer mon code') : t('Définir mon code')}
         />
 
-        {!replacing && (
+        {!replacing && !required && (
           <Pressable
             onPress={skipPinSetup}
             accessibilityRole="button"
@@ -162,6 +169,12 @@ export function SetPinScreen() {
               {t('Plus tard — je recevrai un code par e-mail à chaque connexion.')}
             </Text>
           </Pressable>
+        )}
+
+        {required && (
+          <Text style={styles.skipText}>
+            {t('Ce code est nécessaire pour finaliser votre compte.')}
+          </Text>
         )}
       </ScrollView>
     </KeyboardAvoidingView>

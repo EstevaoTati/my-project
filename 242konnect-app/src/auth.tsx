@@ -37,6 +37,7 @@ import { ProfileConflictError, pullProfile, pushProfile } from './profileStore';
 import { freshSession, type SupabaseSession } from './supabase';
 import {
   knownToHavePin,
+  pinStatus,
   rememberHasPin,
   setPin as storePin,
   verifyPin as checkPin,
@@ -299,8 +300,19 @@ export type PendingSignIn = {
   session: SupabaseSession | null;
 };
 
-/** Set when the app is offering to define or replace the PIN. */
-export type PendingPinSetup = { replacing: boolean };
+/** Set when the app is asking for the PIN — offering it, or insisting. */
+export type PendingPinSetup = {
+  replacing: boolean;
+  /**
+   * True when the account cannot be used until a PIN exists.
+   *
+   * Every new account must establish one, so this is set at sign-up and again
+   * on launch if an account somehow has none — force-closing the app during
+   * the step would otherwise be a way around it. Changing an existing PIN from
+   * the account screen is not required, so that path leaves it false.
+   */
+  required: boolean;
+};
 
 type AuthState = {
   account: Account | null;
@@ -460,6 +472,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (supa) supabaseSession.current = JSON.parse(supa) as SupabaseSession;
         if (restored?.supabaseUserId) setHasPin(await knownToHavePin(restored.supabaseUserId));
         setFirstLaunch(launched === null);
+
+        // Every account must have a PIN, so a signed-in account without one is
+        // asked for it again here. Force-closing the app during the step at
+        // sign-up would otherwise be the way around it.
+        //
+        // The server is asked rather than the local flag: that flag is a cache,
+        // and clearing app data would wipe it. Insisting on a *new* PIN when one
+        // already exists would fail anyway — replacing one needs the old one —
+        // so the truth has to come from the service that holds it.
+        if (restored?.supabaseUserId) {
+          const live = await freshSession(supabaseSession.current);
+          if (live && live.userId === restored.supabaseUserId) {
+            supabaseSession.current = live;
+            try {
+              const { hasPin: established } = await pinStatus(live);
+              setHasPin(established);
+              if (!established) setPendingPinSetup({ replacing: false, required: true });
+            } catch {
+              // Offline, or the service is unreachable. A PIN cannot be set now
+              // either, so gating the account would strand someone with no way
+              // forward. The next launch asks again.
+            }
+          }
+        }
       } catch {
         // A corrupt session is not worth blocking sign-in over; start signed out.
       } finally {
@@ -658,10 +694,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, withId]));
       setPending(null);
       await persistSession(safe);
-      // Offered, not imposed. An account with no PIN still works — it just asks
-      // for a mailed code at every sign-in. Demanding one more secret at the end
-      // of a long sign-up is how people end up choosing 123456.
-      if (pending.session) setPendingPinSetup({ replacing: false });
+      // Every account establishes a PIN, as asked. Only when there is a session
+      // to authorise it: on a build with no Supabase behind it the PIN cannot be
+      // stored at all, and gating an account behind a step that cannot succeed
+      // would lock the person out of an account they just created.
+      if (pending.session) setPendingPinSetup({ replacing: false, required: true });
     },
     [pending, persistSession, rememberSupabaseSession]
   );
@@ -809,10 +846,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pendingSignIn]);
 
   const startPinSetup = useCallback(
-    (replacing: boolean) => setPendingPinSetup({ replacing }),
+    (replacing: boolean) => setPendingPinSetup({ replacing, required: false }),
     []
   );
-  const skipPinSetup = useCallback(() => setPendingPinSetup(null), []);
+  // Refuses to dismiss a required step. The screen hides the way out as well;
+  // this is the half that cannot be got around by re-rendering.
+  const skipPinSetup = useCallback(
+    () => setPendingPinSetup((prev) => (prev?.required ? prev : null)),
+    []
+  );
 
   const definePin = useCallback<AuthState['definePin']>(
     async (pin, current) => {
