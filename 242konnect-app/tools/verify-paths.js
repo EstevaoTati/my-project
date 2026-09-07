@@ -37,6 +37,19 @@ const TYPES = {
 
 const server = http.createServer((req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
+
+  // A bare directory URL redirects to the trailing-slash form, which is what
+  // netlify.toml declares and what makes relative references resolve against
+  // the app's own folder. Modelled here rather than assumed: answering the bare
+  // path with the file's bytes instead — a `status = 200` rewrite — is what
+  // produced a blank page on the shared link.
+  const bare = MOUNTS.find((m) => m && url === m);
+  if (bare) {
+    res.writeHead(301, { Location: bare + "/" });
+    res.end();
+    return;
+  }
+
   const mount = MOUNTS.filter((m) => m && url.startsWith(m + "/")).sort((a, b) => b.length - a.length)[0] ?? "";
   const rel = url.slice(mount.length) || "/";
   const file = path.join(BUILD, rel === "/" ? "/index.html" : rel);
@@ -83,29 +96,44 @@ const check = async (label, fn) => {
     return true;
   });
 
-  for (const mount of MOUNTS) {
-    const where = mount || "(site root)";
+  // Each URL gets its own browser context, and that is not tidiness: the app
+  // records "already launched" in localStorage, so a second visit in the same
+  // context routes past the welcome screen to Connexion — and an assertion on
+  // welcome copy would fail for a reason that has nothing to do with paths.
+  const visit = async (url, label) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "fr-FR" });
     const page = await ctx.newPage();
     const bad = [];
     page.on("response", (r) => r.status() >= 400 && bad.push(`${r.status()} ${r.url()}`));
     page.on("requestfailed", (r) => bad.push(`FAILED ${r.url()}`));
 
-    await check(`the app paints at ${where}`, async () => {
-      await page.goto(`http://127.0.0.1:${PORT}${mount}/index.html`, { waitUntil: "networkidle" });
-      // Wait past the splash, then assert real copy — a blank page is the
-      // symptom this whole suite exists to catch.
+    await check(`the app paints at ${label}`, async () => {
+      await page.goto(url, { waitUntil: "networkidle" });
+      // Past the splash, then real copy — a blank page is the symptom this
+      // whole suite exists to catch.
       await page.waitForSelector("text=Chaque problème est un besoin", { timeout: 25000 });
       return true;
     });
 
-    await check(`no failed request at ${where}`, async () => {
+    await check(`no failed request at ${label}`, async () => {
       await page.waitForTimeout(1500);
       if (bad.length) throw new Error(bad.slice(0, 3).join(" | "));
       return true;
     });
 
     await ctx.close();
+  };
+
+  for (const mount of MOUNTS) {
+    const where = mount || "(site root)";
+    await visit(`http://127.0.0.1:${PORT}${mount}/index.html`, `${where}/index.html`);
+
+    // The bare directory URL, which is what anyone actually types or shares,
+    // and a different test: a host that answers it with a `status = 200`
+    // rewrite leaves the browser on a URL with no trailing slash, so every
+    // `./…` reference resolves one directory too high — a blank page with no
+    // error. That is exactly how a broken share link got sent out.
+    if (mount) await visit(`http://127.0.0.1:${PORT}${mount}`, `the bare ${where}`);
   }
 
   console.log(`\n${pass} passed, ${fails.length} failed`);

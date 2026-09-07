@@ -36,8 +36,8 @@
 # ---------------------------------------------------------------------------
 [[redirects]]
   from = "/242konnect"
-  to = "/242konnect/index.html"
-  status = 200
+  to = "/242konnect/"
+  status = 301
 
 # Le prototype compile Tailwind dans le navigateur depuis jsDelivr et charge
 # deux polices Google. La CSP stricte de la landing page les bloquerait toutes
@@ -69,11 +69,19 @@
 # ---------------------------------------------------------------------------
 # APPLICATION 242KONNECT — /242konnect-web
 # Le build web de l'application React Native, servi tel quel.
+#
+# 301 vers la barre oblique finale, et surtout PAS une réécriture status = 200.
+# Les références du build sont relatives (« ./_expo/… »), pour qu'il fonctionne
+# à n'importe quelle profondeur. Or une réécriture 200 conserve l'URL demandée :
+# à « /242konnect-web » sans barre oblique, « ./_expo/… » se résout sur
+# « /_expo/… », un cran trop haut, et le bundle renvoie 404 — page blanche,
+# sans message d'erreur. La redirection donne au navigateur la bonne URL de
+# base avant qu'il ne demande quoi que ce soit.
 # ---------------------------------------------------------------------------
 [[redirects]]
   from = "/242konnect-web"
-  to = "/242konnect-web/index.html"
-  status = 200
+  to = "/242konnect-web/"
+  status = 301
 
 # L'application appelle Supabase pour envoyer et vérifier le code de
 # confirmation. La CSP de la landing page impose connect-src 'self' : sans
