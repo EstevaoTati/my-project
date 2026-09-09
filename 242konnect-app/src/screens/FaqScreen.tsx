@@ -90,7 +90,7 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Comment devenir prestataire sur la plateforme ?',
-        a: "Depuis l'onglet Profil, activez le profil Prestataire : un seul compte porte vos profils Particulier, Prestataire et Business, avec un seul identifiant. L'espace Prestataire — demandes reçues, agenda, revenus, Score 242K — reste à construire.",
+        a: "Depuis l'onglet Profil, activez le profil Prestataire : un seul compte porte vos profils Particulier et Prestataire, avec un seul identifiant. Activer Prestataire ne vous enlève rien — vous continuez à chercher et à réserver comme avant, et un « Espace Prestataire » s'ajoute dans l'onglet Profil, avec votre métier, vos conditions et vos pièces justificatives. Les demandes reçues et les revenus y resteront vides tant qu'il n'y a pas d'autres utilisateurs.",
       },
     ],
   },

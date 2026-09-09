@@ -82,7 +82,40 @@ export type OtpMetadata = {
 
 export class OtpApiError extends Error {}
 
+/**
+ * The send failed inside the provider, not because of anything the user typed.
+ * Carried as its own class because the two callers react differently: the screen
+ * shows `message`, while a build wired to a second provider could fall back.
+ */
+export class OtpDeliveryError extends OtpApiError {}
+
 const TIMEOUT_MS = 15000;
+
+/**
+ * What GoTrue says when its SMTP transport refuses the message. It is the same
+ * `unexpected_failure` for every mailer problem — bad credentials, a blocked
+ * port, a provider outage — so the text is the only thing that identifies it.
+ *
+ * This has bitten this project for real: a custom SMTP server was configured in
+ * the Supabase dashboard with credentials the server rejected (`535
+ * "Authentication credentials invalid"`), every POST /otp answered 500, and the
+ * English string below was rendered straight onto the sign-up screen. See
+ * 242konnect-app/DEPLOY.md — it is fixed in the dashboard, never in the app.
+ */
+const MAILER_FAILURE = /error sending (magic link|confirmation|recovery|invite) (e-?mail|email)/i;
+
+/**
+ * Shown when the provider accepted the request but could not send the mail.
+ *
+ * Deliberately does not repeat the provider's English string: it names an
+ * internal transport ("magic link") that means nothing to someone signing up,
+ * and reads as though they mistyped something. Nothing they can do differently
+ * would help, so the message says so and points at the operator.
+ */
+export const OTP_DELIVERY_FAILED_MESSAGE =
+  "L'envoi de l'e-mail de vérification a échoué côté serveur. Ce n'est pas une erreur de votre part : " +
+  "le service d'e-mail de 242Konnect est mal configuré ou momentanément indisponible. " +
+  'Réessayez dans quelques minutes, et si le problème persiste signalez-le à 242Konnect.';
 
 /** First human-readable reason found in a provider's error body. */
 function reasonFrom(payload: Record<string, unknown>): string | null {
@@ -111,7 +144,16 @@ async function postJson(
       signal: controller.signal,
     });
     const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-    if (!response.ok) throw new OtpApiError(onError(response.status, reasonFrom(payload)));
+    if (!response.ok) {
+      const reason = reasonFrom(payload);
+      // Checked before `onError`, because a mailer failure is the provider's
+      // problem rather than the caller's and reads the same whichever endpoint
+      // hit it. Letting the raw reason through here is what put "Error sending
+      // magic link email" in front of users.
+      if (reason && MAILER_FAILURE.test(reason))
+        throw new OtpDeliveryError(OTP_DELIVERY_FAILED_MESSAGE);
+      throw new OtpApiError(onError(response.status, reason));
+    }
     return payload;
   } catch (e) {
     if (e instanceof OtpApiError) throw e;
@@ -153,6 +195,10 @@ export async function requestCode(
       (status, reason) => {
         if (status === 429)
           return 'Trop de demandes de code. Patientez une minute avant de réessayer.';
+        // Any 5xx is the service failing, not the address being wrong. GoTrue
+        // returns `unexpected_failure` for a mailer problem it cannot describe
+        // further, and its English text would only mislead.
+        if (status >= 500) return OTP_DELIVERY_FAILED_MESSAGE;
         return reason ?? "L'envoi de l'e-mail de vérification a échoué.";
       }
     );

@@ -1,11 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TabBar } from './components/TabBar';
 import { HomeScreen } from './screens/HomeScreen';
 import { EspacePrestataireScreen } from './screens/EspacePrestataireScreen';
-import { EspaceBusinessScreen } from './screens/EspaceBusinessScreen';
 import { SearchResultsScreen } from './screens/SearchResultsScreen';
 import { ProfessionalProfileScreen } from './screens/ProfessionalProfileScreen';
 import { TradesScreen } from './screens/TradesScreen';
@@ -47,6 +46,7 @@ export type MessagesStackParamList = {
 export type AccountStackParamList = {
   MonCompte: undefined;
   ModifierProfil: undefined;
+  EspacePrestataire: undefined;
   FAQ: undefined;
 };
 
@@ -64,25 +64,10 @@ const Tab = createBottomTabNavigator();
 
 const hidden = { headerShown: false } as const;
 
-/**
- * Which space the Accueil tab shows depends on the profile in use (§2.2).
- * Switching profile in the Profil tab therefore changes the whole app, which is
- * what "espace" means — not just a badge on a settings row.
- *
- * A prestataire or business still needs to be able to book services, so the
- * rest of the stack (catalogue, results, professional profiles) is shared.
- */
-function ActiveSpaceScreen(props: NativeStackScreenProps<HomeStackParamList, 'Accueil'>) {
-  const { account } = useAuth();
-  if (account?.activeProfile === 'prestataire') return <EspacePrestataireScreen />;
-  if (account?.activeProfile === 'business') return <EspaceBusinessScreen />;
-  return <HomeScreen {...props} />;
-}
-
 function HomeStackScreens() {
   return (
     <Home.Navigator screenOptions={hidden}>
-      <Home.Screen name="Accueil" component={ActiveSpaceScreen} />
+      <Home.Screen name="Accueil" component={HomeScreen} />
       <Home.Screen name="Metiers" component={TradesScreen} />
       <Home.Screen name="Resultats" component={SearchResultsScreen} />
       <Home.Screen name="Profil" component={ProfessionalProfileScreen} />
@@ -104,6 +89,13 @@ function AccountStackScreens() {
     <Account.Navigator screenOptions={hidden}>
       <Account.Screen name="MonCompte" component={AccountScreen} />
       <Account.Screen name="ModifierProfil" component={EditProfileScreen} />
+      {/* The prestataire dashboard is a screen you visit, not a mode the app
+          drops into. It used to replace the Accueil tab whenever the Prestataire
+          profile was active, which meant activating it cost you the marketplace:
+          no search, no catalogue, no booking. A prestataire is also a customer,
+          so Accueil now shows the same home for every profile and the dashboard
+          lives here, one tap from Profil. */}
+      <Account.Screen name="EspacePrestataire" component={EspacePrestataireScreen} />
       <Account.Screen name="FAQ" component={FaqScreen} />
     </Account.Navigator>
   );

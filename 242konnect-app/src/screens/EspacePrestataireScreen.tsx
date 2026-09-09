@@ -1,18 +1,29 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { UserAvatar } from '../components/Avatar';
 import { formatFcfaFull, getTrade } from '../data';
 import { COMMISSION_RATE, PAYOUT_EXPRESS_RATE, PAYOUT_STANDARD_RATE, PAYOUT_STANDARD_DELAY_DAYS } from '../payments';
 import { useAuth } from '../auth';
+import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { useT } from '../i18n';
+
+type Props = NativeStackScreenProps<AccountStackParamList, 'EspacePrestataire'>;
 
 /**
  * Espace Prestataire — the dashboard of §2.2.
  *
- * An honest constraint runs through this screen: a prestataire's dashboard is
+ * Reached from the Profil tab, not by taking over the Accueil tab. It used to
+ * *replace* the home screen whenever the Prestataire profile was active, which
+ * meant a prestataire could not search, browse or book anything: activating the
+ * profile silently cost them the marketplace. A prestataire is a customer too,
+ * so the app is now the same for both profiles and this is one screen among
+ * others.
+ *
+ * An honest constraint still runs through it: a prestataire's dashboard is
  * mostly made of *other people's* actions — demandes received, missions
  * accepted, revenue earned, clients served. None of that can exist on a device
  * with no backend and no other users.
@@ -29,7 +40,7 @@ const SUBSCRIPTIONS = [
   { id: 'business', label: 'Business', price: 'À définir', perks: ['Appels d’offres entreprises', 'Support prioritaire'] },
 ];
 
-export function EspacePrestataireScreen() {
+export function EspacePrestataireScreen({ navigation }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const { account } = useAuth();
@@ -41,10 +52,21 @@ export function EspacePrestataireScreen() {
   return (
     <ScrollView
       style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.screenTitle}>{t('Espace Prestataire')}</Text>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel={t('Retour')}
+          hitSlop={8}
+          style={styles.back}
+        >
+          <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
+        </Pressable>
+        <Text style={styles.screenTitle}>{t('Espace Prestataire')}</Text>
+      </View>
 
       <View style={styles.identity}>
         <UserAvatar name={account.name} avatar={account.avatar} size={56} />
@@ -201,7 +223,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: 20, paddingBottom: 140, gap: 18 },
-  screenTitle: { fontFamily: fonts.heading, fontSize: 24, color: colors.foreground },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  back: {
+    padding: 8,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.sm,
+  },
+  screenTitle: { flex: 1, fontFamily: fonts.heading, fontSize: 24, color: colors.foreground },
   identity: {
     flexDirection: 'row',
     alignItems: 'center',

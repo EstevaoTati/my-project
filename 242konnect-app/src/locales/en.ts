@@ -34,9 +34,6 @@ export const en: Record<string, string> = {
   Revenus: 'Earnings',
   Performance: 'Performance',
   Abonnement: 'Subscription',
-  Factures: 'Invoices',
-  Collaborateurs: 'Team members',
-  Établissements: 'Locations',
   Compétences: 'Skills',
   'Score 242K': 'Score 242K',
   'Top Professionnels': 'Top professionals',
@@ -76,12 +73,9 @@ export const en: Record<string, string> = {
   Langue: 'Language',
   'Ce compte demande': 'This account needs',
   '+ activer': '+ activate',
-  'en attente': 'on hold',
   'Espace Prestataire': 'Provider space',
-  'Espace Business': 'Business space',
 
   /* ---- Identity fields ------------------------------------------------ */
-  Nom: 'Name',
   'Nom complet': 'Full name',
   'E-mail': 'E-mail',
   'Numéro de téléphone': 'Phone number',
@@ -89,17 +83,14 @@ export const en: Record<string, string> = {
   'Indicatif du pays': 'Country code',
   Ville: 'City',
   'Votre ville': 'Your city',
-  Adresse: 'Address',
   'Adresse complète': 'Full address',
   "Référence de l'adresse": 'Address landmark',
-  'Quartier, avenue': 'Neighbourhood, street',
   'Quartier, avenue, numéro': 'Neighbourhood, street, number',
   'Les prestataires en ont besoin pour venir chez vous.':
     'Providers need this to reach you.',
   'Où intervenir ?': 'Where do you need help?',
   'vous@exemple.com': 'you@example.com',
   '06 123 45 67 ou vous@exemple.com': '06 123 45 67 or you@example.com',
-  'collaborateur@entreprise.cg': 'colleague@company.com',
   'Votre numéro est votre identifiant et ne peut pas être modifié ici.':
     'Your number is your login and cannot be changed here.',
 
@@ -162,8 +153,6 @@ export const en: Record<string, string> = {
     'ID, attestation, certificate. Checked by 242Konnect.',
   "Ces informations sont vérifiées par 242Konnect avant l'attribution du badge « Prestataire vérifié ».":
     'These are checked by 242Konnect before the "Verified provider" badge is awarded.',
-  'Les documents légaux sont vérifiés par 242Konnect avant validation du compte.':
-    'Legal documents are checked by 242Konnect before the account is approved.',
   'Obligatoire pour un prestataire.': 'Required for a provider.',
   'Ajouter une photo de profil': 'Add a profile photo',
   'Choisir une photo': 'Choose a photo',
@@ -175,29 +164,6 @@ export const en: Record<string, string> = {
   Enregistrer: 'Save',
 
   /* ---- Business ------------------------------------------------------- */
-  'Votre entreprise': 'Your company',
-  'Raison sociale': 'Registered name',
-  RCCM: 'RCCM',
-  NIF: 'Tax ID',
-  "Numéro d'identification fiscale": 'Tax identification number',
-  "Secteur d'activité": 'Industry',
-  "Choisir le secteur d'activité": 'Choose the industry',
-  "Adresse de l'entreprise": 'Company address',
-  'Ajouter le logo': 'Add the logo',
-  'Ajouter un établissement': 'Add a location',
-  "Enregistrer l'établissement": 'Save location',
-  'Agence Centre-ville': 'City-centre branch',
-  'Inviter un collaborateur': 'Invite a team member',
-  "Envoyer l'invitation": 'Send the invitation',
-  Inviter: 'Invite',
-  Invité: 'Invited',
-  "Niveau d'accès": 'Access level',
-  'Gestion des demandes': 'Request management',
-  'Gestion financière': 'Financial management',
-  'Circuit de validation interne': 'Internal approval flow',
-  'Devis reçus': 'Quotes received',
-  'Dépenses engagées': 'Spend committed',
-  'CG-PNR-01-2026-B12-00001': 'CG-PNR-01-2026-B12-00001',
 
   /* ---- Search and browse ---------------------------------------------- */
   Rechercher: 'Search',
@@ -233,7 +199,6 @@ export const en: Record<string, string> = {
   'Présentez votre besoin en quelques mots : le lieu, le problème et quand vous êtes disponible.':
     'Describe what you need in a few words: where, what the problem is, and when you are free.',
   "Simuler l'acceptation": 'Simulate acceptance',
-  'En attente': 'Pending',
   'En cours': 'In progress',
   'À payer': 'To pay',
 
@@ -307,7 +272,6 @@ export const en: Record<string, string> = {
   'Demandes et missions': 'Requests and jobs',
   'Votre formule actuelle': 'Your current plan',
   'Vérification du compte': 'Account verification',
-  'En attente de validation': 'Awaiting approval',
   'En attente de vérification par 242Konnect': 'Awaiting verification by 242Konnect',
   'Aucune pièce transmise. Les documents accélèrent la vérification de votre compte.':
     'No documents submitted. Documents speed up verification of your account.',
@@ -317,7 +281,6 @@ export const en: Record<string, string> = {
   Retour: 'Back',
   Fermer: 'Close',
   Continuer: 'Continue',
-  Supprimer: 'Delete',
   Retirer: 'Remove',
   "C'est noté": 'Got it',
   Bientôt: 'Soon',
@@ -329,18 +292,8 @@ export const en: Record<string, string> = {
   "Démonstration : aucun versement réel n'a lieu.": 'Demo: no real payout takes place.',
   'Démonstration : vos messages sont enregistrés sur cet appareil, mais personne ne les reçoit encore.':
     'Demo: your messages are saved on this device, but nobody receives them yet.',
-  'Aucun établissement. Ajoutez vos agences, bureaux, magasins ou chantiers pour rattacher chaque demande à un site.':
-    'No locations yet. Add your branches, offices, shops or sites so each request can be tied to one.',
-  "Aucun collaborateur. Invitez vos équipes avec des niveaux d'accès différents : administrateur, responsable, comptable, acheteur, maintenance.":
-    'No team members yet. Invite your teams with different access levels: administrator, manager, accountant, buyer, maintenance.',
-  "Les invitations ne partent pas encore : l'envoi et l'acceptation demandent un serveur. Les rôles sont enregistrés sur cet appareil.":
-    'Invitations do not go out yet: sending and accepting need a server. Roles are saved on this device.',
   "Aucune mission reçue : il n'y a pas encore de clients sur cette version. Les revenus apparaîtront ici dès qu'une prestation sera validée.":
     'No jobs received: there are no clients on this version yet. Earnings will appear here once a job is approved.',
-  "Les appels d'offres et la comparaison de devis demandent que des prestataires puissent répondre — donc un serveur.":
-    'Tenders and quote comparison need providers who can reply, which means a server.',
-  'Les devis, factures et rapports PDF/Excel demandent la facturation côté serveur.':
-    'Quotes, invoices and PDF/Excel reports need billing on the server.',
   'Les tarifs Premium et Business ne sont pas encore fixés, et la souscription demande le système de paiement des abonnements.':
     'Premium and Business pricing is not set yet, and subscribing needs the subscription payment system.',
   "Cet espace affiche la structure décrite au cahier des charges §2.2. Les sections qui dépendent d'autres utilisateurs — demandes, revenus, avis — restent vides tant qu'il n'y a pas de serveur : elles ne sont pas simulées.":
@@ -669,4 +622,9 @@ export const en: Record<string, string> = {
     'This code is required to finish setting up your account.',
   "Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.":
     'Your profile is saved on our servers and follows you from one device to the next. Your password stays on this phone: to sign in elsewhere, use account recovery.',
+  'Un seul compte, plusieurs profils. Activez Prestataire pour proposer vos services sans créer un second compte.':
+    'One account, several profiles. Turn on Prestataire to offer your services without creating a second account.',
+  "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier.":
+    'You offer services and you can book them too: the home screen, search and bookings work exactly as they do for a particulier.',
+  'Adresse e-mail': 'E-mail address',
 };

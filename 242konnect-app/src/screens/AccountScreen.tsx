@@ -80,20 +80,20 @@ export function AccountScreen({ navigation }: Props) {
                   {PROFILE_LABELS[kind]}
                 </Text>
                 {!owned && <Text style={styles.profileChipAdd}>{t('+ activer')}</Text>}
-                {kind !== 'particulier' && (
-                  <Text style={styles.profileChipPending}>{t('en attente')}</Text>
-                )}
               </Pressable>
             );
           })}
         </View>
-        {/* The founder's sequencing: finish Particulier first, then the other
-            two. Their spaces exist but are explicitly on hold, so switching
-            says so rather than looking half-finished. */}
+        {/* Both profiles are live now. Prestataire used to be marked "en
+            attente" and to swap the whole Accueil tab for a dashboard; it now
+            keeps the marketplace and adds its own space below, so there is
+            nothing to warn about. */}
         <Text style={styles.profilesNote}>
-          {account.activeProfile === 'particulier'
-            ? "L'espace Particulier est celui en cours de finalisation. Les espaces Prestataire et Business suivront."
-            : `L'espace ${PROFILE_LABELS[account.activeProfile]} est en attente : il sera finalisé après l'espace Particulier.`}
+          {account.activeProfile === 'prestataire'
+            ? t(
+                "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier."
+              )
+            : t('Un seul compte, plusieurs profils. Activez Prestataire pour proposer vos services sans créer un second compte.')}
         </Text>
       </View>
 
@@ -160,6 +160,21 @@ export function AccountScreen({ navigation }: Props) {
           <Text style={styles.rowLabel}>{t('Modifier le profil')}</Text>
           <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
         </Pressable>
+        {/* Only for accounts that actually have the profile: the dashboard reads
+            `account.prestataire`, and offering it to a particulier would open a
+            screen with nothing in it. */}
+        {account.profiles.includes('prestataire') && (
+          <Pressable
+            onPress={() => navigation.navigate('EspacePrestataire')}
+            accessibilityRole="button"
+            accessibilityLabel={t('Espace Prestataire')}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <Icon name="mdi:wrench" size={20} color={colors.primary} />
+            <Text style={styles.rowLabel}>{t('Espace Prestataire')}</Text>
+            <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+          </Pressable>
+        )}
         <Pressable
           onPress={() => startPinSetup(hasPin)}
           accessibilityRole="button"

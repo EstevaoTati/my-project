@@ -90,7 +90,48 @@ account any more — it put a working password into the shipped JavaScript, whic
 a production build must not carry — so the only way in is to sign up, and
 sign-up mails a six-digit code.
 
-That makes `{{ .Token }}` in the Supabase **Magic Link** e-mail template a hard
-prerequisite, not a nicety: without it Supabase mails a *link* instead of the
-code, the Vérification screen has nothing to accept, and nobody can create an
-account at all. Set it before sharing the link with anyone.
+## The e-mail must actually send — two separate settings
+
+Both of these are in the Supabase dashboard. Neither can be fixed from the app,
+and either one alone being wrong stops every sign-up.
+
+### 1. SMTP credentials — the cause of "Error sending magic link email"
+
+If sign-up fails the moment you press **Créer mon compte**, this is why. The
+project's auth log shows the real reason, which never reaches the browser:
+
+```
+POST /otp → 500   error: 535 "Authentication credentials invalid"
+```
+
+`535` is the SMTP server rejecting Supabase's login. A custom SMTP server is
+configured under **Project Settings → Authentication → SMTP Settings** with a
+username or password the provider does not accept, so GoTrue cannot send
+anything and answers `unexpected_failure` for every request.
+
+Two ways out:
+
+- **Fix the credentials.** Re-enter the SMTP host, port, username and password.
+  For most providers the password is an API key or an app password, *not* the
+  account password — that mismatch is the usual cause of a 535.
+- **Or turn custom SMTP off**, which falls back to Supabase's built-in sender.
+  Good enough to test with, not to launch on: it only delivers to addresses on
+  the project's team, and it is rate-limited to a couple of messages an hour.
+
+To confirm it is fixed, watch the log rather than the screen — a send that works
+leaves a `POST /otp` with status `200`.
+
+### 2. `{{ .Token }}` in the Magic Link template
+
+**Authentication → Emails → Magic Link.** Without it Supabase mails a *link*
+instead of the code, the Vérification screen has nothing to accept, and nobody
+can create an account. The body needs the token itself, for example:
+
+```
+Votre code de vérification 242Konnect : {{ .Token }}
+```
+
+Note that the code is never readable from the database: Supabase stores only a
+SHA-224 hash of it in `auth.one_time_tokens`. The inbox is the only place it
+exists, which is the point — but it does mean a broken mailer cannot be worked
+around by reading the code out of the project.

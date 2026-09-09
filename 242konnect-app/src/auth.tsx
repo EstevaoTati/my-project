@@ -56,10 +56,10 @@ import {
  * Two rules come straight from the cahier des charges §9.10:
  *
  *  - **One account, several profiles.** A person has a single login — one phone
- *    number, one e-mail — and activates Particulier, Prestataire and/or
- *    Business on top of it. The spec is explicit that three separate accounts is
- *    the wrong shape: "l'utilisateur n'a qu'une seule connexion et peut changer
- *    de profil depuis son espace personnel".
+ *    number, one e-mail — and activates Particulier and/or Prestataire on top of
+ *    it. The spec is explicit that separate accounts per profile is the wrong
+ *    shape: "l'utilisateur n'a qu'une seule connexion et peut changer de profil
+ *    depuis son espace personnel".
  *  - **Uniqueness.** A phone number and an e-mail each belong to exactly one
  *    account, and the refusal message is quoted from the spec.
  *
@@ -67,19 +67,32 @@ import {
  * needs a shared database — see docs/decisions.
  */
 
-export type ProfileKind = 'particulier' | 'prestataire' | 'business';
+/**
+ * The two account types 242Konnect actually offers.
+ *
+ * A third, Business, existed here and was removed on the founder's instruction:
+ * an entreprise books services the same way a person does, so it was a second
+ * form and a second dashboard earning nothing that Particulier did not already
+ * do. Removing the kind rather than hiding it keeps `profiles` honest — a stored
+ * account can no longer claim a profile the app cannot open.
+ *
+ * The `business` jsonb column is left in `public.profiles`. It is nullable and
+ * nothing writes it now; dropping it would destroy any data already there, and
+ * that is the founder's call rather than a side effect of this change.
+ */
+export type ProfileKind = 'particulier' | 'prestataire';
 
 export const PROFILE_LABELS: Record<ProfileKind, string> = {
   particulier: 'Particulier',
   prestataire: 'Prestataire',
-  business: 'Business',
 };
 
 /**
- * Per-profile detail. §2.2 gives each account type a different required set, so
- * they are separate objects rather than a pile of optional fields on Account:
- * a Business has no date of birth, a Particulier has no RCCM, and flattening
- * them would make "is this profile complete?" impossible to answer.
+ * Per-profile detail. §2.2 asks a different set of each account type, so they
+ * are separate objects rather than a pile of optional fields on Account: a
+ * Prestataire has a date of birth and a trade, a Particulier has an address and
+ * interests, and flattening them would make "is this profile complete?"
+ * impossible to answer.
  */
 export type ParticulierDetails = {
   /** §2.2: adresse complète + référence de l'adresse (how to find it locally). */
@@ -103,32 +116,7 @@ export type PrestataireDetails = {
   verified: boolean;
 };
 
-export type BusinessDetails = {
-  companyName: string;
-  /** Data URI, like the avatar. */
-  logo?: string;
-  rccm: string;
-  nif: string;
-  sector: string;
-  website?: string;
-  address: string;
-};
-
 export const MIN_PRESTATAIRE_AGE = 16;
-
-export const BUSINESS_SECTORS = [
-  'Hôtellerie & Restauration',
-  'Commerce & Distribution',
-  'Industrie',
-  'BTP & Immobilier',
-  'Santé',
-  'Éducation',
-  'Banque & Assurance',
-  'Transport & Logistique',
-  'Administration publique',
-  'ONG & Association',
-  'Autre',
-];
 
 export const INTERESTS = [
   'Maison', 'Bricolage', 'Automobile', 'Beauté', 'Santé', 'Éducation',
@@ -165,13 +153,12 @@ export type Account = {
   /** Populated only for the profiles this account has activated. */
   particulier?: ParticulierDetails;
   prestataire?: PrestataireDetails;
-  business?: BusinessDetails;
   createdAt: number;
 };
 
 /** What someone can change afterwards. Phone and e-mail are the identity. */
 export type ProfileEdits = Partial<
-  Pick<Account, 'name' | 'avatar' | 'bio' | 'particulier' | 'prestataire' | 'business'>
+  Pick<Account, 'name' | 'avatar' | 'bio' | 'particulier' | 'prestataire'>
 >;
 
 /** Everything collected across the sign-up steps, before the code is confirmed. */
@@ -188,7 +175,6 @@ export type SignUpDraft = {
   bio?: string;
   particulier?: ParticulierDetails;
   prestataire?: PrestataireDetails;
-  business?: BusinessDetails;
 };
 
 /** Years between an ISO date and today. Used for the under-16 rule. */
@@ -590,15 +576,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!draft.bio?.trim()) throw new Error('Rédigez une courte biographie.');
       }
 
-      if (draft.profile === 'business') {
-        const d = draft.business;
-        if (!d?.companyName.trim()) throw new Error('Indiquez la raison sociale.');
-        if (!d?.rccm.trim()) throw new Error('Indiquez le numéro RCCM.');
-        if (!d?.nif.trim()) throw new Error('Indiquez le NIF.');
-        if (!d?.sector.trim()) throw new Error("Choisissez le secteur d'activité.");
-        if (!d?.address.trim()) throw new Error("Indiquez l'adresse de l'entreprise.");
-      }
-
       // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
       if (accounts.some((a) => a.phone === stored || a.email === mail))
@@ -667,7 +644,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         activeProfile: pending.profile,
         particulier: pending.particulier,
         prestataire: pending.prestataire,
-        business: pending.business,
         createdAt: Date.now(),
       };
       const withId: StoredAccount = pending.session

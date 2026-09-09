@@ -32,7 +32,7 @@ import { supabaseConfigured, supabaseFetch, type SupabaseSession } from './supab
 /** Thrown when the number or address already belongs to another account. */
 export class ProfileConflictError extends Error {}
 
-const PROFILE_KINDS: ProfileKind[] = ['particulier', 'prestataire', 'business'];
+const PROFILE_KINDS: ProfileKind[] = ['particulier', 'prestataire'];
 
 /** The columns of `public.profiles`, as PostgREST returns them. */
 type ProfileRow = {
@@ -50,7 +50,6 @@ type ProfileRow = {
   avatar_url: string | null;
   particulier: unknown;
   prestataire: unknown;
-  business: unknown;
   created_at: string;
 };
 
@@ -72,7 +71,6 @@ function toRow(account: Account, userId: string): Record<string, unknown> {
     avatar_url: account.avatar ?? null,
     particulier: account.particulier ?? null,
     prestataire: account.prestataire ?? null,
-    business: account.business ?? null,
   };
 }
 
@@ -102,7 +100,6 @@ function fromRow(row: ProfileRow): Omit<Account, 'createdAt'> & { createdAt?: nu
       : 'particulier',
     ...(row.particulier ? { particulier: row.particulier as Account['particulier'] } : {}),
     ...(row.prestataire ? { prestataire: row.prestataire as Account['prestataire'] } : {}),
-    ...(row.business ? { business: row.business as Account['business'] } : {}),
     ...(Number.isFinite(createdAt) ? { createdAt } : {}),
   };
 }

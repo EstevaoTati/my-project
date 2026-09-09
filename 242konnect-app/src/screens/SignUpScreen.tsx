@@ -17,7 +17,6 @@ import {
 import { Sheet } from '../components/Sheet';
 import {
   ageFrom,
-  BUSINESS_SECTORS,
   INTERESTS,
   isValidEmail,
   MIN_PRESTATAIRE_AGE,
@@ -35,23 +34,21 @@ import { T, useT } from '../i18n';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Inscription'>;
 
 /**
- * Account creation, in three shapes.
+ * Account creation, in two shapes.
  *
  * §2.2 asks for a different set of information from each account type, so this
  * is not one form with a few conditional rows: a prestataire must supply a
- * photo, a date of birth and proof of competence, a business supplies its RCCM
- * and NIF, and a particulier supplies where they live and how to find it.
- * Making them share a form would either over-ask the particulier or under-ask
- * the business.
+ * photo, a date of birth and proof of competence, while a particulier supplies
+ * where they live and how to find it. Making them share a form would either
+ * over-ask the particulier or under-ask the prestataire.
  *
  * The steps are: choose the type → identity → the type's own details → the code.
- * Verification is the same for all three and lives on its own screen.
+ * Verification is the same for both and lives on its own screen.
  */
 
 const PROFILES: { id: ProfileKind; hint: string; icon: IconName }[] = [
   { id: 'particulier', hint: 'Je cherche un service', icon: 'solar:user-rounded-linear' },
   { id: 'prestataire', hint: 'Je propose mes compétences', icon: 'mdi:wrench' },
-  { id: 'business', hint: 'Pour mon entreprise', icon: '242k:briefcase' },
 ];
 
 const CHANNELS: { id: OtpChannel; label: string }[] = [
@@ -95,16 +92,6 @@ export function SignUpScreen({ navigation }: Props) {
   const [documents, setDocuments] = useState<string[]>([]);
   const [showTrades, setShowTrades] = useState(false);
 
-  // Business.
-  const [companyName, setCompanyName] = useState('');
-  const [rccm, setRccm] = useState('');
-  const [nif, setNif] = useState('');
-  const [sector, setSector] = useState('');
-  const [website, setWebsite] = useState('');
-  const [companyAddress, setCompanyAddress] = useState('');
-  const [logo, setLogo] = useState<string | undefined>();
-  const [showSectors, setShowSectors] = useState(false);
-
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -137,13 +124,11 @@ export function SignUpScreen({ navigation }: Props) {
   const detailsReady =
     profile === 'particulier'
       ? address.trim().length > 0 && addressReference.trim().length > 0
-      : profile === 'prestataire'
-        ? !!birthDate && !!tradeId && zone.trim().length > 0 && Number(hourlyRate) > 0 && bio.trim().length > 0
-        : companyName.trim().length > 0 &&
-          rccm.trim().length > 0 &&
-          nif.trim().length > 0 &&
-          sector.length > 0 &&
-          companyAddress.trim().length > 0;
+      : !!birthDate &&
+        !!tradeId &&
+        zone.trim().length > 0 &&
+        Number(hourlyRate) > 0 &&
+        bio.trim().length > 0;
 
   const age = birthDate ? ageFrom(birthDate) : null;
   const tooYoung = age !== null && age < MIN_PRESTATAIRE_AGE;
@@ -178,10 +163,6 @@ export function SignUpScreen({ navigation }: Props) {
                 // Never self-set: 242Konnect awards it after checking documents.
                 verified: false,
               }
-            : undefined,
-        business:
-          profile === 'business'
-            ? { companyName, logo, rccm, nif, sector, website, address: companyAddress }
             : undefined,
       });
     } catch (e) {
@@ -264,9 +245,7 @@ export function SignUpScreen({ navigation }: Props) {
               <Text style={styles.requiresTitle}>{t('Ce compte demande')}</Text>
               {(profile === 'particulier'
                 ? ['Nom, téléphone et e-mail', 'Adresse complète et un repère pour vous trouver', 'Vos centres d’intérêt (optionnel)']
-                : profile === 'prestataire'
-                  ? ['Une photo de profil (obligatoire)', `Votre date de naissance — ${MIN_PRESTATAIRE_AGE} ans minimum`, 'Votre métier, votre zone et votre tarif', 'Formations, diplômes et pièces justificatives']
-                  : ['Raison sociale et logo', 'RCCM et NIF', 'Secteur d’activité et adresse', 'Site web (optionnel)']
+                : ['Une photo de profil (obligatoire)', `Votre date de naissance — ${MIN_PRESTATAIRE_AGE} ans minimum`, 'Votre métier, votre zone et votre tarif', 'Formations, diplômes et pièces justificatives']
               ).map((line) => (
                 <View key={line} style={styles.requireRow}>
                   <View style={styles.requireDot} />
@@ -307,7 +286,7 @@ export function SignUpScreen({ navigation }: Props) {
 
             <View style={styles.form}>
               <Field
-                label={profile === 'business' ? 'Nom du responsable' : 'Nom complet'}
+                label={t('Nom complet')}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -319,7 +298,7 @@ export function SignUpScreen({ navigation }: Props) {
                 onCountryChange={setPhoneCountry}
               />
               <Field
-                label={profile === 'business' ? 'E-mail professionnel' : 'Adresse e-mail'}
+                label={t('Adresse e-mail')}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -516,58 +495,6 @@ export function SignUpScreen({ navigation }: Props) {
               </>
             )}
 
-            {profile === 'business' && (
-              <>
-                <Text style={styles.title}>{t('Votre entreprise')}</Text>
-                <Text style={styles.lede}>{t('Les documents légaux sont vérifiés par 242Konnect avant validation du compte.')}</Text>
-
-                <View style={styles.photoBlock}>
-                  <UserAvatar name={companyName || '?'} avatar={logo} size={72} border={colors.border} />
-                  <Pressable
-                    onPress={() => pickImage(setLogo)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('Ajouter le logo')}
-                    style={styles.photoButton}
-                  >
-                    <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
-                    <Text style={styles.photoButtonLabel}>{logo ? 'Changer le logo' : 'Ajouter le logo'}</Text>
-                  </Pressable>
-                </View>
-
-                <Field label={t('Raison sociale')} value={companyName} onChangeText={setCompanyName} />
-                <Field label={t('RCCM')} value={rccm} onChangeText={setRccm} placeholder={t('CG-PNR-01-2026-B12-00001')} />
-                <Field label={t('NIF')} value={nif} onChangeText={setNif} placeholder={t("Numéro d'identification fiscale")} />
-
-                <View style={styles.field}>
-                  <Text style={styles.sectionLabel}>{t("Secteur d'activité")}</Text>
-                  <Pressable
-                    onPress={() => setShowSectors(true)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("Choisir le secteur d'activité")}
-                    style={styles.select}
-                  >
-                    <Text style={[styles.selectValue, !sector && styles.selectPlaceholder]}>
-                      {sector || 'Choisir un secteur'}
-                    </Text>
-                    <Icon name="solar:alt-arrow-down-linear" size={18} color={colors.mutedForeground} />
-                  </Pressable>
-                </View>
-
-                <Field
-                  label={t("Adresse de l'entreprise")}
-                  value={companyAddress}
-                  onChangeText={setCompanyAddress}
-                  placeholder={t('Quartier, avenue, numéro')}
-                />
-                <Field
-                  label="Site web (optionnel)"
-                  value={website}
-                  onChangeText={setWebsite}
-                  autoCapitalize="none"
-                  placeholder="https://"
-                />
-              </>
-            )}
 
             <FormError message={error} />
             <SubmitButton
@@ -614,23 +541,6 @@ export function SignUpScreen({ navigation }: Props) {
         ))}
       </Sheet>
 
-      <Sheet visible={showSectors} title={t("Secteur d'activité")} onClose={() => setShowSectors(false)}>
-        {BUSINESS_SECTORS.map((item) => (
-          <Pressable
-            key={item}
-            onPress={() => {
-              setSector(item);
-              setShowSectors(false);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={item}
-            accessibilityState={{ selected: item === sector }}
-            style={[styles.sheetRow, item === sector && styles.sheetRowOn]}
-          >
-            <Text style={styles.sheetRowLabel}>{item}</Text>
-          </Pressable>
-        ))}
-      </Sheet>
     </KeyboardAvoidingView>
   );
 }

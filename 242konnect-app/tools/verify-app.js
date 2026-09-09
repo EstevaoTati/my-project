@@ -220,42 +220,47 @@ const mailedCode = () => {
   // Sign-up now opens on the type step, not a single form.
   await check("sign in to sign up", async () => { await tap("text=Créer un compte"); return seen("text=Quel type de compte ?"); });
 
-  section("Three account formats");
-  await check("three types offered", async () =>
+  section("Two account formats");
+  // Business was removed on the founder's instruction: an entreprise books the
+  // same way a person does, so the third form earned nothing.
+  await check("two types offered, and no Business", async () =>
     (await seen('[aria-label="Particulier"]')) &&
     (await seen('[aria-label="Prestataire"]')) &&
-    (await seen('[aria-label="Business"]')));
+    !(await seen('[aria-label="Business"]')));
   await check("each type lists different requirements", async () => {
     await tap('[aria-label="Prestataire"]');
     const pro = await seen("text=Une photo de profil (obligatoire)");
-    await tap('[aria-label="Business"]');
-    const biz = (await seen("text=RCCM et NIF")) && !(await seen("text=Une photo de profil (obligatoire)"));
     await tap('[aria-label="Particulier"]');
-    const part = await seen("text=Adresse complète et un repère");
-    return pro && biz && part;
+    const part =
+      (await seen("text=Adresse complète et un repère")) &&
+      !(await seen("text=Une photo de profil (obligatoire)"));
+    return pro && part;
   });
   await page.screenshot({ path: `${OUT}/s1-types.png` });
 
   await check("identity step blocks Continuer while empty", async () => {
-    await tap('[aria-label="Business"]');
+    await tap('[aria-label="Prestataire"]');
     await tap('[aria-label="Continuer"]');
     const el = await visible('[aria-label="Continuer vers les informations"]');
     return el && (await el.getAttribute("aria-disabled")) === "true";
   });
-  await check("Business asks for RCCM, NIF and sector", async () => {
-    await fill('[aria-label="Nom du responsable"]', "Estevao Macumba");
+  await check("the identity step uses neutral labels now Business is gone", async () => {
+    // These two were relabelled per type ("Nom du responsable", "E-mail
+    // professionnel") only because a Business existed. One type of person is
+    // left, so the labels are plain again.
+    await fill('[aria-label="Nom complet"]', "Estevao Macumba");
     await fill('[aria-label="Numéro de téléphone"]', "061234567");
-    await fill('[aria-label="E-mail professionnel"]', "contact@mwinda.cg");
+    await fill('[aria-label="Adresse e-mail"]', "contact@mwinda.cg");
     await pickCity();
-    await tap('[aria-label="Continuer vers les informations"]');
-    return (await seen('[aria-label="RCCM"]')) && (await seen('[aria-label="NIF"]')) &&
-           (await seen("text=Votre entreprise"));
+    return (await seen('[aria-label="Nom complet"]')) &&
+           !(await seen('[aria-label="Nom du responsable"]')) &&
+           !(await seen('[aria-label="E-mail professionnel"]'));
   });
-  await check("Business form has no date of birth", async () => !(await seen('[aria-label="Date de naissance"]')));
-  await page.screenshot({ path: `${OUT}/s2-business.png` });
+  await page.screenshot({ path: `${OUT}/s2-prestataire.png` });
 
+  // One step back now: the walk stopped on identity rather than reaching the
+  // details form, because a prestataire cannot pass identity without a photo.
   await check("back to the type step", async () => {
-    await tap('[aria-label="Retour"]');
     await tap('[aria-label="Retour"]');
     return seen("text=Quel type de compte ?");
   });
@@ -539,66 +544,77 @@ const mailedCode = () => {
 
   section("Profile editing");
   await check("open Profil", async () => { await tap('[aria-label="Profil"]'); return seen("text=Se déconnecter"); });
-  await check("one account shows all three profiles", async () =>
+  // The dashboard is offered on profile ownership, so a particulier-only
+  // account must not see it. Asserted here, before Prestataire is activated —
+  // afterwards the account owns both and the row is meant to stay.
+  await check("a particulier-only account is not offered the Espace Prestataire", async () =>
+    !(await seen('[aria-label="Espace Prestataire"]')));
+  await check("one account carries both profiles, and no Business", async () =>
     (await seen('[aria-label="Profil Particulier"]')) &&
-    (await seen('[aria-label="Activer le profil Prestataire"]')));
+    (await seen('[aria-label="Activer le profil Prestataire"]')) &&
+    !(await seen('[aria-label="Activer le profil Business"]')) &&
+    !(await seen('[aria-label="Profil Business"]')));
   await check("activating Prestataire switches to it", async () => {
     await tap('[aria-label="Activer le profil Prestataire"]');
     await page.waitForTimeout(700);
     return seen('[aria-label="Profil Prestataire"]');
   });
-  await check("Accueil now shows the Espace Prestataire", async () => {
+
+  // The point of the change the founder asked for: a prestataire is a customer
+  // too. Activating the profile used to replace Accueil with the dashboard,
+  // which silently cost them search, catalogue and booking. Accueil must now be
+  // the same marketplace it is for a particulier.
+  await check("Accueil still shows the marketplace, not a dashboard", async () => {
     await tap('[aria-label="Accueil"]');
+    await page.waitForTimeout(800);
+    return (await seen("text=Catégories")) && !(await seen("text=Score 242K"));
+  });
+  // Not just the home screen painting: a prestataire must be able to reach a
+  // trade and see who is available, which is the whole marketplace.
+  await check("a prestataire can still browse and search", async () => {
+    // Presence, not a drive-through: the tab bar keeps the Profil stack mounted
+    // over the home screen, so clicking here is intercepted. Search itself is
+    // exercised for a particulier in "Home actions"; what matters here is that a
+    // prestataire is offered the identical set of controls.
+    return (
+      (await seen('[aria-label="Quel service recherchez-vous ?"]')) &&
+      (await seen('[aria-label="Rechercher"]')) &&
+      (await seen('[aria-label="Voir tous les métiers"]')) &&
+      (await seen('[aria-label="Catégorie Plomberie"]')) &&
+      (await seen('[aria-label*="Changer de ville"]'))
+    );
+  });
+
+  // The dashboard did not disappear — it moved to where you go looking for it.
+  await check("the Espace Prestataire is reachable from Profil", async () => {
+    await tap('[aria-label="Profil"]');
+    await page.waitForTimeout(600);
+    await tap('[aria-label="Espace Prestataire"]');
     await page.waitForTimeout(800);
     return (await seen("text=Espace Prestataire")) && (await seen("text=Score 242K"));
   });
   await check("it states the payout terms", async () =>
     (await seen("text=Commission 242Konnect")) && (await seen("text=Versement express")));
   await page.screenshot({ path: `${OUT}/s3-prestataire.png` });
+  await check("and it has a way back", async () => {
+    await tap('[aria-label="Retour"]');
+    await page.waitForTimeout(700);
+    return seen("text=Se déconnecter");
+  });
 
-  await check("activating Business switches to it", async () => {
-    await tap('[aria-label="Profil"]');
-    await tap('[aria-label="Activer le profil Business"]');
-    await page.waitForTimeout(700);
-    await tap('[aria-label="Accueil"]');
-    await page.waitForTimeout(800);
-    return seen("text=Espace Business");
-  });
-  await check("an establishment can actually be added", async () => {
-    await tap('[aria-label="Ajouter un établissement"]');
-    await fill('[aria-label="Nom"]', "Agence Mpaka");
-    await tap('[aria-label="Type Chantier"]');
-    await fill('[aria-label="Adresse"]', "Rue Tiboti");
-    await tap('[aria-label="Enregistrer l\'établissement"]');
-    await page.waitForTimeout(700);
-    return (await seen("text=Agence Mpaka")) && (await seen("text=Chantier"));
-  });
-  await check("a collaborator can be invited with a role", async () => {
-    await tap('[aria-label="Inviter un collaborateur"]');
-    await fill('[aria-label="Nom"]', "Brianna K.");
-    await fill('[aria-label="E-mail"]', "brianna@mwinda.cg");
-    await tap('[aria-label="Rôle Comptable"]');
-    await tap('[aria-label="Envoyer l\'invitation"]');
-    await page.waitForTimeout(700);
-    return (await seen("text=Brianna K.")) && (await seen("text=Comptable"));
-  });
-  await check("an invalid collaborator e-mail is refused", async () => {
-    await tap('[aria-label="Inviter un collaborateur"]');
-    await fill('[aria-label="Nom"]', "Test");
-    await fill('[aria-label="E-mail"]', "pas-un-email");
-    await tap('[aria-label="Envoyer l\'invitation"]');
-    return seen("text=adresse e-mail valide");
-  });
-  await page.screenshot({ path: `${OUT}/s4-business.png` });
-  await check("close the sheet", async () => { await tap('[aria-label="Fermer"]'); return true; });
-
-  await check("switching back to Particulier restores the home feed", async () => {
-    await tap('[aria-label="Profil"]');
+  await check("switching back to Particulier keeps the home feed", async () => {
     await tap('[aria-label="Profil Particulier"]');
     await page.waitForTimeout(700);
     await tap('[aria-label="Accueil"]');
     await page.waitForTimeout(800);
-    return (await seen("text=Catégories")) && !(await seen("text=Espace Business"));
+    return seen("text=Catégories");
+  });
+  // Switching the active profile back does not give the prestataire profile up,
+  // so its space stays reachable. Losing it on a switch would read as data gone.
+  await check("the prestataire space survives switching back", async () => {
+    await tap('[aria-label="Profil"]');
+    await page.waitForTimeout(700);
+    return (await seen("text=Se déconnecter")) && (await seen('[aria-label="Espace Prestataire"]'));
   });
   await check("open the editor", async () => {
     // The previous check ends on Accueil, so come back to the Profil tab.
