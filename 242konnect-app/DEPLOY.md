@@ -40,6 +40,39 @@ builds it.
    publish directory `.` — the generated `netlify.toml` supplies both.
 3. Set the site name to `242konnect`.
 
+### The exact fields, for a site that is already connected
+
+Only the first is yours to set; the rest are supplied by `242konnect-web/netlify.toml`,
+which **overrides whatever the UI shows**.
+
+| Field | Value | Who sets it |
+|---|---|---|
+| Branch to deploy | `claude/sleek-skill-project-1knsscftutfd-0h5mcr` | you |
+| **Base directory** | `242konnect-web` | **you — this is the one that matters** |
+| Build command | *empty* | `netlify.toml` |
+| Publish directory | `242konnect-web` (shown as linked to the base) | `netlify.toml` |
+| Functions directory | *leave empty* | `netlify.toml` now forces it |
+
+**Why the functions directory is called out.** Once a base directory is set, the
+UI offers the same folder as the functions directory, and it was reported showing
+`242konnect-web/`. That folder is the *published* app: it contains a 1.3 MB
+`_expo/static/js/web/index-*.js`. Netlify would try to bundle that React bundle
+as a serverless function, and the deploy fails before publishing anything — with
+the three post-deploy checks ("Pages changed", "Header rules", "Redirect rules")
+all reporting "Deploy failed", which is the exact signature seen on every commit
+of PR #18.
+
+`netlify.toml` now names a functions directory that does not exist, so that
+cannot happen again whatever the UI says. 242Konnect ships no Netlify functions
+at all; its only server-side code is the Supabase Edge Function, which Supabase
+deploys.
+
+**Base directory is the one setting a file cannot fix.** Netlify reads
+`netlify.toml` *from* the base directory, so if the base is wrong it never sees
+this file — it reads the repo root's instead and publishes the landing page. If
+the site is connected and still failing or still serving the wrong site, that is
+the field to check first.
+
 That gives you:
 
 ```

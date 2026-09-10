@@ -7,6 +7,20 @@
 [build]
   publish = "."
   command = ""
+  # Explicit, and load-bearing rather than tidiness.
+  #
+  # This folder is a *published* directory: it holds the app bundle, a 1.3 MB
+  # `_expo/static/js/web/index-*.js`. If Netlify's functions directory is left
+  # pointing at this same folder — which is what the UI does by default once the
+  # base directory is set, and what it was reported showing — Netlify tries to
+  # bundle that React bundle as a serverless function and the deploy fails
+  # before it ever publishes anything.
+  #
+  # netlify.toml wins over the UI setting, so naming a directory that does not
+  # exist here is what stops that from happening. 242Konnect ships no functions;
+  # its only server-side code is the Supabase Edge Function in supabase/functions,
+  # which Supabase deploys, not Netlify.
+  functions = "netlify/functions"
 
 # Anything that is not a real file goes to the root — a redirect, not a
 # rewrite. A `status = 200` rewrite would keep the requested URL, and the
