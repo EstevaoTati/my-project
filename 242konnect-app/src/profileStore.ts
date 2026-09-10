@@ -163,3 +163,60 @@ export async function pullProfile(
   const row = Array.isArray(rows) ? rows[0] : undefined;
   return row ? fromRow(row) : null;
 }
+
+/** What `reconcileProfile` found, and did about it. */
+export type ProfileSync =
+  /** The row was already there; `account` is the server's copy, which wins. */
+  | { status: 'pulled'; account: ReturnType<typeof fromRow> }
+  /** No row existed, so this device's account was written up. */
+  | { status: 'created' }
+  /** The number or address on this account belongs to a different user. */
+  | { status: 'conflict' }
+  /** Offline, or the service refused. Nothing was changed. */
+  | { status: 'unavailable' };
+
+/**
+ * Makes sure the signed-in account actually exists in `public.profiles`, and
+ * creates it if it does not.
+ *
+ * **Why this is needed.** Until now the row was only ever written at the end of
+ * sign-up, and only when that sign-up happened to hold a Supabase session.
+ * Everything afterwards just *read* — sign-in pulled the row and shrugged when
+ * there wasn't one, on the theory that "the next edit pushes it up". If the
+ * person never edited their profile, the next edit never came, and the account
+ * lived on one phone and nowhere else.
+ *
+ * That is not hypothetical: the project reached five confirmed users in
+ * `auth.users` and **zero** rows in `public.profiles`. Every one of them had
+ * verified their address and none of them existed as an account on the server.
+ *
+ * So this runs wherever a session and an account are both in hand — on launch
+ * and on both sign-in paths — and closes the gap by writing rather than
+ * shrugging. It is safe to call repeatedly: it reads first and only writes when
+ * the row is genuinely missing.
+ *
+ * Nothing here throws. A launch must not fail because the network did, so every
+ * failure becomes a status the caller can show.
+ */
+export async function reconcileProfile(
+  session: SupabaseSession,
+  account: Account
+): Promise<ProfileSync> {
+  if (!supabaseConfigured) return { status: 'unavailable' };
+
+  let existing: ReturnType<typeof fromRow> | null;
+  try {
+    existing = await pullProfile(session);
+  } catch {
+    return { status: 'unavailable' };
+  }
+  if (existing) return { status: 'pulled', account: existing };
+
+  try {
+    await pushProfile(session, account);
+    return { status: 'created' };
+  } catch (e) {
+    if (e instanceof ProfileConflictError) return { status: 'conflict' };
+    return { status: 'unavailable' };
+  }
+}

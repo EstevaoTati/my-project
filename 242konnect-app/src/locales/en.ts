@@ -627,4 +627,6 @@ export const en: Record<string, string> = {
   "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier.":
     'You offer services and you can book them too: the home screen, search and bookings work exactly as they do for a particulier.',
   'Adresse e-mail': 'E-mail address',
+  "Ce compte n'a pas encore pu être enregistré sur nos serveurs : il n'existe que sur cet appareil. Reconnectez-vous une fois en ligne pour le sauvegarder.":
+    'This account could not be saved to our servers yet: it exists only on this device. Sign in again once you are online to save it.',
 };

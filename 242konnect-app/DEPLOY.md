@@ -135,3 +135,79 @@ Note that the code is never readable from the database: Supabase stores only a
 SHA-224 hash of it in `auth.one_time_tokens`. The inbox is the only place it
 exists, which is the point — but it does mean a broken mailer cannot be worked
 around by reading the code out of the project.
+
+## Where the accounts are
+
+An account is not real until it exists in `public.profiles`. Two things had to
+be true for that, and neither was.
+
+### The table grant (fixed — migration in the repo)
+
+`public.profiles` had correct row-level security policies for `authenticated`
+(`auth.uid() = id`, for select/insert/update) and **no table privileges for that
+role at all**. Postgres checks privileges *before* RLS, so every write from a
+signed-in user was rejected with
+
+```
+42501: permission denied for table profiles
+```
+
+and the policies never ran. This is the trap that makes a permissions bug look
+like a policy bug — the policies were right the whole time.
+
+Fixed by `supabase/migrations/20260910012311_grant_authenticated_access_to_profiles.sql`,
+already applied to the live project. `anon` is still granted nothing, `DELETE`
+is still granted to nobody, and RLS still restricts every operation to the
+caller's own row. Re-check any time with:
+
+```
+242konnect-app/tools/verify-profiles-rls.sql
+```
+
+It runs in a transaction and rolls back, so it is safe against production.
+
+### The app now writes the row rather than hoping
+
+The row used to be written only at the end of sign-up. Everything after that
+just *read* it, and shrugged when it was missing, on the theory that the next
+profile edit would push it up. For anyone who never edited their profile, the
+next edit never came.
+
+`reconcileProfile` now runs on launch and on both sign-in paths: it reads the
+row and creates it when it is absent. An account that could not be saved the
+first time gets another chance every time the app opens, and the Profil screen
+says plainly when the account exists only on the device.
+
+### Why the table was empty
+
+Five confirmed users in `auth.users`, zero rows in `public.profiles`. Both walls
+were up at once: the mailer never issued a session (SMTP `535`), and even a
+valid session would have been refused by the missing grant. The grant is fixed;
+the SMTP credentials are still yours to correct, above.
+
+Those five are abandoned sign-ups — they verified an address but never finished,
+so they have no password and no account. Nothing is lost by leaving them: when
+those people sign up again, GoTrue reuses the same user id and the sign-up
+completes normally.
+
+## Opening the app over plain http
+
+Chrome only exposes `crypto.subtle` in a **secure context** — https, or
+localhost. On a LAN address or an http preview host it refuses:
+
+```
+Access to the WebCrypto API is restricted to secure origins (localhost/https)
+```
+
+Passwords are hashed before sign-up or sign-in can do anything, so that used to
+take out authentication entirely. `src/sha256.ts` now falls back to the same
+SHA-256 in plain JavaScript, producing byte-identical hashes, so an account
+created over http still signs in over https.
+
+```bash
+npm run test:sha256    # the fallback matches Node's SHA-256, including non-ASCII
+```
+
+`tools/verify-insecure-origin.js` drives the real build on a non-localhost http
+origin and asserts WebCrypto is genuinely unavailable before proving sign-up and
+sign-in still work.

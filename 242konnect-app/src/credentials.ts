@@ -1,4 +1,5 @@
 import * as Crypto from 'expo-crypto';
+import { randomBytes, sha256Hex } from './sha256';
 
 /**
  * Password storage and strength.
@@ -34,12 +35,34 @@ function toHex(bytes: Uint8Array): string {
     .join('');
 }
 
+/**
+ * SHA-256 of `salt:password`, native where possible.
+ *
+ * `expo-crypto` goes through `crypto.subtle` on web, and WebCrypto is gated to
+ * secure contexts — https or localhost. Over plain http the browser throws
+ * "Access to the WebCrypto API is restricted to secure origins", which took out
+ * sign-up and sign-in together, since both hash a password before they can do
+ * anything at all.
+ *
+ * The fallback computes the same SHA-256 and returns the same lowercase hex, so
+ * a password hashed over http still verifies over https. That equivalence is
+ * the whole point and is pinned by `tools/sha256.test.mjs`; without it accounts
+ * would split into two incompatible sets depending on how the app was opened.
+ */
 async function digest(salt: string, password: string): Promise<string> {
-  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, `${salt}:${password}`);
+  const input = `${salt}:${password}`;
+  try {
+    return await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, input);
+  } catch {
+    return sha256Hex(input);
+  }
 }
 
 export async function hashPassword(password: string): Promise<StoredSecret> {
-  const salt = toHex(Crypto.getRandomBytes(SALT_BYTES));
+  // `randomBytes` prefers `crypto.getRandomValues`, which — unlike
+  // `crypto.subtle` — is available on insecure origins too, so the salt keeps
+  // its entropy even when the digest above has to fall back.
+  const salt = toHex(randomBytes(SALT_BYTES));
   return { salt, hash: await digest(salt, password) };
 }
 

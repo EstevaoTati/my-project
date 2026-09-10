@@ -33,7 +33,7 @@ import {
   requestCode,
   type OtpDelivery,
 } from './otpClient';
-import { ProfileConflictError, pullProfile, pushProfile } from './profileStore';
+import { ProfileConflictError, pushProfile, reconcileProfile } from './profileStore';
 import { freshSession, type SupabaseSession } from './supabase';
 import {
   knownToHavePin,
@@ -338,6 +338,15 @@ type AuthState = {
   skipPinSetup: () => void;
   /** Whether this account can sign in with a PIN on this device. */
   hasPin: boolean;
+  /**
+   * Whether this account is known to exist in `public.profiles`.
+   *
+   * `null` while it has not been established — no session yet, no Supabase in
+   * this build, or the check has not run. `false` means the app tried and could
+   * not, which is worth showing rather than hiding: an account that lives only
+   * on one phone is one uninstall away from gone.
+   */
+  accountSynced: boolean | null;
   /** Sends a code to the address on file so a forgotten password can be reset. */
   startPasswordReset: (identifier: string) => Promise<{ email: string }>;
   /** Checks that code and sets the new password. */
@@ -429,6 +438,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pendingSignIn, setPendingSignIn] = useState<PendingSignIn | null>(null);
   const [pendingPinSetup, setPendingPinSetup] = useState<PendingPinSetup | null>(null);
   const [hasPin, setHasPin] = useState(false);
+  const [accountSynced, setAccountSynced] = useState<boolean | null>(null);
   // Held in a ref, not state: nothing renders from it, and a profile edit must
   // read the token that exists now rather than the one captured when the
   // callback was created.
@@ -471,6 +481,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const live = await freshSession(supabaseSession.current);
           if (live && live.userId === restored.supabaseUserId) {
             supabaseSession.current = live;
+
+            // The account must exist on the server, not just on this phone.
+            // Writing it here is what stops an account that was created while
+            // the row could not be written from staying invisible for ever —
+            // every launch is another chance to put it right.
+            const sync = await reconcileProfile(live, restored);
+            setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+            if (sync.status === 'pulled') {
+              const merged = { ...restored, ...sync.account };
+              setAccount(merged);
+              await setItemChecked(SESSION_KEY, JSON.stringify(merged)).catch(() => {});
+            }
+
             try {
               const { hasPin: established } = await pinStatus(live);
               setHasPin(established);
@@ -761,13 +784,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signedIn = { ...signedIn, supabaseUserId: session.userId };
         await rememberSupabaseSession(session);
         setHasPin(await knownToHavePin(session.userId));
-        try {
-          const remote = await pullProfile(session);
-          if (remote) signedIn = { ...signedIn, ...remote };
-        } catch {
-          // Offline, or the row isn't written yet. The device's copy is a
-          // perfectly good account to sign in to; the next edit pushes it up.
-        }
+        // Reconcile rather than only read: an account whose row was never
+        // written used to sign in happily and stay missing from the server,
+        // because the "next edit" that was supposed to push it never came.
+        const sync = await reconcileProfile(session, signedIn);
+        setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+        if (sync.status === 'pulled') signedIn = { ...signedIn, ...sync.account };
       }
 
       setPendingSignIn(null);
@@ -798,12 +820,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await checkPin(pendingSignIn.session, pin);
 
       let signedIn = { ...pendingSignIn.account, supabaseUserId: pendingSignIn.session.userId };
-      try {
-        const remote = await pullProfile(pendingSignIn.session);
-        if (remote) signedIn = { ...signedIn, ...remote };
-      } catch {
-        // The device's copy is a perfectly good account to sign in to.
-      }
+      const sync = await reconcileProfile(pendingSignIn.session, signedIn);
+      setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+      if (sync.status === 'pulled') signedIn = { ...signedIn, ...sync.account };
       setPendingSignIn(null);
       setHasPin(true);
       await persistAccount(signedIn);
@@ -971,6 +990,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       definePin,
       skipPinSetup,
       hasPin,
+      accountSynced,
       signOut,
       startPasswordReset,
       completePasswordReset,
@@ -1003,6 +1023,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       definePin,
       skipPinSetup,
       hasPin,
+      accountSynced,
       signOut,
       startPasswordReset,
       completePasswordReset,

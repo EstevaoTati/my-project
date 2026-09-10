@@ -28,7 +28,8 @@ export function AccountScreen({ navigation }: Props) {
   const t = useT();
   const { language, setLanguage } = useI18n();
   const insets = useSafeAreaInsets();
-  const { account, signOut, switchProfile, activateProfile, hasPin, startPinSetup } = useAuth();
+  const { account, signOut, switchProfile, activateProfile, hasPin, startPinSetup, accountSynced } =
+    useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
 
   if (!account) return null;
@@ -141,6 +142,21 @@ export function AccountScreen({ navigation }: Props) {
           <Text style={styles.statLabel}>{t('Ville')}</Text>
         </View>
       </View>
+
+      {/* An account that exists only on this phone is one uninstall away from
+          being gone, so say so rather than letting it look saved. Silence here
+          is what let verified sign-ups sit on devices and never reach the
+          server. Nothing is claimed while the answer is still unknown (null). */}
+      {accountSynced === false && (
+        <View style={styles.syncWarning}>
+          <Icon name="solar:shield-check-bold" size={18} color={colors.warning} />
+          <Text style={styles.syncWarningText}>
+            {t(
+              "Ce compte n'a pas encore pu être enregistré sur nos serveurs : il n'existe que sur cet appareil. Reconnectez-vous une fois en ligne pour le sauvegarder."
+            )}
+          </Text>
+        </View>
+      )}
 
       {payments.length > 0 && (
         <Text style={styles.paymentsLine}>
@@ -332,6 +348,23 @@ const styles = StyleSheet.create({
   rowLabel: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
   rowSoon: { fontFamily: fonts.sansSemibold, fontSize: 11, color: colors.mutedForeground },
   paymentsLine: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, textAlign: 'center' },
+  syncWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.xl,
+    backgroundColor: colors.warningSurface,
+    borderWidth: 1,
+    borderColor: 'rgba(180,83,9,0.25)',
+  },
+  syncWarningText: {
+    flex: 1,
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.warning,
+  },
   signOut: {
     height: 52,
     borderRadius: radius['2xl'],

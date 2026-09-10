@@ -40,7 +40,8 @@
     "verify": "bash tools/verify.sh",
     "i18n:check": "node tools/i18n-check.js --strict",
     "build:web": "node tools/build-web.js",
-    "verify:paths": "node tools/verify-paths.js"
+    "verify:paths": "node tools/verify-paths.js",
+    "test:sha256": "node tools/sha256.test.mjs"
   },
   "private": true
 }
