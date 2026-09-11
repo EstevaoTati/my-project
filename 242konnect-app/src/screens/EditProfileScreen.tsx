@@ -15,7 +15,7 @@ import { Icon } from '../components/Icon';
 import { UserAvatar } from '../components/Avatar';
 import { Field, FormError, SubmitButton } from '../components/form';
 import { Sheet } from '../components/Sheet';
-import { useAuth } from '../auth';
+import { ageFrom, formatStored, MIN_PRESTATAIRE_AGE, useAuth } from '../auth';
 import { trades } from '../data';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -31,6 +31,23 @@ export function EditProfileScreen({ navigation }: Props) {
   const [name, setName] = useState(account?.name ?? '');
   const [bio, setBio] = useState(account?.bio ?? '');
   const [tradeId, setTradeId] = useState(account?.prestataire?.tradeId);
+  /**
+   * The rest of the prestataire record, editable here for the first time.
+   *
+   * Activating Prestataire from the account screen adds the profile kind and
+   * nothing else — no trade, no zone, no rate. This screen used to offer only
+   * the trade, and even that was written under `account.prestataire && tradeId`,
+   * so for an account that had just activated the profile the object was
+   * undefined and **nothing was ever saved**. The Espace Prestataire told those
+   * people to come here and fill the gaps, which the app then could not do: an
+   * account activated this way stayed incomplete for ever and could never
+   * receive work.
+   */
+  const [zone, setZone] = useState(account?.prestataire?.zone ?? '');
+  const [hourlyRate, setHourlyRate] = useState(
+    account?.prestataire?.hourlyRate ? String(account.prestataire.hourlyRate) : ''
+  );
+  const [birthDate, setBirthDate] = useState(account?.prestataire?.birthDate ?? '');
   const [avatar, setAvatar] = useState(account?.avatar);
   const [showTrades, setShowTrades] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,15 +82,49 @@ export function EditProfileScreen({ navigation }: Props) {
     setError(null);
     setBusy(true);
     try {
-      // The trade lives on the prestataire profile, so merge rather than
-      // replace — otherwise saving the name would wipe the rest of it.
+      let prestataire = account.prestataire;
+
+      if (isPro) {
+        // §2.2 asks a prestataire for a trade, a service area, a rate and a date
+        // of birth. Enforced here as well as at sign-up, because activating the
+        // profile from the account screen is a second way in and must not be a
+        // way around the rules.
+        if (!tradeId) throw new Error('Choisissez votre métier.');
+        if (!zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+        const rate = Number(hourlyRate);
+        if (!(rate > 0)) throw new Error('Indiquez votre tarif horaire.');
+        if (!birthDate) throw new Error('Indiquez votre date de naissance.');
+        const age = ageFrom(birthDate);
+        if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
+        if (age < MIN_PRESTATAIRE_AGE)
+          throw new Error(
+            `L'activité de prestataire est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
+          );
+
+        // Merge onto whatever exists, and build the record from scratch when it
+        // does not. `verified` is carried over or left false and is never taken
+        // from this form: §7.6 makes it 242Konnect's to award after checking
+        // documents, so a prestataire editing their own profile cannot grant it.
+        prestataire = {
+          formations: '',
+          diplomas: '',
+          experience: '',
+          documents: [],
+          ...prestataire,
+          tradeId,
+          zone: zone.trim(),
+          hourlyRate: rate,
+          birthDate,
+          verified: account.prestataire?.verified ?? false,
+        };
+      }
+
+      // Merge rather than replace, so saving the name cannot wipe the rest.
       await updateProfile({
         name,
         bio,
         avatar,
-        ...(account.prestataire && tradeId
-          ? { prestataire: { ...account.prestataire, tradeId } }
-          : {}),
+        ...(prestataire ? { prestataire } : {}),
       });
       navigation.goBack();
     } catch (e) {
@@ -144,7 +195,12 @@ export function EditProfileScreen({ navigation }: Props) {
 
           <View style={styles.readonly}>
             <Text style={styles.readonlyLabel}>{t('Numéro de téléphone')}</Text>
-            <Text style={styles.readonlyValue}>+242 {account.phone}</Text>
+            {/* `account.phone` is already the canonical dial code plus national
+                digits, so the old hardcoded "+242 " prefix printed the Congolese
+                code twice — and printed it at all on a US number, which the
+                country picker exists to support. `formatStored` reads the plan
+                off the number itself. */}
+            <Text style={styles.readonlyValue}>{formatStored(account.phone)}</Text>
             <Text style={styles.readonlyHint}>{t('Votre numéro est votre identifiant et ne peut pas être modifié ici.')}</Text>
           </View>
 
@@ -163,6 +219,35 @@ export function EditProfileScreen({ navigation }: Props) {
                 <Icon name="solar:alt-arrow-down-linear" size={18} color={colors.mutedForeground} />
               </Pressable>
             </View>
+          )}
+
+          {/* The rest of what a prestataire needs to be bookable. Without these
+              an account that activated the profile here could never be
+              completed, whatever the Espace Prestataire told it to do. */}
+          {isPro && (
+            <>
+              <Field
+                label={t("Zone d'intervention")}
+                value={zone}
+                onChangeText={setZone}
+                placeholder={t('Quartiers ou communes couverts')}
+              />
+              <Field
+                label="Tarif horaire (FCFA)"
+                value={hourlyRate}
+                onChangeText={setHourlyRate}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                placeholder="12000"
+              />
+              <Field
+                label={t('Date de naissance')}
+                value={birthDate}
+                onChangeText={setBirthDate}
+                placeholder={t('AAAA-MM-JJ')}
+                autoCapitalize="none"
+              />
+            </>
           )}
 
           <Field

@@ -616,6 +616,67 @@ const mailedCode = () => {
     await page.waitForTimeout(700);
     return (await seen("text=Se déconnecter")) && (await seen('[aria-label="Espace Prestataire"]'));
   });
+  // Regression: activating Prestataire from this screen adds the profile kind and
+  // nothing else, and the editor used to write the trade only when a prestataire
+  // record already existed. So an account activated here could never be
+  // completed — while the Espace Prestataire told it to come and complete it.
+  await check("an activated prestataire profile starts incomplete", async () => {
+    await tap('[aria-label="Espace Prestataire"]');
+    await page.waitForTimeout(900);
+    const incomplete = await seen("text=/Profil prestataire incomplet/i");
+    await tap('[aria-label="Retour"]');
+    await page.waitForTimeout(700);
+    return incomplete;
+  });
+  await check("the editor offers the fields needed to complete it", async () => {
+    await tap('[aria-label="Modifier le profil"]');
+    await page.waitForTimeout(700);
+    return (
+      (await seen('[aria-label="Choisir votre métier"]')) &&
+      (await seen("[aria-label=\"Zone d'intervention\"]")) &&
+      (await seen('[aria-label="Tarif horaire (FCFA)"]')) &&
+      (await seen('[aria-label="Date de naissance"]'))
+    );
+  });
+  await check("an under-16 date of birth is refused here too", async () => {
+    await tap('[aria-label="Choisir votre métier"]');
+    await tap('[aria-label="Plombier"]');
+    await fill("[aria-label=\"Zone d'intervention\"]", "Mpaka");
+    await fill('[aria-label="Tarif horaire (FCFA)"]', "9000");
+    await fill('[aria-label="Date de naissance"]', "2020-01-01");
+    await tap('[aria-label="Enregistrer le profil"]');
+    await page.waitForTimeout(900);
+    return seen("text=/16 ans et plus/");
+  });
+  await check("a complete prestataire record saves", async () => {
+    await fill('[aria-label="Date de naissance"]', "1992-06-15");
+    await tap('[aria-label="Enregistrer le profil"]');
+    await page.waitForTimeout(1400);
+    return seen("text=Se déconnecter");
+  });
+  await check("and the Espace Prestataire now shows it", async () => {
+    await tap('[aria-label="Espace Prestataire"]');
+    await page.waitForTimeout(900);
+    const shown =
+      (await seen("text=Plombier")) &&
+      (await seen("text=/Mpaka/")) &&
+      (await seen("text=/9\\s?000/")) &&
+      !(await seen("text=/Profil prestataire incomplet/i"));
+    await tap('[aria-label="Retour"]');
+    await page.waitForTimeout(700);
+    return shown;
+  });
+  // The phone shown here used to be printed as "+242 " plus the stored number,
+  // which already begins with its dial code — so it read "+242 242…", and was
+  // simply wrong for the US numbers the country picker exists to support.
+  await check("the phone is shown once, with the right dial code", async () => {
+    await tap('[aria-label="Modifier le profil"]');
+    await page.waitForTimeout(700);
+    const doubled = await seen("text=/\\+242\\s*242/");
+    if (doubled) throw new Error("the dial code is printed twice");
+    return seen("text=/\\+242\\s*0?6/");
+  });
+
   await check("open the editor", async () => {
     // The previous check ends on Accueil, so come back to the Profil tab.
     await tap('[aria-label="Profil"]');
