@@ -78,11 +78,11 @@ const SECTIONS: { title: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Pourquoi mon numéro sert-il d’identifiant ?',
-        a: "Parce qu'à Pointe-Noire c'est par téléphone qu'on se joint. Le préfixe +242 est fixe : le service ne couvre pour l'instant que la République du Congo.",
+        a: "Parce qu'à Pointe-Noire c'est par téléphone qu'on se joint. L'indicatif se choisit à l'inscription — la République du Congo et les États-Unis sont pris en charge — et votre numéro est enregistré avec son indicatif, donc un numéro américain n'est jamais confondu avec un numéro congolais.",
       },
       {
         q: 'Où sont stockées mes données ?',
-        a: "Sur votre appareil uniquement. Votre compte, vos favoris, vos missions et vos messages ne quittent pas ce téléphone et ne sont pas synchronisés. Vous ne pourrez pas vous connecter depuis un autre appareil tant qu'il n'y a pas de serveur.",
+        a: "Votre profil — nom, photo, ville, et votre métier si vous êtes prestataire — est enregistré sur nos serveurs, protégé par une règle qui ne laisse lire et modifier que votre propre fiche. Votre mot de passe ne quitte jamais ce téléphone : nous n'en conservons aucune copie. Vos favoris, vos missions et vos messages restent eux aussi sur l'appareil et ne sont pas encore synchronisés.",
       },
       {
         q: 'Comment modifier mon profil ?',

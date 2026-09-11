@@ -629,4 +629,82 @@ export const en: Record<string, string> = {
   'Adresse e-mail': 'E-mail address',
   "Ce compte n'a pas encore pu être enregistré sur nos serveurs : il n'existe que sur cet appareil. Reconnectez-vous une fois en ligne pour le sauvegarder.":
     'This account could not be saved to our servers yet: it exists only on this device. Sign in again once you are online to save it.',
+
+  /* ---- FAQ ------------------------------------------------------------ */
+  'Utiliser 242Konnect':
+    'Using 242Konnect',
+  'Comment trouver un professionnel ?':
+    'How do I find a professional?',
+  "Choisissez une catégorie sur l'accueil, ou tapez votre besoin dans la recherche — par exemple « fuite », « clim » ou « tresses ». Vous verrez les professionnels disponibles avec leur note, leur distance et leur tarif horaire.":
+    'Pick a category on the home screen, or type what you need into the search box — “leak”, “air conditioning” or “braids”, for example. You will see the professionals available, with their rating, their distance and their hourly rate.',
+  'Que veut dire « Vérifié par 242K » ?':
+    'What does “Verified by 242K” mean?',
+  "Le badge signale un professionnel dont l'identité et le métier ont été contrôlés. Dans cette version de démonstration, le badge fait partie des données d'exemple : aucune vérification réelle n'a encore lieu.":
+    'The badge marks a professional whose identity and trade have been checked. In this demonstration version the badge is part of the sample data: no real checking happens yet.',
+  'Comment réserver ?':
+    'How do I book?',
+  "Ouvrez le profil du professionnel, appuyez sur « Réserver maintenant » et choisissez un créneau. La mission apparaît ensuite dans l'onglet Missions, où vous pouvez la payer ou l'annuler.":
+    'Open the professional’s profile, tap “Book now” and choose a slot. The job then appears in the Jobs tab, where you can pay for it or cancel it.',
+  'Puis-je annuler une mission ?':
+    'Can I cancel a job?',
+  "Oui : ouvrez l'onglet Missions et appuyez sur « Annuler ». Si vous aviez déjà payé, le montant vous est remboursé tant que la prestation n'a pas commencé. Prévenez aussi le prestataire par message, c'est plus correct.":
+    'Yes: open the Jobs tab and tap “Cancel”. If you had already paid, you are refunded as long as the work has not started. Tell the provider by message too — it is the decent thing to do.',
+  'Tarifs et paiement':
+    'Prices and payment',
+  'Comment sont fixés les prix ?':
+    'How are prices set?',
+  "Chaque professionnel affiche son tarif horaire en FCFA. La liste des métiers indique en plus une fourchette indicative pour vous donner un ordre de grandeur avant de contacter quelqu'un.":
+    'Each professional shows their hourly rate in FCFA. The trade list also gives an indicative range, so you have an idea of the order of magnitude before contacting anyone.',
+  'Quels moyens de paiement acceptez-vous ?':
+    'Which payment methods do you accept?',
+  "MTN Mobile Money, Airtel Money, carte bancaire et virement. En Mobile Money, 242Konnect envoie une demande de paiement sur votre téléphone : vous la validez avec votre code PIN, et rien n'est débité tant que vous ne l'avez pas saisi. Tous les paiements passent par 242Konnect : vous ne réglez jamais le prestataire directement, pas même un pourboire.":
+    'MTN Mobile Money, Airtel Money, bank card and transfer. With Mobile Money, 242Konnect sends a payment request to your phone: you approve it with your PIN, and nothing is debited until you have entered it. Every payment goes through 242Konnect — you never pay the provider directly, not even a tip.',
+  'Puis-je contacter directement un prestataire ?':
+    'Can I contact a provider directly?',
+  "Les échanges passent par la messagerie 242Konnect, et les numéros et adresses personnels des prestataires ne sont pas publiés. C'est ce qui permet de suivre la demande, la conversation et la prestation sur la plateforme, et de vous appuyer dessus en cas de litige. Aux États-Unis, le contact direct pourra être proposé selon le fonctionnement retenu.":
+    'Exchanges go through 242Konnect messaging, and providers’ personal numbers and addresses are not published. That is what keeps the request, the conversation and the work itself on the platform, so you have something to rely on in a dispute. In the United States, direct contact may be offered depending on the arrangement chosen.',
+  'Pourquoi payer avant la prestation ?':
+    'Why pay before the work is done?',
+  "Le paiement confirme la mission et permet au prestataire de se mettre en route. 242Konnect conserve la somme et ne la verse qu'après votre validation du travail. En cas de litige, elle reste bloquée jusqu'à la décision de la plateforme.":
+    'Payment confirms the job and lets the provider set off. 242Konnect holds the money and only pays it out after you have approved the work. In a dispute it stays blocked until the platform decides.',
+  'Quelle commission prend 242Konnect ?':
+    'What commission does 242Konnect take?',
+  '12 % du montant de la prestation, prélevés automatiquement au moment du versement. Ils couvrent le fonctionnement de la plateforme, la sécurisation des paiements, le support et la maintenance.':
+    '12% of the job total, taken automatically at payout. It covers running the platform, securing payments, support and maintenance.',
+  'Quand le prestataire est-il payé ?':
+    'When is the provider paid?',
+  'Après votre validation. En versement standard, sous 7 jours, avec 1,25 % de frais de traitement. En versement express, immédiatement, avec 4 % de frais.':
+    'After you approve the work. Standard payout takes up to 7 days with a 1.25% processing fee. Express payout is immediate, with a 4% fee.',
+  'Puis-je être remboursé ?':
+    'Can I get a refund?',
+  'Oui : annulation avant le début du service, litige tranché en votre faveur, paiement effectué par erreur ou service non réalisé.':
+    'Yes: cancellation before the work starts, a dispute settled in your favour, a payment made by mistake, or work that was never done.',
+  'Le paiement fonctionne-t-il vraiment ?':
+    'Does payment actually work?',
+  "Non, pas encore. Le parcours complet existe — montant, moyen de paiement, blocage des fonds, validation, commission et versement — mais aucun argent n'est débité ni versé. Un paiement réel demande un compte marchand et un serveur pour le traiter.":
+    'Not yet. The whole flow exists — amount, payment method, holding the funds, approval, commission and payout — but no money is debited or paid out. A real payment needs a merchant account and a server to process it.',
+  'Pourquoi mon numéro sert-il d’identifiant ?':
+    'Why is my phone number my login?',
+  "Parce qu'à Pointe-Noire c'est par téléphone qu'on se joint. L'indicatif se choisit à l'inscription — la République du Congo et les États-Unis sont pris en charge — et votre numéro est enregistré avec son indicatif, donc un numéro américain n'est jamais confondu avec un numéro congolais.":
+    'Because in Pointe-Noire the phone is how people reach each other. You choose the country code when you sign up — the Republic of the Congo and the United States are supported — and your number is stored with its code, so a US number is never confused with a Congolese one.',
+  'Où sont stockées mes données ?':
+    'Where is my data stored?',
+  "Votre profil — nom, photo, ville, et votre métier si vous êtes prestataire — est enregistré sur nos serveurs, protégé par une règle qui ne laisse lire et modifier que votre propre fiche. Votre mot de passe ne quitte jamais ce téléphone : nous n'en conservons aucune copie. Vos favoris, vos missions et vos messages restent eux aussi sur l'appareil et ne sont pas encore synchronisés.":
+    'Your profile — name, photo, city, and your trade if you are a provider — is saved on our servers, protected by a rule that lets you read and change only your own record. Your password never leaves this phone: we keep no copy of it. Your favourites, jobs and messages also stay on the device and are not synchronised yet.',
+  'Comment modifier mon profil ?':
+    'How do I edit my profile?',
+  "Onglet Profil, puis « Modifier le profil ». Vous pouvez changer votre nom, ajouter une photo et écrire quelques mots sur vous. Le numéro de téléphone n'est pas modifiable car il identifie le compte.":
+    'The Profile tab, then “Edit profile”. You can change your name, add a photo and write a few words about yourself. The phone number cannot be changed, because it identifies the account.',
+  'Comment devenir prestataire sur la plateforme ?':
+    'How do I become a provider on the platform?',
+  "Depuis l'onglet Profil, activez le profil Prestataire : un seul compte porte vos profils Particulier et Prestataire, avec un seul identifiant. Activer Prestataire ne vous enlève rien — vous continuez à chercher et à réserver comme avant, et un « Espace Prestataire » s'ajoute dans l'onglet Profil, avec votre métier, vos conditions et vos pièces justificatives. Les demandes reçues et les revenus y resteront vides tant qu'il n'y a pas d'autres utilisateurs.":
+    'From the Profile tab, turn on the Provider profile: one account carries both your Customer and Provider profiles, with a single login. Turning on Provider takes nothing away — you go on searching and booking as before, and a “Provider space” is added in the Profile tab, with your trade, your terms and your supporting documents. Requests received and earnings stay empty there until there are other users.',
+  'Que faire en cas de problème avec un professionnel ?':
+    'What should I do if there is a problem with a professional?',
+  "Gardez la conversation dans l'application : elle sert de trace. Le signalement et la médiation seront ajoutés avec l'espace professionnel.":
+    'Keep the conversation inside the app: it is your record. Reporting and mediation will be added along with the professional space.',
+  'Mes conversations sont-elles privées ?':
+    'Are my conversations private?',
+  'Elles restent sur votre appareil et ne sont envoyées à personne. Cela veut aussi dire que le professionnel ne les reçoit pas encore.':
+    'They stay on your device and are not sent to anyone. That also means the professional does not receive them yet.',
 };

@@ -41,6 +41,36 @@ for (const file of walk(SRC)) {
   }
 }
 
+/**
+ * The FAQ, which reaches `t()` through a variable and so was invisible here.
+ *
+ * `FaqScreen` renders `t(item.q)` and `t(item.a)` over a SECTIONS array, so the
+ * scan for `t('…')` above could never see a single question or answer. The
+ * result was a checker reporting "all strings have English" while the entire
+ * FAQ — 5 sections, 18 questions, 18 answers — was French only, in both
+ * languages. The blind spot was the bug: nothing was lying, the question was
+ * simply never asked.
+ *
+ * Scoped deliberately to this one file rather than matching `title|q|a` keys
+ * everywhere, because those are common shapes and a wider net would drag in
+ * strings that are not user-facing. Section titles written as `T('…')` are
+ * already caught by the scan above; this picks up the plain literals.
+ */
+const FAQ = path.join(SRC, "screens", "FaqScreen.tsx");
+if (fs.existsSync(FAQ)) {
+  const faq = fs.readFileSync(FAQ, "utf8");
+  // Only a complete single-line literal, with the same escape handling as the
+  // t() scan. Anything spanning lines or built by concatenation is left out
+  // rather than half-read: a desynchronised guess is worse than a gap, and the
+  // count below makes a gap visible.
+  const re = /^\s*(?:title|q|a): (['"])((?:\\.|(?!\1)[^\\])*)\1\s*,?\s*$/gm;
+  let f;
+  while ((f = re.exec(faq))) {
+    const key = f[2].replace(/\\(['"])/g, "$1");
+    if (!used.has(key)) used.set(key, "screens/FaqScreen.tsx");
+  }
+}
+
 // The dictionary's own keys, read as text rather than imported: this runs
 // without a TypeScript toolchain, and the file is a plain object literal.
 const dict = fs

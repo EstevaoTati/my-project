@@ -100,6 +100,46 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
     );
   });
 
+  // The FAQ reaches t() through a variable — t(item.q), t(item.a) over a data
+  // array — so the i18n checker could not see it and every question and answer
+  // sat untranslated while the report said all strings had English. 38 strings
+  // in both languages, invisible. This is the assertion that would have caught
+  // it, so it belongs here rather than in the checker alone.
+  //
+  // Compared case-insensitively: the section headings carry
+  // `textTransform: uppercase`, and innerText reflects that, so a literal
+  // "Using 242Konnect" never matches however well it is translated.
+  await check("the FAQ is translated, questions and answers", async () => {
+    await tap('[aria-label="Profile"]');
+    await page.waitForTimeout(700);
+    await tap('[aria-label="Frequently asked questions"]');
+    await page.waitForTimeout(800);
+    const body = (await text()).toLowerCase();
+    const sections =
+      body.includes("using 242konnect") && body.includes("prices and payment");
+    const questions =
+      body.includes("how do i find a professional") &&
+      body.includes("where is my data stored");
+    // A French question left behind is the failure this guards against.
+    if (body.includes("comment trouver un professionnel") || body.includes("utiliser 242konnect"))
+      throw new Error("the FAQ is still in French under English");
+    return sections && questions;
+  });
+  // Tapped by rendered text rather than by aria-label: the Profil stack stays
+  // mounted under the FAQ, and a click on the wrapper is intercepted, which is
+  // how the equivalent check in verify-app.js is written too.
+  await check("a FAQ answer opens in English too", async () => {
+    await tap("text=Which payment methods do you accept?");
+    await page.waitForTimeout(800);
+    const body = (await text()).toLowerCase();
+    return body.includes("mtn mobile money, airtel money");
+  });
+  await check("back out of the FAQ", async () => {
+    await tap('[aria-label="Back"]');
+    await page.waitForTimeout(700);
+    return true;
+  });
+
   await check("switching back restores French", async () => {
     await tap('[aria-label="Profile"]');
     await tap('[aria-label="Français"]');
