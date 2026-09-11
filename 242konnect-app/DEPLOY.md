@@ -123,6 +123,40 @@ account any more — it put a working password into the shipped JavaScript, whic
 a production build must not carry — so the only way in is to sign up, and
 sign-up mails a six-digit code.
 
+## The build must carry the Supabase configuration
+
+`242konnect-app/.env` holds `EXPO_PUBLIC_SUPABASE_URL` and
+`EXPO_PUBLIC_SUPABASE_ANON_KEY`, and Expo bakes them into the bundle at build
+time. Without them `supabaseConfigured` is false, the app has **no verification
+service at all**, and sign-up refuses before it even tries:
+
+> La vérification par e-mail n'est pas configurée sur cette version de
+> démonstration. Aucun code ne peut être envoyé, donc la création de compte est
+> indisponible ici.
+
+That is not the mailer failing — it is the app having nothing to call. Every
+package built before that file existed shipped this way, and the failure is
+silent: the build succeeds, the app loads, the logo animates, and only someone
+reaching the last step of sign-up finds out.
+
+`npm run build:web` now **refuses to finish** a build whose bundle contains no
+provider, and prints which one it found:
+
+```
+Verification service: Supabase, baked into the bundle.
+```
+
+`verify-no-demo` asserts the same against the shipped bundle, and also that no
+`service_role` key and no mail-provider key ever reach it. The publishable key
+is meant to be there — row-level security bounds it to the caller's own row. A
+service-role key bypasses RLS entirely, and a mail key lets anyone send e-mail
+as 242Konnect; either can be unzipped out of an APK.
+
+**Test builds deliberately blank it.** `otpProvider` prefers Supabase whenever
+it is configured, so `tools/verify.sh` passes empty Supabase variables to hand
+the build back to the local API — the suites read their codes from that API's
+outbox and would otherwise find nothing.
+
 ## The e-mail must actually send — two separate settings
 
 Both of these are in the Supabase dashboard. Neither can be fixed from the app,

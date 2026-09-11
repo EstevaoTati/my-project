@@ -42,7 +42,14 @@ curl -sf "$API_URL/health" > /dev/null || { echo "API failed to start; see $API_
 # will happily test against an API URL from a previous run.
 echo "Building against $API_URL…"
 cd "$APP_DIR"
-EXPO_PUBLIC_API_URL="$API_URL" npx expo export --platform web --clear > /dev/null
+# Supabase is blanked deliberately. `otpProvider` prefers Supabase whenever it
+# is configured — and since `.env` now configures it for the real build, a test
+# build that inherited it would mail its codes through GoTrue instead of the
+# local API. The suite reads the code from that API's outbox, so it would find
+# nothing and every sign-up would fail. Empty values make `supabaseConfigured`
+# false and hand the build back to the API, which is the whole point here.
+EXPO_PUBLIC_SUPABASE_URL= EXPO_PUBLIC_SUPABASE_ANON_KEY= \
+  EXPO_PUBLIC_API_URL="$API_URL" npx expo export --platform web --clear > /dev/null
 
 # Playwright is a dev-only dependency and is deliberately not in package.json —
 # `npm install` here would prune it back out. Set NODE_PATH to wherever it is

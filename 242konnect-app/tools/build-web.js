@@ -178,3 +178,47 @@ if (leftover) {
   process.exit(1);
 }
 console.log("Build is path-independent.");
+
+/* ------------------------------------------------------------------
+ * The build must carry a verification service, or the app cannot be
+ * signed up to at all.
+ *
+ * Expo bakes EXPO_PUBLIC_* into the bundle at build time. Build without them
+ * and `supabaseConfigured` is false, `otpProvider` is 'none', and sign-up
+ * refuses before it even tries:
+ *
+ *   "La vérification par e-mail n'est pas configurée sur cette version de
+ *    démonstration."
+ *
+ * That is what shipped, repeatedly: every package built before `.env` existed
+ * had no Supabase in it. The failure is silent — the build succeeds, the app
+ * loads, the logo animates, and only someone reaching the last step of sign-up
+ * discovers there is no service behind it. A packaged build with no way to
+ * create an account is not a build worth shipping, so this refuses to finish.
+ *
+ * Checked against the bundle rather than against `process.env`, because the
+ * question is what ended up in the artefact, not what the shell happened to
+ * hold. A variable read but tree-shaken away would pass the easy check and
+ * still fail the user.
+ * ------------------------------------------------------------------ */
+// `bundles` holds bare filenames, not paths — join them the same way the
+// rewrite above does.
+const bundleText = bundles
+  .map((f) => fs.readFileSync(path.join(outDir, "_expo/static/js/web", f), "utf8"))
+  .join("\n");
+const hasSupabase = /https:\/\/[a-z0-9]+\.supabase\.co/.test(bundleText);
+const hasApi = /EXPO_PUBLIC_API_URL|https?:\/\/[^"']*\/auth\/otp\/start/.test(bundleText);
+if (!hasSupabase && !hasApi) {
+  console.error(
+    "\nNo verification service is baked into this build.\n" +
+      "Sign-up would refuse with “La vérification par e-mail n'est pas configurée”.\n\n" +
+      "Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY — 242konnect-app/.env\n" +
+      "holds them for the normal build — or EXPO_PUBLIC_API_URL to point at the local API.\n"
+  );
+  process.exit(1);
+}
+console.log(
+  hasSupabase
+    ? "Verification service: Supabase, baked into the bundle."
+    : "Verification service: the 242Konnect API, baked into the bundle."
+);

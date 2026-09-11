@@ -53,16 +53,35 @@ const check = async (label, fn) => {
   }
 };
 
-/** Everything the demo account put into the bundle. */
+/**
+ * Everything the demo account put into the bundle.
+ *
+ * Two things were wrong with the earlier list, and they cancelled out into a
+ * green run that proved nothing.
+ *
+ * First, the bundle escapes non-ASCII — "démonstration" is stored as
+ * `d\u00e9monstration` — so every accented entry here matched nothing and
+ * passed for free. `unescape()` below decodes those before searching, which
+ * turns the accented entries into real checks.
+ *
+ * Second, "démonstration" was too broad to be one. The word appears in a
+ * perfectly legitimate message — "La vérification par e-mail n'est pas
+ * configurée sur cette version de démonstration" — so once the escaping is
+ * fixed it would fail on a build that has no demo account at all. The entries
+ * that remain are specific to the account itself.
+ */
 const FORBIDDEN = [
   "Demo2024",
   "060000000",
   "demo@242konnect.cg",
   "Compte Démo",
-  "démonstration",
   "Demo account",
   "demo account",
 ];
+
+/** The bundle's own text, with \uXXXX escapes decoded so accents can be found. */
+const unescape = (text) =>
+  text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 
 (async () => {
   await new Promise((r) => server.listen(PORT, r));
@@ -74,12 +93,52 @@ const FORBIDDEN = [
   for (const token of FORBIDDEN) {
     await check(`the bundle does not contain "${token}"`, () => {
       for (const f of bundles) {
-        if (fs.readFileSync(path.join(bundleDir, f), "utf8").includes(token))
+        if (unescape(fs.readFileSync(path.join(bundleDir, f), "utf8")).includes(token))
           throw new Error(`found in ${f}`);
       }
       return true;
     });
   }
+
+  /* ----------------------------------------------------------------
+   * The build must carry a verification service, and must not carry a
+   * credential that can be used away from it.
+   *
+   * A package shipped without Supabase looks perfectly healthy — it builds, it
+   * loads, the logo animates — and only refuses at the last step of sign-up,
+   * with "la vérification par e-mail n'est pas configurée". That shipped more
+   * than once, so it is asserted here rather than trusted.
+   *
+   * The two negative checks matter more than they look. The publishable key
+   * below is *meant* to be in a bundle: row-level security bounds it to the
+   * caller's own row. A service_role key is the opposite — it bypasses RLS
+   * entirely — and a mail provider key lets anyone send e-mail as 242Konnect.
+   * Either one can be unzipped straight out of an APK.
+   * ---------------------------------------------------------------- */
+  await check("a verification service is baked into the bundle", () => {
+    const text = bundles.map((f) => fs.readFileSync(path.join(bundleDir, f), "utf8")).join("");
+    if (!/https:\/\/[a-z0-9]+\.supabase\.co/.test(text) &&
+        !/EXPO_PUBLIC_API_URL|\/auth\/otp\/start/.test(text))
+      throw new Error("no provider — sign-up would refuse as 'not configured'");
+    return true;
+  });
+  await check("no service_role key is in the bundle", () => {
+    for (const f of bundles) {
+      const text = fs.readFileSync(path.join(bundleDir, f), "utf8");
+      if (text.includes("service_role") || /sb_secret_/.test(text))
+        throw new Error(`a service-role credential is in ${f}`);
+    }
+    return true;
+  });
+  await check("no mail-provider key is in the bundle", () => {
+    for (const f of bundles) {
+      const text = fs.readFileSync(path.join(bundleDir, f), "utf8");
+      // Resend keys start re_, SendGrid keys SG. followed by base64-ish runs.
+      if (/\bre_[A-Za-z0-9]{16,}/.test(text) || /\bSG\.[A-Za-z0-9_-]{16,}/.test(text))
+        throw new Error(`a mail provider key is in ${f}`);
+    }
+    return true;
+  });
 
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "fr-FR" });
   const page = await ctx.newPage();
