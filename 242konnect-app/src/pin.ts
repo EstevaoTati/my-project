@@ -96,7 +96,29 @@ async function callPin(
     });
     const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
-      const code = typeof payload.error === 'string' ? payload.error : 'unknown';
+      /**
+       * The function answers with `{ error: "<code>" }`, but it is not the only
+       * thing that can answer. The Edge Function gateway checks the JWT before
+       * the function runs and rejects a malformed or **expired** one itself,
+       * with a different shape and no `error` field at all:
+       *
+       *     { "code": "UNAUTHORIZED_LEGACY_JWT", "message": "Invalid JWT" }
+       *
+       * Reading only `payload.error` fell through to `unknown`, which told the
+       * user "le service de code confidentiel est indisponible, réessayez" —
+       * so they would retry a PIN forever when the actual fix is to sign in
+       * again. An expired token is the common case, not the exotic one, which
+       * is what made this worth catching.
+       *
+       * Any 401/403 without a code the function recognises is therefore treated
+       * as a session problem, because that is what it is.
+       */
+      const code =
+        typeof payload.error === 'string'
+          ? payload.error
+          : response.status === 401 || response.status === 403
+            ? 'invalid_token'
+            : 'unknown';
       const left = Number(payload.attemptsLeft);
       throw new PinError(
         messageFor(code, payload),

@@ -41,7 +41,8 @@
     "i18n:check": "node tools/i18n-check.js --strict",
     "build:web": "node tools/build-web.js",
     "verify:paths": "node tools/verify-paths.js",
-    "test:sha256": "node tools/sha256.test.mjs"
+    "test:sha256": "node tools/sha256.test.mjs",
+    "verify:prestataire": "node tools/verify-prestataire-journey.js"
   },
   "private": true
 }
