@@ -1,0 +1,24 @@
+-- Applied to the live project on 2026-09-10 as
+-- `20260910012311_grant_authenticated_access_to_profiles`.
+--
+-- public.profiles had row-level security policies for `authenticated`
+-- (auth.uid() = id, for select/insert/update) but the role held no table
+-- privileges at all -- only service_role did.
+--
+-- Postgres checks table privileges BEFORE row-level security, so every request
+-- from a signed-in user was rejected with `42501: permission denied for table
+-- profiles` and the policies never ran. That is why the project had five
+-- confirmed users in auth.users and zero rows here: the app's write could not
+-- succeed even with a valid session. The broken SMTP hid it, because no session
+-- ever got far enough to hit this second wall.
+--
+-- These grants are what make the existing policies effective. They widen
+-- nothing on their own: RLS still restricts every one of these operations to
+-- the caller's own row, which is verified in tools/verify-profiles-rls.sql.
+--
+--  * anon is deliberately left out -- there is no policy for it, and an
+--    unauthenticated caller has no business reading or writing profiles.
+--  * DELETE is deliberately left out -- there is no delete policy, and account
+--    deletion is not a feature. Granting it would create a hole RLS would then
+--    have to close.
+grant select, insert, update on public.profiles to authenticated;
