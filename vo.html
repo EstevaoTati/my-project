@@ -35,7 +35,7 @@
   "image": "assets/vo/hero-poster.jpg",
   "logo": "assets/vo/vo-logo.jpg",
   "telephone": "+1-425-864-1421",
-  "priceRange": "$$",
+  "priceRange": "$40-$65",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "1000 10th Ave NE",
@@ -43,7 +43,8 @@
     "addressRegion": "WA",
     "addressCountry": "US"
   },
-  "areaServed": "Issaquah, WA",
+  "areaServed": "Issaquah, WA and nearby",
+  "sameAs": ["https://www.instagram.com/omos_nails/"],
   "availableLanguage": ["fr", "en"]
 }
 </script>
@@ -158,8 +159,8 @@
 <!-- ===================== MARQUEE ===================== -->
 <div class="marquee" aria-hidden="true">
   <div class="marquee-track">
-    <span>Gel · Gel-X · Acrylique · Nail art · Babyboomer · French inversée · Chrome · Encapsulé ·</span>
-    <span>Gel · Gel-X · Acrylique · Nail art · Babyboomer · French inversée · Chrome · Encapsulé ·</span>
+    <span>De beaux ongles. Une confiance sans limite. · Tout modèle · Tout nail art · À domicile ·</span>
+    <span>De beaux ongles. Une confiance sans limite. · Tout modèle · Tout nail art · À domicile ·</span>
   </div>
 </div>
 
@@ -209,60 +210,77 @@
   </div>
 </section>
 
-<!-- ===================== SERVICES ===================== -->
+<!-- ===================== SERVICES =====================
+     Real pricing, taken from the studio's own service card. The headline
+     point is that nail art is not an extra: price follows length only, so
+     an elaborate design costs the same as a bare colour. That is unusual
+     enough to be the section's argument rather than a footnote.
+     ==================================================== -->
 <section class="sec sec-dark" id="services">
   <div class="wrap">
     <header class="sec-head reveal">
       <p class="eyebrow" data-i18n="srv.eyebrow">Prestations &amp; tarifs</p>
-      <h2 data-i18n-html data-i18n="srv.title">Le prix est dit <em>avant</em> de commencer</h2>
+      <h2 data-i18n-html data-i18n="srv.title">Le dessin est <em>compris</em> dans le prix</h2>
       <p class="sec-sub" data-i18n="srv.sub">
-        Pas de supplément découvert à la fin. Le devis part sur WhatsApp avec la
-        proposition de créneau.
+        Tout modèle, tout nail art. Le tarif suit la longueur, jamais la
+        complexité du motif — une fresque coûte le prix d'une couleur nue.
       </p>
     </header>
 
-    <!-- Placeholder pricing: plausible market rates, to confirm before launch. -->
-    <div class="srv-grid">
-      <article class="srv reveal">
-        <h3 data-i18n="srv.1.t">Pose gel</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>55</b><span>$</span></p>
-        <p data-i18n="srv.1.d">Préparation complète, base renforcée, couleur au choix, finition brillante ou mate. 1 h 15.</p>
+    <div class="tariffs">
+      <article class="tariff reveal">
+        <h3 class="tariff-h" data-i18n="srv.hands">Mains</h3>
+
+        <ul class="tariff-rows">
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:34%"></i></span>
+            <span class="tariff-n" data-i18n="srv.short">Court</span>
+            <span class="tariff-p">$40</span>
+          </li>
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:58%"></i></span>
+            <span class="tariff-n" data-i18n="srv.medium">Moyen</span>
+            <span class="tariff-p">$50</span>
+          </li>
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:86%"></i></span>
+            <span class="tariff-n" data-i18n="srv.long">Long</span>
+            <span class="tariff-p">$65</span>
+          </li>
+        </ul>
+
+        <p class="tariff-inc" data-i18n="srv.included">Tout modèle · Tout nail art compris</p>
       </article>
 
-      <article class="srv reveal">
-        <h3 data-i18n="srv.2.t">Gel-X &amp; capsules</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>75</b><span>$</span></p>
-        <p data-i18n="srv.2.d">Extension souple, sans limage agressif de l'ongle naturel. Forme et longueur sur mesure. 1 h 45.</p>
-      </article>
+      <article class="tariff reveal">
+        <h3 class="tariff-h" data-i18n="srv.feet">Pieds</h3>
 
-      <article class="srv reveal srv-star">
-        <p class="srv-badge" data-i18n="srv.popular">Le plus demandé</p>
-        <h3 data-i18n="srv.3.t">Acrylique complète</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>85</b><span>$</span></p>
-        <p data-i18n="srv.3.d">Structure solide pour les mains qui travaillent. Tenue maximale, rendu net jusqu'au remplissage. 2 h.</p>
-      </article>
+        <p class="tariff-solo">
+          <span class="tariff-p tariff-p-lg">$40</span>
+          <span class="tariff-n" data-i18n="srv.feetAll">Toutes longueurs</span>
+        </p>
 
-      <article class="srv reveal">
-        <h3 data-i18n="srv.4.t">Nail art</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>5</b><span>$ <small data-i18n="srv.perNail">/ ongle</small></span></p>
-        <p data-i18n="srv.4.d">Dessin main levée, chrome, encapsulé, cristaux. Le devis dépend du motif, jamais de l'humeur.</p>
-      </article>
-
-      <article class="srv reveal">
-        <h3 data-i18n="srv.5.t">Remplissage</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>60</b><span>$</span></p>
-        <p data-i18n="srv.5.d">Toutes les trois à quatre semaines. Repousse rattrapée, structure rééquilibrée, couleur refaite. 1 h 30.</p>
-      </article>
-
-      <article class="srv reveal">
-        <h3 data-i18n="srv.6.t">Dépose &amp; soin</h3>
-        <p class="srv-p"><span class="srv-from" data-i18n="srv.from">dès</span> <b>20</b><span>$</span></p>
-        <p data-i18n="srv.6.d">Retrait en douceur, ongle nettoyé, cuticules soignées, huile nourrissante. Offert si vous enchaînez sur une pose.</p>
+        <p class="tariff-inc" data-i18n="srv.included">Tout modèle · Tout nail art compris</p>
       </article>
     </div>
 
+    <div class="addon reveal">
+      <div class="addon-txt">
+        <h3 data-i18n="srv.home.t">À domicile · +$15</h3>
+        <p data-i18n="srv.home.d">
+          Je me déplace chez vous avec tout le matériel. Vous ne bougez pas,
+          vous ne cherchez pas de place de parking. Sur demande, selon le
+          secteur.
+        </p>
+      </div>
+      <a class="btn btn-wa" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+        <span class="wa-i" aria-hidden="true"></span><span data-i18n="srv.home.cta">Demander à domicile</span>
+      </a>
+    </div>
+
     <p class="srv-note reveal" data-i18n="srv.note">
-      Tarifs indicatifs, confirmés sur WhatsApp avant le rendez-vous. Paiement sur place.
+      Issaquah et alentours. Le créneau et le tarif exact sont confirmés sur
+      WhatsApp avant le rendez-vous. Paiement sur place.
     </p>
   </div>
 </section>
@@ -361,6 +379,8 @@
         <p data-i18n="faq.4.a">C'est encouragé. Envoyez-la sur WhatsApp avant : je vous dis honnêtement ce qui est reproductible, ce qui est adaptable, et ce qui ne tiendra pas sur vos mains.</p></details>
       <details class="reveal"><summary data-i18n="faq.5.q">Comment réserver ?</summary>
         <p data-i18n="faq.5.a">Uniquement par WhatsApp, au +1 (425) 864-1421. Vous recevez la confirmation, l'adresse exacte et le tarif dans le même message.</p></details>
+      <details class="reveal"><summary data-i18n="faq.7.q">Vous vous déplacez à domicile ?</summary>
+        <p data-i18n="faq.7.a">Oui, pour 15 $ de plus. J'arrive avec tout le matériel, y compris la lampe et la table. Sur demande et selon le secteur autour d'Issaquah — demandez sur WhatsApp avec votre adresse et je vous dis tout de suite.</p></details>
       <details class="reveal"><summary data-i18n="faq.6.q">Et si je dois annuler ?</summary>
         <p data-i18n="faq.6.a">Prévenez au moins 24 h à l'avance et le créneau est simplement déplacé. C'est tout ce qui est demandé.</p></details>
     </div>
@@ -391,6 +411,16 @@
       </a>
     </address>
     <p class="book-hours" data-i18n="book.hours">Réponse sous quelques heures · Sur rendez-vous uniquement</p>
+
+    <p class="book-script" data-i18n="brand.script">Vos ongles, votre art</p>
+
+    <!-- Instagram handle taken from the studio's service card, where it reads
+         "OMo's nails". Confirm the exact handle before launch — it is this
+         href and the sameAs entry in the JSON-LD above. -->
+    <a class="ig-link" href="https://www.instagram.com/omos_nails/" target="_blank" rel="noopener">
+      <span class="ig-i" aria-hidden="true"></span>
+      <span data-i18n="social.ig">Suivez le travail sur Instagram</span>
+    </a>
   </div>
 </section>
 
@@ -398,12 +428,16 @@
 
 <footer class="foot">
   <div class="wrap foot-in">
-    <p class="foot-brand">VO <em data-i18n="foot.role">Nail Artist</em></p>
+    <div>
+      <p class="foot-brand">VO <em data-i18n="foot.role">Nail Artist</em></p>
+      <p class="foot-tagline" data-i18n="brand.tagline">De beaux ongles. Une confiance sans limite.</p>
+    </div>
     <p class="foot-links">
       <a href="#signature" data-i18n="nav.signature">Signatures</a>
       <a href="#services" data-i18n="nav.services">Prestations</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
       <a data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="https://www.instagram.com/omos_nails/" target="_blank" rel="noopener">Instagram</a>
     </p>
     <p class="foot-fine">
       1000 10th Ave NE, Issaquah, WA ·

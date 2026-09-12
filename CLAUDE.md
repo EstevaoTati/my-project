@@ -177,9 +177,13 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   which belong to Mwinda Digital and would ship a few hundred unrelated strings
   to every visitor. Booking is WhatsApp only, to +1 (425) 864-1421; the
   `wa.me` href is written into the markup so it still works if the script
-  fails, and `vo.js` only adds the localised prefilled message. No inline
-  scripts, so the generated CSP needs no new hash. Pricing and the studio
-  location are placeholders to confirm before launch.
+  fails, and `vo.js` only adds the localised prefilled message. Pricing is the
+  studio's real card: hands $40/$50/$65 by length, feet $40, at-home +$15, and
+  **nail art is included at every tier** — the rate follows length, never the
+  design, which is the section's whole argument. Studio at 1000 10th Ave NE,
+  Issaquah WA, carried in `NailSalon` JSON-LD for local search. The only
+  unconfirmed detail is the Instagram handle, guessed as `omos_nails` from the
+  service card; it appears in the booking block, the footer and `sameAs`.
 - `assets/vo/` + `scripts/vo-render-hero.py` — the VO background clip and the
   renderer that produces it. Higgsfield could not generate it (the account had
   1.8 credits against a 7.5-credit floor), so the loop is built in-repo from

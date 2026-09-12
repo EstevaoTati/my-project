@@ -352,40 +352,87 @@ section[id] { scroll-margin-top: 92px; }
   color: var(--gold) !important; margin: 0 !important;
 }
 
-/* ---------- services ---------- */
-/* 320px wraps to three columns inside the 1180px shell, so six services fill
-   two even rows instead of leaving a ragged four-plus-two. */
-.srv-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-.srv {
-  position: relative;
+/* ---------- services ----------
+   Two tariff cards plus the at-home add-on. The old placeholder grid of six
+   invented services is gone: the studio prices by length only, so the table
+   is three rows and a flat foot rate, and the section argues that the design
+   is included rather than burying it in a note. */
+.tariffs {
+  display: grid; gap: 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+.tariff {
   border: 1px solid var(--line); border-radius: 4px;
-  padding: 34px 28px 30px;
-  background: rgba(247, 226, 221, .035);
-  transition: transform .45s var(--ease), border-color .45s, background .45s;
+  padding: clamp(26px, 3.2vw, 40px);
+  background: rgba(247, 226, 221, .04);
+  display: flex; flex-direction: column;
+  transition: border-color .45s, background .45s;
 }
-.srv:hover {
-  transform: translateY(-5px);
-  border-color: rgba(230, 195, 163, .45);
-  background: rgba(247, 226, 221, .07);
-}
-.srv h3 { font-size: 1.6rem; margin-bottom: .5rem; }
-.srv p { color: rgba(251, 246, 243, .66); font-size: .92rem; margin: 0; }
-.srv-p {
-  font-family: var(--serif); color: var(--gold) !important;
-  font-size: 1.05rem; margin: 0 0 1rem !important;
-  display: flex; align-items: baseline; gap: 6px;
-}
-.srv-p b { font-size: 2.5rem; font-weight: 400; line-height: 1; }
-.srv-from { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; font-family: var(--sans); }
-.srv-p small { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; margin-left: .35em; }
+.tariff:hover { border-color: rgba(230, 195, 163, .42); background: rgba(247, 226, 221, .07); }
 
-.srv-star { border-color: rgba(230, 195, 163, .42); background: rgba(230, 195, 163, .07); }
-.srv-badge {
-  position: absolute; top: -10px; left: 26px;
-  background: var(--rose); color: #fff !important;
-  font-size: .6rem !important; letter-spacing: .2em; text-transform: uppercase;
-  padding: 4px 12px; border-radius: 999px;
+.tariff-h {
+  font-size: .74rem; letter-spacing: .3em; text-transform: uppercase;
+  font-family: var(--sans); font-weight: 400; color: var(--ink);
+  background: linear-gradient(135deg, var(--gold), var(--rose));
+  border-radius: 999px; padding: 8px 22px;
+  align-self: flex-start; margin-bottom: 1.8rem;
 }
+
+.tariff-rows { list-style: none; margin: 0; padding: 0; }
+.tariff-rows li {
+  display: grid; align-items: center; gap: 16px;
+  grid-template-columns: 34px 1fr auto;
+  padding: 16px 0; border-bottom: 1px solid var(--line);
+}
+.tariff-rows li:last-child { border-bottom: 0; }
+
+/* A rounded bar whose height is the nail length — short, medium, long read
+   instantly without shipping three illustrations. */
+.nail-i {
+  display: flex; align-items: flex-end; justify-content: center;
+  width: 34px; height: 46px;
+}
+.nail-i i {
+  display: block; width: 17px; height: var(--n, 50%);
+  border-radius: 9px 9px 4px 4px;
+  background: linear-gradient(to top, var(--rose-deep), var(--gold));
+  box-shadow: 0 0 14px -4px rgba(230, 195, 163, .7);
+}
+
+.tariff-n {
+  font-family: var(--serif); font-size: clamp(1.2rem, 2vw, 1.55rem);
+  letter-spacing: .02em;
+}
+.tariff-p {
+  font-family: var(--serif); font-size: clamp(1.7rem, 3vw, 2.4rem);
+  color: var(--gold); line-height: 1;
+}
+.tariff-p-lg { font-size: clamp(3rem, 6vw, 4.4rem); display: block; }
+
+.tariff-solo { margin: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: .4rem; }
+.tariff-solo .tariff-n { color: rgba(251, 246, 243, .7); font-size: 1.1rem; }
+
+.tariff-inc {
+  margin: 1.6rem 0 0; padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+  font-size: .7rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--gold);
+}
+
+.addon {
+  margin-top: 18px; padding: clamp(24px, 3vw, 34px);
+  border: 1px solid rgba(230, 195, 163, .34); border-radius: 4px;
+  background:
+    radial-gradient(120% 180% at 0% 0%, rgba(183, 110, 89, .22), transparent 60%),
+    rgba(247, 226, 221, .04);
+  display: flex; flex-wrap: wrap; gap: 22px;
+  align-items: center; justify-content: space-between;
+}
+.addon-txt { flex: 1 1 320px; }
+.addon h3 { font-size: clamp(1.4rem, 2.6vw, 1.9rem); margin-bottom: .5rem; }
+.addon p { margin: 0; color: rgba(251, 246, 243, .7); font-size: .92rem; max-width: 52ch; }
+
 .srv-note {
   margin: 2.4rem 0 0; font-size: .82rem;
   color: rgba(251, 246, 243, .48); text-align: center;
@@ -484,6 +531,39 @@ section[id] { scroll-margin-top: 92px; }
 .book-addr a:hover { color: var(--gold); border-color: var(--gold); }
 .book-hours { font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: rgba(251, 246, 243, .48); margin: 0; }
 
+/* The studio's own line, set the way it appears on their card: a script
+   flourish on a rose-gold brushstroke rather than another sentence. */
+.book-script {
+  /* Block, not inline-block: beside an inline Instagram link the two shared
+     a row and the brushstroke stopped reading as a signature. */
+  display: block; width: fit-content;
+  margin: 2.4rem auto 1.6rem;
+  padding: 10px 34px 12px; border-radius: 40% 60% 45% 55% / 60% 45% 55% 40%;
+  background: linear-gradient(115deg, var(--rose-deep), var(--rose) 45%, #d9a288);
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(1.5rem, 3.4vw, 2.2rem); color: #fff;
+  box-shadow: 0 14px 34px -16px rgba(183, 110, 89, .9);
+}
+.book-script::after { content: ' \2661'; }
+
+.ig-link {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: .74rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(251, 246, 243, .62); transition: color .3s;
+}
+.ig-link:hover { color: var(--gold); }
+.ig-i {
+  width: 1.15em; height: 1.15em; flex: none; background: currentColor;
+  -webkit-mask: var(--ig) center / contain no-repeat;
+          mask: var(--ig) center / contain no-repeat;
+  --ig: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zM12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.12 1.38C1.36 2.67.95 3.34.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.12.66.66 1.33 1.08 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.3 1.46-.72 2.12-1.38.66-.66 1.08-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.3-.79-.72-1.46-1.38-2.12C21.33 1.36 20.66.95 19.86.63 19.1.33 18.22.13 16.95.07 15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm7.85-10.41a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z'/%3E%3C/svg%3E");
+}
+
+.foot-tagline {
+  margin: 6px 0 0; font-family: var(--serif); font-style: italic;
+  font-size: 1rem; color: rgba(230, 195, 163, .8);
+}
+
 /* ============================================================
    FOOTER
    ============================================================ */
@@ -551,6 +631,7 @@ section[id] { scroll-margin-top: 92px; }
    ============================================================ */
 @media (max-width: 1000px) {
   .sig, .sig:nth-child(even) .sig-img { grid-template-columns: 1fr; order: 0; }
+  .tariffs { grid-template-columns: 1fr; }
   .std-wrap { grid-template-columns: 1fr; }
 }
 
