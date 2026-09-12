@@ -25,8 +25,8 @@ left alone. Nothing is overwritten until both the download and the encode have
 succeeded, so a failed run leaves the committed clip playing.
 
 Writes into assets/vo/:
-    hero.mp4 + hero-poster.jpg                     (--landscape)
-    hero-portrait.mp4 + hero-poster-portrait.jpg   (--portrait)
+    hero.mp4  + hero.webm  + hero-poster.jpg                    (--landscape)
+    hero-portrait.mp4 + .webm + hero-poster-portrait.jpg        (--portrait)
 
 Requires an ffmpeg binary (`pip install imageio-ffmpeg` supplies a static one).
 """
@@ -45,8 +45,10 @@ OUT = os.path.join(ROOT, "assets", "vo")
 # Target widths. The clips arrive at 2K; a background does not need it, and a
 # visitor on a phone plan should not pay for it.
 TARGETS = {
-    "landscape": {"width": 1920, "video": "hero.mp4", "poster": "hero-poster.jpg"},
-    "portrait": {"width": 1080, "video": "hero-portrait.mp4", "poster": "hero-poster-portrait.jpg"},
+    "landscape": {"width": 1920, "video": "hero.mp4", "webm": "hero.webm",
+                  "poster": "hero-poster.jpg"},
+    "portrait": {"width": 1080, "video": "hero-portrait.mp4", "webm": "hero-portrait.webm",
+                 "poster": "hero-poster-portrait.jpg"},
 }
 
 
@@ -107,6 +109,21 @@ def install(kind, src, ffmpeg):
             check=True,
         )
 
+        # VP9 too: H.264 is missing from Chromium builds without proprietary
+        # codecs and from some Linux Firefox builds, which would leave those
+        # visitors staring at the poster. It also encodes smaller.
+        webm = os.path.join(tmp, spec["webm"])
+        print("  encoding webm…")
+        subprocess.run(
+            [ffmpeg, "-y", "-loglevel", "error", "-i", raw,
+             "-vf", f"scale={spec['width']}:-2:flags=lanczos",
+             "-c:v", "libvpx-vp9", "-crf", "40", "-b:v", "0",
+             "-row-mt", "1", "-deadline", "good", "-cpu-used", "4",
+             "-g", "48", "-an",
+             webm],
+            check=True,
+        )
+
         poster = os.path.join(tmp, spec["poster"])
         subprocess.run(
             [ffmpeg, "-y", "-loglevel", "error", "-i", out, "-frames:v", "1",
@@ -115,7 +132,7 @@ def install(kind, src, ffmpeg):
         )
 
         os.makedirs(OUT, exist_ok=True)
-        for name in (spec["video"], spec["poster"]):
+        for name in (spec["video"], spec["webm"], spec["poster"]):
             shutil.move(os.path.join(tmp, name), os.path.join(OUT, name))
 
         mb = os.path.getsize(os.path.join(OUT, spec["video"])) / 1e6

@@ -38,12 +38,23 @@
     const video = document.querySelector('.site-bg video');
     if (!video) return;
 
-    const portrait = video.dataset.portrait;
-    const poster = video.dataset.portraitPoster;
-    if (!portrait || !window.matchMedia('(max-aspect-ratio: 3/4)').matches) return;
+    if (!window.matchMedia('(max-aspect-ratio: 3/4)').matches) return;
 
-    const source = video.querySelector('source');
-    if (source) source.src = portrait; else video.src = portrait;
+    // Both codecs are swapped, by type, so the browser keeps whichever it can
+    // actually decode. Replacing only the MP4 would leave a VP9-capable
+    // browser playing the landscape WebM on a phone.
+    const byType = {
+      'video/webm': video.dataset.portraitWebm,
+      'video/mp4': video.dataset.portraitMp4,
+    };
+    let swapped = false;
+    video.querySelectorAll('source').forEach((source) => {
+      const next = byType[source.type];
+      if (next) { source.src = next; swapped = true; }
+    });
+    if (!swapped) return;
+
+    const poster = video.dataset.portraitPoster;
     if (poster) {
       video.poster = poster;
       const still = document.querySelector('.site-bg-img');

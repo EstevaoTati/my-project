@@ -58,6 +58,13 @@
      path (Low Power Mode, data saver, a dropped decoder) still shows the
      artwork instead of a black rectangle. See docs/hero-video.md.
 
+     Two codecs, WebM first. H.264 is not universal — Chromium builds
+     compiled without proprietary codecs, and some Linux Firefox builds,
+     cannot decode the MP4 at all and would sit on the poster forever. VP9
+     also happens to come out less than half the size here, so the browsers
+     that take it also download less. The MP4 stays as the fallback for
+     Safari and anything older.
+
      The landscape cut is the one in the markup, so the background still
      plays with JavaScript off. vo.js swaps in the portrait cut on tall
      viewports: the `media` attribute on a <source> does nothing inside a
@@ -66,8 +73,10 @@
      ============================================================ -->
 <div class="site-bg" aria-hidden="true">
   <video autoplay muted loop playsinline preload="metadata" poster="assets/vo/hero-poster.jpg"
-         data-portrait="assets/vo/hero-portrait.mp4"
+         data-portrait-webm="assets/vo/hero-portrait.webm"
+         data-portrait-mp4="assets/vo/hero-portrait.mp4"
          data-portrait-poster="assets/vo/hero-poster-portrait.jpg">
+    <source src="assets/vo/hero.webm" type="video/webm" />
     <source src="assets/vo/hero.mp4" type="video/mp4" />
   </video>
   <img class="site-bg-img" src="assets/vo/hero-poster.jpg" alt="" decoding="async" fetchpriority="high" />

@@ -16,8 +16,8 @@ Usage:
     python3 scripts/vo-render-hero.py --fast     # half resolution, quick check
 
 Outputs into assets/vo/:
-    hero.mp4        1920x1080   desktop
-    hero-portrait.mp4 1080x1920 phones
+    hero.mp4  / hero.webm            1920x1080   desktop
+    hero-portrait.mp4 / .webm        1080x1920   phones
     hero-poster.jpg / hero-poster-portrait.jpg   first frame, shown until play
 
 Requires Pillow and an ffmpeg binary (imageio-ffmpeg supplies a static one).
@@ -318,6 +318,26 @@ def render(w, h, out_path, poster_path, ffmpeg, fast=False):
                 "-crf", "27", "-g", str(FPS * 2), "-an",
                 "-movflags", "+faststart",
                 out_path,
+            ],
+            check=True,
+        )
+
+        # VP9 as well. H.264 is not universal — a Chromium built without
+        # proprietary codecs, or some Linux Firefox builds, cannot decode the
+        # MP4 at all and would sit on the poster forever. VP9 also lands at
+        # well under half the size here, so the browsers that take it also
+        # download less.
+        webm_path = os.path.splitext(out_path)[0] + ".webm"
+        print(f"  encoding {os.path.basename(webm_path)} …", flush=True)
+        subprocess.run(
+            [
+                ffmpeg, "-y", "-loglevel", "error",
+                "-framerate", str(FPS), "-i", os.path.join(tmp, "f%05d.png"),
+                "-c:v", "libvpx-vp9", "-crf", "40", "-b:v", "0",
+                "-row-mt", "1", "-deadline", "good",
+                "-cpu-used", "4" if not fast else "6",
+                "-g", str(FPS * 2), "-an",
+                webm_path,
             ],
             check=True,
         )
