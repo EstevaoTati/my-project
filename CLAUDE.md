@@ -170,6 +170,45 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   the engine consults is methodology, not something to publish with every
   analysis. Refresh runs in Postgres monthly (`refresh_reference_data()`);
   nothing breaks when the table is empty. See `docs/reference-data.md`.
+- `vo.html` / `vo.css` / `vo.js` — **VO Nail Artist** landing page at `/vo`
+  (also `/nails`). A separate brand living in the same repo: rose-gold and
+  blush, Cormorant Garamond over Jost, and its own scoped FR/EN dictionary
+  inside `vo.js` — it deliberately does **not** load `styles.css` or `i18n.js`,
+  which belong to Mwinda Digital and would ship a few hundred unrelated strings
+  to every visitor. Booking is WhatsApp only, to +1 (425) 864-1421; the
+  `wa.me` href is written into the markup so it still works if the script
+  fails, and `vo.js` only adds the localised prefilled message. Pricing is the
+  studio's real card: hands $40/$50/$65 by length, feet $40, at-home +$15, and
+  **nail art is included at every tier** — the rate follows length, never the
+  design, which is the section's whole argument. Studio at 1000 10th Ave NE,
+  Issaquah WA, carried in `NailSalon` JSON-LD for local search. The only
+  unconfirmed detail is the Instagram handle, guessed as `omos_nails` from the
+  service card; it appears in the booking block, the footer and `sameAs`.
+- `assets/vo/` + `scripts/vo-render-hero.py` — the VO background clip and the
+  renderer that produces it. The committed loop is built in-repo from the
+  artist's own four images: Ken Burns moves, cross-dissolves, rose-gold grade,
+  bokeh, grain, seamless. Re-run with `python3 scripts/vo-render-hero.py`
+  (needs Pillow, numpy and `imageio-ffmpeg`). Higgsfield clips exist and are
+  better, but could not be fetched from a session — see `vo-install-hero.py`
+  below.
+  Each cut ships **twice, VP9 first then H.264**: a Chromium built without
+  proprietary codecs cannot decode the MP4 at all, and fails silently — no
+  error, the element simply never fires `playing` and the visitor sits on the
+  poster. VP9 also encodes to well under half the size.
+  **The portrait cut is chosen in `vo.js`, not in the markup.** The `media`
+  attribute on a `<source>` does nothing inside a `<video>` — browsers honour
+  it for `<picture>` only — so a phone silently loaded the landscape cut and
+  centre-cropped it. The markup keeps the landscape cut so the background
+  still plays with JavaScript off, and the swap replaces sources by MIME type
+  so both codecs move together.
+- `scripts/vo-install-hero.py` — installs a Higgsfield clip as the background:
+  `--landscape` and `--portrait` each take a URL or a local file, and it
+  downsizes, posters and `faststart`s them into the names the page already
+  references. **Higgsfield's CDN cannot be reached from a Claude Code sandbox**
+  — both `d8j0ntlcm91z4.cloudfront.net` and `d2ol7oe51mr4n9.cloudfront.net`
+  answer 403 to CONNECT under the egress policy — so generation can happen in a
+  session but the download cannot. Run this script locally instead. See
+  `docs/decisions/2026-09-12-vo-hero-clip-rendered-locally.md`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.
