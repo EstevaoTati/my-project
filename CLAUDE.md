@@ -186,8 +186,14 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   the artist's own four images: Ken Burns moves, cross-dissolves, rose-gold
   grade, bokeh, grain, seamless. Landscape and portrait cuts, selected by
   `<source media>`. Re-run with `python3 scripts/vo-render-hero.py` (needs
-  Pillow, numpy and `imageio-ffmpeg`). A Higgsfield render dropped in at
-  `assets/vo/hero.mp4` replaces it with no code change. See
+  Pillow, numpy and `imageio-ffmpeg`).
+- `scripts/vo-install-hero.py` — installs a Higgsfield clip as the background:
+  `--landscape` and `--portrait` each take a URL or a local file, and it
+  downsizes, posters and `faststart`s them into the names the page already
+  references. **Higgsfield's CDN cannot be reached from a Claude Code sandbox**
+  — both `d8j0ntlcm91z4.cloudfront.net` and `d2ol7oe51mr4n9.cloudfront.net`
+  answer 403 to CONNECT under the egress policy — so generation can happen in a
+  session but the download cannot. Run this script locally instead. See
   `docs/decisions/2026-09-12-vo-hero-clip-rendered-locally.md`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects

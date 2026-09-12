@@ -69,3 +69,37 @@ breakpoint without re-encoding anything.
 - Revisit when the Higgsfield balance covers a generation. A model-generated
   clip could move the nails themselves — light travelling across the gel,
   fingers turning — which a Ken Burns pass over a still cannot do.
+
+---
+
+## Update, same day: the clips exist, but not in this repo yet
+
+The balance was topped up to 201.8 credits and three clips were generated on
+Higgsfield with MiniMax H3, all 2K (2560x1440), 10 seconds, no watermark:
+
+| Shot | Job | Ratio |
+|---|---|---|
+| Montage of the three sets, ending on the monogram | `e7220168-d3d0-4171-80e7-6632f1ba34a8` | 16:9 |
+| Monogram reveal, sheen travelling across the rose-gold | `e9b84718-a81f-4587-b0e6-24c58bb4593f` | 16:9 |
+| Vertical montage framed for phones | `a70741a8-4483-48bb-a862-6e2e6d840586` | 9:16 |
+
+Seedance 2.5 was the first choice and refused the account: it needs a Plus
+plan. MiniMax H3 accepts the same four image references, outputs 2K, and cost
+20 credits a clip against Seedance's 90.
+
+**The files are not committed.** The session that generated them could not
+fetch them: the Higgsfield output CDN
+(`d8j0ntlcm91z4.cloudfront.net`) is refused by the sandbox's egress policy with
+a 403 on CONNECT, and so is the input CDN (`d2ol7oe51mr4n9.cloudfront.net`).
+Uploading to Higgsfield works; downloading from it does not. Working around an
+organisation egress policy was not on the table, so the download happens on a
+machine where those hosts resolve normally.
+
+`scripts/vo-install-hero.py` closes that gap in one command: it takes a URL or
+a local file for either cut, downsizes 2K to what a background actually needs,
+pulls a poster from frame one, adds `faststart`, and writes the four files into
+`assets/vo/` under the names the page already references. It replaces nothing
+until the encode has succeeded, so a failed run leaves the current clip playing.
+
+Until that runs, the locally rendered loop described above stays live. Nothing
+about the page is blocked on the swap.
