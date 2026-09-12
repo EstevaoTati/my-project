@@ -34,9 +34,16 @@ cross-dissolving into one another, a rose-gold grade, drifting bokeh, a slow
 light sweep and fine grain, ending on the monogram and resolving back into
 frame 0.
 
-Two cuts are committed, landscape and portrait, selected by `<source media>` so
-phones get a frame composed for them rather than a centre-crop of a 16:9
-master. Posters are extracted from frame 0 of each.
+Two cuts are committed, landscape and portrait, so phones get a frame composed
+for them rather than a centre-crop of a 16:9 master. Posters are extracted from
+frame 0 of each, and each cut ships in VP9 and H.264.
+
+**Correction to the first draft of this record:** the cut was originally
+selected with `media` on a `<source>`. That does nothing inside a `<video>` —
+browsers evaluate the attribute for `<picture>` only — so phones silently
+loaded the landscape file anyway. The selection lives in `vo.js` now, swapping
+sources by MIME type so both codecs move together, with the landscape cut left
+in the markup as the no-JavaScript state.
 
 ## Why not wait for credits
 

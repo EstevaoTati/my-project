@@ -185,12 +185,22 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   unconfirmed detail is the Instagram handle, guessed as `omos_nails` from the
   service card; it appears in the booking block, the footer and `sameAs`.
 - `assets/vo/` + `scripts/vo-render-hero.py` — the VO background clip and the
-  renderer that produces it. Higgsfield could not generate it (the account had
-  1.8 credits against a 7.5-credit floor), so the loop is built in-repo from
-  the artist's own four images: Ken Burns moves, cross-dissolves, rose-gold
-  grade, bokeh, grain, seamless. Landscape and portrait cuts, selected by
-  `<source media>`. Re-run with `python3 scripts/vo-render-hero.py` (needs
-  Pillow, numpy and `imageio-ffmpeg`).
+  renderer that produces it. The committed loop is built in-repo from the
+  artist's own four images: Ken Burns moves, cross-dissolves, rose-gold grade,
+  bokeh, grain, seamless. Re-run with `python3 scripts/vo-render-hero.py`
+  (needs Pillow, numpy and `imageio-ffmpeg`). Higgsfield clips exist and are
+  better, but could not be fetched from a session — see `vo-install-hero.py`
+  below.
+  Each cut ships **twice, VP9 first then H.264**: a Chromium built without
+  proprietary codecs cannot decode the MP4 at all, and fails silently — no
+  error, the element simply never fires `playing` and the visitor sits on the
+  poster. VP9 also encodes to well under half the size.
+  **The portrait cut is chosen in `vo.js`, not in the markup.** The `media`
+  attribute on a `<source>` does nothing inside a `<video>` — browsers honour
+  it for `<picture>` only — so a phone silently loaded the landscape cut and
+  centre-cropped it. The markup keeps the landscape cut so the background
+  still plays with JavaScript off, and the swap replaces sources by MIME type
+  so both codecs move together.
 - `scripts/vo-install-hero.py` — installs a Higgsfield clip as the background:
   `--landscape` and `--portrait` each take a URL or a local file, and it
   downsizes, posters and `faststart`s them into the names the page already
