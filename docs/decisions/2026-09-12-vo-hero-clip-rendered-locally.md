@@ -83,6 +83,14 @@ Higgsfield with MiniMax H3, all 2K (2560x1440), 10 seconds, no watermark:
 | Monogram reveal, sheen travelling across the rose-gold | `e9b84718-a81f-4587-b0e6-24c58bb4593f` | 16:9 |
 | Vertical montage framed for phones | `a70741a8-4483-48bb-a862-6e2e6d840586` | 9:16 |
 
+A fourth was then generated on Higgsfield's own flagship rather than a
+third-party model hosted there — **Cinema Studio 3.0**, 1080p, 10 seconds,
+genre `drama`, silent, 100 credits, job `eb6fb16d-0c13-4353-91f3-237275177939`.
+It is keyframed rather than reference-blended: the espresso set is the
+`start_image`, the sapphire and bordeaux sets are `image` references, and the
+monogram is the `end_image`, so the clip resolves onto the brand mark instead
+of being asked to draw it. That is the one to try first.
+
 Seedance 2.5 was the first choice and refused the account: it needs a Plus
 plan. MiniMax H3 accepts the same four image references, outputs 2K, and cost
 20 credits a clip against Seedance's 90.
