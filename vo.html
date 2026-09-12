@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>VO Nail Artist — L'art au bout des doigts</title>
 <meta name="description" data-i18n-attr="content" data-i18n="meta.desc"
-      content="VO Nail Artist — pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous. Réservation directe par WhatsApp." />
+      content="VO Nail Artist à Issaquah, WA — pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous. Réservation directe par WhatsApp." />
 <meta name="theme-color" content="#1b1210" />
 <meta name="robots" content="index, follow" />
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content="VO Nail Artist — L'art au bout des doigts" />
-<meta property="og:description" content="Pose gel, Gel-X, acrylique et nail art sur mesure. Sur rendez-vous." />
+<meta property="og:description" content="Pose gel, Gel-X, acrylique et nail art sur mesure. Issaquah, WA — sur rendez-vous." />
 <meta property="og:image" content="assets/vo/hero-poster.jpg" />
 
 <link rel="icon" href="assets/vo/vo-logo.jpg" />
@@ -20,6 +20,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="vo.css?v=1" />
+
+<!-- Local search: a nail studio lives or dies on "near me" queries, and this
+     is what lets Google show the address, phone and price band directly.
+     Not executed, so it costs nothing at runtime; scripts/update-csp.mjs
+     still hashes it, which is why the generated policy carries an extra
+     sha256 after this file changes. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NailSalon",
+  "name": "VO Nail Artist",
+  "description": "Pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous.",
+  "image": "assets/vo/hero-poster.jpg",
+  "logo": "assets/vo/vo-logo.jpg",
+  "telephone": "+1-425-864-1421",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "1000 10th Ave NE",
+    "addressLocality": "Issaquah",
+    "addressRegion": "WA",
+    "addressCountry": "US"
+  },
+  "areaServed": "Issaquah, WA",
+  "availableLanguage": ["fr", "en"]
+}
+</script>
 </head>
 <body>
 
@@ -89,7 +116,7 @@
       <img src="assets/vo/vo-logo.jpg" alt="VO Nail Artist" width="190" height="190" decoding="async" />
     </div>
 
-    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Studio privé · Sur rendez-vous</p>
+    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Issaquah, WA · Sur rendez-vous</p>
 
     <h1 class="reveal" data-i18n-html data-i18n="hero.title">
       L'art au bout <em>des doigts</em>
@@ -348,6 +375,12 @@
     </a>
 
     <p class="book-num"><a href="tel:+14258641421">+1 (425) 864-1421</a></p>
+
+    <address class="book-addr">
+      <a href="https://maps.google.com/?q=1000+10th+Ave+NE,+Issaquah,+WA" target="_blank" rel="noopener">
+        1000 10th Ave NE, Issaquah, WA
+      </a>
+    </address>
     <p class="book-hours" data-i18n="book.hours">Réponse sous quelques heures · Sur rendez-vous uniquement</p>
   </div>
 </section>
@@ -363,7 +396,11 @@
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
       <a data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">WhatsApp</a>
     </p>
-    <p class="foot-fine">© <span data-year>2026</span> VO Nail Artist · <span data-i18n="foot.by">Site par Mwinda Digital</span></p>
+    <p class="foot-fine">
+      1000 10th Ave NE, Issaquah, WA ·
+      © <span data-year>2026</span> VO Nail Artist ·
+      <span data-i18n="foot.by">Site par Mwinda Digital</span>
+    </p>
   </div>
 </footer>
 

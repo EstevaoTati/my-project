@@ -57,7 +57,7 @@
   /* ---------------- dictionary ---------------- */
   const dict = {
     fr: {
-      'meta.desc': "VO Nail Artist — pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous. Réservation directe par WhatsApp.",
+      'meta.desc': "VO Nail Artist à Issaquah, WA — pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous. Réservation directe par WhatsApp.",
       'a11y.skip': 'Aller au contenu',
 
       'nav.signature': 'Signatures', 'nav.services': 'Prestations',
@@ -68,7 +68,7 @@
       'cta.see': 'Voir les créations',
       'cta.ask': 'Poser une question',
 
-      'hero.eyebrow': 'Studio privé · Sur rendez-vous',
+      'hero.eyebrow': 'Issaquah, WA · Sur rendez-vous',
       'hero.title': "L'art au bout <em>des doigts</em>",
       'hero.lede': "Des mains qu'on remarque avant même que vous parliez. Pose gel, Gel-X, acrylique et nail art dessiné à la main — pensé pour votre morphologie, tenu pour durer trois semaines sans faiblir.",
 
@@ -162,7 +162,7 @@
     },
 
     en: {
-      'meta.desc': "VO Nail Artist — gel, Gel-X, acrylic and hand-painted custom nail art. Private studio, by appointment. Book directly on WhatsApp.",
+      'meta.desc': "VO Nail Artist in Issaquah, WA — gel, Gel-X, acrylic and hand-painted custom nail art. Private studio, by appointment. Book directly on WhatsApp.",
       'a11y.skip': 'Skip to content',
 
       'nav.signature': 'Signatures', 'nav.services': 'Services',
@@ -173,7 +173,7 @@
       'cta.see': 'See the work',
       'cta.ask': 'Ask a question',
 
-      'hero.eyebrow': 'Private studio · By appointment',
+      'hero.eyebrow': 'Issaquah, WA · By appointment',
       'hero.title': 'Art at your <em>fingertips</em>',
       'hero.lede': "Hands people notice before you say a word. Gel, Gel-X, acrylic and hand-painted nail art — shaped to your hands, built to hold three weeks without flinching.",
 
