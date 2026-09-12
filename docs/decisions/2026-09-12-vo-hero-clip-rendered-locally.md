@@ -103,3 +103,20 @@ until the encode has succeeded, so a failed run leaves the current clip playing.
 
 Until that runs, the locally rendered loop described above stays live. Nothing
 about the page is blocked on the swap.
+
+## Previewing the branch without deploying
+
+The repository is public, so any branch renders through githack without a
+Netlify deploy — useful for showing a page to someone before it is merged:
+
+    https://raw.githack.com/EstevaoTati/my-project/<branch>/vo.html
+
+Relative assets resolve against the same path, so the stylesheet, the scripts
+and everything under `assets/vo/` load from the same branch. A commit SHA
+works in place of the branch name and is unambiguous, which matters here
+because these branch names contain a slash.
+
+Note this is a preview of repository contents only. `netlify.toml` and
+`_redirects` are not applied, so `/vo`, the 404 rules for `docs/` and
+`scripts/`, the CSP and the serverless functions are all absent — check those
+on a real deploy.
