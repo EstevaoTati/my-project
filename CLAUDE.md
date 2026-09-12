@@ -170,6 +170,25 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   the engine consults is methodology, not something to publish with every
   analysis. Refresh runs in Postgres monthly (`refresh_reference_data()`);
   nothing breaks when the table is empty. See `docs/reference-data.md`.
+- `vo.html` / `vo.css` / `vo.js` — **VO Nail Artist** landing page at `/vo`
+  (also `/nails`). A separate brand living in the same repo: rose-gold and
+  blush, Cormorant Garamond over Jost, and its own scoped FR/EN dictionary
+  inside `vo.js` — it deliberately does **not** load `styles.css` or `i18n.js`,
+  which belong to Mwinda Digital and would ship a few hundred unrelated strings
+  to every visitor. Booking is WhatsApp only, to +1 (425) 864-1421; the
+  `wa.me` href is written into the markup so it still works if the script
+  fails, and `vo.js` only adds the localised prefilled message. No inline
+  scripts, so the generated CSP needs no new hash. Pricing and the studio
+  location are placeholders to confirm before launch.
+- `assets/vo/` + `scripts/vo-render-hero.py` — the VO background clip and the
+  renderer that produces it. Higgsfield could not generate it (the account had
+  1.8 credits against a 7.5-credit floor), so the loop is built in-repo from
+  the artist's own four images: Ken Burns moves, cross-dissolves, rose-gold
+  grade, bokeh, grain, seamless. Landscape and portrait cuts, selected by
+  `<source media>`. Re-run with `python3 scripts/vo-render-hero.py` (needs
+  Pillow, numpy and `imageio-ffmpeg`). A Higgsfield render dropped in at
+  `assets/vo/hero.mp4` replaces it with no code change. See
+  `docs/decisions/2026-09-12-vo-hero-clip-rendered-locally.md`.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.

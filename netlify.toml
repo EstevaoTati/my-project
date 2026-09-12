@@ -28,6 +28,17 @@
 #   to = "/preview.html"
 #   status = 200
 
+# Pretty URLs for the VO Nail Artist landing page.
+[[redirects]]
+  from = "/vo"
+  to = "/vo.html"
+  status = 200
+
+[[redirects]]
+  from = "/nails"
+  to = "/vo.html"
+  status = 200
+
 # ----- Block internal repository files (defence in depth) -----
 # netlify.toml redirects are evaluated before _redirects, so these forced
 # rules win over the static files sitting in the published root. The same
