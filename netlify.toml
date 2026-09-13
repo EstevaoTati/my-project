@@ -28,6 +28,26 @@
 #   to = "/preview.html"
 #   status = 200
 
+# ---------------------------------------------------------------------------
+# HOLY MOUNTAIN WASHINGTON CHURCH — /holy-mountain/
+# Placed above the block rules and the catch-all so the proxy and the short
+# link are matched before /* falls through to index.html.
+# ---------------------------------------------------------------------------
+
+# The animated emblem clip, proxied from our own domain so the browser never
+# contacts a third-party host (which media-src 'self' would refuse anyway).
+# force = false: if the file is committed locally it wins over the proxy.
+[[redirects]]
+  from = "/holy-mountain/assets/clips/msw-logo-8s.mp4"
+  to = "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260905_014712_4f0fe8f8-d359-462a-9690-67b6311b9e39.mp4"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/church"
+  to = "/holy-mountain/"
+  status = 301
+
 # ----- Block internal repository files (defence in depth) -----
 # netlify.toml redirects are evaluated before _redirects, so these forced
 # rules win over the static files sitting in the published root. The same
@@ -128,7 +148,7 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Resource-Policy = "same-origin"
@@ -173,3 +193,27 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# ----- Holy Mountain church site -----
+# Stricter than the site-wide policy above, and deliberately NOT tagged
+# csp:default / csp:strict: scripts/update-csp.mjs must not overwrite it with
+# the Mwinda policy. This folder has no inline script and no style attribute,
+# so it needs neither a hash nor 'unsafe-inline' — keep it that way.
+# Both policies are sent for these paths and a browser enforces each one, so
+# the effective rules are the intersection: the tightest always wins.
+# X-Frame-Options is not repeated here; frame-ancestors 'none' covers it
+# without emitting a header that contradicts the site-wide SAMEORIGIN.
+[[headers]]
+  for = "/holy-mountain/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+[[headers]]
+  for = "/holy-mountain/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/holy-mountain/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

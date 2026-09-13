@@ -186,6 +186,26 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.
 
+### `holy-mountain/` — a second site in this repo
+
+Holy Mountain Washington Church (CEMMS · MSW), an evangelical missionary
+community in **Tacoma, Washington**. A client site, self-contained: its own
+CSS, JS, self-hosted fonts, images and EN/FR dictionary. Served at
+`/holy-mountain/`, with `/church` as a short link. Nothing in it touches the
+Mwinda pages, and the Mwinda pages do not load anything from it.
+
+- Everything the church edits lives in one config block at the top of
+  `holy-mountain/assets/js/site.js`. See `holy-mountain/README.md`.
+- **It runs under its own, stricter CSP** in `netlify.toml` and `_headers`,
+  scoped to `/holy-mountain/*` and deliberately **not** tagged `# csp:default`
+  so `scripts/update-csp.mjs` leaves it alone. It allows no inline script and
+  no inline style at all. Both policies are sent for these paths and the
+  browser enforces each, so the effective rule is the intersection — which is
+  also why the church page carries no inline JSON-LD: the site-wide policy
+  lists only Mwinda's own script hashes and would block it.
+- Never add a `style="..."` attribute or an inline `<script>` under
+  `holy-mountain/`; either would be silently blocked in production.
+
 ### Data storage
 
 Supabase holds BI projects, contact leads and product events — see
