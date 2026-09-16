@@ -118,6 +118,12 @@
   status = 404
   force = true
 
+[[redirects]]
+  from = "/holy-mountain-netlify.zip"
+  to = "/index.html"
+  status = 404
+  force = true
+
 # A missing asset must 404 rather than fall through to the catch-all below.
 # Without this, a file that is mistyped or not yet committed answers with the
 # whole of index.html at status 200: the browser downloads the entire homepage

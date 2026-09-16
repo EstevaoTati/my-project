@@ -205,6 +205,11 @@ Mwinda pages, and the Mwinda pages do not load anything from it.
   lists only Mwinda's own script hashes and would block it.
 - Never add a `style="..."` attribute or an inline `<script>` under
   `holy-mountain/`; either would be silently blocked in production.
+- `holy-mountain/package.sh` builds `holy-mountain-netlify.zip`, a standalone
+  drag-and-drop package for Netlify Drop. It rewrites the redirect and header
+  rules from `/holy-mountain/*` to `/*`, because a dropped site is the root of
+  its own domain. Regenerate it after changing the site; never hand-edit the
+  zip, or the snapshot drifts from the folder the way `preview.html` did.
 
 ### Data storage
 

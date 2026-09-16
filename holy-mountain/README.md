@@ -10,6 +10,8 @@ Deployed with the rest of the repo on Netlify. Live path: `/holy-mountain/`
 ```
 holy-mountain/
 ├── index.html              the whole page
+├── thanks/                 form confirmation page (noindex)
+├── package.sh              builds the standalone Netlify package
 ├── fetch-video.sh          pulls the animated logo clip into the repo
 └── assets/
     ├── css/site.css        design system + layout
@@ -45,6 +47,18 @@ between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be to
       the `FR` dictionary in `assets/js/site.js`.
 - [ ] **Set `SITE.draft = false`** — this removes the amber banner at the top
       of the page. Leave it `true` while any value above is still an example.
+
+## Deploying it on its own
+
+The site lives at `/holy-mountain/` here, but it can also stand alone on its own
+Netlify site and its own domain. `./package.sh` builds
+`holy-mountain-netlify.zip` for that: the same files, with the redirect and
+header rules rewritten from `/holy-mountain/*` to `/*`, since a dropped site is
+the root of its own domain and the prefixed rules would match nothing.
+
+Drag the zip onto <https://app.netlify.com/drop>. `DEPLOY.md` inside it covers
+what to do after the first deploy. **Regenerate the package rather than editing
+it** — a snapshot that is edited by hand drifts from the site it came from.
 
 ## Security
 
