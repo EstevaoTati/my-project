@@ -26,27 +26,36 @@ holy-mountain/
 Everything editable lives in one block at the top of `assets/js/site.js`,
 between the `▼▼ EDIT THIS BLOCK ▼▼` markers. Nothing else needs to be touched.
 
+**An empty value is hidden, not shown blank.** The page never displays a
+placeholder to a visitor: while `mapsUrl` is empty the "Get directions" button
+is not rendered, and while the social URLs are empty the icons, the
+"Follow the church" heading, the "Watch on YouTube" button and the footer's
+YouTube link are all absent. Fill a value in and its element reappears by
+itself. This is why there is no "draft mode" banner: nothing on the page is
+pretending to be finished.
+
 - [x] **Service time** — `SITE.times.sunday`, confirmed as Sunday 11:00 AM to
       1:00 PM. Only the Sunday service is listed. Nothing else on the page
       claims a weekly programme, so add a card to the visit section (and an
       entry to `SITE.times`) only for a gathering that actually runs.
-- [ ] **Address** — `SITE.address`, and `SITE.mapsUrl` pointing at the venue.
+- [ ] **Address** — `SITE.address` currently says just "Tacoma, Washington",
+      which is true but not a street address. Add the full one, and point
+      `SITE.mapsUrl` at the venue to bring back the "Get directions" button.
       The church is in **Tacoma, Washington**, not Washington, D.C.
 - [ ] **Canonical URL** — `index.html` carries no `<link rel="canonical">`,
       because the church's domain is not settled. Add one pointing at the real
       domain once it is, so search engines index a single address.
 - [x] **Giving** — `SITE.giving`, confirmed: Cash App `$holymountainchurch1`
       and Zelle `(206) 610-8770`.
-- [ ] **Social links** — `SITE.social`. Each one currently points at the
-      platform's home page; replace with the church's own profile URLs
-      (Instagram, Facebook, YouTube, TikTok).
+- [ ] **Social links** — `SITE.social`. All four are empty, so nothing social
+      is shown at all. Add the church's own profile URLs (Instagram, Facebook,
+      YouTube, TikTok) and the icons, the follow heading and the
+      "Watch on YouTube" button appear.
 - [ ] **Leadership bios** — the two paragraphs in the leadership section are
       written from the role, not from anyone's own history, precisely so that
       nothing was invented. Replace them with the pastor's own words. They are
       in `index.html` (`data-i18n="lead.d1"` and `lead.d2`) with the French in
       the `FR` dictionary in `assets/js/site.js`.
-- [ ] **Set `SITE.draft = false`** — this removes the amber banner at the top
-      of the page. Leave it `true` while any value above is still an example.
 
 ## Deploying it on its own
 

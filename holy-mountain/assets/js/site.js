@@ -3,13 +3,14 @@
    Vanilla JS, no dependencies, no build step.
 
    ▼▼ EDIT THIS BLOCK ▼▼  Everything the church needs to keep current lives in
-   SITE below. Replace every value marked TODO, then set draft:false to hide
-   the amber banner at the top of the page.
+   SITE below. Replace every value marked TODO.
+
+   A value left empty is HIDDEN on the page, never shown as a placeholder: a
+   button promising "Watch on YouTube" that lands on youtube.com is a broken
+   promise, and an empty address line reads as a mistake. Fill a value in and
+   the element it belongs to reappears on its own.
    ========================================================================== */
 const SITE = {
-  // Amber "draft preview" banner. Set to false once the values below are real.
-  draft: true,
-
   // Service time. Shown on the visit card and in the contact panel.
   // Add another entry here (and a card in index.html) only for a gathering
   // that actually runs — nothing on this page invents a schedule.
@@ -22,9 +23,11 @@ const SITE = {
     }
   },
 
-  // Meeting place.
-  address: { en: 'Address to confirm — Tacoma, Washington', fr: 'Adresse à confirmer — Tacoma, Washington' }, // TODO
-  mapsUrl: 'https://www.google.com/maps',          // TODO: link to the exact venue
+  // Meeting place. Add the street address here when it is settled; the
+  // maps link drives the "Get directions" button, which stays hidden until
+  // it points at the actual venue.
+  address: { en: 'Tacoma, Washington', fr: 'Tacoma, Washington' },   // TODO: full street address
+  mapsUrl: '',                                                      // TODO: the venue on Google Maps
 
   // Giving. Shown on the giving card.
   giving: {
@@ -32,12 +35,13 @@ const SITE = {
     zelle:   { en: '(206) 610-8770',       fr: '(206) 610-8770' }
   },
 
-  // Social profiles. TODO: replace each one with the church's own page URL.
+  // Social profiles. TODO: the church's own page URL for each. Empty means
+  // the icon, and any button that links there, is hidden until it is filled.
   social: {
-    instagram: 'https://www.instagram.com/',
-    facebook:  'https://www.facebook.com/',
-    youtube:   'https://www.youtube.com/',
-    tiktok:    'https://www.tiktok.com/'
+    instagram: '',
+    facebook:  '',
+    youtube:   '',
+    tiktok:    ''
   }
 };
 /* ▲▲ END EDIT BLOCK ▲▲ */
@@ -48,9 +52,6 @@ const SITE = {
    ------------------------------------------------------------------------ */
 const FR = {
   'a11y.skip': 'Aller au contenu',
-  'draft.tag': 'Aperçu provisoire.',
-  'draft.body': 'L’adresse et les liens sociaux sont encore des exemples — à confirmer avant publication.',
-
   'nav.visit': 'Visite', 'nav.about': 'À propos', 'nav.vision': 'Vision',
   'nav.leadership': 'Direction',
   'nav.ministries': 'Ministères', 'nav.life': 'Vie d’église', 'nav.give': 'Donner',
@@ -165,14 +166,48 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ------------------------------------------------------- config injection */
+/* An unset value hides its element rather than rendering a placeholder. The
+   wrappers matter as much as the links: hiding an <a> inside a footer <li> or
+   a lone <p> would otherwise leave a bullet or a gap behind. */
 function applyConfig(lang) {
-  $$('[data-time]').forEach(el => { const t = SITE.times[el.dataset.time]; if (t) el.textContent = t[lang] || t.en; });
-  $$('[data-address]').forEach(el => { el.textContent = SITE.address[lang] || SITE.address.en; });
-  $$('[data-maps]').forEach(el => { el.href = SITE.mapsUrl; el.target = '_blank'; el.rel = 'noopener'; });
-  $$('[data-give]').forEach(el => { const g = SITE.giving[el.dataset.give]; if (g) el.textContent = g[lang] || g.en; });
-  $$('[data-social]').forEach(el => { const u = SITE.social[el.dataset.social]; if (u) el.href = u; });
-  const banner = $('#draftBanner');
-  if (banner) banner.hidden = !SITE.draft;
+  const pick = v => (v && (v[lang] || v.en)) || '';
+  const hide = (el, off) => { if (el) el.hidden = off; };
+
+  $$('[data-time]').forEach(el => {
+    const t = pick(SITE.times[el.dataset.time]);
+    el.textContent = t;
+    hide(el, !t);
+  });
+
+  $$('[data-give]').forEach(el => { el.textContent = pick(SITE.giving[el.dataset.give]); });
+
+  const addr = pick(SITE.address);
+  $$('[data-address]').forEach(el => {
+    el.textContent = addr;
+    hide(el.closest('.ci') || el, !addr);      // the contact row carries its own label
+  });
+
+  $$('[data-maps]').forEach(el => {
+    if (SITE.mapsUrl) { el.href = SITE.mapsUrl; el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+    hide(el, !SITE.mapsUrl);
+  });
+
+  $$('[data-social]').forEach(el => {
+    const url = SITE.social[el.dataset.social];
+    if (url) el.href = url;
+    hide(el, !url);
+    hide(el.closest('li'), !url);              // footer list item
+    hide(el.closest('p.mt-s'), !url);          // the lone "Watch on YouTube" button
+  });
+
+  // Nothing to follow yet: drop the heading too, not just the empty row.
+  const socials = $('.socials');
+  if (socials) {
+    const any = Object.values(SITE.social).some(Boolean);
+    hide(socials, !any);
+    const label = socials.parentElement && socials.parentElement.querySelector('.label-sm');
+    hide(label, !any);
+  }
 }
 
 /* -------------------------------------------------------------- language */
