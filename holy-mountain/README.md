@@ -87,7 +87,26 @@ before anything is written. What remains is hardened in `netlify.toml` under
 | `Referrer-Policy` | The full URL is not leaked to other sites. |
 | `Permissions-Policy` | Camera, microphone, location and the rest are denied to the page outright. |
 | `Cross-Origin-Opener-Policy` / `-Resource-Policy` | Other origins cannot hold a handle on our window or hotlink our assets. |
-| `Strict-Transport-Security` | The browser refuses plain HTTP for two years. |
+| `Strict-Transport-Security` | Once the site has been reached over HTTPS, the browser refuses plain HTTP for a year. |
+
+### One directive that is deliberately absent
+
+The policy does **not** contain `upgrade-insecure-requests`, and must not be
+given it back. That directive rewrites every subresource request to `https://`.
+On a custom domain that is still served over plain HTTP — the window between
+pointing the DNS at Netlify and Netlify issuing the certificate — every
+stylesheet, script, font and image is rewritten to a URL that cannot be served,
+fails, and the visitor gets naked HTML: serif text, blue underlined links, no
+images, and both navigation menus visible at once because the CSS that hides
+the mobile drawer never arrived. That is exactly what happened on
+`holymountainch.com`.
+
+It buys nothing here in exchange. Every asset URL in the page is relative, so
+it already follows the document's own scheme; there is never a mixed-content
+request for the directive to upgrade. The real fix for plain HTTP is the
+certificate and **Force HTTPS** in Netlify's *Domain management → HTTPS*, which
+`Strict-Transport-Security` then locks in — not a directive that breaks the
+page while you wait for it.
 
 **One rule keeps that policy working.** It allows no inline script and no
 inline style, which is what makes it worth having. So this folder contains

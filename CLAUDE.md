@@ -205,6 +205,14 @@ Mwinda pages, and the Mwinda pages do not load anything from it.
   lists only Mwinda's own script hashes and would block it.
 - Never add a `style="..."` attribute or an inline `<script>` under
   `holy-mountain/`; either would be silently blocked in production.
+- **Never add `upgrade-insecure-requests` to the church policy.** Every asset
+  URL is relative and already follows the document's scheme, so it has nothing
+  to upgrade — but on a custom domain still served over plain HTTP, before
+  Netlify issues the certificate, it rewrites every stylesheet, script, font
+  and image to `https://` and the visitor gets naked HTML. It took
+  `holymountainch.com` down that way. See
+  `docs/decisions/2026-09-18-no-upgrade-insecure-requests-on-the-church-site.md`.
+  The Mwinda policy keeps its own copy; the two are unrelated lines.
 - `holy-mountain/package.sh` builds `holy-mountain-netlify.zip`, a standalone
   drag-and-drop package for Netlify Drop. It rewrites the redirect and header
   rules from `/holy-mountain/*` to `/*`, because a dropped site is the root of

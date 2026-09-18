@@ -21,11 +21,20 @@ OUT="$PWD/../holy-mountain-netlify.zip"
 BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"' EXIT
 
+SITE_URL="https://www.holymountainch.com"
+
 VIDEO="https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20260905_014712_4f0fe8f8-d359-462a-9690-67b6311b9e39.mp4"
 
-# The church policy, unchanged from the repo. On its own domain there is no
-# second policy to intersect with, so this is the whole of it.
-CSP="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+# The church policy. On its own domain there is no second policy to intersect
+# with, so this is the whole of it.
+#
+# There is deliberately NO upgrade-insecure-requests. Every asset URL in the
+# page is relative, so it already follows the document's scheme and the
+# directive can never have anything to upgrade. What it does do is break the
+# site completely while a new custom domain is still served over plain HTTP,
+# before Netlify has issued its certificate: every stylesheet, script, font and
+# image is rewritten to https://, fails, and the visitor gets naked HTML.
+CSP="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
 PERMS="accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
 
 # ---------------------------------------------------------------- site files
@@ -50,7 +59,7 @@ cat > "$BUILD/_headers" <<EOF
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Strict-Transport-Security: max-age=31536000
 
 /assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
@@ -100,7 +109,7 @@ cat > "$BUILD/netlify.toml" <<EOF
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Resource-Policy = "same-origin"
     X-Permitted-Cross-Domain-Policies = "none"
-    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Strict-Transport-Security = "max-age=31536000"
 
 [[headers]]
   for = "/assets/fonts/*"
@@ -119,18 +128,20 @@ cat > "$BUILD/netlify.toml" <<EOF
 EOF
 
 # ------------------------------------------------------- robots and sitemap
-cat > "$BUILD/robots.txt" <<'EOF'
+# Both files must carry ABSOLUTE URLs: a sitemap <loc> or a Sitemap: line that
+# starts with "/" is invalid and every crawler drops it silently.
+cat > "$BUILD/robots.txt" <<EOF
 User-agent: *
 Allow: /
 
-Sitemap: /sitemap.xml
+Sitemap: $SITE_URL/sitemap.xml
 EOF
 
-cat > "$BUILD/sitemap.xml" <<'EOF'
+cat > "$BUILD/sitemap.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/</loc>
+    <loc>$SITE_URL/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -157,15 +168,32 @@ same thing and is what a CLI or Git deploy reads instead.
 
     netlify deploy --dir=. --prod
 
-## After the first deploy — three things
+## After attaching the domain — do this first
+
+**Provision the certificate and turn on Force HTTPS.** In **Domain management →
+HTTPS**, wait for Netlify to issue the Let's Encrypt certificate (it needs the
+DNS to point at Netlify first), then switch **Force HTTPS** on. Until that is
+done the domain is served over plain `http://`, and a browser showing the
+"Not secure" warning is the least of it — anyone typing the address gets the
+unencrypted site.
+
+This package's security policy no longer contains `upgrade-insecure-requests`
+for exactly that window: with it, a site still on plain HTTP has every
+stylesheet, script, font and image rewritten to `https://`, where they fail,
+and the visitor gets unstyled HTML with no images. Do not add the directive
+back — every asset URL in the page is relative and already follows the
+document's scheme, so it has nothing to upgrade and nothing to gain.
+
+## Then — three things
 
 1. **Turn on form notifications.** The contact and prayer form posts to Netlify
    Forms. Go to **Forms → contact → Settings → Form notifications** and add the
    church's email, or submissions will sit in the dashboard unseen.
 2. **Fill in the remaining values.** Open `assets/js/site.js` and edit the block
    at the top marked `▼▼ EDIT THIS BLOCK ▼▼`: the street address, the maps link
-   and the four social profile URLs. Then set `draft: false` to remove the amber
-   banner. Re-deploy.
+   and the four social profile URLs. Each one is hidden until it is filled in,
+   so the page never shows an empty row or a dead link — but it also never
+   shows the address until you add it. Re-deploy after editing.
 3. **Check the hero animates.** The emblem clip is proxied from a CDN by the
    redirect rule. If it shows a still image instead of turning, run
    `./fetch-video.sh` to download the clip into `assets/clips/` and re-deploy —
