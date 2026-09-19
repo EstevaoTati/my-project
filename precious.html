@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="precious.css?v=1" />
+  <link rel="stylesheet" href="precious.css?v=2" />
 </head>
 <body class="state-boot" data-lang="fr">
 
@@ -68,6 +68,7 @@
     </div>
     <div class="hud-cell readouts">
       <span class="ro"><i data-t="roState">ÉTAT</i><b id="roState">VEILLE</b></span>
+      <span class="ro"><i data-t="roTone">TON</i><b id="roTone">PINCE-SANS-RIRE</b></span>
       <span class="ro"><i data-t="roLatency">LATENCE</i><b id="roLatency">—</b></span>
       <span class="ro"><i data-t="roTurns">ÉCHANGES</i><b id="roTurns">0</b></span>
       <span class="ro"><i data-t="roClock">HORLOGE</i><b id="roClock">--:--:--</b></span>
@@ -181,8 +182,11 @@
       <li><b data-t="h6a">« Parle plus vite / moins vite »</b><span data-t="h6b">règle le débit de la voix</span></li>
       <li><b data-t="h7a">« Precious, arrête »</b><span data-t="h7b">met le micro en veille</span></li>
       <li><b data-t="h8a">« Precious… » (mode ambiant)</b><span data-t="h8b">mot d'éveil quand l'écoute permanente est active</span></li>
+      <li><b data-t="h9a">« Développe » / « Explique en détail »</b><span data-t="h9b">une réponse longue, dite phrase par phrase</span></li>
+      <li><b data-t="h10a">« Sois plus sérieuse » / « Détends-toi »</b><span data-t="h10b">règle la dose d'humour : sobre, pince-sans-rire, espiègle</span></li>
+      <li><b data-t="h11a">« Nouvelle conversation »</b><span data-t="h11b">repart de zéro sans toucher à la mémoire</span></li>
     </ul>
-    <p class="help-foot" data-t="helpFoot">Aucune transcription n'est stockée sur un serveur. La mémoire et les compteurs restent dans ce navigateur.</p>
+    <p class="help-foot" data-t="helpFoot">Rien n'est stocké sur un serveur. La conversation, la mémoire et les compteurs restent dans ce navigateur, et s'effacent à la voix.</p>
   </section>
 </main>
 
@@ -197,7 +201,7 @@
   </div>
 </section>
 
-<script src="precious-reactor.js?v=1" defer></script>
-<script src="precious.js?v=1" defer></script>
+<script src="precious-reactor.js?v=2" defer></script>
+<script src="precious.js?v=2" defer></script>
 </body>
 </html>

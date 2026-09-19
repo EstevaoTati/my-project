@@ -29,11 +29,11 @@ and acts. There is no text input anywhere in the interface, by design.
 ## Two modes
 
 **Public.** Anyone who opens the page. Short general assistance plus
-everything about Mwinda Digital. Six requests per minute per address, four
-hundred output tokens, ten turns of history.
+everything about Mwinda Digital. Ten requests per minute per address, seven
+hundred output tokens, twenty-four turns of verbatim history.
 
-**Operator.** Open `/precious#k=<FOUNDER_KEY>`. The kernel persona, thirty
-requests per minute, nine hundred output tokens, twenty turns. The key is
+**Operator.** Open `/precious#k=<FOUNDER_KEY>`. The kernel persona, forty
+requests per minute, fifteen hundred output tokens, sixty turns. The key is
 read from the URL fragment and erased from the address bar at once, then
 kept in `sessionStorage` for the tab. It is never spoken, never typed and
 never sent to the model — a spoken secret is not a secret, and the
@@ -50,9 +50,48 @@ microphone is the only input channel here.
 | "Parle anglais" / "Parle français" | Switches interface and voice |
 | "Parle plus vite" / "Speak slower" | Sets the speaking rate |
 | "Precious, arrête" / "Precious, stop" | Sleeps the microphone (handled locally, no network) |
+| "Développe" / "Explique en détail" | A long answer, spoken sentence by sentence |
+| "Sois plus sérieuse" / "Détends-toi" | Sets the humour dial: sober, dry, playful |
+| "Nouvelle conversation" | Wipes the thread without touching the stored facts |
 
 In ambient mode the wake word is required, except within twelve seconds of
 PRECIOUS speaking, so a natural follow-up needs no wake word.
+
+## Long sessions
+
+The last twenty-four turns (sixty for the operator) travel verbatim.
+Everything older is clipped to one line per turn and sent as
+`<earlier_conversation>`, so an hour-long session stays coherent without
+resending the whole transcript. The thread lives in `localStorage` under
+`precious.thread`, expires after thirty days, and is wiped by
+"nouvelle conversation". Reopening the app resumes the thread, and PRECIOUS
+says so rather than greeting you as a stranger. Nothing reaches a server.
+
+## Why it does not sound like a machine
+
+Four things, in order of how much they matter:
+
+1. **The prompt.** Contractions, short clauses, varied rhythm, no filler
+   openings, no narrated reasoning. A model writing for the eye produces
+   prose no voice engine can rescue.
+2. **The voice pick.** Voices are scored, not taken first-come: neural,
+   "Natural", "Online" and Google voices beat the old local formant ones.
+   Install a neural French voice on the machine and the difference is
+   immediate.
+3. **Sentence-group delivery.** A long answer is spoken in groups of about
+   190 characters with a real pause between them — 90 ms after a clause,
+   240 ms after a question.
+4. **Pitch per group.** A question rises, a closing sentence falls. A flat
+   pitch across every sentence is the other half of the robot effect.
+
+## The humour dial
+
+`sober` — none at all. `light` (default) — one dry touch at most, at the end
+of an answer, roughly one reply in three. `playful` — more room, still never
+before the answer. A floor applies at every setting: nothing funny about
+money lost, security, a missed deadline, bad news, or a hurried operator,
+and never at anyone's expense. Set it by voice; it shows in the heads-up
+display and persists in the browser.
 
 ## Browser support
 
@@ -78,6 +117,10 @@ turn needs the network, and that request is never cached.
   old app forever. Keep it. After editing `precious.js`, `precious.css` or
   `precious-reactor.js`, bump the `?v=` query string in `precious.html` *and*
   in the `SHELL` list in `precious-sw.js`, and bump `CACHE`.
+- **The thread is in `localStorage`, not `sessionStorage`.** That is what
+  makes a session resumable, and it means a shared machine keeps the
+  conversation until someone says "nouvelle conversation" or thirty days
+  pass. Say so before putting PRECIOUS on a kiosk.
 - **Half-duplex is deliberate.** Recognition stops while PRECIOUS speaks.
   Open it during synthesis and the microphone hears the loudspeaker: the
   machine transcribes its own voice and answers itself in a loop.

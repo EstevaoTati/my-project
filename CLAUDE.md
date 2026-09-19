@@ -112,8 +112,16 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   `precious.webmanifest` + `precious-sw.js` (service worker scoped to
   `/precious` so it can never take over the marketing site). Operator mode
   is unlocked by opening `/precious#k=<FOUNDER_KEY>`; the fragment is wiped
-  from the address bar at once and the key is never spoken. Memory and
-  timers live in the browser only. See `docs/precious.md` and
+  from the address bar at once and the key is never spoken. Memory, timers
+  **and the conversation itself** live in the browser only — the thread is
+  in `localStorage`, so a session resumes after the tab closes, and older
+  turns are clipped into a digest rather than dropped so an hour-long
+  session stays coherent. A long answer is spoken in sentence groups with
+  real pauses and per-group pitch: Chrome truncates a long utterance, and a
+  flat pitch is what makes a voice sound like a machine. Humour is a dial
+  the founder sets by voice (sober / dry / playful) with a floor no setting
+  lifts — never about money lost, security, bad news or a hurried operator,
+  and never before the answer. See `docs/precious.md` and
   `docs/decisions/2026-09-19-precious-voice-assistant.md`.
 - `netlify/functions/precious.mjs` — PRECIOUS's brain. Claude with nine
   **client-executed** device tools (remember/forget/clear memory, timers,

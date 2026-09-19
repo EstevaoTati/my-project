@@ -7,12 +7,12 @@
    the recogniser and the synthesiser are all local. Only the reasoning
    turn needs the network, and that request is never cached.
    ===================================================================== */
-var CACHE = 'precious-shell-v1';
+var CACHE = 'precious-shell-v2';
 var SHELL = [
   '/precious',
-  '/precious.css?v=1',
-  '/precious.js?v=1',
-  '/precious-reactor.js?v=1',
+  '/precious.css?v=2',
+  '/precious.js?v=2',
+  '/precious-reactor.js?v=2',
   '/precious.webmanifest',
   '/assets/precious-icon.svg',
   '/assets/precious-icon-192.png',

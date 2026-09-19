@@ -28,7 +28,7 @@
       gateBtn: 'ACTIVER PRECIOUS',
       gateNote: 'Autorisez le microphone, puis parlez. Dites « Precious, arrête » pour la mettre en veille.',
       back: '← Retour au site',
-      roState: 'ÉTAT', roLatency: 'LATENCE', roTurns: 'ÉCHANGES', roClock: 'HORLOGE',
+      roState: 'ÉTAT', roTone: 'TON', roLatency: 'LATENCE', roTurns: 'ÉCHANGES', roClock: 'HORLOGE',
       stIdle: 'EN VEILLE', stListening: 'À L’ÉCOUTE', stThinking: 'ANALYSE',
       stSpeaking: 'RÉPONSE', stError: 'ERREUR',
       hintTap: 'Touchez le noyau et parlez',
@@ -47,7 +47,10 @@
       h6a: '« Parle plus vite / moins vite »', h6b: 'règle le débit de la voix',
       h7a: '« Precious, arrête »', h7b: 'met le micro en veille',
       h8a: '« Precious… » (mode ambiant)', h8b: 'mot d’éveil quand l’écoute permanente est active',
-      helpFoot: 'Aucune transcription n’est stockée sur un serveur. La mémoire et les compteurs restent dans ce navigateur.',
+      h9a: '« Développe » / « Explique en détail »', h9b: 'une réponse longue, dite phrase par phrase',
+      h10a: '« Sois plus sérieuse » / « Détends-toi »', h10b: 'règle la dose d’humour : sobre, pince-sans-rire, espiègle',
+      h11a: '« Nouvelle conversation »', h11b: 'repart de zéro sans toucher à la mémoire',
+      helpFoot: 'Rien n’est stocké sur un serveur. La conversation, la mémoire et les compteurs restent dans ce navigateur, et s’effacent à la voix.',
       unsupTag: 'Cette machine est entièrement vocale : elle a besoin de la reconnaissance vocale du navigateur, absente ici.',
       unsupNote: 'Ouvrez /precious dans Chrome, Edge ou Safari (iOS 14.5+). PRECIOUS s’installe ensuite comme application sur ordinateur et mobile.',
       whoYou: 'VOUS', whoMe: 'PRECIOUS', whoSys: 'SYSTÈME',
@@ -65,6 +68,8 @@
       voiceOff: 'Voix coupée.', voiceOn: 'Voix rétablie.',
       langSwitched: 'Je passe au français.',
       memSaved: 'Mémorisé.', memCleared: 'Mémoire effacée.',
+      threadCleared: 'On repart de zéro.',
+      resumed: 'On reprend où on s’était arrêtés.',
       timerDone: 'Le compteur est terminé.',
       timerDoneLabel: 'Compteur terminé : ',
       keyRejected: 'Clé opérateur refusée. Je continue en mode public.',
@@ -76,7 +81,7 @@
       gateBtn: 'ACTIVATE PRECIOUS',
       gateNote: 'Allow the microphone, then speak. Say "Precious, stop" to send it to sleep.',
       back: '← Back to the site',
-      roState: 'STATE', roLatency: 'LATENCY', roTurns: 'TURNS', roClock: 'CLOCK',
+      roState: 'STATE', roTone: 'TONE', roLatency: 'LATENCY', roTurns: 'TURNS', roClock: 'CLOCK',
       stIdle: 'STANDBY', stListening: 'LISTENING', stThinking: 'THINKING',
       stSpeaking: 'SPEAKING', stError: 'ERROR',
       hintTap: 'Touch the core and speak',
@@ -95,7 +100,10 @@
       h6a: '"Speak faster / slower"', h6b: 'sets the speaking rate',
       h7a: '"Precious, stop"', h7b: 'puts the microphone to sleep',
       h8a: '"Precious…" (ambient mode)', h8b: 'wake word while always-on listening is enabled',
-      helpFoot: 'No transcript is stored on any server. Memory and timers stay in this browser.',
+      h9a: '"Go on" / "Explain that properly"', h9b: 'a long answer, spoken sentence by sentence',
+      h10a: '"Be more serious" / "Lighten up"', h10b: 'sets the humour dial: sober, dry, playful',
+      h11a: '"New conversation"', h11b: 'starts fresh without touching the memory',
+      helpFoot: 'Nothing is stored on any server. The conversation, the memory and the timers stay in this browser, and are erasable by voice.',
       unsupTag: 'This machine is voice-only: it needs the browser speech recognition engine, which is missing here.',
       unsupNote: 'Open /precious in Chrome, Edge or Safari (iOS 14.5+). PRECIOUS then installs as an app on desktop and mobile.',
       whoYou: 'YOU', whoMe: 'PRECIOUS', whoSys: 'SYSTEM',
@@ -113,6 +121,8 @@
       voiceOff: 'Voice muted.', voiceOn: 'Voice restored.',
       langSwitched: 'Switching to English.',
       memSaved: 'Noted.', memCleared: 'Memory cleared.',
+      threadCleared: 'Starting fresh.',
+      resumed: 'Picking up where we left off.',
       timerDone: 'Your timer is finished.',
       timerDoneLabel: 'Timer finished: ',
       keyRejected: 'Operator key refused. Continuing in public mode.',
@@ -130,7 +140,8 @@
     reactor: $('reactor'), orb: $('orb'),
     stateLabel: $('stateLabel'), liveLine: $('liveLine'), hintLine: $('hintLine'),
     log: $('log'), levelBar: $('levelBar'),
-    roState: $('roState'), roLatency: $('roLatency'), roTurns: $('roTurns'), roClock: $('roClock'),
+    roState: $('roState'), roTone: $('roTone'), roLatency: $('roLatency'),
+    roTurns: $('roTurns'), roClock: $('roClock'),
     modeChip: $('modeChip'),
     memList: $('memList'), memCount: $('memCount'), memEmpty: $('memEmpty'),
     timerList: $('timerList'), timerCount: $('timerCount'), timerEmpty: $('timerEmpty'),
@@ -141,9 +152,26 @@
   };
 
   /* ------------------------------------------------------------------ state */
-  var STORE = { mem: 'precious.memory', lang: 'precious.lang', rate: 'precious.rate', session: 'precious.session', key: 'precious.key' };
+  var STORE = {
+    mem: 'precious.memory', lang: 'precious.lang', rate: 'precious.rate',
+    thread: 'precious.thread', tone: 'precious.tone', key: 'precious.key'
+  };
   var ENDPOINT = '/.netlify/functions/precious';
-  var MAX_TURNS = 20;
+  // How much of the conversation travels verbatim on each request. Older
+  // turns are not dropped: they are clipped to a line each and sent as a
+  // digest, which is what lets a session run for an hour without the
+  // machine losing the thread or the bill growing with it.
+  var LIVE_TURNS = 24;            // public
+  var LIVE_TURNS_OPERATOR = 60;
+  var EARLIER_TURNS = 60;
+  var THREAD_MAX_AGE = 30 * 24 * 3600 * 1000;
+  // Kept below the function's own caps on both counts. The browser is the
+  // side that can shed load cheaply — it still has the full thread on disk
+  // and can clip the overflow into the digest instead of being rejected.
+  var TURN_CHARS = 2600;
+  var TURN_CHARS_OPERATOR = 6500;
+  var THREAD_CHARS = 20000;
+  var THREAD_CHARS_OPERATOR = 55000;
   var SILENCE_MS = 1100;      // quiet time that ends an utterance
   var FOLLOWUP_MS = 12000;    // ambient grace period: no wake word needed
   var WAKE = /\b(pr[ée]cious|pr[ée]cieuse|pr[ée]cieux|preshus|precius)\b/i;
@@ -162,6 +190,8 @@
     lastSpokeAt: 0,
     turns: 0,
     history: [],
+    earlier: [],
+    tone: 'light',
     memory: [],
     timers: [],
     operatorKey: null,
@@ -171,7 +201,7 @@
   var rec = null, recRunning = false, restartTimer = 0, silenceTimer = 0, followUpTimer = 0;
   var pendingFinal = '', interim = '';
   var audioCtx = null, analyser = null, freqData = null, micStream = null, levelRaf = 0;
-  var voices = [], chosenVoice = null;
+  var voices = [], chosenVoice = null, speechToken = 0;
 
   var t = function (key) { return (DICT[S.lang] && DICT[S.lang][key]) || DICT.fr[key] || key; };
 
@@ -183,14 +213,37 @@
   function writeJSON(key, value) {
     try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* private mode */ }
   }
-  function readSession() {
-    try { return JSON.parse(window.sessionStorage.getItem(STORE.session)) || []; }
-    catch (e) { return []; }
+  // The thread lives in this browser, never on a server — the same promise
+  // the OS page makes publicly. Keeping it in localStorage rather than
+  // sessionStorage is what makes "reprends où on s'est arrêtés" possible
+  // after closing the tab. It is erasable by voice at any time.
+  function loadThread() {
+    var saved = readJSON(STORE.thread, null);
+    if (!saved || !Array.isArray(saved.history)) return;
+    if (saved.at && Date.now() - saved.at > THREAD_MAX_AGE) { forgetThread(); return; }
+    S.history = saved.history.slice(-liveWindow());
+    S.earlier = Array.isArray(saved.earlier) ? saved.earlier.slice(-EARLIER_TURNS) : [];
+    if (S.history.length && S.history[0].role !== 'user') S.history.shift();
   }
-  function saveSession() {
-    try { window.sessionStorage.setItem(STORE.session, JSON.stringify(S.history.slice(-MAX_TURNS))); }
-    catch (e) { /* ignore */ }
+
+  function saveThread() {
+    writeJSON(STORE.thread, {
+      at: Date.now(),
+      history: S.history.slice(-liveWindow()),
+      earlier: S.earlier.slice(-EARLIER_TURNS)
+    });
   }
+
+  function forgetThread() {
+    S.history = [];
+    S.earlier = [];
+    try { window.localStorage.removeItem(STORE.thread); } catch (e) { /* ignore */ }
+  }
+
+  function liveWindow() { return S.operatorKey ? LIVE_TURNS_OPERATOR : LIVE_TURNS; }
+  function turnChars() { return S.operatorKey ? TURN_CHARS_OPERATOR : TURN_CHARS; }
+  function threadChars() { return S.operatorKey ? THREAD_CHARS_OPERATOR : THREAD_CHARS; }
+  function clipTurn(text) { return String(text == null ? '' : text).slice(0, turnChars()); }
 
   /* ------------------------------------------------------------------ ui */
   function applyLanguage(lang) {
@@ -205,6 +258,7 @@
       if (val) nodes[i].textContent = val;
     }
     if (el.langGlyph) el.langGlyph.textContent = S.lang.toUpperCase();
+    renderTone();
     setState(S.state);
     renderMemory();
     renderTimers();
@@ -329,30 +383,118 @@
     chosenVoice = pickVoice();
   }
 
-  // Prefer a natural/neural voice in the active language; fall back to any
-  // voice of that language, then to the platform default.
+  // Which voice is installed decides most of how human this sounds, so the
+  // pick is scored rather than taken first-come. Cloud and neural voices
+  // ("Natural", "Online", Google's) carry real prosody; the old local
+  // formant voices are the ones that sound like a railway announcement.
+  var VOICE_BONUS = [
+    [/natural|neural/i, 100],
+    [/online/i, 70],
+    [/google/i, 60],
+    [/premium|enhanced|siri/i, 55],
+    [/denise|henri|vivienne|rémy|remy|amélie|amelie|thomas|audrey|aurélie|aurelie|marie/i, 30],
+    [/aria|jenny|guy|ava|samantha|serena|daniel|libby|sonia|ryan/i, 30],
+    [/compact|eloquence|espeak|pico|festival/i, -80]
+  ];
+
   function pickVoice() {
     if (!voices.length) return null;
     var want = S.lang === 'fr' ? 'fr' : 'en';
     var pool = voices.filter(function (v) { return (v.lang || '').toLowerCase().indexOf(want) === 0; });
     if (!pool.length) return null;
-    var preferred = ['natural', 'neural', 'google', 'amélie', 'amelie', 'thomas', 'audrey', 'samantha', 'daniel', 'serena'];
-    for (var p = 0; p < preferred.length; p++) {
-      for (var i = 0; i < pool.length; i++) {
-        if ((pool[i].name || '').toLowerCase().indexOf(preferred[p]) !== -1) return pool[i];
+    var best = null, bestScore = -1e9;
+    for (var i = 0; i < pool.length; i++) {
+      var name = pool[i].name || '';
+      var score = pool[i].localService ? 0 : 20; // a remote voice is usually the good one
+      for (var b = 0; b < VOICE_BONUS.length; b++) {
+        if (VOICE_BONUS[b][0].test(name)) score += VOICE_BONUS[b][1];
       }
+      // fr-FR over fr-CA, en-GB/en-US over en-IN, when nothing else separates them
+      if (/fr-FR|en-US|en-GB/i.test(pool[i].lang || '')) score += 5;
+      if (score > bestScore) { bestScore = score; best = pool[i]; }
     }
-    return pool[0];
+    return best;
   }
 
-  // Speech synthesis reads punctuation and symbols literally, so anything
-  // that looks like markup is stripped before it reaches the voice.
+  // A synthesiser reads punctuation literally and stumbles on anything that
+  // looks like markup, so the text is cleaned before it reaches the voice.
   function speakable(text) {
     return String(text)
       .replace(/https?:\/\/\S+/g, S.lang === 'fr' ? 'le lien affiché' : 'the link on screen')
       .replace(/[*_`#>|]+/g, ' ')
+      .replace(/\.{3,}|…/g, ', ')            // an ellipsis is read as three dots
+      .replace(/\s+([,.;:!?])/g, '$1')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  // Long answers are spoken sentence group by sentence group rather than in
+  // one breath. Three reasons, all of them practical: Chrome silently cuts
+  // an utterance after about fifteen seconds; a single long utterance cannot
+  // be interrupted cleanly; and a person pauses between sentences, which is
+  // most of what separates a speaking voice from a reading machine.
+  function chunkForSpeech(text) {
+    var pieces = text.match(/[^.!?…]+[.!?…]*\s*/g) || [text];
+    var out = [], buffer = '';
+    for (var i = 0; i < pieces.length; i++) {
+      var piece = pieces[i];
+      if (buffer && (buffer + piece).length > 190) { out.push(buffer.trim()); buffer = ''; }
+      buffer += piece;
+      // A question always gets its own breath. Grouped with the sentences
+      // that follow it, it loses the rising intonation that tells the
+      // operator they were just asked something.
+      if (/[?!]\s*$/.test(piece)) { out.push(buffer.trim()); buffer = ''; }
+    }
+    if (buffer.trim()) out.push(buffer.trim());
+    return out.map(function (part, index) {
+      var ends = part.slice(-1);
+      return {
+        text: part,
+        // A question hangs, a statement settles, a comma barely breathes.
+        pause: ends === '?' ? 240 : (ends === '.' || ends === '!') ? 170 : 90,
+        last: index === out.length - 1
+      };
+    });
+  }
+
+  function sayOne(part, token, done) {
+    var utter = new window.SpeechSynthesisUtterance(part.text);
+    utter.lang = S.lang === 'fr' ? 'fr-FR' : 'en-US';
+    if (chosenVoice) utter.voice = chosenVoice;
+    // Just under normal reads as considered rather than hurried, and a
+    // question lifts while a closing statement drops — a flat pitch across
+    // every sentence is the other half of "it sounds like a robot".
+    var ends = part.text.slice(-1);
+    utter.rate = Math.max(0.5, Math.min(2, S.rate * 0.98));
+    utter.pitch = ends === '?' ? 1.08 : part.last ? 0.98 : 1.02;
+    utter.volume = 1;
+
+    var settled = false;
+    var finish = function () {
+      if (settled) return;
+      settled = true;
+      window.clearInterval(poll);
+      done();
+    };
+    utter.onend = finish;
+    utter.onerror = finish;
+
+    // The engine lies in both directions: onend sometimes never fires (no
+    // installed voice, a backgrounded tab), and the queue sometimes stalls.
+    // Polling settles it without ever freezing the machine in "speaking".
+    var elapsed = 0, everSpoke = false;
+    var poll = window.setInterval(function () {
+      elapsed += 250;
+      var synth = window.speechSynthesis;
+      if (token !== speechToken) { finish(); return; }
+      if (!synth) { finish(); return; }
+      if (synth.speaking) everSpoke = true;
+      if (!synth.speaking && !synth.pending && (everSpoke || elapsed > 2500)) { finish(); return; }
+      if (elapsed > 4000 + part.text.length * 130) { try { synth.cancel(); } catch (e) { /* ignore */ } finish(); }
+    }, 250);
+
+    try { window.speechSynthesis.speak(utter); }
+    catch (e) { finish(); }
   }
 
   function speak(text, onDone) {
@@ -367,62 +509,37 @@
     S.speaking = true;
     setState('speaking');
 
-    var utter = new window.SpeechSynthesisUtterance(clean);
-    utter.lang = S.lang === 'fr' ? 'fr-FR' : 'en-US';
-    if (chosenVoice) utter.voice = chosenVoice;
-    utter.rate = S.rate;
-    utter.pitch = 1;
-    utter.volume = 1;
+    // Every utterance carries a token. Anything the operator does that
+    // interrupts — a tap, a new turn, going to sleep — bumps it, and every
+    // callback still in flight from the old answer becomes a no-op.
+    var token = ++speechToken;
+    var parts = chunkForSpeech(clean);
+    var index = 0;
 
-    var finished = false;
-    var finish = function () {
-      if (finished) return;
-      finished = true;
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+
+    var finishAll = function () {
+      if (token !== speechToken) return;
       S.speaking = false;
       S.lastSpokeAt = Date.now();
       if (onDone) onDone();
     };
-    utter.onend = finish;
-    utter.onerror = finish;
 
-    try {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utter);
-    } catch (e) { finish(); }
-
-    // Two long-standing speech-synthesis defects are handled here, because
-    // either one leaves the machine deaf and frozen in "speaking":
-    //   1. onend sometimes never fires (backgrounded tab, no installed
-    //      voice, an engine that silently drops the utterance). A poll
-    //      settles it: once the queue is empty, the turn is over.
-    //   2. Chrome stops speaking after roughly fifteen seconds unless the
-    //      queue is nudged; pause/resume keeps a long answer alive.
-    var elapsed = 0, everSpoke = false;
-    var poll = window.setInterval(function () {
-      elapsed += 300;
-      var synth = window.speechSynthesis;
-      if (finished || !synth) { window.clearInterval(poll); finish(); return; }
-      if (synth.speaking) everSpoke = true;
-      // Done when the queue drains after speech actually started, or when
-      // the engine never started at all (no installed voice, muted device).
-      if (!synth.speaking && !synth.pending && (everSpoke || elapsed > 3000)) {
-        window.clearInterval(poll);
-        finish();
-        return;
-      }
-      if (elapsed % 9000 === 0 && synth.speaking) { try { synth.pause(); synth.resume(); } catch (e) { /* ignore */ } }
-      if (elapsed > Math.min(120000, 6000 + clean.length * 120)) {
-        window.clearInterval(poll);
-        try { synth.cancel(); } catch (e) { /* ignore */ }
-        finish();
-      }
-    }, 300);
-    var clearPoll = function () { window.clearInterval(poll); };
-    utter.onend = function () { clearPoll(); finish(); };
-    utter.onerror = function () { clearPoll(); finish(); };
+    var next = function () {
+      if (token !== speechToken) return;
+      if (index >= parts.length) { finishAll(); return; }
+      var part = parts[index++];
+      sayOne(part, token, function () {
+        if (token !== speechToken) return;
+        if (index >= parts.length) { finishAll(); return; }
+        window.setTimeout(next, part.pause);
+      });
+    };
+    next();
   }
 
   function shutUp() {
+    speechToken += 1; // orphan every callback from the answer being cut off
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
     S.speaking = false;
   }
@@ -574,6 +691,8 @@
       })(),
       locale: navigator.language || '',
       language: S.lang,
+      tone: S.tone,
+      earlier: S.earlier.slice(-EARLIER_TURNS),
       memory: S.memory.slice(0, 40).map(function (m) { return { label: m.label, value: m.value }; }),
       timers: S.timers.map(function (x) {
         return { label: x.label, remaining: Math.max(0, Math.round((x.endsAt - now) / 1000)) };
@@ -585,9 +704,9 @@
     S.pending = true;
     stopListening();
     setState('thinking');
-    S.history.push({ role: 'user', content: text.slice(0, 1200) });
+    S.history.push({ role: 'user', content: clipTurn(text) });
     trimHistory();
-    saveSession();
+    saveThread();
 
     var started = Date.now();
     var payload = { messages: S.history, context: context() };
@@ -617,9 +736,9 @@
       if (out.status !== 200 || !out.data || !out.data.say) { S.history.pop(); respond(t('netError')); return; }
 
       if (out.data.mode === 'operator') setMode('operator');
-      S.history.push({ role: 'assistant', content: String(out.data.say).slice(0, 4000) });
+      S.history.push({ role: 'assistant', content: clipTurn(out.data.say) });
       trimHistory();
-      saveSession();
+      saveThread();
       S.turns += 1;
       if (el.roTurns) el.roTurns.textContent = String(S.turns);
 
@@ -653,9 +772,30 @@
     }, FOLLOWUP_MS);
   }
 
+  // Turns that fall out of the verbatim window are clipped into the digest
+  // rather than thrown away, so the machine still knows what was decided
+  // twenty minutes ago even though it no longer has the exact words.
   function trimHistory() {
-    while (S.history.length > MAX_TURNS) S.history.shift();
-    if (S.history.length && S.history[0].role !== 'user') S.history.shift();
+    var limit = liveWindow();
+    // A handful of long answers can blow the total budget long before the
+    // turn count does, so both are enforced.
+    var budget = threadChars();
+    var used = 0, i;
+    for (i = 0; i < S.history.length; i++) used += String(S.history[i].content).length;
+    while (S.history.length > 2 && used > budget) {
+      used -= String(S.history[0].content).length;
+      var heavy = S.history.shift();
+      S.earlier.push({ role: heavy.role, content: String(heavy.content).slice(0, 200) });
+    }
+    while (S.history.length > limit) {
+      var dropped = S.history.shift();
+      S.earlier.push({ role: dropped.role, content: String(dropped.content).slice(0, 200) });
+    }
+    if (S.history.length && S.history[0].role !== 'user') {
+      var lead = S.history.shift();
+      S.earlier.push({ role: lead.role, content: String(lead.content).slice(0, 200) });
+    }
+    while (S.earlier.length > EARLIER_TURNS) S.earlier.shift();
   }
 
   /* ------------------------------------------------------------------ actions */
@@ -679,6 +819,8 @@
         case 'remember': doRemember(a.label, a.value); break;
         case 'forget': doForget(a.label); break;
         case 'clear_memory': S.memory = []; writeJSON(STORE.mem, S.memory); renderMemory(); break;
+        case 'clear_conversation': doClearConversation(); break;
+        case 'set_tone': doTone(a.tone); break;
         case 'set_timer': doTimer(a.seconds, a.label); break;
         case 'cancel_timers': S.timers = []; renderTimers(); break;
         case 'open_destination': doOpen(a.destination); break;
@@ -729,6 +871,22 @@
     window.open(url, '_blank', 'noopener');
   }
 
+  function doTone(tone) {
+    if (tone !== 'sober' && tone !== 'light' && tone !== 'playful') return;
+    S.tone = tone;
+    try { window.localStorage.setItem(STORE.tone, tone); } catch (e) { /* ignore */ }
+    renderTone();
+  }
+
+  // Wipes the conversation without touching the stored facts: "start again"
+  // and "forget what I told you" are two different orders.
+  function doClearConversation() {
+    forgetThread();
+    S.turns = 0;
+    if (el.roTurns) el.roTurns.textContent = '0';
+    if (el.log) el.log.textContent = '';
+  }
+
   function doRate(rate) {
     rate = Number(rate);
     if (!isFinite(rate)) return;
@@ -757,6 +915,15 @@
   }
 
   /* ------------------------------------------------------------------ controls */
+  var TONE_LABEL = {
+    fr: { sober: 'SOBRE', light: 'PINCE-SANS-RIRE', playful: 'ESPIÈGLE' },
+    en: { sober: 'SOBER', light: 'DRY', playful: 'PLAYFUL' }
+  };
+
+  function renderTone() {
+    if (el.roTone) el.roTone.textContent = (TONE_LABEL[S.lang] || TONE_LABEL.fr)[S.tone] || '—';
+  }
+
   function setPressed(node, on) {
     if (!node) return;
     node.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -770,7 +937,15 @@
   }
 
   function toggleTalk() {
-    if (S.speaking) { shutUp(); setState('idle'); return; }
+    // Interrupting is an intent to speak, not an intent to stop. Cutting
+    // the answer off and then making the operator tap a second time to be
+    // heard is the most irritating thing a voice assistant can do.
+    if (S.speaking) {
+      shutUp();
+      startListening();
+      armFollowUp();
+      return;
+    }
     if (S.listening) { sleep(false); return; }
     startListening();
   }
@@ -882,7 +1057,13 @@
       renderMemory();
       renderTimers();
 
-      var hello = S.operatorKey ? t('greetingOperator') : t('greeting');
+      // Resuming a thread is announced as a resumption, not as a cold boot:
+      // the operator can hear immediately whether the machine still has the
+      // context of the last session.
+      var resuming = S.history.length > 0 || S.earlier.length > 0;
+      var hello = resuming
+        ? t('resumed')
+        : (S.operatorKey ? t('greetingOperator') : t('greeting'));
       addEntry('precious', hello);
       speak(hello, function () { startListening(); });
     }).catch(function (error) {
@@ -909,13 +1090,18 @@
     applyLanguage(stored || navLang);
 
     S.memory = readJSON(STORE.mem, []);
-    S.history = readSession();
     try {
       var r = parseFloat(window.localStorage.getItem(STORE.rate));
       if (isFinite(r)) S.rate = Math.min(1.8, Math.max(0.6, r));
+      var savedTone = window.localStorage.getItem(STORE.tone);
+      if (savedTone === 'sober' || savedTone === 'light' || savedTone === 'playful') S.tone = savedTone;
     } catch (e) { /* ignore */ }
 
+    // The key decides how wide the verbatim window is, so it is read before
+    // the thread is restored.
     readOperatorKey();
+    loadThread();
+    renderTone();
 
     if (!speechEngine()) { showUnsupported(); return; }
 
@@ -931,12 +1117,13 @@
     everySecond();
     registerWorker();
 
-    // Restoring a reloaded conversation keeps the machine's short-term
-    // memory across an accidental refresh.
+    // Replaying the thread is what makes a session resumable: reopen the
+    // app tomorrow and the conversation is still there, on screen and in
+    // the machine's head.
     for (var i = 0; i < S.history.length; i++) {
       addEntry(S.history[i].role === 'user' ? 'user' : 'precious', S.history[i].content);
     }
-    S.turns = Math.floor(S.history.length / 2);
+    S.turns = Math.floor((S.earlier.length + S.history.length) / 2);
     if (el.roTurns) el.roTurns.textContent = String(S.turns);
 
     window.addEventListener('pagehide', function () {

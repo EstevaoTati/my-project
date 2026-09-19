@@ -99,3 +99,52 @@ Wake-word detection running locally rather than through the recogniser;
 real barge-in with acoustic echo cancellation; the device actions extended
 to the Hermes gateway so PRECIOUS can act on the repository and the
 calendar rather than only on this browser.
+
+---
+
+## Second pass, same day: long sessions, a human voice, rationed wit
+
+The founder asked for three things after the first build: the ability to
+hold a long conversation, a voice that does not sound like a machine, and a
+measured sense of humour.
+
+**The conversation is kept in the browser, and older turns are clipped
+rather than dropped.** The verbatim window is twenty-four turns in public
+and sixty for the operator; everything older arrives as
+`<earlier_conversation>`, one clipped line per turn, fenced as reference
+data like every other client-supplied string. That is what lets an hour at
+a desk stay coherent without resending the whole transcript on every
+syllable. The thread lives in `localStorage`, not `sessionStorage`, so a
+session resumes after the tab is closed — and PRECIOUS says so when it
+resumes, instead of greeting a returning operator as a stranger. It expires
+after thirty days and is erasable by voice. Nothing moves to a server, so
+the public promise on the OS page is unchanged.
+
+**Two thirds of "it sounds like a robot" is written in the prompt, not in
+the synthesiser.** A model that writes for the eye produces even,
+clause-heavy sentences that no voice engine can rescue. The style rules now
+ask for contractions, short clauses and a varied rhythm, and forbid the
+tells — filler openings, narrated reasoning, "as an AI language model".
+
+**The remaining third is prosody, and the browser gives just enough of it.**
+A long answer is now spoken in sentence groups rather than one breath:
+Chrome silently truncates an utterance after about fifteen seconds, a single
+long utterance cannot be interrupted cleanly, and a person pauses between
+sentences. Each group carries its own pitch — a question rises, a closing
+sentence falls — and the gap after it is shorter after a clause than after a
+question. The voice itself is scored rather than taken first-come: neural
+and online voices beat the old local formant ones, which is the single
+biggest audible difference on any given machine.
+
+**Interrupting now hands the microphone back.** Tapping the core used to
+stop the answer and go quiet, which made the operator tap twice to be heard.
+Interrupting is an intent to speak.
+
+**Humour is a dial the operator holds, not a mood the model guesses.**
+Three settings — sober, dry (default), playful — set by voice, stored in the
+browser, shown in the heads-up display and sent with every request. Above
+them sits a floor that no setting lifts: nothing funny about money lost, a
+security matter, a missed deadline, bad news, or an operator visibly in a
+hurry, never at anyone's expense, and a dropped joke always beats a forced
+one. The wit lands after the answer, never before it. That is the whole
+meaning of *tempérance*: the joke is rationed, and the information is not.
