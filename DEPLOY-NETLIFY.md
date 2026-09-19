@@ -37,6 +37,8 @@ netlify deploy --prod --dir=.
 | `netlify.toml` | Build, redirects, security headers, caching |
 | `_redirects` | Friendly URLs (`/demo`); `/preview` 301s to `/` |
 | `_headers` | Per-file headers (cache-control, security) |
+| `precious.html` + `precious.css/.js`, `precious-reactor.js` | PRECIOUS, the voice assistant at `/precious` |
+| `precious.webmanifest`, `precious-sw.js` | Installs PRECIOUS as an app; offline shell |
 | `robots.txt`, `sitemap.xml` | SEO basics |
 
 ## Chat widget (os.html → Netlify Function)
@@ -50,6 +52,10 @@ works in production:
    (defaults to `claude-opus-4-8`), `CHAT_ENABLED=false` to disable,
    `FOUNDER_KEY` to enable founder (OS kernel) mode, `BI_MODEL` /
    `BI_ENABLED=false` for AI Business Intelligence at `/bi`.
+   `PRECIOUS_MODEL` (defaults to `claude-sonnet-5`) and
+   `PRECIOUS_ENABLED=false` control the voice assistant at `/precious`;
+   one `FOUNDER_KEY` unlocks both the OS console and PRECIOUS operator
+   mode (open `/precious#k=<FOUNDER_KEY>` — never dictate the key).
    For persistent storage add `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`
    (full setup: `docs/supabase-setup.md`). Without them the site still works,
    storing projects in the visitor's browser only.
@@ -67,5 +73,9 @@ works in production:
 - [ ] Open the Netlify URL on desktop — verify hero 3D, animations, form
 - [ ] Open it on a phone — verify mobile layout
 - [ ] Check the `/demo` shortcut, and that `/preview` redirects to `/`
+- [ ] Open `/precious` in Chrome or Safari: grant the microphone, say
+      something, confirm the crown reacts and the answer is spoken
+- [ ] Install `/precious` as an app on a phone and confirm it opens
+      standalone
 - [ ] Run a Lighthouse audit
 - [ ] Set up a custom domain (e.g. `mwindagroup.com`)

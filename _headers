@@ -17,6 +17,25 @@
   X-Frame-Options: DENY
   Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
 
+/precious
+  X-Frame-Options: DENY
+  Permissions-Policy: accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(self), midi=(), payment=(), usb=(), xr-spatial-tracking=()
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+
+/precious.html
+  X-Frame-Options: DENY
+  Permissions-Policy: accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(self), midi=(), payment=(), usb=(), xr-spatial-tracking=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+
+/precious-sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+  Service-Worker-Allowed: /precious
+
+/precious.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=0, must-revalidate
+
 /.netlify/functions/*
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
