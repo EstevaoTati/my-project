@@ -20,8 +20,9 @@ A voice operating system called PRECIOUS, shipped as a page of this site:
   the operator can see at a glance whether the machine is actually hearing
   them. Colour encodes state: gold on standby, cyan listening, amber
   thinking, pale gold speaking, red on error.
-- **Brain.** `netlify/functions/precious.mjs` — Claude with nine device
-  tools, behind the same security primitives as every other endpoint here.
+- **Brain.** `netlify/functions/precious.mjs` — Claude with device tools
+  (nine at first, eleven after the second pass below), behind the same
+  security primitives as every other endpoint here.
 - **Mouth.** Speech synthesis, with the voice chosen per language.
 - **Hands.** Nine local actions: remember, forget, clear memory, set timer,
   cancel timers, open a page of this site, set language, set speaking rate,
@@ -88,8 +89,9 @@ also refuses to be framed at all.
   add latency and cost to every sentence. Revisit only if PRECIOUS becomes a
   paid product rather than a proof.
 - **A general-purpose assistant on a public page is a budget surface.** It
-  is capped hard: six requests per minute per address, ninety per minute per
-  instance, four hundred output tokens, ten turns of history, and
+  is capped hard, and the second pass below widened those caps: ten requests
+  per minute per address, a hundred and forty per minute per instance, seven
+  hundred output tokens, twenty-four turns of verbatim history, and
   `PRECIOUS_ENABLED=false` as a kill switch. The hard backstop stays the
   monthly spend limit in the Anthropic console.
 

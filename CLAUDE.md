@@ -123,9 +123,10 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   lifts — never about money lost, security, bad news or a hurried operator,
   and never before the answer. See `docs/precious.md` and
   `docs/decisions/2026-09-19-precious-voice-assistant.md`.
-- `netlify/functions/precious.mjs` — PRECIOUS's brain. Claude with nine
+- `netlify/functions/precious.mjs` — PRECIOUS's brain. Claude with eleven
   **client-executed** device tools (remember/forget/clear memory, timers,
-  open a site page, language, speaking rate, sleep): the function only
+  open a site page, language, speaking rate, humour dial, new conversation,
+  sleep): the function only
   sanitises and returns them, the browser performs them, and both sides
   validate. Not streamed, unlike `chat.mjs` — a spoken answer needs whole
   sentences and a half-received thought must never be spoken as fact.
