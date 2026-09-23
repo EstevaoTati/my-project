@@ -207,6 +207,39 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.
 
+### `holy-mountain/` — a second site in this repo
+
+Holy Mountain Washington Church (CEMMS · MSW), an evangelical missionary
+community in **Tacoma, Washington**. A client site, self-contained: its own
+CSS, JS, self-hosted fonts, images and EN/FR dictionary. Served at
+`/holy-mountain/`, with `/church` as a short link. Nothing in it touches the
+Mwinda pages, and the Mwinda pages do not load anything from it.
+
+- Everything the church edits lives in one config block at the top of
+  `holy-mountain/assets/js/site.js`. See `holy-mountain/README.md`.
+- **It runs under its own, stricter CSP** in `netlify.toml` and `_headers`,
+  scoped to `/holy-mountain/*` and deliberately **not** tagged `# csp:default`
+  so `scripts/update-csp.mjs` leaves it alone. It allows no inline script and
+  no inline style at all. Both policies are sent for these paths and the
+  browser enforces each, so the effective rule is the intersection — which is
+  also why the church page carries no inline JSON-LD: the site-wide policy
+  lists only Mwinda's own script hashes and would block it.
+- Never add a `style="..."` attribute or an inline `<script>` under
+  `holy-mountain/`; either would be silently blocked in production.
+- **Never add `upgrade-insecure-requests` to the church policy.** Every asset
+  URL is relative and already follows the document's scheme, so it has nothing
+  to upgrade — but on a custom domain still served over plain HTTP, before
+  Netlify issues the certificate, it rewrites every stylesheet, script, font
+  and image to `https://` and the visitor gets naked HTML. It took
+  `holymountainch.com` down that way. See
+  `docs/decisions/2026-09-18-no-upgrade-insecure-requests-on-the-church-site.md`.
+  The Mwinda policy keeps its own copy; the two are unrelated lines.
+- `holy-mountain/package.sh` builds `holy-mountain-netlify.zip`, a standalone
+  drag-and-drop package for Netlify Drop. It rewrites the redirect and header
+  rules from `/holy-mountain/*` to `/*`, because a dropped site is the root of
+  its own domain. Regenerate it after changing the site; never hand-edit the
+  zip, or the snapshot drifts from the folder the way `preview.html` did.
+
 ### Data storage
 
 Supabase holds BI projects, contact leads and product events — see
