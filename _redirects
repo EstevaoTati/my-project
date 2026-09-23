@@ -21,7 +21,7 @@
 /mwinda-netlify.zip /index.html   404!
 
 # A missing asset must 404, not fall through to the SPA catch-all below.
-# Without this, a mistyped or not-yet-committed file — assets/hero-platform.mp4,
+# Without this, a mistyped or not-yet-committed file — assets/mwinda-loop-landscape.mp4,
 # say — answers with the whole of index.html at status 200. The browser then
 # downloads the entire homepage on every visit while trying to decode it as a
 # video, and the real failure is invisible in the network panel because the

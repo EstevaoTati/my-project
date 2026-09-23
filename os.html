@@ -7,17 +7,26 @@
   <title>MWINDA OS — Agentic Operating System | Mwinda Digital</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/favicon-180.png" />
+  <meta name="theme-color" content="#050507" />
+  <link rel="stylesheet" href="tech.css?v=1" />
 </head>
 <body>
 
 <div class="site-bg" aria-hidden="true">
-  <!-- To put the clip here: add the <video> above the poster and load
-       video-bg.js. .site-bg video is already styled to cover, sit above the
-       poster and retire the CSS ignition once it is playing. Left as the still
-       on purpose — this page is the founder console, not a showcase.
-       See docs/hero-video.md. -->
-  <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
+  <!-- The same brand loop as the other pages. Poster first: video-bg.js
+       reveals the video only once it is playing. See docs/hero-video.md. -->
+  <video autoplay muted loop playsinline preload="metadata"
+         poster="assets/mwinda-loop-landscape.jpg">
+    <source src="assets/mwinda-loop-landscape.mp4" type="video/mp4" media="(min-aspect-ratio: 4/5)" />
+    <source src="assets/mwinda-loop-portrait.mp4" type="video/mp4" />
+  </video>
+  <picture>
+    <source srcset="assets/mwinda-loop-portrait.jpg" media="(max-aspect-ratio: 4/5)" />
+    <img class="site-bg-img" src="assets/mwinda-loop-landscape.jpg" alt="" decoding="async" fetchpriority="high" />
+  </picture>
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>
 </div>
@@ -65,9 +74,11 @@
     padding: 84px 0 56px;
     border-bottom: 1px solid var(--line);
     background:
-      radial-gradient(ellipse 60% 45% at 50% -10%, rgba(212,175,55,.13), transparent 70%),
-      var(--bg);
+      radial-gradient(ellipse 60% 45% at 50% -10%, rgba(212,175,55,.13), transparent 70%);
   }
+  /* Transparent hero: the brand loop plays behind it. The type carries its
+     own shadow so it reads over the brightest frame. */
+  .hero h1, .hero p { text-shadow: 0 2px 22px rgba(5,5,7,.95), 0 1px 6px rgba(5,5,7,.9); }
   .eyebrow {
     font-family: var(--sans);
     font-size: 11px;
@@ -552,6 +563,14 @@
   }
 }
 
+/* While the loop plays, thin the scrim so the brand film is actually seen;
+   the console panels carry their own solid backgrounds. */
+.site-bg.video-ready .site-bg-veil {
+  background:
+    radial-gradient(ellipse 85% 65% at 50% 32%, rgba(5,5,7,.6) 0%, rgba(5,5,7,.78) 55%, rgba(5,5,7,.88) 100%),
+    linear-gradient(180deg, rgba(5,5,7,.4) 0%, rgba(5,5,7,.7) 55%, rgba(5,5,7,.84) 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-bg-img { animation: none; transform: scale(1.1); }
   .site-bg-ignite::before { animation: none; opacity: .3; }
@@ -636,7 +655,7 @@
 
 <footer>
   <div class="wrap">
-    <span class="brand">Mwinda Digital</span>
+    <span class="brand"><picture class="brand-logo"><source srcset="assets/brand/logo-wordmark.webp" type="image/webp" /><img src="assets/brand/logo-wordmark.png" alt="MWINDA DIGITAL" width="560" height="215" decoding="async" /></picture></span>
     <span>MWINDA OS v1.0 · kernel → agents → routines → memory</span>
   </div>
 </footer>
@@ -930,6 +949,7 @@
   if (stored) { keyInput.value = stored; tryUnlock(stored); }
 })();
 </script>
+<script src="video-bg.js?v=1"></script>
 </body>
 </html>
 
