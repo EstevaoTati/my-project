@@ -101,6 +101,41 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   as a static file, and is injected into the page only after the founder key
   is verified server-side. Hiding sections with CSS would not be security —
   the private markup must stay out of the public source.
+- `precious.html` / `precious.css` / `precious.js` / `precious-reactor.js` —
+  **PRECIOUS**, the voice operating system at `/precious`. Fully voice
+  driven: speech recognition in, speech synthesis out, and **no text input
+  anywhere — never add one**, not even as a fallback. Browsers without the
+  Web Speech API (Firefox) get an honest dead-end screen, not a keyboard.
+  Half-duplex on purpose: the microphone closes while PRECIOUS speaks, or
+  the recogniser transcribes the loudspeaker and the machine answers itself
+  in a loop. Installs as an app on desktop and mobile via
+  `precious.webmanifest` + `precious-sw.js` (service worker scoped to
+  `/precious` so it can never take over the marketing site). Operator mode
+  is unlocked by opening `/precious#k=<FOUNDER_KEY>`; the fragment is wiped
+  from the address bar at once and the key is never spoken. Memory, timers
+  **and the conversation itself** live in the browser only — the thread is
+  in `localStorage`, so a session resumes after the tab closes, and older
+  turns are clipped into a digest rather than dropped so an hour-long
+  session stays coherent. A long answer is spoken in sentence groups with
+  real pauses and per-group pitch: Chrome truncates a long utterance, and a
+  flat pitch is what makes a voice sound like a machine. Humour is a dial
+  the founder sets by voice (sober / dry / playful) with a floor no setting
+  lifts — never about money lost, security, bad news or a hurried operator,
+  and never before the answer. It wears the platform skin (`tech.css`) for
+  the brand faces but **not** the 20 s brand loop: its background is a live
+  canvas driven by the microphone, and a 2.9 MB video would fight the
+  reactor and delay the one page that must start instantly. See
+  `docs/precious.md` and
+  `docs/decisions/2026-09-19-precious-voice-assistant.md`.
+- `netlify/functions/precious.mjs` — PRECIOUS's brain. Claude with eleven
+  **client-executed** device tools (remember/forget/clear memory, timers,
+  open a site page, language, speaking rate, humour dial, new conversation,
+  sleep): the function only
+  sanitises and returns them, the browser performs them, and both sides
+  validate. Not streamed, unlike `chat.mjs` — a spoken answer needs whole
+  sentences and a half-received thought must never be spoken as fact.
+  Env: `PRECIOUS_MODEL` (default `claude-sonnet-5`, chosen for latency),
+  `PRECIOUS_ENABLED=false` kills it.
 - `netlify/functions/chat.mjs` — serverless proxy to the Claude API for the
   demo chat (scoped system prompt, input caps, `CHAT_ENABLED` kill switch).
   Also serves founder "OS mode": `/os <FOUNDER_KEY>` in the chat swaps in
@@ -265,6 +300,12 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   `<link>`/`<script>` tags (e.g. `styles.css?v=2`) when it matters.
 - `_redirects` / `netlify.toml`: `/demo` is a pretty URL, `/preview` 301s to
   `/`; everything else falls back to `index.html`.
+- **The site-wide `Permissions-Policy` turns the microphone off.**
+  `/precious` and `/precious.html` carry their own header re-enabling it for
+  `self` only. Any new voice surface needs the same header or
+  `getUserMedia` fails silently. `precious-sw.js` likewise overrides the
+  one-year immutable rule on `/*.js`: a frozen service worker pins an old
+  app forever.
 - **The CSP is generated — never hand-edit it.** `scripts/update-csp.mjs`
   rewrites every line tagged `# csp:default` / `# csp:strict` in both
   `netlify.toml` and `_headers`. A policy line without that tag is not

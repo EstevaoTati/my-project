@@ -3,6 +3,8 @@
 /demo       /demo.html       200
 /os         /os.html         200
 /bi         /bi.html         200
+/precious   /precious.html   200
+/jarvis     /precious        301
 /business   /bi.html         200
 
 # Internal repo files: never serve publicly (briefs go through the
