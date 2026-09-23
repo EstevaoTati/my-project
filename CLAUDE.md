@@ -121,7 +121,11 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   flat pitch is what makes a voice sound like a machine. Humour is a dial
   the founder sets by voice (sober / dry / playful) with a floor no setting
   lifts — never about money lost, security, bad news or a hurried operator,
-  and never before the answer. See `docs/precious.md` and
+  and never before the answer. It wears the platform skin (`tech.css`) for
+  the brand faces but **not** the 20 s brand loop: its background is a live
+  canvas driven by the microphone, and a 2.9 MB video would fight the
+  reactor and delay the one page that must start instantly. See
+  `docs/precious.md` and
   `docs/decisions/2026-09-19-precious-voice-assistant.md`.
 - `netlify/functions/precious.mjs` — PRECIOUS's brain. Claude with eleven
   **client-executed** device tools (remember/forget/clear memory, timers,

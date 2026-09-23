@@ -22,8 +22,12 @@
   --cyan: #59e1ff;
   --amber: #e0b34c;
   --alert: #ff6b5a;
-  --serif: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
-  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Fallbacks only. tech.css sets these three from html:root, which
+     outranks :root, so the page wears the platform's brand faces —
+     Orbitron for display, Exo 2 for reading, JetBrains Mono for data.
+     Remove that stylesheet and the page still stands on these. */
+  --serif: 'Orbitron', 'Exo 2', system-ui, -apple-system, sans-serif;
+  --sans: 'Exo 2', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --easing: cubic-bezier(.2, .7, .2, 1);
   --accent: var(--gold-2);       /* recoloured per state by the JS */
@@ -101,10 +105,16 @@ body.state-error     { --accent: var(--alert); --accent-soft: rgba(255, 107, 90,
 .eyebrow b { color: var(--gold-3); font-weight: 600; }
 .wordmark {
   font-family: var(--serif); font-weight: 700;
-  font-size: clamp(46px, 12vw, 92px);
-  letter-spacing: .14em; text-transform: uppercase; line-height: 1;
+  /* Sized for the brand face, which is far wider than a neutral sans at the
+     same point size: eight tracked capitals in Orbitron overrun a 360 px
+     phone at the size a narrower face tolerates. The clamp is cut to fit,
+     and the two guards below mean no future face can push it off-screen. */
+  font-size: clamp(30px, 10vw, 84px);
+  letter-spacing: .12em; text-transform: uppercase; line-height: 1;
   margin: 0 0 14px; color: var(--gold-2);
   text-shadow: 0 0 44px rgba(255, 215, 0, .28);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .wordmark.small { font-size: clamp(24px, 6vw, 38px); letter-spacing: .1em; color: var(--alert); text-shadow: none; }
 .gate-tag { color: var(--mute); font-size: 15px; margin: 0 auto 26px; max-width: 34em; }

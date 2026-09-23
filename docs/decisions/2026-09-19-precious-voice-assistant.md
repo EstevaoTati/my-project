@@ -150,3 +150,27 @@ security matter, a missed deadline, bad news, or an operator visibly in a
 hurry, never at anyone's expense, and a dropped joke always beats a forced
 one. The wit lands after the answer, never before it. That is the whole
 meaning of *tempérance*: the joke is rationed, and the information is not.
+
+---
+
+## 2026-09-23: merged with the tech restyle
+
+The platform was restyled while this branch was open (`tech.css`, the new
+logo, a 20 s brand loop on every page). Merging it in raised one design
+question and one measurement.
+
+**The page takes the brand faces, not the brand loop.** `tech.css` is loaded
+before `precious.css`, so Orbitron, Exo 2 and JetBrains Mono arrive through
+`html:root` and the page's own rules still win on every ordinary selector —
+the same arrangement `os.html` uses. The 20 s video is deliberately left
+out: this page's background is a live canvas driven by the microphone, and
+2.9 MB of video behind it would fight the reactor and delay the one screen
+whose whole value is starting instantly.
+
+**The wordmark had to shrink.** A wide display face is not a drop-in
+replacement for a narrow one: eight tracked capitals in Orbitron overrun a
+360 px phone at the size Space Grotesk tolerated. The clamp was cut and
+guarded with `max-width: 100%` and `overflow-wrap`, then stress-tested at
+320 px with 40% more tracking and 40% more size. It wraps rather than
+pushing the layout, which is the behaviour that survives the next font
+change too.

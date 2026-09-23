@@ -18,8 +18,16 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="precious.css?v=2" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- The platform skin supplies the brand faces through html:root, which
+       outranks the :root tokens in precious.css. Loaded first so the page's
+       own rules still win on every ordinary selector, exactly as os.html
+       does it. The brand loop is deliberately NOT here: this page's
+       background is a live canvas driven by the microphone, and a 2.9 MB
+       video behind it would fight the reactor and delay the one screen that
+       has to start instantly. -->
+  <link rel="stylesheet" href="tech.css?v=1" />
+  <link rel="stylesheet" href="precious.css?v=3" />
 </head>
 <body class="state-boot" data-lang="fr">
 
@@ -201,7 +209,7 @@
   </div>
 </section>
 
-<script src="precious-reactor.js?v=2" defer></script>
-<script src="precious.js?v=2" defer></script>
+<script src="precious-reactor.js?v=3" defer></script>
+<script src="precious.js?v=3" defer></script>
 </body>
 </html>

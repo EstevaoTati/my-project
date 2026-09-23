@@ -8,7 +8,7 @@ and acts. There is no text input anywhere in the interface, by design.
 | File | Role |
 |------|------|
 | `precious.html` | Markup: boot gate, console, help sheet, dead-end screen |
-| `precious.css` | The instrument panel |
+| `precious.css` | The instrument panel. Its `--serif`/`--sans`/`--mono` are fallbacks; `tech.css` supplies the brand faces from `html:root` |
 | `precious.js` | Voice engine: recognition, synthesis, state machine, actions |
 | `precious-reactor.js` | Canvas core and background field, driven by real audio |
 | `precious-sw.js` | Offline shell, scope pinned to `/precious` |
@@ -127,6 +127,17 @@ turn needs the network, and that request is never cached.
 - **`speechSynthesis` lies.** `onend` sometimes never fires, and Chrome cuts
   off after about fifteen seconds. `speak()` polls the queue and nudges it
   with pause/resume; do not "simplify" that away.
+- **The brand loop is deliberately absent.** Every other page carries the
+  20 s MWINDA video behind it. This one does not: its background is a live
+  canvas driven by the microphone, and a 2.9 MB video would fight the
+  reactor and delay the one screen that has to start instantly. The page
+  does wear the brand faces, through `tech.css`.
+- **The wordmark is sized for a wide display face.** Orbitron runs far wider
+  than a neutral sans at the same point size, and eight tracked capitals
+  overrun a 360 px phone at the size a narrower face tolerates. The clamp is
+  cut to fit and guarded with `max-width: 100%` plus `overflow-wrap`; it
+  survives 40% more tracking at 320 px. Do not raise it back without
+  measuring on a phone.
 - **No inline scripts on this page.** Both scripts are external files, so the
   page adds no hashes to the generated CSP. Add an inline `<script>` and you
   must re-run `node scripts/update-csp.mjs`.
