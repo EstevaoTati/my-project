@@ -225,7 +225,13 @@ affected page in a browser before committing:
 python3 -m http.server 8000   # then open http://localhost:8000/<page>.html
 ```
 
-Check: hero 3D and animations, FR/EN language switch, mobile layout. The
+Check: hero 3D and animations, FR/EN language switch, mobile layout.
+**Test with GSAP actually loaded.** If jsDelivr is unreachable (sandboxes,
+headless browsers), `script.js` takes its no-GSAP fallback and the hero looks
+fine while the real GSAP path is broken — that is how a headline showing only
+"TO YOUR" shipped. Serve `gsap@3.12.5` locally (e.g. Playwright `page.route`)
+when checking the hero. Never hide an element in CSS with a percentage
+transform and then animate it with GSAP `yPercent` without also setting `y: 0`. The
 post-deploy checklist lives in `DEPLOY-NETLIFY.md`.
 
 Deploys: automatic on push to `main` (Netlify Git integration), or manually
