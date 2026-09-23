@@ -2,76 +2,83 @@
 
 The artwork is a **page-wide fixed layer** (`.site-bg`) on `index.html`,
 `bi.html` and `os.html`: it sits behind the entire page and stays put while
-content scrolls over it. Both pages play a video there today.
+content scrolls over it. All three pages play the same brand loop.
 
-| File | Page | Poster |
+| File | Used when | Size |
 |---|---|---|
-| `assets/hero-platform.mp4` | `index.html`, `os.html` | `assets/hero-platform.jpg` |
-| `assets/hero-bi.mp4` | `bi.html` | `assets/hero-bi.jpg` |
+| `assets/mwinda-loop-landscape.mp4` | viewport aspect ≥ 4:5 (desktop, tablet, landscape phone) | 1920x1080, ~2.8 MB |
+| `assets/mwinda-loop-portrait.mp4` | anything narrower (portrait phone) | 720x1280, ~1.7 MB |
+| `assets/mwinda-loop-{landscape,portrait}.jpg` | poster / reduced motion / no video | frame 0 of each |
 
-Kling v3.0, generated from the founder's bulb stills to a beat-by-beat brief,
-then **recomposed and re-encoded** (see below): 1080x1080, 10 s, H.264 Main
-profile level 4.0, fast-start (`moov` before `mdat`), **no audio track at all**.
-Both files are committed.
+**20 s, 24 fps, H.264 Main 4.0, fast-start, no audio track, seamless loop.**
+The `<video>` carries two `<source>`s: landscape first with
+`media="(min-aspect-ratio: 4/5)"`, portrait second. A browser that ignores
+`media` on `<source>` takes the landscape one, which is merely cropped harder on
+a phone — never a broken page. The poster `<picture>` makes the same choice.
+
+## How the loop is made — and why not by a video model
+
+`scripts/render-brand-loop.py` renders both masters from the brand's own files:
+the logo (`docs/brand-source/mwinda-logo.png`) and the four brand scenes
+(`docs/brand-source/scene-*.{png,jpg}`), originals kept out of the served tree.
+
+```bash
+npm i ffmpeg-static   # in a scratch dir; any ffmpeg on PATH works too
+pip install Pillow
+FFMPEG=/path/to/ffmpeg python3 scripts/render-brand-loop.py landscape portrait
+```
+
+Scenario (the brief: premium, tech, silent, calm where the headline sits):
+
+| t (s) | Beat | Move |
+|---|---|---|
+| 0–3 | Logo in the dark, gold light sweeps across the wordmark | slow push |
+| 3–7 | MWINDA HQ — the reception | push in |
+| 7–11 | The identity on every device | lateral pan |
+| 11–15 | The AI desk — dashboards, the model at work | push, rising |
+| 15–18 | The data globe — the reach | pull back |
+| 18–20 | Back to the logo | eases to the exact first frame |
+
+0.8 s cross-fades between beats; every move is smoothstep-eased so it lands at
+zoom 1.00 on the seam. Measured on the encoded files: first vs last frame mean
+difference **0.18/255** (landscape) and **0.30/255** (portrait) — invisible.
+
+**Why programmatic.** A video model cannot render lettering: every generated
+frame redraws "MWINDA DIGITAL" slightly wrong, and a logo that shimmers is worse
+than no logo. Compositing the real logo file keeps it exact in every frame, and
+the output is reproducible, versioned and free to re-render. A Higgsfield clip
+(FLUX 3 Video, 1280x720, 20 s, logo as first and last frame) was also generated
+on the founder's account; it lives in their Higgsfield library. To use it, drop
+the downloaded mp4 in as `assets/mwinda-loop-landscape.mp4` and re-extract the
+poster from frame 0 — note its logo is centred, so it will sit behind the
+headline on desktop.
+
+**Composition rules the script enforces.** Landscape: logo at 30% of frame
+width, centred at 75% across — clear of the headline column on the left.
+Portrait: 74% width, brightness 0.62, so the hero copy reads over it. Portrait
+scenes are set full height on a blurred, darkened extension of themselves (no
+hard edges); the light sweep is masked to the logo only.
+
+Posters are extracted from the encoded files, never from the script, so the
+poster-to-video reveal cannot jump:
+
+```bash
+ffmpeg -i assets/mwinda-loop-landscape.mp4 -frames:v 1 -q:v 3 assets/mwinda-loop-landscape.jpg
+```
 
 **No audio, deliberately.** A background video must be muted or the browser
-refuses to autoplay it, so an audio track is dead weight — and on iOS, a file
-with no audio track is the strongest position autoplay can be in.
+refuses to autoplay it; on iOS a file with no audio track is the strongest
+position autoplay can be in.
 
-**The loop restarts rather than holding.** Both briefs open in darkness and end
-in warm steady light, so a seamless loop is impossible by construction: it would
-need the last frame to return to the first. The clip reads as the bulb
-re-igniting on each cycle, which suits "Bringing Light to Your Ideas".
+### No drift on the video
 
-## The clips were recomposed, and it mattered
-
-The originals were **1088x844** and **780x1176** — one nearly square, the other
-**portrait** — at 9.4 and 6.7 Mbit/s. (This file previously claimed 1280x720,
-16:9. It was wrong; nobody had been able to decode them to check.)
-
-Used as a full-viewport background with `object-fit: cover`, that was bad in
-two different ways. On a 16:9 desktop the near-square clip was cropped straight
-through the glass, and the **portrait** clip was cropped to a narrow horizontal
-slice of itself and upscaled — neither read as a light bulb any more, just an
-abstract glass close-up. The founder kept asking for the videos to be "more
-visible"; they were visible, they were just enormously cropped.
-
-Both are now composed on a **1080x1080 square canvas**: the source scaled to sit
-whole and centred (at 38% height, matching `object-position: center 38%`), over
-a heavily blurred, darkened enlargement of the same frame, with the inset's
-edges feathered out so there is no rectangle to see. A square master with the
-subject at roughly 45% of the frame survives `cover` at every aspect ratio worth
-caring about — checked at 1440x900 and at 390x844, where the whole bulb stays in
-frame with margin.
-
-### And they got 94% smaller
-
-| | Before | After |
-|---|---|---|
-| `hero-platform.mp4` | 11.2 MB | **0.66 MB** |
-| `hero-bi.mp4` | 8.0 MB | **0.49 MB** |
-| posters (2 JPEGs) | 300 KB | **55 KB** |
-| **total** | **20.4 MB** | **1.22 MB** |
-
-The old bitrate was absurd for a veiled background. This audience is on mobile
-data in Kinshasa; 20 MB of background video is real money out of a founder's
-pocket, on a layer they are not even meant to look at directly. The posters were
-regenerated from the new composition so the poster-to-video reveal does not jump.
-
-Verified on the encoded files, not assumed: `ftyp` then `moov` then `mdat`
-(fast-start), no audio stream, H.264 Main.
-
-### The drift animation had to stop on the video
-
-`.site-bg-img, .site-bg video` shared a 46-second `siteDrift` that scales the
-layer 1.08 to 1.16. That silently ate the framing margin above — and it was
-transforming a full-viewport *video* layer on every frame, which is GPU and
-battery spent to move something that already moves. The drift now applies to
-the still poster only; `.site-bg video` sets `animation: none; transform: none`.
+`.site-bg-img, .site-bg video` share a 46 s `siteDrift`; the video overrides it
+(`animation: none; transform: none`). The loop moves on its own, and
+transforming a full-viewport video every frame is GPU and battery for nothing.
 
 ## The playback logic lives in one file
 
-`video-bg.js`, loaded by `index.html` and `bi.html`. It used to be duplicated
+`video-bg.js`, loaded by `index.html`, `bi.html` and `os.html`. It used to be duplicated
 inside `script.js` and `bi.js`; two copies of this drift, and only one of them
 gets the next fix. Both of those files now carry a one-line pointer instead.
 
@@ -148,7 +155,8 @@ element, so any of those failures hid the background entirely.
 ## Proven, not assumed
 
 Measured with Playwright against a local server that emulates the Netlify rules
-(404s, pretty URLs, byte ranges). All on both pages.
+(404s, pretty URLs, byte ranges), on the earlier clips. The loop changed the
+files, not the element or `video-bg.js`, so these still describe the behaviour.
 
 | Suite | What it breaks | Result |
 |---|---|---|
@@ -180,8 +188,8 @@ scratch directory that decodes H.264 perfectly, so frames can be extracted and
 looked at, and a browser crop can be reproduced exactly:
 
 ```bash
-# a frame, and what `cover` will do with it at 1440x900, object-position 38%
-ffmpeg -ss 4 -i assets/hero-platform.mp4 -frames:v 1 frame.png
+# a frame (the old square clips; for the 16:9 master scale=1440:-2 instead)
+ffmpeg -ss 4 -i assets/mwinda-loop-landscape.mp4 -frames:v 1 frame.png
 ffmpeg -i frame.png -vf "scale=1440:1440,crop=1440:900:0:205" desktop.png
 # and on a phone: 390x844
 ffmpeg -i frame.png -vf "scale=844:844,crop=390:844:227:0" phone.png
@@ -202,6 +210,11 @@ looked successful. Neither rule is forced, so every asset that exists is still
 served normally.
 
 ## Legibility over a moving image
+
+*Written for the earlier bulb clips; the rules carried over unchanged. The new
+loop keeps its bright subject (the logo) on the right on desktop and dims it on
+phones, and `tech.css` gives the MVP step rail a near-solid plate where it
+crosses the logo.*
 
 `.site-bg.video-ready .site-bg-veil` keeps only a directional gradient — dark
 where the copy sits, near-clear over the bulb — instead of a flat scrim. What
@@ -249,12 +262,12 @@ each other for the reader's eye.
   it had drifted so far it still showed the removed 3D shapes and the old
   "MWINDA GROUP" name. `/preview` now 301s to `/`.
 
-## The CSS ignition, for when there is no video
+## The CSS ignition is retired
 
-`.site-bg-ignite` runs a 7.5 s loop in CSS where the filament strikes, flickers
-once, settles and fades back down. `.site-bg.video-ready .site-bg-ignite` is set
-to `display: none` — a playing video carries its own ignition. A video that
-never starts leaves the CSS glow running, so the background is alive either way.
+`.site-bg-ignite` was a bulb glow in CSS for when no video played. The brand is
+the wordmark now and the poster already carries it, so `tech.css` sets
+`.site-bg-ignite { display: none }`. The element stays in the markup (harmless)
+so the old stylesheets need no edits.
 
 ## Content Security Policy
 

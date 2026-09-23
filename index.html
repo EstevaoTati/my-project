@@ -8,9 +8,16 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/favicon-180.png" />
+  <meta name="theme-color" content="#050507" />
+  <meta property="og:title" content="MWINDA DIGITAL — Bringing Light to Your Ideas" />
+  <meta property="og:image" content="assets/brand/logo-full.jpg" />
+  <meta property="og:type" content="website" />
 
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="tech.css?v=1" />
 </head>
 <body>
 
@@ -20,11 +27,20 @@
        video-bg.js reveals the video on the `playing` event only, so a missing
        file, a rejected codec or a blocked autoplay all leave this artwork in
        place rather than a black rectangle. See docs/hero-video.md. -->
+  <!-- The MWINDA brand loop: one master per orientation, so a phone never
+       gets a 16:9 clip cropped to a sliver. A browser that ignores `media`
+       takes the landscape one — the old behaviour, never a broken one.
+       Rendered by scripts/render-brand-loop.py from the brand's own images;
+       the wordmark is the real logo file, so it is exact in every frame. -->
   <video autoplay muted loop playsinline preload="metadata"
-         poster="assets/hero-platform.jpg">
-    <source src="assets/hero-platform.mp4" type="video/mp4" />
+         poster="assets/mwinda-loop-landscape.jpg">
+    <source src="assets/mwinda-loop-landscape.mp4" type="video/mp4" media="(min-aspect-ratio: 4/5)" />
+    <source src="assets/mwinda-loop-portrait.mp4" type="video/mp4" />
   </video>
-  <img class="site-bg-img" src="assets/hero-platform.jpg" alt="" decoding="async" fetchpriority="high" />
+  <picture>
+    <source srcset="assets/mwinda-loop-portrait.jpg" media="(max-aspect-ratio: 4/5)" />
+    <img class="site-bg-img" src="assets/mwinda-loop-landscape.jpg" alt="" decoding="async" fetchpriority="high" />
+  </picture>
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>
 </div>
@@ -35,20 +51,8 @@
 
   <div class="loader" id="loader">
     <div class="loader-inner">
-      <svg viewBox="0 0 100 100" class="loader-bulb">
-        <defs>
-          <radialGradient id="bulbGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FFE680"/>
-            <stop offset="60%" stop-color="#D4AF37"/>
-            <stop offset="100%" stop-color="#7a5c14"/>
-          </radialGradient>
-        </defs>
-        <path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="url(#bulbGrad)"/>
-        <rect x="38" y="78" width="24" height="5" rx="1.5" fill="#D4AF37"/>
-        <rect x="40" y="84" width="20" height="4" rx="1.5" fill="#A88824"/>
-        <rect x="42" y="89" width="16" height="3" rx="1.5" fill="#8a6e1c"/>
-      </svg>
-      <div class="loader-text">MWINDA DIGITAL</div>
+      <picture class="loader-logo"><source srcset="assets/brand/logo-lockup.webp" type="image/webp" /><img src="assets/brand/logo-lockup.png" alt="MWINDA DIGITAL — Bringing Light to Your Ideas" width="900" height="400" /></picture>
+      <div class="loader-text">SYSTEM · ONLINE</div>
       <div class="loader-bar"><span></span></div>
     </div>
   </div>
@@ -58,10 +62,7 @@
   <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="#home" class="nav-logo" data-magnetic>
-      <span class="nav-logo-bulb">
-        <svg viewBox="0 0 100 100"><path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="currentColor"/><rect x="38" y="78" width="24" height="5" rx="1.5" fill="currentColor"/><rect x="40" y="84" width="20" height="4" rx="1.5" fill="currentColor" opacity=".8"/><rect x="42" y="89" width="16" height="3" rx="1.5" fill="currentColor" opacity=".6"/></svg>
-      </span>
-      <span class="nav-logo-text">MWINDA<small>DIGITAL</small></span>
+      <picture class="brand-logo"><source srcset="assets/brand/logo-wordmark.webp" type="image/webp" /><img src="assets/brand/logo-wordmark.png" alt="MWINDA DIGITAL" width="560" height="215" decoding="async" /></picture>
     </a>
     <ul class="nav-links">
       <li><a href="#home" data-i18n="nav.home">Accueil</a></li>
@@ -161,22 +162,14 @@
           </ul>
         </div>
 
-        <div class="about-visual reveal">
-          <div class="orb-ring">
-            <div class="orb-core">
-              <svg viewBox="0 0 100 100"><path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="url(#aboutGrad)"/><defs><radialGradient id="aboutGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFE680"/><stop offset="100%" stop-color="#7a5c14"/></radialGradient></defs></svg>
-            </div>
-            <div class="orb-r r1"></div>
-            <div class="orb-r r2"></div>
-            <div class="orb-r r3"></div>
-            <span class="orb-dot d1"></span>
-            <span class="orb-dot d2"></span>
-            <span class="orb-dot d3"></span>
-            <span class="orb-dot d4"></span>
-            <span class="orb-dot d5"></span>
-            <span class="orb-dot d6"></span>
-          </div>
-        </div>
+        <figure class="about-visual brand-visual hud reveal">
+          <picture>
+            <source srcset="assets/brand/scene-office.webp" type="image/webp" />
+            <img src="assets/brand/scene-office.jpg" width="960" height="1200" loading="lazy" decoding="async"
+                 alt="Le siège MWINDA DIGITAL : logo or sur mur noir, accueil en marbre" data-i18n-attr="alt" data-i18n="img.office" />
+          </picture>
+          <figcaption class="hud-tag"><span class="hud-dot"></span>MWINDA · HQ</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -301,6 +294,7 @@
           <p class="bi-note" data-i18n="bi.note">Gratuit pour tester · Français et anglais · Aucune inscription</p>
         </div>
         <div class="bi-card-visual" aria-hidden="true">
+          <picture class="bi-card-img"><source srcset="assets/brand/scene-ai-desk.webp" type="image/webp" /><img src="assets/brand/scene-ai-desk.jpg" width="960" height="1440" loading="lazy" decoding="async" alt="" /></picture>
           <div class="bi-flow">
             <span data-i18n="bi.f1">Idée</span><i></i><span data-i18n="bi.f2">Business Model</span><i></i><span data-i18n="bi.f3">Business Plan</span>
             <i></i><span data-i18n="bi.f4">Finances</span><i></i><span data-i18n="bi.f5">Conformité</span><i></i><span class="last" data-i18n="bi.f6">PDF</span>
@@ -320,6 +314,7 @@
       </div>
 
       <div class="eco-stage" id="ecoStage">
+        <picture class="eco-globe" aria-hidden="true"><source srcset="assets/brand/scene-globe.webp" type="image/webp" /><img src="assets/brand/scene-globe.jpg" width="960" height="1440" loading="lazy" decoding="async" alt="" /></picture>
         <svg class="eco-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
           <defs>
             <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
@@ -338,8 +333,7 @@
 
         <div class="eco-center">
           <div class="eco-center-inner">
-            <span>MWINDA</span>
-            <small>DIGITAL</small>
+            <picture><source srcset="assets/brand/logo-wordmark.webp" type="image/webp" /><img src="assets/brand/logo-wordmark.png" alt="MWINDA DIGITAL" width="560" height="215" loading="lazy" decoding="async" /></picture>
           </div>
           <div class="eco-pulse"></div>
           <div class="eco-pulse" style="animation-delay:1s"></div>
@@ -381,10 +375,20 @@
         </div>
       </div>
 
+      <div class="vision">
       <div class="quote reveal">
         <svg viewBox="0 0 24 24" width="40" height="40" class="quote-mark"><path d="M9 7H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4M21 7h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v2a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-i18n="impact.quote">Notre vision : un écosystème où l'intelligence artificielle éclaire chaque idée — et où chaque idée devient un système qui travaille.</span>
         <span class="quote-author" data-i18n="impact.author">— MWINDA DIGITAL</span>
+      </div>
+      <figure class="brand-visual hud reveal">
+        <picture>
+          <source srcset="assets/brand/scene-devices.webp" type="image/webp" />
+          <img src="assets/brand/scene-devices.jpg" width="960" height="1200" loading="lazy" decoding="async"
+               alt="L'identité MWINDA DIGITAL déclinée sur ordinateur, tablette, téléphone et papeterie" data-i18n-attr="alt" data-i18n="img.devices" />
+        </picture>
+        <figcaption class="hud-tag"><span class="hud-dot"></span>DESIGN · BUILD · AUTOMATE · SCALE</figcaption>
+      </figure>
       </div>
     </div>
   </section>
@@ -471,10 +475,7 @@
       <div class="footer-top">
         <div class="footer-brand">
           <div class="nav-logo">
-            <span class="nav-logo-bulb">
-              <svg viewBox="0 0 100 100"><path d="M50 12 C32 12 22 27 22 42 C22 54 30 60 34 68 L34 76 L66 76 L66 68 C70 60 78 54 78 42 C78 27 68 12 50 12 Z" fill="currentColor"/><rect x="38" y="78" width="24" height="5" rx="1.5" fill="currentColor"/><rect x="40" y="84" width="20" height="4" rx="1.5" fill="currentColor" opacity=".8"/><rect x="42" y="89" width="16" height="3" rx="1.5" fill="currentColor" opacity=".6"/></svg>
-            </span>
-            <span class="nav-logo-text">MWINDA<small>DIGITAL</small></span>
+            <picture class="brand-logo"><source srcset="assets/brand/logo-wordmark.webp" type="image/webp" /><img src="assets/brand/logo-wordmark.png" alt="MWINDA DIGITAL" width="560" height="215" decoding="async" /></picture>
           </div>
           <p data-i18n="footer.tagline">Bringing Light to Your Ideas. L'écosystème digital &amp; IA qui transforme les idées en systèmes qui travaillent.</p>
         </div>
@@ -526,7 +527,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="i18n.js?v=7"></script>
+  <script src="i18n.js?v=8"></script>
   <script src="video-bg.js?v=1"></script>
   <script src="script.js?v=5"></script>
 </body>

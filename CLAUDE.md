@@ -93,8 +93,8 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   which can never go stale. Retiring it also removed `cdnjs.cloudflare.com`
   from the CSP: nothing else loaded three.js. Do not reintroduce a snapshot
   file; point people at `/` or `/demo`.
-- `os.html` — MWINDA OS page. Fully self-contained (own inline CSS/JS); it
-  does not use `styles.css` or `i18n.js`. **Public part is only the hero and
+- `os.html` — MWINDA OS page. Own inline CSS/JS; it does not use
+  `styles.css` or `i18n.js`, only the shared `tech.css` and `video-bg.js`. **Public part is only the hero and
   Layer 05 "Talk to the OS"** (the demo chat about Mwinda Digital). The
   kernel/agents/routines/memory layers, the status board and the briefs are
   private: their markup lives in `docs/os-console.html`, is never published
@@ -173,7 +173,7 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
 - `script.js` — all animations and interactions for `index.html` (loader/boot,
   custom cursor, hero 3D, GSAP scroll animations). Respects
   `prefers-reduced-motion` and disables the custom cursor on mobile.
-- `video-bg.js` — the background video, shared by `index.html` and `bi.html`.
+- `video-bg.js` — the background video, shared by `index.html`, `bi.html` and `os.html`.
   One implementation on purpose: `autoplay muted loop playsinline` is not
   enough on its own, and two copies of the recovery logic drift. It restarts on
   every signal that playback stopped, runs a watchdog for the stalls that emit
@@ -182,6 +182,27 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   or a data saver. **The poster is never removed** — the video is revealed only
   on the `playing` event, so every failure shows the artwork. See
   `docs/hero-video.md`.
+- **Brand loop** — `assets/mwinda-loop-{landscape,portrait}.{mp4,jpg}`, the
+  20 s seamless background on all three pages (landscape source first with
+  `media="(min-aspect-ratio: 4/5)"`, portrait second). Rendered by
+  `scripts/render-brand-loop.py` from the real logo and brand scenes in
+  `docs/brand-source/` — never ask a video model to draw the wordmark, it
+  cannot spell. Re-extract posters from frame 0 of the encoded mp4 after any
+  re-render. See `docs/hero-video.md`.
+- **Tech skin** — `tech.css`, loaded last on `index.html`, `bi.html` and
+  `os.html`. Type: **Orbitron** (display, a few words only), **Exo 2** (body and
+  any long copy — never set a paragraph in Orbitron), **JetBrains Mono**
+  (labels, eyebrows, nav). Gold = brand, electric blue (`--tech-*`) = AI/tech
+  accent. HUD corners, scanlines/grid on `.site-bg::after`, chamfered buttons.
+  `styles.css` reads fonts through `--f-display/--f-body/--f-mono`; `tech.css`
+  sets them on `html:root` so it beats the `:root` blocks in `bi.css` and the
+  inline OS styles. Two traps: `.gold-text` is `background-clip:text`, so glow
+  it with `filter: drop-shadow`, never `text-shadow` (renders black); logo
+  images on black use `mix-blend-mode: screen`.
+- **Brand assets** — `assets/brand/`: `logo-wordmark` (nav/footer),
+  `logo-lockup` (loader), `logo-full` (og:image), `favicon-{32,180,512}.png`
+  (the gold "A"), `scene-{office,devices,ai-desk,globe}` (web-sized). Originals
+  live in `docs/brand-source/`, which is not served.
 - `i18n.js` — FR/EN translation engine and dictionary (see below).
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.
