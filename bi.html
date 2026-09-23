@@ -7,8 +7,12 @@
   <title>MWINDA AI Business Intelligence — From Idea to Business</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/favicon-180.png" />
+  <meta name="theme-color" content="#050507" />
   <link rel="stylesheet" href="bi.css?v=11" />
+  <link rel="stylesheet" href="tech.css?v=1" />
 </head>
 <body>
 
@@ -16,10 +20,14 @@
   <!-- Poster first: video-bg.js reveals the video only once it is playing,
        so this artwork covers every failure mode. See docs/hero-video.md. -->
   <video autoplay muted loop playsinline preload="metadata"
-         poster="assets/hero-bi.jpg">
-    <source src="assets/hero-bi.mp4" type="video/mp4" />
+         poster="assets/mwinda-loop-landscape.jpg">
+    <source src="assets/mwinda-loop-landscape.mp4" type="video/mp4" media="(min-aspect-ratio: 4/5)" />
+    <source src="assets/mwinda-loop-portrait.mp4" type="video/mp4" />
   </video>
-  <img class="site-bg-img" src="assets/hero-bi.jpg" alt="" decoding="async" fetchpriority="high" />
+  <picture>
+    <source srcset="assets/mwinda-loop-portrait.jpg" media="(max-aspect-ratio: 4/5)" />
+    <img class="site-bg-img" src="assets/mwinda-loop-landscape.jpg" alt="" decoding="async" fetchpriority="high" />
+  </picture>
   <div class="site-bg-ignite"></div>
   <div class="site-bg-veil"></div>
 </div>
@@ -27,7 +35,7 @@
 
 <div class="topbar no-print">
   <div class="wrap topbar-in">
-    <a class="brand" href="index.html">Mwinda<small>Digital</small></a>
+    <a class="brand" href="index.html" aria-label="MWINDA DIGITAL — accueil"><picture class="brand-logo"><source srcset="assets/brand/logo-wordmark.webp" type="image/webp" /><img src="assets/brand/logo-wordmark.png" alt="MWINDA DIGITAL" width="560" height="215" decoding="async" /></picture></a>
     <div class="topbar-spacer"></div>
     <a class="back" href="index.html">← Site</a>
   </div>

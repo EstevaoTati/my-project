@@ -50,8 +50,6 @@
       'bi.note': "Gratuit pour tester · Français et anglais · Aucune inscription",
       'bi.f1': "Idée", 'bi.f2': "Business Model", 'bi.f3': "Business Plan",
       'bi.f4': "Finances", 'bi.f5': "Conformité", 'bi.f6': "PDF",
-      'bi.f1': "Idea", 'bi.f2': "Business Model", 'bi.f3': "Business Plan",
-      'bi.f4': "Financials", 'bi.f5': "Compliance", 'bi.f6': "PDF",
       'fab.bi': "AI Business Intelligence",
 
       'about.eyebrow': "À propos",
@@ -106,6 +104,8 @@
       'impact.s4': "Heures de travail automatisées",
       'impact.quote': "Notre vision : un écosystème où l'intelligence artificielle éclaire chaque idée — et où chaque idée devient un système qui travaille.",
       'impact.author': "— MWINDA DIGITAL",
+      'img.office': "Le siège MWINDA DIGITAL : logo or sur mur noir, accueil en marbre",
+      'img.devices': "L'identité MWINDA DIGITAL déclinée sur ordinateur, tablette, téléphone et papeterie",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Donnons <span class="gold-text">vie</span> <br/>à votre prochaine idée.',
@@ -173,6 +173,8 @@
       'bi.l5': "Professional dossier as PDF",
       'bi.cta': "Turn my idea into a business",
       'bi.note': "Free to try · French and English · No sign-up",
+      'bi.f1': "Idea", 'bi.f2': "Business Model", 'bi.f3': "Business Plan",
+      'bi.f4': "Financials", 'bi.f5': "Compliance", 'bi.f6': "PDF",
       'fab.bi': "AI Business Intelligence",
 
       'about.eyebrow': "About",
@@ -227,6 +229,8 @@
       'impact.s4': "Working hours automated",
       'impact.quote': "Our vision: an ecosystem where artificial intelligence lights up every idea — and every idea becomes a system that works.",
       'impact.author': "— MWINDA DIGITAL",
+      'img.office': "MWINDA DIGITAL headquarters: gold logo on a black wall, marble reception",
+      'img.devices': "The MWINDA DIGITAL identity across laptop, tablet, phone and stationery",
 
       'contact.eyebrow': "Contact",
       'contact.title': 'Let\'s bring <span class="gold-text">life</span> <br/>to your next idea.',

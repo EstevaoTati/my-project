@@ -1,7 +1,7 @@
 /* ============================================================
    MWINDA DIGITAL — background video that keeps playing.
 
-   Shared by index.html and bi.html. One implementation, because two copies of
+   Shared by index.html, bi.html and os.html. One implementation, because two copies of
    this logic drift and only one of them gets the next fix.
 
    `<video autoplay muted loop playsinline>` is the starting point, not the
