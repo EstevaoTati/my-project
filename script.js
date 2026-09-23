@@ -113,7 +113,19 @@
       words.forEach(w => { w.style.transform = 'translateY(0)'; w.style.transition = 'transform .8s ease'; });
       return;
     }
-    gsap.set(words, { yPercent: 110 });
+    // Two traps, both of which left the headline invisible:
+    // · CSS hides the words with translateY(110%). GSAP cannot read a
+    //   percentage back from CSS; it parses it as pixels into `y`, and the
+    //   tween to yPercent:0 then leaves that pixel offset behind. On a phone
+    //   the only word still inside its clipped line was "to Your". y:0 drops it.
+    // · The hero's .reveal blocks start at opacity 0 in CSS, and a .from()
+    //   tweens *to* the current value — 0 — then pins it inline. Reveal them
+    //   first (without the CSS transition fighting the tween), then animate.
+    document.querySelectorAll('.hero-content .reveal').forEach(el => {
+      el.style.transition = 'none';
+      el.classList.add('in');
+    });
+    gsap.set(words, { y: 0, yPercent: 110 });
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
     tl.to(words, { yPercent: 0, duration: 1.2, stagger: 0.08 }, 0)
       .from('.hero-tag', { opacity: 0, y: 20, duration: 1 }, 0.1)
