@@ -59,6 +59,12 @@ Portrait: 74% width, brightness 0.62, so the hero copy reads over it. Portrait
 scenes are set full height on a blurred, darkened extension of themselves (no
 hard edges); the light sweep is masked to the logo only.
 
+**The logo in the loop has no tagline.** `erase_tagline()` removes "BRINGING
+LIGHT TO YOUR IDEAS" from the plate (the source file is untouched). The hero
+headline already says it, and on phones the small tagline sat under the hero
+copy with only "TO YOUR" showing between the lines — it read as a broken
+fragment.
+
 Posters are extracted from the encoded files, never from the script, so the
 poster-to-video reveal cannot jump:
 

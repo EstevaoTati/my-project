@@ -72,12 +72,39 @@ def ease(p):
 
 
 # ------------------------------------------------------------------ plates --
+# The tagline's band in mwinda-logo.png (1774x887): glyphs sit on rows
+# 658-694, x 310-1445, between DIGITAL (ends ~612) and the frame (~748).
+TAGLINE_BAND = (280, 650, 1495, 704)
+
+
+def erase_tagline(logo):
+    """The logo without "BRINGING LIGHT TO YOUR IDEAS".
+
+    The hero headline already says it, and on a phone the small tagline sat
+    under the hero copy: only "TO YOUR" showed between the lines, which read
+    as a broken fragment. Each column of the band is refilled by interpolating
+    between the clean rows just above and below it, so the plate's gradient
+    carries through with no patch to see.
+    """
+    x0, y0, x1, y1 = TAGLINE_BAND
+    logo = logo.copy()
+    px = logo.load()
+    span = y1 - y0
+    for x in range(x0, x1):
+        top, bot = px[x, y0], px[x, y1]
+        for y in range(y0 + 1, y1):
+            t = (y - y0) / span
+            px[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(top, bot))
+    return logo
+
+
 def logo_plate(w, h, landscape):
     """The logo on black, placed where the page's headline is NOT.
 
     This loop plays behind the hero, and the hero leads with "Bringing Light
     to Your Ideas" — the logo's own tagline. Centred behind the headline, the
-    two copies stacked on each other and the text lost its contrast.
+    two copies stacked on each other and the text lost its contrast; the
+    tagline is erased from the plate (see erase_tagline).
 
     Landscape: the headline owns the left column, so the logo stands on the
     right. Portrait: a phone hero is text from top to bottom — there is no free
@@ -86,7 +113,7 @@ def logo_plate(w, h, landscape):
 
     Returns the plate and the logo's box on it, for the light sweep.
     """
-    logo = Image.open(os.path.join(SRC, "mwinda-logo.png")).convert("RGB")
+    logo = erase_tagline(Image.open(os.path.join(SRC, "mwinda-logo.png")).convert("RGB"))
     pw, ph = round(w * OVERSCAN), round(h * OVERSCAN)
     # The logo file's own corners, so the canvas and the logo share one black.
     plate = Image.new("RGB", (pw, ph), (9, 9, 10))
