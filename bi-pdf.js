@@ -63,7 +63,16 @@
     0x00A0: ' ', 0x202F: ' ', 0x2009: ' ', 0x2192: '->', 0x2190: '<-',
     0x2264: '<=', 0x2265: '>=', 0x00D7: 'x', 0x2212: '-', 0x2033: '"',
     0x2032: "'", 0x2116: 'No.', 0x2043: '-', 0x25CF: '-', 0x25AA: '-',
+    // What business prose actually contains, seen in real generations.
+    0x2248: '~', 0x2260: '!=', 0x2010: '-', 0x2011: '-', 0x2012: '-', 0x2015: '-',
+    0x201B: "'", 0x201F: '"', 0x2191: '^', 0x2193: 'v', 0x21D2: '=>', 0x2794: '->',
+    0x27A1: '->', 0x2705: '[x]', 0x2717: 'x', 0x2718: 'x', 0x274C: 'x', 0x2217: '*',
+    0x20A3: 'FC', 0x20A6: 'NGN', 0x20B5: 'GHS', 0x2081: '1', 0x2082: '2', 0x00AD: '',
   };
+  /** Invisible or decorative: emoji, variation selectors, zero-width joiners.
+   *  A "?" in their place reads as corruption; nothing is the honest render. */
+  const dropped = (cp) => (cp >= 0x1F000 && cp <= 0x1FAFF) || (cp >= 0xFE00 && cp <= 0xFE0F) ||
+    (cp >= 0x200B && cp <= 0x200F) || cp === 0x2060 || cp === 0xFEFF || (cp >= 0x2600 && cp <= 0x27BF);
 
   /** A JS string as WinAnsi bytes, held one-byte-per-char so that string
    *  offsets stay byte offsets — which the xref table depends on. */
@@ -76,6 +85,7 @@
       if (cp >= 0xA0 && cp <= 0xFF) { out += String.fromCharCode(cp); continue; }
       if (WIN_HIGH[cp] !== undefined) { out += String.fromCharCode(WIN_HIGH[cp]); continue; }
       if (FOLD[cp] !== undefined) { out += winAnsi(FOLD[cp]); continue; }
+      if (dropped(cp)) continue;
       out += '?';
     }
     return out;
@@ -145,6 +155,22 @@
     });
     if (line.length) lines.push(line);
     return lines.length ? lines : [[]];
+  }
+
+  /**
+   * Join a laid-out line's words back into runs of one style. Emitting one
+   * text operator per *word* made a 13-page dossier weigh ~900 KB; per run it
+   * is a fraction of that, and a reader extracts cleaner text from it. The
+   * positions are unchanged: a run is measured exactly as its words were.
+   */
+  function runsOfLine(line) {
+    const runs = [];
+    line.forEach((w) => {
+      const last = runs[runs.length - 1];
+      if (last && last.bold === w.bold && last.size === w.size) last.t += w.t;
+      else runs.push({ t: w.t, bold: w.bold, size: w.size });
+    });
+    return runs;
   }
 
   /* ------------------------------------------------------- the DOM walker -- */
@@ -304,9 +330,9 @@
       if (i === 0 && opts.bullet) {
         this.text(x - 10, opts.bullet, size, false, MUTED);
       }
-      line.forEach((word) => {
-        this.text(cx, word.t, word.size, word.bold, opts.color || BODY);
-        cx += widthOf(word.t, word.size, word.bold);
+      runsOfLine(line).forEach((run) => {
+        this.text(cx, run.t, run.size, run.bold, opts.color || BODY);
+        cx += widthOf(run.t, run.size, run.bold);
       });
       this.y += lead;
     });
@@ -412,11 +438,13 @@
       doc.room(height);
       const top = doc.y;
       laid.forEach((lines, i) => {
-        let ly = top;
+        // Text is placed by its baseline. Starting at `top` put the glyphs
+        // above the row, across the rule that closes the previous one.
+        let ly = top + size;
         lines.forEach((line) => {
           let cx = xAt(i);
           const save = doc.y; doc.y = ly;
-          line.forEach((w) => { doc.text(cx, w.t, size, bold, color); cx += widthOf(w.t, size, bold); });
+          runsOfLine(line).forEach((w) => { doc.text(cx, w.t, size, bold, color); cx += widthOf(w.t, size, bold); });
           doc.y = save;
           ly += size + 3.5;
         });
@@ -430,7 +458,7 @@
     doc.room(40);
     if (b.head.length) cell(b.head, 8.5, true, MUTED);
     b.rows.forEach((r) => cell(r, 9, false, BODY));
-    doc.y += 6;
+    doc.y += 12;
   }
 
   /* ------------------------------------------------------------ assembly -- */

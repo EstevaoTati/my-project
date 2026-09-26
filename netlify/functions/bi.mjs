@@ -21,10 +21,13 @@ import {
   authLockedOut, recordAuthFailure, recordAuthSuccess,
   originRejected, readJson, audit,
 } from "./_security.mjs";
-import { newJobId, putJob, jobsAvailable } from "./_jobs.mjs";
+import { newJobId, putJob, jobsAvailable, sweepJobs } from "./_jobs.mjs";
 import { STAGES } from "./_bi_stages.mjs";
 
-const MAX_BODY_BYTES = 96 * 1024;
+// The browser sends only what each stage needs (see DEPS in bi.js), ~15 KB.
+// The ceiling is generous so an older cached client that still sends every
+// prior stage — up to ~90 KB by the roadmap — is never refused mid-dossier.
+const MAX_BODY_BYTES = 256 * 1024;
 const PUBLIC_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 40 });  // ~6 dossiers/h
 const FOUNDER_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 200 });
 const GLOBAL_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 200 });
@@ -135,6 +138,12 @@ export default async (req) => {
     audit("bi.dispatch_failed", { ip, stage });
     await putJob(jobId, { status: "error", stage, error: "could not start the generation — please retry" });
     return json(502, { error: "could not start the generation — please retry" });
+  }
+
+  // Now and then, clear records whose tab never came back for them. Awaited
+  // (a function may be frozen once it returns) but never for long.
+  if (Math.random() < 0.1) {
+    await Promise.race([sweepJobs(), new Promise((r) => setTimeout(r, 800))]);
   }
 
   audit("bi.dispatched", { ip, stage, founder });

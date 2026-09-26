@@ -77,8 +77,8 @@ idea, say so and propose the better path.
 ## This repository
 
 Static marketing site for MWINDA DIGITAL, deployed on
-Netlify. Plain HTML/CSS/JS — **no build step, no package.json, no tests, no
-linter**. The default branch is `main`; every push to `main` auto-deploys.
+Netlify. Plain HTML/CSS/JS — **no build step, no linter**. The only test
+suite is the BI harness in `scripts/bi-harness/`. The default branch is `main`; every push to `main` auto-deploys.
 
 ### Pages and assets
 
@@ -158,6 +158,18 @@ linter**. The default branch is `main`; every push to `main` auto-deploys.
   editable. Truncated generations are returned as errors, never as partial
   data. Env: `BI_MODEL` (default `claude-sonnet-5`), `BI_ENABLED=false` kills
   it. See `docs/decisions/2026-08-26-bi-generation-runs-in-the-background.md`.
+  Reliability rules (see `docs/decisions/2026-09-26-bi-reliable-and-fast.md`):
+  **the plan runs as two parallel halves** (`PLAN_PARTS`), merged in order;
+  every output is **normalised to its schema** (`normalize` in
+  `_bi_stages.mjs`) and a truncated/incomplete answer is **retried once**
+  server-side before it becomes an error; a finished job is **kept until the
+  browser acks it** (`bi-status?job=…&ack=1`) and swept after the TTL (job ids
+  carry their birth time); the browser **persists the job id** in
+  `project.pending` and resumes it after a reload. Stages after the model read
+  only `analyze` + `model` (`DEPS` in `bi.js`) — that is what lets "Generate
+  the complete dossier" run plan, financials, compliance and roadmap at once.
+  **Test the whole flow with `scripts/bi-harness/`** (real functions, fake
+  model and Blobs, Playwright) after any change to it — see its README.
 - `netlify/functions/_reference.mjs` + `data/reference/*.json` — the grounding
   layer for the BI engine. **Facts and portals are never blurred:** World Bank
   (WDI / WGI / B-READY) and UNDP HDR figures are ingested on a schedule and
@@ -218,8 +230,9 @@ public statement first.
 
 ### Developing and verifying
 
-There is no build or test command. To verify, serve the folder and open the
-affected page in a browser before committing:
+There is no build command. To verify, serve the folder and open the
+affected page in a browser before committing (for anything touching `/bi`,
+run `scripts/bi-harness/` instead — it exercises the real functions):
 
 ```bash
 python3 -m http.server 8000   # then open http://localhost:8000/<page>.html

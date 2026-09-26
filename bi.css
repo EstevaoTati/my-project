@@ -40,7 +40,9 @@ body {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.topbar-in { display: flex; align-items: center; gap: 18px; padding: 14px 0; }
+/* Vertical padding only: `padding: 14px 0` zeroed .wrap's side gutter, and on a
+   phone the logo sat flush against the screen edge. */
+.topbar-in { display: flex; align-items: center; gap: 18px; padding-top: 14px; padding-bottom: 14px; }
 .brand {
   font-family: var(--serif); font-weight: 700; letter-spacing: .16em;
   text-transform: uppercase; font-size: 15px; color: var(--gold-2);
@@ -117,6 +119,12 @@ h3 {
 
 /* ---------- forms ---------- */
 .field { margin-bottom: 18px; }
+/* The analysis's follow-up questions are sentences, not form labels: set them
+   as reading text, never in the tracked capitals a label gets. */
+.field.q label {
+  text-transform: none; letter-spacing: 0; font-size: 15px; font-weight: 500;
+  color: var(--text); line-height: 1.5; font-family: var(--f-body, var(--sans));
+}
 .field label {
   display: block; font-size: 11px; font-weight: 600; letter-spacing: .16em;
   text-transform: uppercase; color: var(--mute); margin-bottom: 7px;
@@ -158,6 +166,8 @@ h3 {
 .btn.ghost { background: none; border: 1px solid var(--line-strong); color: var(--gold-1); }
 .btn.ghost:hover:not(:disabled) { background: rgba(212,175,55,.1); }
 .btn.small { font-size: 12px; padding: 9px 15px; }
+/* .btn sets a display, which beats the UA's [hidden] rule — restore it. */
+.btn[hidden] { display: none; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 24px; }
 
 /* ---------- status / progress ---------- */
@@ -174,6 +184,29 @@ h3 {
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.status .btn { margin-left: auto; }
+.status.err { flex-wrap: wrap; }
+
+/* "Generate the complete dossier": one line per section, each with its own state. */
+.btn-all { background: linear-gradient(135deg, #1466d6, #3aa8ff); color: #fff; }
+.btn-all:hover:not(:disabled) { background: linear-gradient(135deg, #1a74ee, #5bb8ff); }
+.status-all {
+  font-family: var(--mono); font-size: 13px;
+  background: var(--bg-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 16px; margin-top: 18px;
+}
+.status-all .row { display: flex; align-items: center; gap: 12px; padding: 7px 0; color: var(--gold-1); }
+.status-all .row + .row { border-top: 1px solid var(--line); }
+.status-all .row b { min-width: 11em; font-weight: 600; color: var(--text); }
+.status-all .row .st { color: var(--mute); overflow-wrap: anywhere; }
+.status-all .row .ic { width: 13px; flex: 0 0 auto; text-align: center; }
+.status-all .row.ok .ic { color: var(--ok); }
+.status-all .row.bad .ic, .status-all .row.bad .st { color: var(--bad); }
+.footnote.ok { color: var(--ok); }
+@media (max-width: 560px) {
+  .status-all .row { flex-wrap: wrap; gap: 4px 10px; }
+  .status-all .row .st { flex: 1 1 100%; padding-left: 23px; }
+}
 @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
 
 /* ---------- content blocks ---------- */

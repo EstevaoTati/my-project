@@ -1,0 +1,16 @@
+{
+  "name": "mwinda-bi-harness",
+  "private": true,
+  "description": "End-to-end test harness for MWINDA AI Business Intelligence: runs the real netlify/functions with a fake model and a fake Blobs store, and drives bi.html in Chromium. Not deployed; not part of the function bundle.",
+  "type": "module",
+  "scripts": {
+    "server": "node --import ./register.mjs server.mjs",
+    "unit": "node --import ./register.mjs unit.mjs",
+    "api": "node api.mjs",
+    "e2e": "node e2e.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^4.10.38",
+    "playwright-core": "^1.56.0"
+  }
+}

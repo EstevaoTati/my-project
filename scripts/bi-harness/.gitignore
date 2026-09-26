@@ -1,0 +1,6 @@
+node_modules/
+control.json
+requests.log
+server.log
+*.pdf
+*.png

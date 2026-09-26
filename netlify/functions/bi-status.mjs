@@ -9,9 +9,9 @@
 import { json, clientIp, SlidingWindow } from "./_security.mjs";
 import { getJob, dropJob } from "./_jobs.mjs";
 
-// A client polls every ~2s for at most a few minutes: ~150 requests a job,
-// and a founder may run six stages. Generous, but not unbounded.
-const POLL_RATE = new SlidingWindow({ windowMs: 600_000, max: 800 });
+// A client polls every 2-4s for at most a few minutes, and "generate the
+// complete dossier" runs four stages at once. Generous, but not unbounded.
+const POLL_RATE = new SlidingWindow({ windowMs: 600_000, max: 1500 });
 
 /**
  * `originRejected` cannot be used here: it treats a missing Origin header as
@@ -36,8 +36,18 @@ export default async (req) => {
   const wait = POLL_RATE.check(ip);
   if (wait) return json(429, { error: "too many status checks" }, { "retry-after": String(wait) });
 
-  const id = new URL(req.url).searchParams.get("job") || "";
+  const params = new URL(req.url).searchParams;
+  const id = params.get("job") || "";
   if (!/^[0-9a-f]{36}$/.test(id)) return json(400, { error: "invalid job id" });
+
+  // The browser confirms it has stored the result; only then is it deleted.
+  // Deleting on the first read lost finished work whenever that one response
+  // did not arrive — a phone switching networks, a tab backgrounded mid-poll:
+  // the next poll found nothing, and the founder was told to start again.
+  if (params.get("ack") === "1") {
+    await dropJob(id);
+    return json(200, { ok: true });
+  }
 
   let rec;
   try {
@@ -50,9 +60,8 @@ export default async (req) => {
   if (!rec) return json(404, { error: "unknown or expired job" });
 
   if (rec.status === "done") {
-    // Read once, then let it go: the browser has the dossier now, and a
-    // business plan should not sit in a store longer than it must.
-    await dropJob(id);
+    // Kept until acknowledged (or until the TTL sweep): a business plan should
+    // not sit in a store longer than it must, but it must survive one lost reply.
     return json(200, { status: "done", stage: rec.stage, data: rec.data });
   }
   if (rec.status === "error") {
@@ -60,6 +69,7 @@ export default async (req) => {
     return json(200, { status: "error", stage: rec.stage, error: rec.error });
   }
   if (rec.status === "expired") {
+    await dropJob(id);
     return json(200, { status: "error", stage: rec.stage, error: "the generation timed out — please retry" });
   }
 
