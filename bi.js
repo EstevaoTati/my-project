@@ -12,10 +12,10 @@
 
   const ENDPOINT = '/.netlify/functions/bi';
   const STATUS_ENDPOINT = '/.netlify/functions/bi-status';
-  // The engine dispatches to a background worker and we poll. Two seconds is
-  // frequent enough to feel alive and slow enough that a six-stage dossier
-  // does not generate hundreds of requests.
-  const POLL_MS = 2000;
+  // The engine dispatches to a background worker and we poll: often at first
+  // (short stages finish in seconds), then less often — a two-minute plan does
+  // not need a request every second, and "generate everything" polls four jobs.
+  const pollDelay = (elapsed) => (elapsed < 10000 ? 1500 : elapsed < 60000 ? 2500 : 3500);
   // The worker's own ceiling is 15 minutes. Give up before that, because a
   // stage that has not finished in eight is not going to.
   const MAX_WAIT_MS = 8 * 60 * 1000;
@@ -23,6 +23,23 @@
     analyze: 'idea analysis', model: 'business model', plan: 'business plan',
     financials: 'financial assumptions', compliance: 'regulatory checklist',
     roadmap: 'execution roadmap',
+  };
+  /**
+   * What each stage is written from. Everything after the business model reads
+   * only the analysis and the model — which is what lets the plan, the
+   * financials, the checklist and the roadmap run at the same time, and keeps
+   * every request small (~15 KB) instead of echoing the whole plan back up a
+   * mobile connection at every step.
+   */
+  const DEPS = {
+    analyze: [], model: ['analyze'],
+    plan: ['analyze', 'model'], financials: ['analyze', 'model'],
+    compliance: ['analyze', 'model'], roadmap: ['analyze', 'model'],
+  };
+  /** Honest expectations, shown while a stage runs. */
+  const EXPECT = {
+    analyze: 'usually under a minute', model: 'usually 30-60 s', plan: 'usually 1-2 min',
+    financials: 'usually under 30 s', compliance: 'usually under a minute', roadmap: 'usually 30-60 s',
   };
   const pause = (ms) => new Promise((r) => setTimeout(r, ms));
   const PROJECT_API = '/.netlify/functions/project';
@@ -233,6 +250,7 @@
     stages: {},        // analyze | model | plan | financials | compliance | roadmap
     tasksDone: {},     // "phaseIndex:taskIndex" -> true
     checked: {},       // compliance item index -> true
+    pending: {},       // stage -> { jobId, at } while the engine works on it
   });
 
   let project = blank();
@@ -245,9 +263,9 @@
       clearTimeout(syncTimer);
       syncTimer = setTimeout(() => remote.sync(project), 2000);
     }
+    project.progress = Math.round(Object.keys(project.stages).length / 6 * 100);
     try {
       localStorage.setItem(STORE, JSON.stringify(project));
-      project.progress = Math.round(Object.keys(project.stages).length / 6 * 100);
       // A dossier opened from someone else's link is never added to the saved
       // list — it would sit in the panel of whoever was shown it once.
       if (project.shared) return;
@@ -298,7 +316,7 @@
         ? true
         : s.id === 'dossier'
           ? !!project.stages.analyze
-          : !!project.stages[prevStage(s.id)] || !!project.stages[s.id];
+          : DEPS[s.id].every((d) => project.stages[d]) || !!project.stages[s.id];
       rail.appendChild(h('button', {
         class: [s.id === current ? 'active' : '', project.stages[s.id] ? 'done' : ''].join(' ').trim(),
         disabled: !reachable && s.id !== current,
@@ -308,10 +326,12 @@
     });
   }
   const ORDER = ['analyze', 'model', 'plan', 'financials', 'compliance', 'roadmap'];
-  const prevStage = (id) => ORDER[ORDER.indexOf(id) - 1] || 'analyze';
 
   function go(id) {
     current = id;
+    // The dossier is assembled from whatever exists *now*. Reaching it from the
+    // rail used to show the copy built at page load — often empty.
+    if (id === 'dossier') renderDossier();
     document.querySelectorAll('.step').forEach((s) => s.classList.toggle('active', s.id === 'step-' + id));
     renderRail();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -319,103 +339,245 @@
 
   // -------------------------------------------------------------- generate --
   /**
-   * Ask the engine for a stage, then wait for it.
+   * The engine, in two layers: `runStage` talks to the server and keeps the
+   * project up to date; `generate` puts a status line on the page around it.
    *
-   * This used to read a streamed NDJSON response. That could not work: a stage
-   * runs 20-120 seconds and the platform kills a synchronous function long
-   * before that. Because bytes had already been streamed, the browser saw the
-   * connection simply stop — no result, no error — and this function reported
-   * "no result received", which is what the founder hit on every analysis.
+   * A stage runs 20-120 seconds, so it is dispatched to a background worker
+   * and polled for. Three things make that survive real phones:
    *
-   * The engine now dispatches the work to a background worker and answers with
-   * a job id in milliseconds; we poll for the outcome. A dropped poll on a
-   * flaky connection no longer costs the generation — the work carries on
-   * server-side and the next poll picks it up.
+   *  · The job id is saved with the project the moment it exists. A reload, an
+   *    in-app browser that recycles the page, a phone that drops the tab — the
+   *    work carries on server-side, and on the next load `resumePending()`
+   *    picks the same job up instead of throwing an hour's wait away.
+   *  · A finished result stays on the server until this page acknowledges it.
+   *    It used to be deleted on the first read, so one lost reply lost the
+   *    stage.
+   *  · One request per stage at a time: clicking twice, or "generate
+   *    everything" while a stage is already running, joins the running job.
    */
-  async function generate(stage, statusHost) {
-    const box = h('div', { class: 'status' }, h('span', { class: 'spin' }), h('span', { text: 'Contacting the engine…' }));
-    clear(statusHost);
-    statusHost.appendChild(box);
-    const label = box.lastChild;
+  const inflight = {};   // stage -> Promise<data>
 
+  /** Only what the stage is written from — see DEPS. */
+  function priorFor(stage) {
     const prior = {};
-    for (const s of ORDER) {
-      if (s === stage) break;
-      if (project.stages[s]) prior[s] = project.stages[s];
+    DEPS[stage].forEach((d) => {
+      const data = project.stages[d];
+      if (!data) return;
+      if (d === 'analyze') {
+        // The questions are answered in project.answers, which travels anyway.
+        const { clarifyingQuestions, ...rest } = data;   // eslint-disable-line no-unused-vars
+        prior[d] = rest;
+      } else prior[d] = data;
+    });
+    return prior;
+  }
+
+  function runStage(stage, onProgress) {
+    if (inflight[stage]) {
+      inflight[stage].listeners.push(onProgress);
+      return inflight[stage].promise;
     }
+    const listeners = [onProgress];
+    const tell = (text) => listeners.forEach((fn) => fn && fn(text));
+    const promise = (async () => {
+      const pend = project.pending && project.pending[stage];
+      let jobId = pend && pend.jobId;
+      let started = (pend && pend.at) || Date.now();
+      if (!jobId) {
+        tell('Contacting the engine…');
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            stage,
+            project: {
+              intent: project.intent, country: project.country, region: project.region,
+              city: project.city, sector: project.sector, businessType: project.businessType,
+              budget: project.budget, idea: project.idea, answers: project.answers,
+            },
+            prior: priorFor(stage),
+          }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(out.error || ('HTTP ' + res.status));
+        if (!out.jobId) throw new Error('the engine did not start the work — please retry');
+        jobId = out.jobId;
+        started = Date.now();
+        project.pending = project.pending || {};
+        project.pending[stage] = { jobId, at: started };
+        save();
+      }
+      return pollJob(stage, jobId, started, tell);
+    })().finally(() => { delete inflight[stage]; });
+    inflight[stage] = { promise, listeners };
+    return promise;
+  }
 
-    const started = Date.now();
+  async function pollJob(stage, jobId, started, tell) {
     const secs = () => Math.round((Date.now() - started) / 1000);
-    const say = (text) => { label.textContent = text; };
-
-    try {
-      const res = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          stage,
-          project: {
-            intent: project.intent, country: project.country, region: project.region,
-            city: project.city, sector: project.sector, businessType: project.businessType,
-            budget: project.budget, idea: project.idea, answers: project.answers,
-          },
-          prior,
-        }),
-      });
-
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(out.error || ('HTTP ' + res.status));
-      if (!out.jobId) throw new Error('the engine did not start the work — please retry');
-
-      say('Generating the ' + (STAGE_TITLES[stage] || stage) + '…');
-
-      let result = null;
-      let misses = 0;
-      for (;;) {
-        await pause(POLL_MS);
-        if (Date.now() - started > MAX_WAIT_MS) {
-          throw new Error('this is taking much longer than usual — please retry');
+    const forget = () => { if (project.pending) delete project.pending[stage]; save(); };
+    let misses = 0;
+    for (;;) {
+      await pause(pollDelay(Date.now() - started));
+      if (Date.now() - started > MAX_WAIT_MS) {
+        forget();
+        throw new Error('this is taking much longer than usual — please retry');
+      }
+      let status = null;
+      try {
+        const r = await fetch(STATUS_ENDPOINT + '?job=' + encodeURIComponent(jobId), { cache: 'no-store' });
+        const s = await r.json().catch(() => ({}));
+        if (r.status === 404 && misses > 3) {
+          // Gone for good: expired, or acknowledged by another tab.
+          forget();
+          throw Object.assign(new Error('the result is no longer available — please retry'), { fatal: true });
         }
-
-        let status = null;
-        try {
-          const r = await fetch(STATUS_ENDPOINT + '?job=' + encodeURIComponent(out.jobId), { cache: 'no-store' });
-          const s = await r.json().catch(() => ({}));
-          // 404 right after dispatch, or a 5xx, is worth another look — the
-          // work is still running on the server either way.
-          if (r.status === 404 || r.status >= 500) { status = null; }
-          else if (!r.ok) throw new Error(s.error || ('HTTP ' + r.status));
-          else status = s;
-        } catch (netErr) {
-          if (netErr && netErr.__fatal) throw netErr;
-          status = null;                       // a dropped poll, not a failure
-        }
-
-        if (!status) {
-          if (++misses > 8) throw new Error('lost contact with the engine — please retry');
-          continue;
-        }
-        misses = 0;
-
-        if (status.status === 'done') { result = status.data; break; }
-        if (status.status === 'error') throw new Error(status.error || 'generation failed');
-
-        say(status.chars
-          ? 'Writing… ' + Math.round(status.chars / 100) * 100 + ' characters (' + secs() + 's)'
-          : 'Generating the ' + (STAGE_TITLES[stage] || stage) + '… (' + secs() + 's)');
+        if (r.status === 404 || r.status >= 500 || r.status === 429) status = null;
+        else if (!r.ok) throw Object.assign(new Error(s.error || ('HTTP ' + r.status)), { fatal: true });
+        else status = s;
+      } catch (err) {
+        if (err && err.fatal) throw err;
+        status = null;                       // a dropped poll, not a failure
       }
 
-      if (!result) throw new Error('the engine returned nothing — please retry');
+      if (!status) {
+        if (++misses > 12) throw new Error('lost contact with the engine — check your connection and press Retry; the work is not lost');
+        tell('Waiting for the connection… (' + secs() + 's)');
+        continue;
+      }
+      misses = 0;
 
-      project.stages[stage] = result;
-      save();
-      clear(statusHost);
-      return result;
+      if (status.status === 'done') {
+        if (!status.data) { forget(); throw new Error('the engine returned nothing — please retry'); }
+        project.stages[stage] = status.data;
+        forget();
+        // Only now may the server let it go.
+        fetch(STATUS_ENDPOINT + '?job=' + encodeURIComponent(jobId) + '&ack=1', { cache: 'no-store' }).catch(() => { /* swept later */ });
+        return status.data;
+      }
+      if (status.status === 'error') { forget(); throw new Error(status.error || 'generation failed'); }
+
+      tell((status.chars
+        ? 'Writing the ' + (STAGE_TITLES[stage] || stage) + '… ' + (Math.round(status.chars / 100) * 100).toLocaleString('en-US') + ' characters'
+        : 'Generating the ' + (STAGE_TITLES[stage] || stage) + '…') + ' · ' + secs() + 's · ' + EXPECT[stage]);
+    }
+  }
+
+  /**
+   * Run a stage with a status line in `host`. On success calls `onDone(data)`;
+   * on failure the line turns into the reason plus a Retry button — a founder
+   * should never have to hunt for the button that failed.
+   */
+  async function generate(stage, host, onDone) {
+    clear(host);
+    const label = h('span', { text: 'Contacting the engine…' });
+    const line = h('div', { class: 'status', role: 'status', 'aria-live': 'polite' }, h('span', { class: 'spin' }), label);
+    host.appendChild(line);
+    if (line.scrollIntoView && line.getBoundingClientRect().top > window.innerHeight - 40) {
+      line.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    try {
+      const data = await runStage(stage, (text) => { label.textContent = text; });
+      clear(host);
+      if (onDone) onDone(data);
+      return data;
     } catch (e) {
-      clear(statusHost);
-      statusHost.appendChild(h('div', { class: 'status err' }, h('span', { text: '✕ ' + (e.message || 'generation failed') })));
+      clear(host);
+      host.appendChild(h('div', { class: 'status err', role: 'alert' },
+        h('span', { text: '✕ ' + (e.message || 'generation failed') }),
+        h('button', {
+          class: 'btn ghost small', type: 'button', text: 'Retry',
+          onclick: () => generate(stage, host, onDone),
+        })));
       return null;
     }
+  }
+
+  /** Where a stage's status line lives: under the button that starts it. */
+  function hostFor(stage) {
+    if (stage === 'analyze') return $('startStatus');
+    const btn = document.querySelector('[data-next="' + stage + '"]');
+    return btn ? statusHost(btn) : $('startStatus');
+  }
+
+  /** After a stage lands: draw it, and follow it if the founder is waiting on it. */
+  function landed(stage, fromStep) {
+    RENDER[stage]();
+    renderRail();
+    if (current === fromStep) go(stage);
+  }
+  const stepOf = (stage) => (stage === 'analyze' ? 'start' : ORDER[ORDER.indexOf(stage) - 1]);
+
+  /** Pick up jobs a previous page load started and never saw finish. */
+  function resumePending() {
+    const pend = project.pending || {};
+    Object.keys(pend).forEach((stage) => {
+      if (!STAGE_TITLES[stage] || !pend[stage] || !pend[stage].jobId || Date.now() - pend[stage].at > MAX_WAIT_MS) {
+        delete pend[stage];
+        return;
+      }
+      generate(stage, hostFor(stage), () => landed(stage, stepOf(stage)));
+    });
+  }
+
+  /**
+   * "Generate the complete dossier": the business model first (everything else
+   * is written from it), then the plan, financials, checklist and roadmap all
+   * at once. About the time of the plan alone, instead of the sum of five.
+   */
+  async function generateAll(host) {
+    clear(host);
+    const todo = ORDER.filter((s) => s !== 'analyze' && !project.stages[s]);
+    if (!project.stages.analyze) {
+      host.appendChild(h('div', { class: 'status err', text: 'Run “Analyse my idea” first — everything else is written from it.' }));
+      return;
+    }
+    if (!todo.length) { go('dossier'); return; }
+    document.querySelectorAll('[data-all]').forEach((b) => { b.disabled = true; });
+
+    const list = h('div', { class: 'status-all', role: 'status', 'aria-live': 'polite' });
+    host.appendChild(list);
+    // The button sits at the foot of a long analysis; on a phone the progress
+    // would otherwise appear below the fold, and the tap would look ignored.
+    list.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const rows = {};
+    todo.forEach((s) => {
+      const state = h('span', { class: 'st', text: s === 'model' ? 'starting…' : 'waiting for the business model' });
+      rows[s] = { el: h('div', { class: 'row' }, h('span', { class: 'ic spin' }), h('b', { text: STAGE_TITLES[s] }), state), state };
+      list.appendChild(rows[s].el);
+    });
+    const mark = (s, ok, text) => {
+      const r = rows[s];
+      r.el.className = 'row ' + (ok ? 'ok' : 'bad');
+      r.el.firstChild.className = 'ic';
+      r.el.firstChild.textContent = ok ? '✓' : '✕';
+      r.state.textContent = text;
+    };
+    const run = (s) => runStage(s, (t) => { rows[s].state.textContent = t; })
+      .then((d) => { RENDER[s](); renderRail(); mark(s, true, 'done'); return d; })
+      .catch((e) => { mark(s, false, e.message || 'failed'); throw e; });
+
+    let failed = [];
+    try {
+      if (rows.model) await run('model');
+      const rest = todo.filter((s) => s !== 'model');
+      const settled = await Promise.allSettled(rest.map(run));
+      failed = rest.filter((s, i) => settled[i].status === 'rejected');
+    } catch {
+      failed = todo;
+      todo.filter((s) => s !== 'model').forEach((s) => mark(s, false, 'needs the business model'));
+    }
+    document.querySelectorAll('[data-all]').forEach((b) => { b.disabled = false; });
+
+    if (failed.length) {
+      host.appendChild(h('div', { class: 'status err', role: 'alert' },
+        h('span', { text: failed.length + ' section' + (failed.length > 1 ? 's' : '') + ' could not be generated. Everything else is saved.' }),
+        h('button', { class: 'btn ghost small', type: 'button', text: 'Retry the missing ones', onclick: () => generateAll(host) })));
+      return;
+    }
+    clear(host);
+    go('dossier');
+    pdfNote('Your complete dossier is ready. Review it below, then download the PDF.', 'ok');
   }
 
   // ------------------------------------------------------- stage renderers --
@@ -485,7 +647,7 @@
       const panel = h('div', { class: 'panel no-print' }, h('h3', { text: 'Sharpen the analysis' }),
         h('p', { class: 'sub', text: 'Answering these makes everything downstream more specific. Optional.' }));
       d.clarifyingQuestions.forEach((q) => {
-        const field = h('div', { class: 'field' }, h('label', { text: q }));
+        const field = h('div', { class: 'field q' }, h('label', { text: q }));
         const input = h('input', { type: 'text', placeholder: 'Your answer…' });
         input.value = project.answers[q] || '';
         input.addEventListener('input', () => { project.answers[q] = input.value; save(); });
@@ -782,6 +944,12 @@
     };
     const included = ORDER.filter((k) => s[k]);
     const missing = ORDER.filter((k) => !s[k]);
+    const allBtn = $('btnAllMissing');
+    if (allBtn) allBtn.hidden = !s.analyze || !missing.length;
+    if (!included.length) {
+      out.appendChild(h('p', { class: 'footnote', text: 'Nothing generated yet — run “Analyse my idea” first. The dossier is built from the steps you complete.' }));
+      return;
+    }
     if (missing.length) {
       out.appendChild(h('p', { class: 'footnote', style: 'margin:-18px 0 26px',
         text: 'This dossier covers ' + included.length + ' of 6 sections: ' +
@@ -790,45 +958,107 @@
     }
 
     const sec = (title, ...kids) => h('div', { class: 'doc-section' }, h('h4', { text: title }), ...kids);
+    const paras = (text) => {
+      const body = h('div');
+      String(text || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).forEach((para) => {
+        // "- " lines are the plan's bullets; keep them as a list, not a run-on paragraph.
+        const lines = para.split('\n');
+        if (lines.length > 1 && lines.every((l) => /^\s*[-•]\s+/.test(l))) {
+          body.appendChild(h('ul', { class: 'clean' }, lines.map((l) => h('li', { text: l.replace(/^\s*[-•]\s+/, '') }))));
+        } else body.appendChild(h('p', { text: para.replace(/\n/g, ' ') }));
+      });
+      return body;
+    };
+    const bullets = (items) => h('ul', { class: 'clean' }, arr(items).map((x) => h('li', { text: String(x) })));
 
-    if (s.analyze) {
-      out.appendChild(sec('Executive summary', h('p', { text: s.analyze.summary })));
-      out.appendChild(sec('Problem', h('p', { text: s.analyze.problem })));
-      out.appendChild(sec('Solution', h('p', { text: s.analyze.solution })));
+    // 1 · The narrative. The plan's 17 sections already open with an executive
+    // summary, the problem and the solution; printing the analysis's versions
+    // first said everything twice.
+    if (s.plan) {
+      arr(s.plan.sections).forEach((x) => out.appendChild(sec(x.title, paras(x.body))));
+    } else if (s.analyze) {
+      const a = s.analyze;
+      out.appendChild(sec('Executive summary', h('p', { text: a.summary }),
+        a.valueProposition ? h('p', {}, h('b', { text: 'Value proposition: ' }), a.valueProposition) : null));
+      out.appendChild(sec('Problem', h('p', { text: a.problem })));
+      out.appendChild(sec('Solution', h('p', { text: a.solution })));
+      if (arr(a.targetCustomers).length) {
+        out.appendChild(sec('Target customers', h('ul', { class: 'clean' }, a.targetCustomers.map((c) =>
+          h('li', {}, h('b', { text: (c.segment || '') + ' — ' }), c.description || '')))));
+      }
+      if (arr(a.revenueModelOptions).length) {
+        out.appendChild(sec('Revenue models to consider', h('ul', { class: 'clean' }, a.revenueModelOptions.map((r) =>
+          h('li', {}, h('b', { text: (r.name || '') + ' (' + (r.fit || '—') + ' fit) — ' }), r.why || '')))));
+      }
     }
 
-    if (s.plan) {
-      arr(s.plan.sections).forEach((x) => {
-        const body = h('div');
-        String(x.body || '').split(/\n{2,}/).forEach((para) => body.appendChild(h('p', { text: para })));
-        out.appendChild(sec(x.title, body));
-      });
+    // 2 · What the analysis adds that a plan does not say as plainly.
+    if (s.analyze) {
+      const a = s.analyze;
+      if (arr(a.risks).length) {
+        out.appendChild(sec('Key risks and first mitigations', h('ul', { class: 'clean' }, a.risks.map((r) =>
+          h('li', {}, h('b', { text: (r.risk || '') + ' [' + (r.severity || '—') + '] — ' }), r.mitigation || '')))));
+      }
+      if (arr(a.assumptionsToValidate).length) {
+        out.appendChild(sec('Assumptions to validate before investing', bullets(a.assumptionsToValidate)));
+      }
+      if (!s.plan && arr(a.opportunities).length) out.appendChild(sec('Opportunities', bullets(a.opportunities)));
     }
 
     if (s.model) {
       const rows = CANVAS.map(([k, label]) =>
         h('div', { class: 'kv' }, h('dt', { text: label }),
-          h('dd', { text: arr(s.model[k]).join(' · ') })));
+          h('dd', { text: arr(s.model[k]).join(' · ') || '—' })));
       out.appendChild(sec('Business model canvas', h('dl', {}, rows),
-        h('p', {}, h('b', { text: 'Recommended: ' }), s.model.recommendedRevenueModel || '')));
+        h('p', {}, h('b', { text: 'Recommended revenue model: ' }), s.model.recommendedRevenueModel || ''),
+        s.model.rationale ? h('p', { text: s.model.rationale }) : null));
     }
 
     if (s.financials) {
       const d = s.financials;
+      const a = d.assumptions || {};
       const cur = d.currency || 'USD';
       const money = (n) => (n < 0 ? '-' : '') + cur + ' ' + Math.abs(Math.round(n)).toLocaleString('en-US');
       const mult = d.scenarioMultipliers || {};
-      const table = h('table', { class: 'fin' },
+      const inputs = h('table', { class: 'fin' },
+        h('thead', {}, h('tr', {}, h('th', { text: 'Assumption' }), h('th', { text: 'Value' }))),
+        h('tbody', {}, FIELDS.map(([k, label]) => h('tr', {},
+          h('td', { text: label }),
+          h('td', { text: k === 'monthlyGrowthRate' ? (num(a[k]) * 100).toFixed(1) + '% / month'
+            : k === 'customersMonth1' ? Math.round(num(a[k])).toLocaleString('en-US') : money(num(a[k])) }),
+        ))));
+      const scen = h('table', { class: 'fin' },
         h('thead', {}, h('tr', {}, ['Scenario', 'Revenue', 'Expenses', 'Net result', 'Margin', 'Break-even'].map((t) => h('th', { text: t })))),
         h('tbody', {}, [['Pessimistic', num(mult.pessimistic, .5)], ['Realistic', num(mult.realistic, 1)], ['Optimistic', num(mult.optimistic, 1.6)]].map(([name, m]) => {
-          const r = project12(d.assumptions, m);
+          const r = project12(a, m);
           return h('tr', {},
-            h('td', { text: name }), h('td', { text: money(r.total.revenue) }),
+            h('td', { text: name + ' (×' + m + ')' }), h('td', { text: money(r.total.revenue) }),
             h('td', { text: money(r.total.expenses) }), h('td', { text: money(r.total.net) }),
             h('td', { text: (r.total.margin * 100).toFixed(1) + '%' }),
             h('td', { text: r.breakEven ? 'month ' + r.breakEven : 'not in year 1' }));
         })));
-      out.appendChild(sec('Financial projection — year 1', table,
+      const real = project12(a, num(mult.realistic, 1));
+      const monthly = h('table', { class: 'fin' },
+        h('thead', {}, h('tr', {}, ['Month', 'Customers', 'Revenue', 'Costs', 'Net', 'Cash'].map((t) => h('th', { text: t })))),
+        h('tbody', {}, real.rows.map((r) => h('tr', {},
+          h('td', { text: 'M' + r.m }),
+          h('td', { text: Math.round(r.customers).toLocaleString('en-US') }),
+          h('td', { text: money(r.revenue) }),
+          h('td', { text: money(r.variable + real.fixedMonthly) }),
+          h('td', { text: money(r.net) }),
+          h('td', { text: money(r.cash) }),
+        ))));
+      const trough = Math.min(...real.rows.map((r) => r.cash));
+      out.appendChild(sec('Financial projection — year 1',
+        h('p', { text: 'Starting assumptions (' + cur + '). Proposed by the engine as plausible for this country, sector and stage, and editable by the founder.' }),
+        inputs,
+        arr(d.assumptionNotes).length ? bullets(d.assumptionNotes) : null,
+        h('p', {}, h('b', { text: 'Scenarios' })),
+        scen,
+        h('p', {}, h('b', { text: 'Realistic scenario, month by month' })),
+        monthly,
+        h('p', {}, h('b', { text: 'Capital needed to survive year 1 (realistic): ' }), money(Math.max(0, -trough)) +
+          ' — lowest cash point ' + money(trough) + ', including the initial investment as a month-0 outflow.'),
         h('p', { class: 'footnote', text: 'Projections computed from the stated assumptions. They are not forecasts, and no outcome is guaranteed.' })));
     }
 
@@ -837,7 +1067,10 @@
       arr(s.compliance.items).forEach((it) => {
         list.appendChild(h('div', { class: 'check-item' },
           h('div', {}, h('b', { text: it.requirement }), h('span', { class: 'tag conf-' + it.confidence, text: it.confidence })),
-          h('div', { class: 'meta', style: 'padding-left:0' }, h('b', { text: 'Confirm with: ' }), it.verifyWith)));
+          h('div', { class: 'meta', style: 'padding-left:0' },
+            it.whyItMatters ? 'Why it matters: ' + it.whyItMatters + ' ' : '',
+            it.typicalAuthority ? 'Handled by: ' + it.typicalAuthority + ' ' : '',
+            it.verifyWith ? 'Confirm with: ' + it.verifyWith : '')));
       });
       out.appendChild(sec('Regulatory checklist — ' + (project.country || ''),
         h('p', { text: s.compliance.jurisdictionNote || '' }), list,
@@ -847,9 +1080,10 @@
     if (s.roadmap) {
       const list = h('div');
       arr(s.roadmap.phases).forEach((p, pi) => {
-        list.appendChild(h('p', {}, h('b', { text: (pi + 1) + '. ' + p.name + ' — ' }), p.durationEstimate || ''));
+        list.appendChild(h('p', {}, h('b', { text: (pi + 1) + '. ' + (p.name || '') + (p.durationEstimate ? ' — ' + p.durationEstimate : '') })));
+        if (p.objective) list.appendChild(h('p', { text: 'Objective: ' + p.objective }));
         const ul = h('ul', { class: 'clean' });
-        arr(p.tasks).forEach((t, ti) => ul.appendChild(h('li', { text: (project.tasksDone[pi + ':' + ti] ? '✓ ' : '') + t.title })));
+        arr(p.tasks).forEach((t, ti) => ul.appendChild(h('li', { text: (project.tasksDone[pi + ':' + ti] ? '✓ ' : '') + (t.title || '') })));
         list.appendChild(ul);
       });
       out.appendChild(sec('Execution roadmap', list));
@@ -904,7 +1138,7 @@
         h('div', { class: 'dt', text: (p.updatedAt || '').slice(0, 10) }),
         h('button', {
           class: 'btn ghost small', type: 'button', text: 'Open',
-          onclick: () => { project = Object.assign(blank(), p.data); save(); boot(); go('analyze'); },
+          onclick: () => { project = Object.assign(blank(), p.data); save(); boot(); resumePending(); go(project.stages.analyze ? 'analyze' : 'start'); },
         })));
     });
   }
@@ -938,6 +1172,16 @@
     return box;
   }
 
+  /** Write a message into the export note, replacing whatever was there. */
+  function pdfNote(text, kind) {
+    const note = $('pdfNote');
+    if (!note) return null;
+    clear(note);
+    note.className = 'footnote' + (kind ? ' ' + kind : '');
+    if (text) note.appendChild(h('span', { text }));
+    return note;
+  }
+
   function bind() {
     ['region', 'city', 'budget'].forEach((k) =>
       $(k).addEventListener('input', () => { project[k] = $(k).value; save(); }));
@@ -962,9 +1206,8 @@
       }
       const btn = $('btnAnalyze');
       btn.disabled = true;
-      const data = await generate('analyze', $('startStatus'));
+      await generate('analyze', $('startStatus'), () => { renderAnalyze(); renderRail(); go('analyze'); });
       btn.disabled = false;
-      if (data) { renderAnalyze(); renderRail(); go('analyze'); }
     });
 
     $('btnReset').addEventListener('click', () => {
@@ -979,22 +1222,25 @@
     document.querySelectorAll('[data-next]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const stage = btn.getAttribute('data-next');
-        if (stage === 'dossier') { renderDossier(); renderRail(); return go('dossier'); }
+        if (stage === 'dossier') { renderRail(); return go('dossier'); }
         if (project.stages[stage]) { RENDER[stage](); return go(stage); }
         btn.disabled = true;
-        const data = await generate(stage, statusHost(btn));
+        await generate(stage, statusHost(btn), () => { RENDER[stage](); renderRail(); go(stage); });
         btn.disabled = false;
-        if (data) { RENDER[stage](); renderRail(); go(stage); }
       });
+    });
+
+    // One click from the analysis to a complete dossier (see generateAll).
+    document.querySelectorAll('[data-all]').forEach((btn) => {
+      btn.addEventListener('click', () => generateAll(statusHost(btn)));
     });
 
     document.querySelectorAll('[data-regen]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const stage = btn.getAttribute('data-regen');
         btn.disabled = true;
-        const data = await generate(stage, statusHost(btn));
+        await generate(stage, statusHost(btn), () => { RENDER[stage](); renderRail(); });
         btn.disabled = false;
-        if (data) RENDER[stage]();
       });
     });
 
@@ -1009,15 +1255,6 @@
      * and on a phone, or with no print backend, none did. bi-pdf.js writes the
      * file here instead, so a button that says "download" downloads.
      */
-    /** Write a message into the export note, replacing whatever was there. */
-    function pdfNote(text, kind) {
-      const note = $('pdfNote');
-      if (!note) return null;
-      clear(note);
-      note.className = 'footnote' + (kind ? ' ' + kind : '');
-      if (text) note.appendChild(h('span', { text }));
-      return note;
-    }
 
     function exportPdf() {
       const done = ORDER.filter((s) => project.stages[s]).length;
@@ -1158,7 +1395,8 @@
     try {
       setSync('syncing');
       const loaded = await remote.load(m[1], m[2]);
-      project = Object.assign(blank(), loaded, { remoteId: m[1], shared: true });
+      // Their in-flight job ids are theirs: never poll (and acknowledge) them here.
+      project = Object.assign(blank(), loaded, { remoteId: m[1], shared: true, pending: {} });
       remote.setKey(m[1], m[2], true);   // tab-scoped, not persisted
       save();
       boot();
@@ -1204,5 +1442,5 @@
   bind();
   boot();
   setSync('local');
-  openFromHash();
+  openFromHash().then((opened) => { if (!opened) resumePending(); });
 })();

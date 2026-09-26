@@ -276,6 +276,136 @@ function contextBlock(p = {}) {
 // are labelled as project data — never as instructions.
 const STAGE_ORDER = ["analyze", "model", "plan", "financials", "compliance", "roadmap"];
 
+// ------------------------------------------------------- plan, in halves --
+// The plan is by far the longest stage: 17 sections of prose in one tool
+// call is ~10k output tokens, two to four minutes of generation, and the one
+// stage that could hit its token ceiling (French runs longer than English).
+// Two calls of 8-9 sections run in parallel instead: roughly half the wall
+// time, and each half sits far below its ceiling.
+const PLAN_IDS = STAGES.plan.schema.properties.sections.items.properties.id.enum;
+const PLAN_PARTS = [PLAN_IDS.slice(0, 9), PLAN_IDS.slice(9)];
+
+/** The plan schema restricted to some section ids, and a prompt to match. */
+function planPart(ids) {
+  const base = STAGES.plan.schema;
+  const item = base.properties.sections.items;
+  return {
+    maxTokens: 9000,
+    schema: {
+      ...base,
+      properties: {
+        sections: {
+          ...base.properties.sections,
+          description: `Exactly these ${ids.length} sections, in this order: ${ids.join(", ")}.`,
+          items: { ...item, properties: { ...item.properties, id: { type: "string", enum: ids } } },
+        },
+      },
+    },
+    prompt: `Write these ${ids.length} sections of a 17-section business plan, in this order: ${ids.join(", ")}. `
+      + "The other sections are being written separately, so stay strictly within these topics — never cover what another section owns. "
+      + "Each is prose a bank or investor would read: specific, quantified where the user gave numbers, honest where they did not. "
+      + "Keep every section to 2-3 tight paragraphs — a padded plan is a worse plan. "
+      + "Market analysis must be explicit about what is verified and what is inferred: use the reference statistics where they are supplied and say so, and flag everything else as reasoning rather than researched data.",
+  };
+}
+
+// ------------------------------------------------------- normalisation --
+/**
+ * Coerce a tool call to the shape its schema promises.
+ *
+ * Tool-use makes the model's output structured, not guaranteed: it will now
+ * and then send an array as a JSON string, a number as "1 500", or an enum
+ * in the wrong case. The browser renders with `arr()`/`num()` guards, so such
+ * a slip used to arrive as a silently empty panel or a projection of zeros.
+ * Here it is repaired once, on the server, before anything is stored.
+ */
+function normalize(schema, v) {
+  if (!schema) return v;
+  if (typeof v === "string" && (schema.type === "array" || schema.type === "object")) {
+    const t = v.trim();
+    if (/^[[{]/.test(t)) { try { v = JSON.parse(t); } catch { /* fall through */ } }
+  }
+  switch (schema.type) {
+    case "array": {
+      let list = v;
+      if (typeof v === "string") {
+        list = v.split(/\n+/).map((s) => s.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim()).filter(Boolean);
+      } else if (!Array.isArray(v)) {
+        list = v === undefined || v === null ? [] : [v];
+      }
+      return list.map((x) => normalize(schema.items || { type: "string" }, x))
+        .filter((x) => x !== undefined && x !== null && x !== "");
+    }
+    case "object": {
+      if (typeof v === "string" && v.trim()) {
+        // A bare string where an object belongs: it is the object's headline.
+        const first = Object.entries(schema.properties || {}).find(([, s]) => s.type === "string" && !s.enum);
+        v = first ? { [first[0]]: v.trim() } : {};
+      }
+      if (!v || typeof v !== "object" || Array.isArray(v)) return undefined;
+      const out = {};
+      for (const [k, s] of Object.entries(schema.properties || {})) {
+        const n = normalize(s, v[k]);
+        if (n !== undefined) out[k] = n;
+      }
+      // Nested required fields get an honest empty value rather than
+      // undefined, so a renderer never prints "undefined".
+      for (const k of schema.required || []) {
+        if (out[k] !== undefined) continue;
+        const t = schema.properties?.[k]?.type;
+        if (t === "array") out[k] = [];
+        else if (t === "string") out[k] = schema.properties[k].enum ? schema.properties[k].enum.at(-1) : "";
+      }
+      return out;
+    }
+    case "number": {
+      if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
+      if (typeof v !== "string") return undefined;
+      let t = v.replace(/[\s  ]/g, "").replace(/[^\d.,%-]/g, "");
+      const pct = t.endsWith("%");
+      t = t.replace(/%$/, "");
+      // "1,500" and "1.500" as thousands; "0,12" as a decimal comma.
+      if (/^-?\d{1,3}([.,]\d{3})+$/.test(t)) t = t.replace(/[.,]/g, "");
+      else t = t.replace(",", ".");
+      const n = parseFloat(t);
+      return Number.isFinite(n) ? (pct ? n / 100 : n) : undefined;
+    }
+    case "string": {
+      if (v === undefined || v === null) return undefined;
+      if (typeof v !== "string") v = typeof v === "object" ? JSON.stringify(v) : String(v);
+      if (schema.enum && !schema.enum.includes(v)) {
+        const low = v.toLowerCase().trim();
+        return schema.enum.find((e) => e === low)
+          ?? schema.enum.find((e) => low.includes(e))
+          ?? (schema.enum.includes("medium") ? "medium" : schema.enum[0]);
+      }
+      return v;
+    }
+    default:
+      return v;
+  }
+}
+
+/**
+ * What is still missing after normalisation — a reason to retry, not to
+ * deliver. Top-level required fields, plus the financial inputs: a projection
+ * silently computed from a zero price is worse than an error.
+ */
+function missingFields(stage, data) {
+  const spec = STAGES[stage];
+  if (!data || typeof data !== "object") return ["all"];
+  const missing = (spec.schema.required || []).filter((k) => {
+    const v = data[k];
+    return v === undefined || v === null || v === "" || (Array.isArray(v) && !v.length && k !== "clarifyingQuestions");
+  });
+  if (stage === "financials" && data.assumptions) {
+    for (const k of spec.schema.properties.assumptions.required) {
+      if (!Number.isFinite(data.assumptions[k])) missing.push("assumptions." + k);
+    }
+  }
+  return missing;
+}
+
 function priorBlock(prior = {}) {
   const parts = [];
   // Iterate a FIXED allowlist, never Object.entries: the key was previously
@@ -294,4 +424,7 @@ function priorBlock(prior = {}) {
 }
 
 
-export { STAGES, STAGE_ORDER, BASE, STAGE_PROMPT, clampProject, contextBlock, priorBlock };
+export {
+  STAGES, STAGE_ORDER, BASE, STAGE_PROMPT, PLAN_IDS, PLAN_PARTS,
+  planPart, normalize, missingFields, clampProject, contextBlock, priorBlock,
+};

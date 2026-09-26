@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/favicon-180.png" />
   <meta name="theme-color" content="#050507" />
-  <link rel="stylesheet" href="bi.css?v=11" />
+  <link rel="stylesheet" href="bi.css?v=12" />
   <link rel="stylesheet" href="tech.css?v=1" />
 </head>
 <body>
@@ -106,7 +106,6 @@
       </div>
       <div id="startStatus"></div>
       <p class="sync local" id="syncState">Saved in this browser</p>
-      <p class="footnote" id="linkNote"></p>
     </div>
 
     <div class="panel" id="savedPanel" hidden>
@@ -122,6 +121,7 @@
     <div id="analyzeOut"></div>
     <div class="actions no-print">
       <button class="btn" data-next="model">Build the business model →</button>
+      <button class="btn btn-all" data-all type="button">Generate the complete dossier ⚡</button>
       <button class="btn ghost" data-regen="analyze">Regenerate</button>
       <button class="btn ghost" data-pdf type="button">Download PDF</button>
     </div>
@@ -194,8 +194,12 @@
       <button class="btn ghost" id="btnPrintDialog" type="button">Print</button>
       <button class="btn ghost" id="btnSaveJson">Export data (JSON)</button>
       <button class="btn ghost" id="btnLink">Copy access link</button>
+      <button class="btn ghost" data-all type="button" id="btnAllMissing" hidden>Generate the missing sections ⚡</button>
       <span class="footnote">The PDF is written by MWINDA and saved straight to your device — no print dialog. “Print” opens your browser’s dialog instead, if you prefer it.</span>
     </div>
+    <!-- The access link is shown here, beside its button. It used to be written
+         into the first step, which is hidden while the dossier is on screen. -->
+    <p class="footnote" id="linkNote"></p>
     <!-- After an export this carries the "Open the PDF" link, so the document
          is reachable even when the browser's download goes somewhere the
          reader cannot find. See bi-pdf.js. -->
@@ -211,7 +215,7 @@
 
 <script src="video-bg.js?v=1"></script>
 
-<script src="bi-pdf.js?v=2"></script>
-<script src="bi.js?v=7"></script>
+<script src="bi-pdf.js?v=3"></script>
+<script src="bi.js?v=8"></script>
 </body>
 </html>

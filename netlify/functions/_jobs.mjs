@@ -29,11 +29,25 @@ function store() {
   return getStore({ name: STORE, consistency: "strong" });
 }
 
-/** A job id that is unguessable: the id is the only key to the result. */
+/**
+ * A job id that is unguessable — the id is the only key to the result — and
+ * that carries its own birth time: 8 hex digits of seconds, then 14 random
+ * bytes (112 bits). The timestamp lets sweepJobs() find stale records from a
+ * key listing alone, without reading a single business plan to learn its age.
+ */
 export function newJobId() {
-  const b = new Uint8Array(18);
+  const b = new Uint8Array(14);
   crypto.getRandomValues(b);
-  return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  const t = Math.floor(Date.now() / 1000).toString(16).padStart(8, "0").slice(-8);
+  return t + Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+/** Seconds-since-epoch encoded in an id, or 0 for an id minted before it was. */
+function bornAt(id) {
+  const t = parseInt(String(id).slice(0, 8), 16);
+  // Only trust values in a plausible window; older random-only ids decode to
+  // noise and are left for the TTL check on read.
+  return t > 1_700_000_000 && t < 4_000_000_000 ? t * 1000 : 0;
 }
 
 export async function putJob(id, record) {
@@ -61,3 +75,22 @@ export async function jobsAvailable() {
     return false;
   }
 }
+
+/**
+ * Delete records past their TTL. A result is removed as soon as the browser
+ * acknowledges it, but a tab closed mid-generation never acknowledges, and a
+ * business plan must not sit in a store indefinitely because of that.
+ * Cheap and best-effort: one key listing, deletes only.
+ */
+export async function sweepJobs() {
+  try {
+    const s = store();
+    const { blobs } = await s.list();
+    const cutoff = Date.now() - JOB_TTL_MS;
+    await Promise.all(blobs
+      .filter((b) => { const at = bornAt(b.key); return at && at < cutoff; })
+      .slice(0, 200)
+      .map((b) => s.delete(b.key).catch(() => {})));
+  } catch { /* the next sweep will try again */ }
+}
+
