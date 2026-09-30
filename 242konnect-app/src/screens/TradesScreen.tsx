@@ -86,7 +86,7 @@ export function TradesScreen({ navigation, route }: Props) {
             onPress={() => setActive(undefined)}
             accessibilityRole="button"
             accessibilityLabel={t('Toutes les catégories')}
-            accessibilityState={{ selected: !active }}
+            aria-selected={!active}
             style={[styles.chip, !active && styles.chipActive]}
           >
             <Text style={[styles.chipLabel, !active && styles.chipLabelActive]}>{t('Tout')}</Text>
@@ -99,7 +99,7 @@ export function TradesScreen({ navigation, route }: Props) {
                 onPress={() => setActive(selected ? undefined : category.id)}
                 accessibilityRole="button"
                 accessibilityLabel={`Catégorie ${t(category.label)}`}
-                accessibilityState={{ selected }}
+                aria-selected={selected}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
                 <Icon name={category.icon} size={16} color={colors.foreground} />

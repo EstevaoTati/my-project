@@ -28,25 +28,57 @@ export const CITIES = CONGO_CITIES.map((c) => `${c}, Rép. du Congo`);
 export type City = string;
 
 /**
- * Mission lifecycle, following §5.5–5.8.
+ * Mission lifecycle — "App V1 Processus de commande, paiement et service".
  *
- * `payee` is the escrow state: the client has paid 242Konnect and the money is
- * held. It is not the end of the flow — `validee` is, and only then is the
- * prestataire settled.
+ * The order is the specification's, and it is deliberately not the older
+ * Demande → Acceptation → Paiement: "242Konnect doit autoriser puis conserver
+ * les fonds jusqu'à la confirmation du service". The client reviews and
+ * authorises first; only then is the request sent (§07), so a prestataire never
+ * accepts work nobody has paid for.
  *
- * The states a prestataire drives (accepting, starting, finishing) are absent
- * because the Espace Prestataire does not exist yet; a client can validate a
- * paid mission directly rather than the app inventing a counterparty's actions.
+ *   demandee  drafted, reviewed, not yet paid — nothing has been sent
+ *   payee     paid and held; request sent, waiting for the prestataire (§07)
+ *   refusee   declined or expired; choose another prestataire or be refunded
+ *   acceptee  accepted; `stage` tracks On the way → Arrived → In progress →
+ *             Completed (§08)
+ *   validee   the client approved and released the funds (§09)
+ *   litige    the client reported an issue; funds frozen for review (§10)
+ *   annulee   cancelled; refund per §11
+ *
+ * Money stays held through payee, acceptee and litige — "les fonds restent
+ * bloqués pendant l'attente, l'exécution et tout litige ouvert".
  */
 export type MissionStatus =
-  /** Sent, waiting for the prestataire to accept. Nothing is payable yet. */
   | 'demandee'
-  /** Accepted; the client can now pay. */
-  | 'acceptee'
   | 'payee'
+  | 'refusee'
+  | 'acceptee'
   | 'validee'
   | 'litige'
   | 'annulee';
+
+/** §08, in order. */
+export type MissionStage = 'accepted' | 'on_the_way' | 'arrived' | 'in_progress' | 'completed';
+export const STAGES: MissionStage[] = ['accepted', 'on_the_way', 'arrived', 'in_progress', 'completed'];
+
+/** §02: from a few hours to recurring services. */
+export type MissionDuration = 'hours' | 'days' | 'weeks' | 'months' | 'recurring';
+/** "Un projet de plus de sept jours déclenche jalons et contrat." */
+export const LONG_DURATIONS: MissionDuration[] = ['weeks', 'months', 'recurring'];
+
+/** §07: how long a prestataire has to answer before the request expires. */
+export const RESPONSE_DELAY_HOURS = 24;
+/** §09: "un délai de validation clairement annoncé". */
+export const VALIDATION_DELAY_HOURS = 48;
+
+/** §10: a structured dispute, never an automatic refund. */
+export type Dispute = {
+  reason: string;
+  outcome: 'redo' | 'partial_refund' | 'full_refund';
+  details: string;
+  photo?: string;
+  at: number;
+};
 
 export type Booking = {
   id: string;
@@ -56,11 +88,36 @@ export type Booking = {
   rate: number;
   status: MissionStatus;
   createdAt: number;
+  /** §01: what is to be done. */
+  description?: string;
+  /**
+   * §01: the account's address or another one for this mission. Private until
+   * acceptance — the prestataire is shown only the zone before then.
+   */
+  address?: string;
+  /** §02. */
+  duration?: MissionDuration;
+  /** §03: signed project contract, for long projects. */
+  contractAcceptedAt?: number;
+  /**
+   * §06: one key per order, generated when the order is drafted and sent with
+   * every payment attempt, so a replay can never become a second debit.
+   */
+  idempotencyKey?: string;
   paymentId?: string;
+  /** When the funds were authorised and the request sent (§07). */
+  paidAt?: number;
   /** Recorded when the client validates, so the receipt can show the split. */
   settlement?: Settlement;
-  /** When the prestataire accepted, which is what makes the mission payable. */
+  /** When the prestataire accepted (§08). */
   acceptedAt?: number;
+  /** §08 progress, with the time each step was reached. */
+  stage?: MissionStage;
+  stageAt?: Partial<Record<MissionStage, number>>;
+  /** §10. */
+  dispute?: Dispute;
+  /** §11: cancelled after acceptance — the refund depends on review. */
+  refundUnderReview?: boolean;
   /** The client's review, left after the service (§11 of the correction note). */
   review?: Review;
 };
@@ -149,9 +206,21 @@ type Store = UserData & {
   toggleFavorite: (id: string) => void;
   favoriteCount: number;
   setCity: (city: City) => void;
-  addBooking: (input: { professionalId: string; slot: string; rate: number }) => Booking;
-  /** Marks a request accepted, which is what makes it payable. */
+  addBooking: (input: {
+    professionalId: string;
+    slot: string;
+    rate: number;
+    description?: string;
+    address?: string;
+    duration?: MissionDuration;
+    contractAcceptedAt?: number;
+  }) => Booking;
+  /** The prestataire accepts a paid request (§08). Only one can. */
   acceptBooking: (bookingId: string) => void;
+  /** The prestataire declines, or the request expires (§07). */
+  refuseBooking: (bookingId: string) => void;
+  /** Moves an accepted mission to its next §08 step. */
+  advanceStage: (bookingId: string) => void;
   /** Records the client's rating, comment and optional photo. */
   reviewMission: (bookingId: string, review: Omit<Review, 'at'>) => void;
   /** Notifications for acceptance and payment (§11 of the correction note). */
@@ -172,8 +241,8 @@ type Store = UserData & {
   ) => Payment;
   /** Client validates the work; this is what releases the funds (§5.8). */
   validateMission: (bookingId: string, speed: PayoutSpeed) => Settlement | undefined;
-  /** Opens a dispute; the money stays blocked until 242Konnect decides (§6.4). */
-  disputeMission: (bookingId: string) => void;
+  /** Opens a dispute; the money stays blocked until 242Konnect decides (§10). */
+  disputeMission: (bookingId: string, dispute: Omit<Dispute, 'at'>) => void;
   sendMessage: (professionalId: string, text: string) => void;
   ensureThread: (professionalId: string) => void;
   /** Total the client has actually paid in, across all missions. */
@@ -231,17 +300,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(() => {
-    const addBooking: Store['addBooking'] = ({ professionalId, slot, rate }) => {
+    const addBooking: Store['addBooking'] = ({ professionalId, slot, rate, ...details }) => {
       const booking: Booking = {
         id: uid(),
         professionalId,
         slot,
         rate,
-        // A request, not yet payable. The note's sequence is Demande →
-        // Acceptation → Paiement, and paying before anyone accepted skips the
-        // step where the prestataire agrees to the job.
+        ...details,
+        // Drafted, not sent: the request goes out once the payment is
+        // authorised (Commande §07).
         status: 'demandee',
         createdAt: Date.now(),
+        idempotencyKey: `${uid()}${uid()}${Date.now().toString(36)}`,
       };
       update((prev) => ({ ...prev, bookings: [booking, ...prev.bookings] }));
       return booking;
@@ -257,23 +327,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
      */
     const acceptBooking: Store['acceptBooking'] = (bookingId) => {
       const booking = data.bookings.find((b) => b.id === bookingId);
-      if (!booking || booking.status !== 'demandee') return;
+      // Only a paid, still-open request can be accepted — and only once.
+      if (!booking || booking.status !== 'payee') return;
       const pro = getProfessional(booking.professionalId);
+      const now = Date.now();
       update((prev) => ({
         ...prev,
         bookings: prev.bookings.map((b) =>
-          b.id === bookingId ? { ...b, status: 'acceptee', acceptedAt: Date.now() } : b
+          b.id === bookingId
+            ? { ...b, status: 'acceptee', acceptedAt: now, stage: 'accepted', stageAt: { accepted: now } }
+            : b
         ),
         notices: [
           {
             id: uid(),
             title: 'Demande acceptée',
-            body: `${pro?.name ?? 'Le prestataire'} a accepté votre demande. Vous pouvez procéder au paiement.`,
+            body: `${pro?.name ?? 'Le prestataire'} a accepté votre demande. Suivez la mission dans l'onglet Missions.`,
+            at: now,
+            read: false,
+          },
+          ...prev.notices,
+        ],
+      }));
+    };
+
+    const refuseBooking: Store['refuseBooking'] = (bookingId) => {
+      const booking = data.bookings.find((b) => b.id === bookingId);
+      if (!booking || booking.status !== 'payee') return;
+      update((prev) => ({
+        ...prev,
+        bookings: prev.bookings.map((b) => (b.id === bookingId ? { ...b, status: 'refusee' } : b)),
+        notices: [
+          {
+            id: uid(),
+            title: 'Demande non acceptée',
+            body: 'Choisissez un autre prestataire ou demandez le remboursement. Vos fonds restent protégés.',
             at: Date.now(),
             read: false,
           },
           ...prev.notices,
         ],
+      }));
+    };
+
+    const advanceStage: Store['advanceStage'] = (bookingId) => {
+      update((prev) => ({
+        ...prev,
+        bookings: prev.bookings.map((b) => {
+          if (b.id !== bookingId || b.status !== 'acceptee') return b;
+          const next = STAGES[STAGES.indexOf(b.stage ?? 'accepted') + 1];
+          if (!next) return b;
+          // §10 of the prestataire journey: every step is timestamped.
+          return { ...b, stage: next, stageAt: { ...b.stageAt, [next]: Date.now() } };
+        }),
       }));
     };
 
@@ -291,6 +397,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     const payBooking: Store['payBooking'] = (bookingId, method, amount, details = {}) => {
+      // §06 idempotency on the device as well: an order that already has a
+      // payment returns it rather than recording a second one.
+      const booking = data.bookings.find((b) => b.id === bookingId);
+      const existing = booking?.paymentId && data.payments.find((p) => p.id === booking.paymentId);
+      if (existing) return existing;
       const payment: Payment = {
         id: uid(),
         bookingId,
@@ -305,13 +416,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ...prev,
         payments: [payment, ...prev.payments],
         bookings: prev.bookings.map((b) =>
-          b.id === bookingId ? { ...b, status: 'payee', paymentId: payment.id } : b
+          b.id === bookingId
+            ? { ...b, status: 'payee', paymentId: payment.id, paidAt: payment.createdAt }
+            : b
         ),
         notices: [
           {
             id: uid(),
-            title: 'Paiement reçu',
-            body: `Votre paiement de ${amount.toLocaleString('fr-FR')} FCFA est conservé par 242Konnect jusqu'à votre validation. Reçu ${payment.reference}.`,
+            title: 'Paiement protégé · demande envoyée',
+            body: `Votre paiement de ${amount.toLocaleString('fr-FR')} FCFA est conservé par 242Konnect jusqu'à votre validation. Reçu ${payment.reference}. Réponse du prestataire attendue sous ${RESPONSE_DELAY_HOURS} h.`,
             at: Date.now(),
             read: false,
           },
@@ -323,7 +436,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const validateMission: Store['validateMission'] = (bookingId, speed) => {
       const booking = data.bookings.find((b) => b.id === bookingId);
-      if (!booking || booking.status !== 'payee') return undefined;
+      // §09: only a completed mission can be approved and released.
+      if (!booking || booking.status !== 'acceptee' || booking.stage !== 'completed') return undefined;
       const result = settle(booking.rate, speed);
       update((prev) => ({
         ...prev,
@@ -361,27 +475,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCity: (city) => update((prev) => ({ ...prev, city })),
       addBooking,
       acceptBooking,
+      refuseBooking,
+      advanceStage,
       reviewMission,
       notices: data.notices,
       markNoticesRead,
       cancelBooking: (id) =>
         update((prev) => {
           const booking = prev.bookings.find((b) => b.id === id);
+          if (!booking) return prev;
+          // §11: before acceptance — including a refused or expired request —
+          // the refund is full and immediate. After acceptance it depends on
+          // the notice given and the work done, so the funds stay held and the
+          // cancellation goes to review. Nothing is promised automatically.
+          const afterAcceptance = booking.status === 'acceptee';
           return {
             ...prev,
-            bookings: prev.bookings.map((b) => (b.id === id ? { ...b, status: 'annulee' } : b)),
-            // §6.9: cancelling before the service means the money comes back.
-            payments: prev.payments.map((p) =>
-              p.id === booking?.paymentId ? { ...p, refundedAt: Date.now() } : p
+            bookings: prev.bookings.map((b) =>
+              b.id === id ? { ...b, status: 'annulee', refundUnderReview: afterAcceptance || undefined } : b
             ),
+            payments: afterAcceptance
+              ? prev.payments
+              : prev.payments.map((p) =>
+                  p.id === booking.paymentId ? { ...p, refundedAt: Date.now() } : p
+                ),
           };
         }),
       payBooking,
       validateMission,
-      disputeMission: (id) =>
+      disputeMission: (id, dispute) =>
         update((prev) => ({
           ...prev,
-          bookings: prev.bookings.map((b) => (b.id === id ? { ...b, status: 'litige' } : b)),
+          bookings: prev.bookings.map((b) =>
+            b.id === id && b.status === 'acceptee'
+              ? { ...b, status: 'litige', dispute: { ...dispute, at: Date.now() } }
+              : b
+          ),
         })),
       sendMessage,
       ensureThread: (professionalId) =>

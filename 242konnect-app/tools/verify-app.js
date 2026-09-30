@@ -51,6 +51,10 @@ let mailWatermark = 0;
 
 /** Chosen after verification now, so the suite needs one that passes the rules. */
 const SIGNUP_PASSWORD = "Mwinda2026";
+/** A real image for the dossier's mandatory photo. */
+const AVATAR = require("./lib/account").writePng(
+  require("path").join(require("os").tmpdir(), "242k-app-avatar.png")
+);
 
 /** Marks the current end of the outbox, so the next read gets only new mail. */
 const markOutbox = () => {
@@ -223,10 +227,14 @@ const mailedCode = () => {
   section("Two account formats");
   // Business was removed on the founder's instruction: an entreprise books the
   // same way a person does, so the third form earned nothing.
-  await check("two types offered, and no Business", async () =>
-    (await seen('[aria-label="Particulier"]')) &&
-    (await seen('[aria-label="Prestataire"]')) &&
-    !(await seen('[aria-label="Business"]')));
+  // Client §04 / Prestataire §01: three roles are presented, but Business is
+  // not selectable — it needs a separate request and 242Konnect's approval.
+  await check("three roles shown, Business not selectable", async () => {
+    const business = await visible('[aria-label="Business, sur demande"]');
+    return (await seen('[aria-label="Particulier"]')) &&
+      (await seen('[aria-label="Prestataire"]')) &&
+      !!business && (await business.getAttribute("aria-disabled")) === "true";
+  });
   await check("each type lists different requirements", async () => {
     await tap('[aria-label="Prestataire"]');
     const pro = await seen("text=Une photo de profil (obligatoire)");
@@ -294,12 +302,35 @@ const mailedCode = () => {
     return seen("text=Où intervenir ?");
   });
   await check("address and reference are required", async () => {
+    const el = await visible('[aria-label="Continuer vers les consentements"]');
+    return el && (await el.getAttribute("aria-disabled")) === "true";
+  });
+  // Client §06: "Empêcher la sélection de plus de trois intérêts".
+  await check("a fourth interest cannot be selected", async () => {
+    for (const i of ["Maison", "Bricolage", "Automobile"]) await tap(`[aria-label="Centre d'intérêt ${i}"]`);
+    const fourth = await visible('[aria-label="Centre d\'intérêt Beauté"]');
+    const blocked = fourth && (await fourth.getAttribute("aria-disabled")) === "true";
+    return blocked && (await seen("text=/3\\/3/"));
+  });
+  await check("details continue to consent", async () => {
+    await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
+    await fill('[aria-label="Référence de l\'adresse"]', "En face du marché");
+    await tap('[aria-label="Continuer vers les consentements"]');
+    return seen("text=Consentements");
+  });
+  // Client §10: mandatory consents separate from the optional marketing one.
+  await check("the account cannot be created without the mandatory consents", async () => {
+    await tap('[aria-label="Je souhaite recevoir les nouveautés et offres de 242Konnect"]');
     const el = await visible('[aria-label="Créer mon compte"]');
     return el && (await el.getAttribute("aria-disabled")) === "true";
   });
-  await check("details move to verification", async () => {
-    await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
-    await fill('[aria-label="Référence de l\'adresse"]', "En face du marché");
+  await check("the terms can be read before accepting", async () => {
+    await tap("[aria-label=\"Lire Conditions d'utilisation\"]");
+    return seen("text=Paiements protégés");
+  });
+  await check("consents given, details move to verification", async () => {
+    await tap("[aria-label=\"J'accepte les conditions d'utilisation\"]");
+    await tap("[aria-label=\"J'accepte la politique de confidentialité\"]");
     markOutbox();
     await tap('[aria-label="Créer mon compte"]');
     await page.waitForTimeout(1000);
@@ -464,17 +495,18 @@ const mailedCode = () => {
   section("Missions, escrow & settlement");
   await check("mission listed", async () => { await tap('[aria-label="Missions"]'); return seen("text=Demain, 09h00"); });
   await check("the no-direct-payment rule is stated", () => seen("text=Ne remettez jamais d'argent directement"));
-  // Nothing is payable until the prestataire has accepted — the Payer button
-  // only exists on an accepted mission, which is the rule, not a step to skip.
-  await check("an accepted mission becomes payable", async () => {
-    await tap("[aria-label^=\"Simuler l'acceptation\"]");
-    return seen('[aria-label^="Payer la mission"]');
-  });
-  await check("payment opens", async () => {
+  // Commande §07: the request goes out only once the payment is authorised, so
+  // nothing can be accepted before then.
+  await check("an unpaid request has not been sent", async () =>
+    (await seen("text=À payer")) && !(await seen("[aria-label^=\"Simuler l'acceptation\"]")));
+  await check("payment opens on the order review", async () => {
     await tap('[aria-label^="Payer la mission"]');
-    return seen("text=Moyen de paiement");
+    return (await seen("text=Moyen de paiement")) && (await seen("text=Récapitulatif de la commande"));
   });
-  await check("escrow explained before paying", () => seen("text=n'est payé qu'après votre validation"));
+  await check("the total authorised is shown with its fees", async () =>
+    (await seen("text=Frais de protection 242Konnect")) && (await seen("text=Total autorisé")));
+  await check("escrow explained before paying", () => seen("text=qu'après votre validation"));
+  await check("the refund policy is shown before authorising", () => seen("text=Annulation et remboursement"));
   await check("cash is not offered", async () => !(await seen("text=Espèces")));
   await check("confirm disabled before a method", async () => {
     const el = await visible('[aria-label="Confirmer le paiement"]');
@@ -502,6 +534,13 @@ const mailedCode = () => {
     await page.waitForTimeout(400);
     return !(await seen("text=ressemble à un numéro"));
   });
+  // Commande §06: an explicit authorisation before any debit.
+  await check("paying needs an explicit authorisation", async () => {
+    const el = await visible('[aria-label="Confirmer le paiement"]');
+    const blocked = el && (await el.getAttribute("aria-disabled")) === "true";
+    await tap("[aria-label=\"J'autorise le paiement\"]");
+    return blocked;
+  });
   await check("an unactivated operator is refused, not faked", async () => {
     await tap('[aria-label="Confirmer le paiement"]');
     // Either the operator refuses it, or the gateway is unconfigured and the
@@ -520,7 +559,21 @@ const mailedCode = () => {
   });
   await page.screenshot({ path: `${OUT}/c1-payment.png` });
   await check("receipt closes", async () => { await tap("text=Terminé"); return true; });
-  await check("mission now reads as funds held", () => seen("text=Fonds bloqués"));
+  await check("mission now reads as sent with funds held", () => seen("text=fonds bloqués"));
+  await check("the prestataire accepts the paid request", async () => {
+    await tap("[aria-label^=\"Simuler l'acceptation\"]");
+    return seen("text=En route");
+  });
+  // Commande §08–§09: validation only once the work is completed.
+  await check("validation waits for the work to be completed", async () =>
+    !(await seen('[aria-label^="Valider la prestation"]')));
+  await check("the mission moves through its stages", async () => {
+    for (let i = 0; i < 4; i++) {
+      await tap("[aria-label^=\"Simuler l'étape suivante\"]");
+      await page.waitForTimeout(250);
+    }
+    return seen('[aria-label^="Valider la prestation"]');
+  });
 
   await check("validation shows the settlement split", async () => {
     await tap('[aria-label^="Valider la prestation"]');
@@ -551,48 +604,59 @@ const mailedCode = () => {
     !(await seen('[aria-label="Espace Prestataire"]')));
   await check("one account carries both profiles, and no Business", async () =>
     (await seen('[aria-label="Profil Particulier"]')) &&
-    (await seen('[aria-label="Activer le profil Prestataire"]')) &&
+    (await seen('[aria-label="Offrir mes services"]')) &&
     !(await seen('[aria-label="Activer le profil Business"]')) &&
     !(await seen('[aria-label="Profil Business"]')));
-  await check("activating Prestataire switches to it", async () => {
-    await tap('[aria-label="Activer le profil Prestataire"]');
+  // Client §14 / Prestataire §01: offering services opens a separate dossier
+  // that lists what is needed — never a one-tap activation.
+  await check("offering services opens a dossier, not an instant switch", async () => {
+    await tap('[aria-label="Offrir mes services"]');
     await page.waitForTimeout(700);
-    return seen('[aria-label="Profil Prestataire"]');
+    const el = await visible('[aria-label="Envoyer le dossier"]');
+    return (await seen("text=Pièces nécessaires")) && el && (await el.getAttribute("aria-disabled")) === "true";
   });
-
-  // The point of the change the founder asked for: a prestataire is a customer
-  // too. Activating the profile used to replace Accueil with the dashboard,
-  // which silently cost them search, catalogue and booking. Accueil must now be
-  // the same marketplace it is for a particulier.
-  await check("Accueil still shows the marketplace, not a dashboard", async () => {
-    await tap('[aria-label="Accueil"]');
-    await page.waitForTimeout(800);
-    return (await seen("text=Catégories")) && !(await seen("text=Score 242K"));
+  await check("no pricing model is preselected", async () =>
+    !(await seen('[aria-label="Montant"]')));
+  await check("the dossier refuses an under-16 date of birth", async () => {
+    await fill('[aria-label="Date de naissance"]', "2020-01-01");
+    return seen("text=/16 ans et plus/");
   });
-  // Not just the home screen painting: a prestataire must be able to reach a
-  // trade and see who is available, which is the whole marketplace.
-  await check("a prestataire can still browse and search", async () => {
-    // Presence, not a drive-through: the tab bar keeps the Profil stack mounted
-    // over the home screen, so clicking here is intercepted. Search itself is
-    // exercised for a particulier in "Home actions"; what matters here is that a
-    // prestataire is offered the identical set of controls.
-    return (
-      (await seen('[aria-label="Quel service recherchez-vous ?"]')) &&
-      (await seen('[aria-label="Rechercher"]')) &&
-      (await seen('[aria-label="Voir tous les métiers"]')) &&
-      (await seen('[aria-label="Catégorie Plomberie"]')) &&
-      (await seen('[aria-label*="Changer de ville"]'))
-    );
+  await check("a complete dossier with a signed contract submits", async () => {
+    const [chooser] = await Promise.all([
+      page.waitForEvent("filechooser", { timeout: 15000 }),
+      tap('[aria-label="Ajouter une photo de profil"]'),
+    ]);
+    await chooser.setFiles(AVATAR);
+    await page.waitForTimeout(2500);
+    await fill('[aria-label="Date de naissance"]', "1992-06-15");
+    await tap('[aria-label="Choisir votre métier"]');
+    await tap('[aria-label="Plombier"]');
+    await fill("[aria-label=\"Zone d'intervention\"]", "Mpaka");
+    await tap('[aria-label="Modèle de prix À partir de"]');
+    await fill('[aria-label="Montant"]', "9000");
+    await tap('[aria-label="Prix négociable"]');
+    await tap('[aria-label="Durée Quelques jours"]');
+    await fill('[aria-label="Biographie"]', "Plombier à Pointe-Noire depuis 10 ans.");
+    // The contract must be opened before it can be accepted, and the
+    // signature must be the account's full name.
+    const locked = await visible("[aria-label=\"J'ai lu et j'accepte le contrat Prestataire\"]");
+    const wasLocked = locked && (await locked.getAttribute("aria-disabled")) === "true";
+    await tap('[aria-label="Lire Contrat Prestataire"]');
+    await tap("[aria-label=\"J'ai lu et j'accepte le contrat Prestataire\"]");
+    await fill('[aria-label="Signature : votre nom complet"]', "Quelqu'un d'autre");
+    const wrong = await visible('[aria-label="Envoyer le dossier"]');
+    const refusedWrong = wrong && (await wrong.getAttribute("aria-disabled")) === "true";
+    await fill('[aria-label="Signature : votre nom complet"]', "Estevao Macumba");
+    await tap('[aria-label="Envoyer le dossier"]');
+    await page.waitForTimeout(1200);
+    return wasLocked && refusedWrong && (await seen("text=Suivi de la vérification"));
   });
-
-  // The dashboard did not disappear — it moved to where you go looking for it.
-  await check("the Espace Prestataire is reachable from Profil", async () => {
-    await tap('[aria-label="Profil"]');
-    await page.waitForTimeout(600);
-    await tap('[aria-label="Espace Prestataire"]');
-    await page.waitForTimeout(800);
-    return (await seen("text=Espace Prestataire")) && (await seen("text=Score 242K"));
-  });
+  await check("the dossier is under review and not bookable", async () =>
+    (await seen("text=Dossier soumis")) &&
+    (await seen("text=En examen · non réservable")) &&
+    (await seen("text=/À partir de 9\\s?000 FCFA/")) &&
+    (await seen("text=/Contrat Prestataire/")) &&
+    !(await visible('text="Vérifié"')));
   await check("it states the payout terms", async () =>
     (await seen("text=Commission 242Konnect")) && (await seen("text=Versement express")));
   await page.screenshot({ path: `${OUT}/s3-prestataire.png` });
@@ -601,96 +665,90 @@ const mailedCode = () => {
     await page.waitForTimeout(700);
     return seen("text=Se déconnecter");
   });
+  // Client §04: "Le rôle principal ne doit jamais changer automatiquement."
+  await check("the client profile stays the active one", async () =>
+    (await seen('[aria-label="Profil Prestataire"]')) &&
+    (await seen('[aria-label="Espace Prestataire"]')) &&
+    (await visible('[aria-label="Profil Particulier"][aria-selected="true"]')) !== null);
 
+  // A prestataire is a customer too: switching must keep the marketplace.
+  await check("switching to Prestataire keeps the marketplace", async () => {
+    await tap('[aria-label="Profil Prestataire"]');
+    await page.waitForTimeout(700);
+    await tap('[aria-label="Accueil"]');
+    await page.waitForTimeout(800);
+    return (await seen("text=Catégories")) && !(await seen("text=Score 242K"));
+  });
+  await check("a prestataire can still browse and search", async () =>
+    (await seen('[aria-label="Quel service recherchez-vous ?"]')) &&
+    (await seen('[aria-label="Rechercher"]')) &&
+    (await seen('[aria-label="Voir tous les métiers"]')) &&
+    (await seen('[aria-label="Catégorie Plomberie"]')) &&
+    (await seen('[aria-label*="Changer de ville"]')));
   await check("switching back to Particulier keeps the home feed", async () => {
+    await tap('[aria-label="Profil"]');
+    await page.waitForTimeout(600);
     await tap('[aria-label="Profil Particulier"]');
     await page.waitForTimeout(700);
     await tap('[aria-label="Accueil"]');
     await page.waitForTimeout(800);
     return seen("text=Catégories");
   });
-  // Switching the active profile back does not give the prestataire profile up,
-  // so its space stays reachable. Losing it on a switch would read as data gone.
-  await check("the prestataire space survives switching back", async () => {
+
+  await check("the editor offers the pricing model, not a bare hourly rate", async () => {
     await tap('[aria-label="Profil"]');
-    await page.waitForTimeout(700);
-    return (await seen("text=Se déconnecter")) && (await seen('[aria-label="Espace Prestataire"]'));
-  });
-  // Regression: activating Prestataire from this screen adds the profile kind and
-  // nothing else, and the editor used to write the trade only when a prestataire
-  // record already existed. So an account activated here could never be
-  // completed — while the Espace Prestataire told it to come and complete it.
-  await check("an activated prestataire profile starts incomplete", async () => {
-    await tap('[aria-label="Espace Prestataire"]');
-    await page.waitForTimeout(900);
-    const incomplete = await seen("text=/Profil prestataire incomplet/i");
-    await tap('[aria-label="Retour"]');
-    await page.waitForTimeout(700);
-    return incomplete;
-  });
-  await check("the editor offers the fields needed to complete it", async () => {
+    await page.waitForTimeout(600);
     await tap('[aria-label="Modifier le profil"]');
     await page.waitForTimeout(700);
-    return (
-      (await seen('[aria-label="Choisir votre métier"]')) &&
-      (await seen("[aria-label=\"Zone d'intervention\"]")) &&
-      (await seen('[aria-label="Tarif horaire (FCFA)"]')) &&
-      (await seen('[aria-label="Date de naissance"]'))
-    );
-  });
-  await check("an under-16 date of birth is refused here too", async () => {
-    await tap('[aria-label="Choisir votre métier"]');
-    await tap('[aria-label="Plombier"]');
-    await fill("[aria-label=\"Zone d'intervention\"]", "Mpaka");
-    await fill('[aria-label="Tarif horaire (FCFA)"]', "9000");
-    await fill('[aria-label="Date de naissance"]', "2020-01-01");
-    await tap('[aria-label="Enregistrer le profil"]');
-    await page.waitForTimeout(900);
-    return seen("text=/16 ans et plus/");
-  });
-  await check("a complete prestataire record saves", async () => {
-    await fill('[aria-label="Date de naissance"]', "1992-06-15");
-    await tap('[aria-label="Enregistrer le profil"]');
-    await page.waitForTimeout(1400);
-    return seen("text=Se déconnecter");
-  });
-  await check("and the Espace Prestataire now shows it", async () => {
-    await tap('[aria-label="Espace Prestataire"]');
-    await page.waitForTimeout(900);
-    const shown =
-      (await seen("text=Plombier")) &&
-      (await seen("text=/Mpaka/")) &&
-      (await seen("text=/9\\s?000/")) &&
-      !(await seen("text=/Profil prestataire incomplet/i"));
-    await tap('[aria-label="Retour"]');
-    await page.waitForTimeout(700);
-    return shown;
+    return (await seen('[aria-label="Modèle de prix À partir de"][aria-checked="true"], [aria-label="Modèle de prix À partir de"][aria-selected="true"]')) &&
+      !(await seen('[aria-label="Tarif horaire (FCFA)"]'));
   });
   // The phone shown here used to be printed as "+242 " plus the stored number,
   // which already begins with its dial code — so it read "+242 242…", and was
   // simply wrong for the US numbers the country picker exists to support.
   await check("the phone is shown once, with the right dial code", async () => {
-    await tap('[aria-label="Modifier le profil"]');
-    await page.waitForTimeout(700);
     const doubled = await seen("text=/\\+242\\s*242/");
     if (doubled) throw new Error("the dial code is printed twice");
     return seen("text=/\\+242\\s*0?6/");
   });
-
-  await check("open the editor", async () => {
-    // The previous check ends on Accueil, so come back to the Profil tab.
-    await tap('[aria-label="Profil"]');
-    await tap('[aria-label="Modifier le profil"]');
-    return seen("text=ne peut pas être modifié");
-  });
-  await check("save name and bio", async () => {
-    await fill('[aria-label="Nom complet"]', "Estevao M. Macumba");
+  // Client §14: "Le nom et le téléphone vérifiés ne se modifient pas librement."
+  await check("the verified name and phone are read-only", async () =>
+    (await seen("text=ne peut pas être modifié")) &&
+    (await seen("text=Le nom vérifié se corrige par une demande")) &&
+    !(await seen('input[aria-label="Nom complet"]')));
+  await check("save the bio", async () => {
     await fill('[aria-label="À propos de vous"]', "Basé à Pointe-Noire.");
     await tap('[aria-label="Enregistrer le profil"]');
     await page.waitForTimeout(1000);
-    return seen("text=Estevao M. Macumba");
+    return seen("text=Basé à Pointe-Noire.");
   });
   await page.screenshot({ path: `${OUT}/c2-profile.png` });
+
+  // Client §10: privacy preferences, consent history and data requests.
+  section("Privacy");
+  await check("Confidentialité shows the accepted documents with their dates", async () => {
+    await tap('[aria-label="Confidentialité"]');
+    await page.waitForTimeout(700);
+    return (await seen("text=Documents acceptés")) &&
+      (await seen("text=/accepté le/")) &&
+      (await seen("text=Responsable des données"));
+  });
+  await check("marketing consent can be withdrawn", async () => {
+    const sw = await visible('[aria-label="Communications marketing"]');
+    const before = sw && (await sw.getAttribute("aria-checked"));
+    await tap('[aria-label="Communications marketing"]');
+    await page.waitForTimeout(600);
+    const after = await (await visible('[aria-label="Communications marketing"]')).getAttribute("aria-checked");
+    return before === "true" && after === "false";
+  });
+  await check("correction and deletion can be requested", async () =>
+    (await seen('[aria-label="Demander une correction"]')) &&
+    (await seen('[aria-label="Demander la suppression"]')));
+  await check("back from privacy", async () => {
+    await tap('[aria-label="Retour"]');
+    await page.waitForTimeout(600);
+    return seen("text=Se déconnecter");
+  });
 
   section("FAQ");
   await check("open the FAQ", async () => {
@@ -726,11 +784,12 @@ const mailedCode = () => {
   section("Session");
   await check("survives a reload (through the splash)", async () => {
     await page.reload({ waitUntil: "networkidle" });
-    await page.waitForSelector("text=Estevao M. Macumba", { timeout: 25000 });
+    await page.waitForSelector("text=Catégories", { timeout: 25000 });
     return true;
   });
   await check("data survives too", async () => {
     await tap('[aria-label="Missions"]');
+    await tap('[aria-label^="Terminées"]');
     return seen("text=Validée");
   });
   // Not the first launch any more, so this must land on Connexion directly —
@@ -761,6 +820,7 @@ const mailedCode = () => {
   });
   await check("account data still there", async () => {
     await tap('[aria-label="Missions"]');
+    await tap('[aria-label^="Terminées"]');
     return seen("text=Validée");
   });
 

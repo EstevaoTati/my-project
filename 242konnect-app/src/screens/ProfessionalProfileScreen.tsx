@@ -8,6 +8,7 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,23 +18,51 @@ import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { formatFcfa, getProfessional, professionalTrade } from '../data';
 import { ProAvatar } from '../components/Avatar';
-import { useStore } from '../store';
+import { LONG_DURATIONS, useStore, type MissionDuration } from '../store';
+import { useAuth } from '../auth';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { T, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Profil'>;
 
 /** Slots offered in the booking sheet; a real build reads these from the pro. */
-const SLOTS = ["Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+const SLOTS = [T('Dès que possible'), "Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+
+/** Commande §02: a few hours to months, and recurring services. */
+const DURATIONS: { id: MissionDuration; label: string }[] = [
+  { id: 'hours', label: T('Quelques heures') },
+  { id: 'days', label: T('Quelques jours') },
+  { id: 'weeks', label: T('Quelques semaines') },
+  { id: 'months', label: T('Plusieurs mois') },
+  { id: 'recurring', label: T('Service récurrent') },
+];
+
+/** Commande §03, shown and signed before a long project can be paid. */
+const PROJECT_CONTRACT = [
+  [T('Portée et calendrier'), T('Le travail décrit dans la demande, aux dates convenues dans le chat de la mission.')],
+  [T('Montant, acompte et jalons'), T('Le montant est payé à 242Konnect et bloqué. Il est libéré par jalon, après votre validation de chaque étape.')],
+  [T('Changements'), T("Toute modification de prix, de portée ou d'horaire exige un avenant accepté par les deux parties dans l'application.")],
+  [T('Retards'), T('Un retard est signalé dans le chat ; un retard important permet un examen par 242Konnect.')],
+  [T('Annulation et remboursement'), T('Avant acceptation : remboursement intégral. Après : selon le préavis et le travail effectué, après examen.')],
+];
 
 export function ProfessionalProfileScreen({ route, navigation }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const pro = getProfessional(route.params.id);
   const { isFavorite, toggleFavorite, addBooking, ensureThread } = useStore();
+  const { account } = useAuth();
+  const savedAddress = account?.particulier
+    ? `${account.particulier.address}${account.particulier.addressReference ? ` (${account.particulier.addressReference})` : ''}`
+    : '';
   const [showBooking, setShowBooking] = useState(false);
   const [slot, setSlot] = useState<string | null>(null);
+  const [description, setDescription] = useState('');
+  const [useSaved, setUseSaved] = useState(true);
+  const [otherAddress, setOtherAddress] = useState('');
+  const [duration, setDuration] = useState<MissionDuration>('hours');
+  const [contractSigned, setContractSigned] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
@@ -109,7 +138,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
                 onPress={() => toggleFavorite(pro.id)}
                 accessibilityRole="button"
                 accessibilityLabel={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                accessibilityState={{ selected: favorite }}
+                aria-selected={favorite}
                 style={styles.glassButton}
               >
                 <Icon
@@ -237,6 +266,11 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
           onPress={() => {
             setConfirmed(false);
             setSlot(null);
+            setDescription('');
+            setUseSaved(!!savedAddress);
+            setOtherAddress('');
+            setDuration('hours');
+            setContractSigned(false);
             setShowBooking(true);
           }}
           accessibilityRole="button"
@@ -250,7 +284,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
 
       <Sheet
         visible={showBooking}
-        title={confirmed ? 'Demande envoyée' : `Réserver ${pro.name}`}
+        title={confirmed ? t('Demande préparée') : `Réserver ${pro.name}`}
         onClose={() => setShowBooking(false)}
       >
         {confirmed ? (
@@ -260,19 +294,115 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
             </View>
             <Text style={styles.confirmTitle}>{t("C'est noté")}</Text>
             <Text style={styles.confirmBody}>
-              {pro.name} a reçu votre demande pour {slot?.toLowerCase()}. Retrouvez-la dans
-              l'onglet Missions pour la payer ou l'annuler.
+              {t("Votre demande est prête. Elle sera envoyée à {name} dès le paiement protégé : revoyez-la et payez depuis l'onglet Missions.", { name: pro.name })}
             </Text>
             <Pressable
-              onPress={() => setShowBooking(false)}
+              onPress={() => {
+                setShowBooking(false);
+                navigation.getParent()?.navigate('Missions' as never);
+              }}
               accessibilityRole="button"
+              accessibilityLabel={t('Revoir et payer')}
               style={styles.confirmButton}
             >
-              <Text style={styles.bookLabel}>{t('Terminé')}</Text>
+              <Text style={styles.bookLabel}>{t('Revoir et payer')}</Text>
+            </Pressable>
+            <Pressable onPress={() => setShowBooking(false)} accessibilityRole="button" style={styles.laterButton}>
+              <Text style={styles.laterLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
+            <Text style={styles.sheetHint}>{t('Décrivez le besoin')}</Text>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              placeholder={t('Ce qui doit être fait, les détails utiles')}
+              placeholderTextColor={colors.mutedForeground}
+              accessibilityLabel={t('Description de la demande')}
+              style={styles.input}
+            />
+
+            {/* §01: the account's address or another one for this mission,
+                private until a prestataire accepts. */}
+            <Text style={styles.sheetHint}>{t("Lieu de l'intervention")}</Text>
+            <View style={styles.choiceRow}>
+              {!!savedAddress && (
+                <Pressable
+                  onPress={() => setUseSaved(true)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={t('Mon adresse enregistrée')}
+                  aria-selected={useSaved}
+                  style={[styles.choice, useSaved && styles.choiceOn]}
+                >
+                  <Text style={styles.choiceLabel}>{t('Mon adresse enregistrée')}</Text>
+                </Pressable>
+              )}
+              <Pressable
+                onPress={() => setUseSaved(false)}
+                accessibilityRole="radio"
+                accessibilityLabel={t('Une autre adresse')}
+                aria-selected={!useSaved || !savedAddress}
+                style={[styles.choice, (!useSaved || !savedAddress) && styles.choiceOn]}
+              >
+                <Text style={styles.choiceLabel}>{t('Une autre adresse')}</Text>
+              </Pressable>
+            </View>
+            {useSaved && savedAddress ? (
+              <Text style={styles.addressNote}>{savedAddress}</Text>
+            ) : (
+              <TextInput
+                value={otherAddress}
+                onChangeText={setOtherAddress}
+                placeholder={t('Quartier, avenue, numéro, repère')}
+                placeholderTextColor={colors.mutedForeground}
+                accessibilityLabel={t("Adresse de l'intervention")}
+                style={[styles.input, styles.inputSingle]}
+              />
+            )}
+            <Text style={styles.addressNote}>{t("L'adresse exacte reste privée jusqu'à l'acceptation. Le service couvre Pointe-Noire et le Congo : pour une autre ville, relancez une recherche locale.")}</Text>
+
+            <Text style={styles.sheetHint}>{t('Durée')}</Text>
+            <View style={styles.choiceRow}>
+              {DURATIONS.map((d) => (
+                <Pressable
+                  key={d.id}
+                  onPress={() => setDuration(d.id)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${t('Durée')} ${t(d.label)}`}
+                  aria-selected={duration === d.id}
+                  style={[styles.choice, duration === d.id && styles.choiceOn]}
+                >
+                  <Text style={styles.choiceLabel}>{t(d.label)}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {LONG_DURATIONS.includes(duration) && (
+              <View style={styles.contract}>
+                <Text style={styles.contractTitle}>{t('Contrat de projet et jalons')}</Text>
+                {PROJECT_CONTRACT.map(([title, body]) => (
+                  <Text key={title} style={styles.contractLine}>
+                    <Text style={styles.contractStrong}>{t(title)} · </Text>
+                    {t(body)}
+                  </Text>
+                ))}
+                <Pressable
+                  onPress={() => setContractSigned((v) => !v)}
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={t('Je signe le contrat de projet')}
+                  aria-checked={contractSigned}
+                  style={styles.signRow}
+                >
+                  <View style={[styles.box, contractSigned && styles.boxOn]}>
+                    {contractSigned && <Icon name="242k:check" size={14} color={colors.accentForeground} />}
+                  </View>
+                  <Text style={styles.choiceLabel}>{t('Je signe le contrat de projet')}</Text>
+                </Pressable>
+              </View>
+            )}
+
             <Text style={styles.sheetHint}>{t('Choisissez un créneau')}</Text>
             {SLOTS.map((option) => {
               const selected = slot === option;
@@ -282,7 +412,7 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
                   onPress={() => setSlot(option)}
                   accessibilityRole="button"
                   accessibilityLabel={option}
-                  accessibilityState={{ selected }}
+                  aria-selected={selected}
                   style={[styles.slot, selected && styles.slotSelected]}
                 >
                   <Icon
@@ -291,30 +421,46 @@ export function ProfessionalProfileScreen({ route, navigation }: Props) {
                     color={selected ? colors.primary : colors.mutedForeground}
                   />
                   <Text style={[styles.slotLabel, selected && styles.slotLabelSelected]}>
-                    {option}
+                    {t(option)}
                   </Text>
                 </Pressable>
               );
             })}
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>{t('Tarif horaire')}</Text>
+              <Text style={styles.totalLabel}>{t('Prix indicatif')}</Text>
               <Text style={styles.totalValue}>{formatFcfa(pro.hourlyRate)} FCFA/h</Text>
             </View>
-            <Pressable
-              onPress={() => {
-              if (slot) addBooking({ professionalId: pro.id, slot, rate: pro.hourlyRate });
-              setConfirmed(true);
-            }}
-              disabled={!slot}
-              accessibilityRole="button"
-              accessibilityLabel={t('Confirmer la réservation')}
-              accessibilityState={{ disabled: !slot }}
-              style={[styles.confirmButton, !slot && styles.confirmButtonDisabled]}
-            >
-              <Text style={styles.bookLabel}>
-                {slot ? 'Confirmer la réservation' : 'Choisissez un créneau'}
-              </Text>
-            </Pressable>
+            {(() => {
+              const address = useSaved && savedAddress ? savedAddress : otherAddress.trim();
+              const long = LONG_DURATIONS.includes(duration);
+              const ready = !!slot && !!address && (!long || contractSigned);
+              return (
+                <Pressable
+                  onPress={() => {
+                    if (!ready || !slot) return;
+                    addBooking({
+                      professionalId: pro.id,
+                      slot,
+                      rate: pro.hourlyRate,
+                      description: description.trim() || undefined,
+                      address,
+                      duration,
+                      contractAcceptedAt: long ? Date.now() : undefined,
+                    });
+                    setConfirmed(true);
+                  }}
+                  disabled={!ready}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('Confirmer la réservation')}
+                  aria-disabled={!ready}
+                  style={[styles.confirmButton, !ready && styles.confirmButtonDisabled]}
+                >
+                  <Text style={styles.bookLabel}>
+                    {slot ? t('Confirmer la réservation') : t('Choisissez un créneau')}
+                  </Text>
+                </Pressable>
+              );
+            })()}
           </>
         )}
       </Sheet>
@@ -516,6 +662,58 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   confirmButtonDisabled: { backgroundColor: colors.mutedForeground, opacity: 0.5 },
+  laterButton: { alignItems: 'center', paddingVertical: 10 },
+  laterLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.mutedForeground },
+  input: {
+    minHeight: 72,
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.foreground,
+    textAlignVertical: 'top',
+  },
+  inputSingle: { minHeight: 48, marginBottom: 6 },
+  choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  choice: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  choiceOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  choiceLabel: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.foreground },
+  addressNote: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 17, color: colors.mutedForeground, marginBottom: 10 },
+  contract: {
+    padding: 12,
+    gap: 6,
+    marginBottom: 12,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.muted,
+  },
+  contractTitle: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.foreground },
+  contractLine: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.foreground },
+  contractStrong: { fontFamily: fonts.sansBold },
+  signRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 4 },
+  box: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   confirm: { alignItems: 'center', gap: 8, paddingVertical: 8 },
   confirmIcon: {
     width: 72,

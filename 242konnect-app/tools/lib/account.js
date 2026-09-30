@@ -43,6 +43,68 @@ async function mailedCode(since) {
 }
 
 /**
+ * Ticks the two mandatory consents on the last sign-up step (Client §10).
+ * Marketing is left alone — it is optional and unticked by default.
+ */
+async function acceptConsents(page) {
+  for (const label of [
+    "J'accepte les conditions d'utilisation",
+    "J'accepte la politique de confidentialité",
+  ]) {
+    const els = await page.locator(`[aria-label="${label}"]`).all();
+    let done = false;
+    for (const el of els.reverse()) {
+      if (await el.isVisible()) {
+        await el.click();
+        done = true;
+        break;
+      }
+    }
+    if (!done) throw new Error(`sign-up: consent "${label}" not visible`);
+    await page.waitForTimeout(250);
+  }
+}
+
+/** A real 8x8 PNG, so the picker and the resizer both get something valid. */
+function writePng(file) {
+  const crc = (buf) => {
+    let c = ~0;
+    for (const b of buf) {
+      c ^= b;
+      for (let i = 0; i < 8; i++) c = (c >>> 1) ^ (0xedb88320 & -(c & 1));
+    }
+    return ~c >>> 0;
+  };
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type, "ascii"), data]);
+    const sum = Buffer.alloc(4);
+    sum.writeUInt32BE(crc(body));
+    return Buffer.concat([len, body, sum]);
+  };
+  const size = 8;
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(size, 0);
+  ihdr.writeUInt32BE(size, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  const raw = Buffer.concat(
+    Array.from({ length: size }, () =>
+      Buffer.concat([Buffer.from([0]), Buffer.alloc(size * 3, 0x3c)])
+    )
+  );
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", require("zlib").deflateSync(raw)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+  fs.writeFileSync(file, png);
+  return file;
+}
+
+/**
  * Walks the whole sign-up: type, identity, profile details, the mailed code,
  * then the password that finally creates the account.
  *
@@ -101,6 +163,8 @@ async function signUp(page, options = {}) {
 
   await fill('[aria-label="Adresse complète"]', address);
   await fill("[aria-label=\"Référence de l'adresse\"]", landmark);
+  await tap('[aria-label="Continuer vers les consentements"]');
+  await acceptConsents(page);
   await tap('[aria-label="Créer mon compte"]');
   await page.waitForSelector("text=Vérification", { timeout });
 
@@ -123,4 +187,4 @@ async function signUp(page, options = {}) {
   return { name, phone, email, password };
 }
 
-module.exports = { signUp, mailedCode, outboxLength, API_LOG };
+module.exports = { signUp, acceptConsents, writePng, mailedCode, outboxLength, API_LOG };

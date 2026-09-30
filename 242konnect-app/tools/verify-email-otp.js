@@ -6,6 +6,7 @@
  * read it from the API's outbox, exactly as a user reads their inbox.
  */
 const { chromium } = require("playwright");
+const { acceptConsents } = require("./lib/account");
 const http = require("http"); const fs = require("fs"); const path = require("path");
 const ROOT = process.env.APP_DIST || require("path").resolve(__dirname, "..", "dist");
 // The API's console transport writes here; the test reads it the way a
@@ -55,6 +56,8 @@ const check = async (label, fn) => { try { const r = await fn(); if (!r) throw n
   await p.waitForSelector("text=Où intervenir ?", { timeout: 15000 });
   await fill('[aria-label="Adresse complète"]', "Avenue Tiboti, Mpaka");
   await fill("[aria-label=\"Référence de l'adresse\"]", "En face du marché");
+  await tap('[aria-label="Continuer vers les consentements"]');
+  await acceptConsents(p);
   await tap('[aria-label="Créer mon compte"]');
   await p.waitForSelector("text=Vérification", { timeout: 20000 });
   await p.waitForTimeout(1200);

@@ -36,6 +36,14 @@ import {
 import { ProfileConflictError, pushProfile, reconcileProfile } from './profileStore';
 import { freshSession, type SupabaseSession } from './supabase';
 import {
+  PROVIDER_CONTRACT_VERSION,
+  recordConsents,
+  requestDataChange,
+  type ConsentRecord,
+  type DataRequestKind,
+} from './consent';
+import { pricingProblem, type Pricing, type ProjectDuration } from './pricing';
+import {
   knownToHavePin,
   pinStatus,
   rememberHasPin,
@@ -106,17 +114,38 @@ export type PrestataireDetails = {
   birthDate: string;
   tradeId: string;
   zone: string;
+  /**
+   * Legacy: the only price the first form could express. New accounts carry
+   * `pricing` instead and leave this at the hourly amount or 0 — read prices
+   * through `pricingOf`, never from here.
+   */
   hourlyRate: number;
+  /** Parcours Prestataire §03: model, amount, negotiable, currency by country. */
+  pricing?: Pricing;
+  /** Project lengths accepted, from a few hours to more than six months. */
+  durations?: ProjectDuration[];
   formations: string;
   diplomas: string;
   experience: string;
-  /** Names of the pièces justificatives supplied; validation is 242Konnect's. */
+  /**
+   * The pièces justificatives, at most `MAX_DOCUMENTS` (Prestataire §04). Each
+   * is "reçu" until 242Konnect's review moves it on — there is no reviewer
+   * back office yet, so no other status can honestly be shown.
+   */
   documents: string[];
+  /** When the dossier was submitted for review (Prestataire §07). */
+  submittedAt?: number;
   /** Awarded by 242Konnect after checking documents (§7.6) — never self-set. */
   verified: boolean;
 };
 
 export const MIN_PRESTATAIRE_AGE = 16;
+
+/** Prestataire §04: "jusqu'à cinq pièces justificatives". */
+export const MAX_DOCUMENTS = 5;
+
+/** Client §06: "Empêcher la sélection de plus de trois intérêts". */
+export const MAX_INTERESTS = 3;
 
 export const INTERESTS = [
   'Maison', 'Bricolage', 'Automobile', 'Beauté', 'Santé', 'Éducation',
@@ -153,6 +182,11 @@ export type Account = {
   /** Populated only for the profiles this account has activated. */
   particulier?: ParticulierDetails;
   prestataire?: PrestataireDetails;
+  /**
+   * Every consent given, oldest first (Client §10, Prestataire §06). The
+   * device's copy; `public.consent_records` holds the stamped original.
+   */
+  consents?: ConsentRecord[];
   createdAt: number;
 };
 
@@ -175,6 +209,8 @@ export type SignUpDraft = {
   bio?: string;
   particulier?: ParticulierDetails;
   prestataire?: PrestataireDetails;
+  /** Accepted on the last sign-up step, before any code is sent. */
+  consents: ConsentRecord[];
 };
 
 /** Years between an ISO date and today. Used for the under-16 rule. */
@@ -360,6 +396,25 @@ type AuthState = {
   switchProfile: (kind: ProfileKind) => Promise<void>;
   /** Activates an additional profile on the same account. */
   activateProfile: (kind: ProfileKind) => Promise<void>;
+  /**
+   * Adds consents to the account and sends them to the audit trail — a
+   * re-accepted document version, or a marketing opt-in changed later.
+   */
+  giveConsents: (records: Pick<ConsentRecord, 'kind' | 'version' | 'granted' | 'signature'>[]) => Promise<void>;
+  /** Files a correction or deletion request. False when it could not be sent. */
+  requestData: (kind: DataRequestKind, details: string) => Promise<boolean>;
+  /**
+   * "Offer your services" from an existing account (Client §14): a separate
+   * prestataire dossier, signed contract included, submitted for review. The
+   * active profile does not change — Client §04, "le rôle principal ne doit
+   * jamais changer automatiquement" — and nothing about the client side moves.
+   */
+  submitProviderDossier: (input: {
+    details: Omit<PrestataireDetails, 'verified' | 'submittedAt'>;
+    bio: string;
+    avatar?: string;
+    signature: string;
+  }) => Promise<void>;
   /** True until the app has been opened once on this device. */
   firstLaunch: boolean;
   markLaunched: () => void;
@@ -488,10 +543,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // every launch is another chance to put it right.
             const sync = await reconcileProfile(live, restored);
             setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+            let current: Account = restored;
             if (sync.status === 'pulled') {
-              const merged = { ...restored, ...sync.account };
-              setAccount(merged);
-              await setItemChecked(SESSION_KEY, JSON.stringify(merged)).catch(() => {});
+              current = { ...restored, ...sync.account };
+              setAccount(current);
+              await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
+            }
+
+            // Consents given while the server was unreachable are still owed
+            // to the audit trail; every launch is another chance to send them.
+            if (current.consents?.some((c) => !c.recorded)) {
+              const consents = await recordConsents(live, current.consents);
+              if (consents.every((c) => c.recorded)) {
+                current = { ...current, consents };
+                setAccount(current);
+                await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
+              }
             }
 
             try {
@@ -580,6 +647,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!d?.address.trim()) throw new Error('Indiquez votre adresse complète.');
         if (!d?.addressReference.trim())
           throw new Error("Indiquez une référence d'adresse (un repère pour vous trouver).");
+        if ((d.interests ?? []).length > MAX_INTERESTS)
+          throw new Error(`Choisissez au plus ${MAX_INTERESTS} centres d'intérêt.`);
       }
 
       if (draft.profile === 'prestataire') {
@@ -595,9 +664,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         if (!d.tradeId) throw new Error('Choisissez votre métier.');
         if (!d.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
-        if (!(d.hourlyRate > 0)) throw new Error('Indiquez votre tarif horaire.');
+        const priceIssue = pricingProblem(d.pricing);
+        if (priceIssue) throw new Error(priceIssue);
+        if (!d.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
         if (!draft.bio?.trim()) throw new Error('Rédigez une courte biographie.');
+        if (d.documents.length > MAX_DOCUMENTS)
+          throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
       }
+
+      // Client §10 / Prestataire §06: nothing is activated without them.
+      const granted = (kind: string) => draft.consents?.some((c) => c.kind === kind && c.granted);
+      if (!granted('terms') || !granted('privacy'))
+        throw new Error("Acceptez les conditions d'utilisation et la politique de confidentialité.");
+      if (draft.profile === 'prestataire' && !granted('provider_contract'))
+        throw new Error('Lisez et signez le contrat Prestataire.');
 
       // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
@@ -666,7 +746,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profiles: [pending.profile],
         activeProfile: pending.profile,
         particulier: pending.particulier,
-        prestataire: pending.prestataire,
+        prestataire: pending.prestataire
+          ? { ...pending.prestataire, submittedAt: Date.now() }
+          : undefined,
+        consents: pending.consents,
         createdAt: Date.now(),
       };
       const withId: StoredAccount = pending.session
@@ -688,11 +771,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw e;
         }
         await rememberSupabaseSession(pending.session);
+        // The account row exists now, so the consents can point at it. A
+        // failure leaves them marked unrecorded and they go with the next sync.
+        withId.consents = await recordConsents(pending.session, withId.consents ?? []);
       }
 
       await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, withId]));
       setPending(null);
-      await persistSession(safe);
+      await persistSession({ ...safe, consents: withId.consents });
       // Every account establishes a PIN, as asked. Only when there is a session
       // to authorise it: on a build with no Supabase behind it the PIN cannot be
       // stored at all, and gating an account behind a step that cannot succeed
@@ -968,6 +1054,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [account, persistAccount]
   );
 
+  const giveConsents = useCallback<AuthState['giveConsents']>(
+    async (records) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      const now = Date.now();
+      let consents: ConsentRecord[] = [
+        ...(account.consents ?? []),
+        ...records.map((r) => ({ ...r, at: now, recorded: false })),
+      ];
+      const live = await freshSession(supabaseSession.current);
+      if (live && (!account.supabaseUserId || live.userId === account.supabaseUserId)) {
+        supabaseSession.current = live;
+        consents = await recordConsents(live, consents);
+      }
+      await persistAccount({ ...account, consents });
+    },
+    [account, persistAccount]
+  );
+
+  const requestData = useCallback<AuthState['requestData']>(
+    async (kind, details) => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live || (account?.supabaseUserId && live.userId !== account.supabaseUserId)) return false;
+      supabaseSession.current = live;
+      return requestDataChange(live, kind, details);
+    },
+    [account]
+  );
+
+  const submitProviderDossier = useCallback<AuthState['submitProviderDossier']>(
+    async ({ details, bio, avatar, signature }) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (!(avatar ?? account.avatar)) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
+      if (!details.birthDate) throw new Error('Indiquez votre date de naissance.');
+      const age = ageFrom(details.birthDate);
+      if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
+      if (age < MIN_PRESTATAIRE_AGE)
+        throw new Error(
+          `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
+        );
+      if (!details.tradeId) throw new Error('Choisissez votre métier.');
+      if (!details.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+      const priceIssue = pricingProblem(details.pricing);
+      if (priceIssue) throw new Error(priceIssue);
+      if (!details.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
+      if (!bio.trim()) throw new Error('Rédigez une courte biographie.');
+      if (details.documents.length > MAX_DOCUMENTS)
+        throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
+      const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (norm(signature) !== norm(account.name))
+        throw new Error('La signature doit reprendre votre nom complet.');
+
+      const now = Date.now();
+      let consents: ConsentRecord[] = [
+        ...(account.consents ?? []),
+        {
+          kind: 'provider_contract',
+          version: PROVIDER_CONTRACT_VERSION,
+          granted: true,
+          signature: signature.trim(),
+          at: now,
+          recorded: false,
+        },
+      ];
+      const live = await freshSession(supabaseSession.current);
+      if (live && (!account.supabaseUserId || live.userId === account.supabaseUserId)) {
+        supabaseSession.current = live;
+        consents = await recordConsents(live, consents);
+      }
+      await persistAccount({
+        ...account,
+        avatar: avatar ?? account.avatar,
+        bio: bio.trim(),
+        profiles: account.profiles.includes('prestataire')
+          ? account.profiles
+          : [...account.profiles, 'prestataire'],
+        prestataire: { ...details, verified: false, submittedAt: now },
+        consents,
+      });
+    },
+    [account, persistAccount]
+  );
+
   const value = useMemo<AuthState>(
     () => ({
       account,
@@ -999,6 +1167,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       switchProfile,
       activateProfile,
+      giveConsents,
+      requestData,
+      submitProviderDossier,
       firstLaunch,
       markLaunched,
     }),
@@ -1032,6 +1203,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       switchProfile,
       activateProfile,
+      giveConsents,
+      requestData,
+      submitProviderDossier,
       firstLaunch,
       markLaunched,
     ]

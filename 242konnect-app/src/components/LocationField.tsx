@@ -131,7 +131,7 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
                     onPress={() => onPick(option.key)}
                     accessibilityRole="button"
                     accessibilityLabel={option.label.replace(/\s+/g, ' ').trim()}
-                    accessibilityState={{ selected: active }}
+                    aria-selected={active}
                     style={[styles.row, active && styles.rowActive]}
                   >
                     <Text style={styles.rowLabel}>{option.label}</Text>

@@ -93,12 +93,35 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
   await page.waitForTimeout(700);
 
   await tap('[aria-label="Missions"]');
-  await check("the request waits for acceptance, not payment", async () =>
-    (await seen("text=En attente")) && !(await seen('[aria-label^="Payer la mission"]')));
+  // Commande §07: nothing reaches the prestataire until the payment is held.
+  await check("the request is not sent before payment", async () =>
+    (await seen("text=À payer")) &&
+    (await seen('[aria-label^="Payer la mission"]')) &&
+    !(await seen("[aria-label^=\"Simuler l'acceptation\"]")));
 
-  await check("acceptance makes it payable", async () => {
+  await check("paying by card holds the funds and sends the request", async () => {
+    await tap('[aria-label^="Payer la mission"]');
+    await tap('[aria-label="Carte bancaire"]');
+    await tap("[aria-label=\"J'autorise le paiement\"]");
+    await tap('[aria-label="Confirmer le paiement"]');
+    await page.waitForTimeout(800);
+    return (await seen("text=242Konnect conserve ce montant")) && (await seen("text=Demande envoyée"));
+  });
+
+  await check("the receipt downloads from the confirmation", async () => {
+    const wait = page.waitForEvent("download", { timeout: 8000 }).catch(() => null);
+    await tap('[aria-label="Télécharger le reçu"]');
+    const dl = await wait;
+    if (!dl) throw new Error("no download started");
+    return /242Konnect-recu-.*\.html$/.test(dl.suggestedFilename());
+  });
+
+  await tap("text=Terminé");
+  await check("payment status is visible on the mission", () => seen("text=fonds bloqués"));
+
+  await check("the prestataire accepts the paid request", async () => {
     await tap('[aria-label^="Simuler l\'acceptation"]');
-    return (await seen("text=À payer")) && (await seen('[aria-label^="Payer la mission"]'));
+    return seen("text=En route");
   });
 
   await check("acceptance raises a notification", async () => {
@@ -114,25 +137,11 @@ const check = async (l, fn) => { try { const r = await fn(); if (!r) throw new E
     return ok;
   });
 
-  await check("paying by card holds the funds", async () => {
+  await check("the mission is followed to completion", async () => {
     await tap('[aria-label="Missions"]');
-    await tap('[aria-label^="Payer la mission"]');
-    await tap('[aria-label="Carte bancaire"]');
-    await tap('[aria-label="Confirmer le paiement"]');
-    await page.waitForTimeout(800);
-    return seen("text=242Konnect conserve ce montant");
+    for (let i = 0; i < 4; i++) await tap("[aria-label^=\"Simuler l'étape suivante\"]");
+    return seen('[aria-label^="Valider la prestation"]');
   });
-
-  await check("the receipt downloads from the confirmation", async () => {
-    const wait = page.waitForEvent("download", { timeout: 8000 }).catch(() => null);
-    await tap('[aria-label="Télécharger le reçu"]');
-    const dl = await wait;
-    if (!dl) throw new Error("no download started");
-    return /242Konnect-recu-.*\.html$/.test(dl.suggestedFilename());
-  });
-
-  await tap("text=Terminé");
-  await check("payment status is visible on the mission", () => seen("text=Fonds bloqués"));
 
   await check("validating releases the funds", async () => {
     await tap('[aria-label^="Valider la prestation"]');

@@ -47,9 +47,10 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 /**
  * Supabase does not report the code's lifetime in its response, so it is read
  * from the build config. Match it to Auth → Email OTP Expiration in the
- * dashboard; the default there is one hour.
+ * dashboard. Parcours Client §07 sets it at ten minutes; the dashboard's own
+ * default is one hour, so it must be changed there to 600.
  */
-const SUPABASE_TTL = Number(process.env.EXPO_PUBLIC_SUPABASE_OTP_TTL ?? '') || 3600;
+const SUPABASE_TTL = Number(process.env.EXPO_PUBLIC_SUPABASE_OTP_TTL ?? '') || 600;
 
 export type OtpProvider = 'supabase' | 'api' | 'none';
 

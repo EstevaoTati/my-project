@@ -69,18 +69,34 @@ export function AccountScreen({ navigation }: Props) {
             return (
               <Pressable
                 key={kind}
-                onPress={() => (owned ? switchProfile(kind) : activateProfile(kind))}
+                onPress={() =>
+                  owned
+                    ? switchProfile(kind)
+                    : // Prestataire §01: never activated in one tap. The dossier
+                      // lists what is needed, collects it and ends in the contract.
+                      kind === 'prestataire'
+                      ? navigation.navigate('DossierPrestataire')
+                      : activateProfile(kind)
+                }
                 accessibilityRole="button"
                 accessibilityLabel={
-                  owned ? `Profil ${PROFILE_LABELS[kind]}` : `Activer le profil ${PROFILE_LABELS[kind]}`
+                  owned
+                    ? `Profil ${PROFILE_LABELS[kind]}`
+                    : kind === 'prestataire'
+                      ? 'Offrir mes services'
+                      : `Activer le profil ${PROFILE_LABELS[kind]}`
                 }
-                accessibilityState={{ selected: active }}
+                aria-selected={active}
                 style={[styles.profileChip, active && styles.profileChipActive]}
               >
                 <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
                   {PROFILE_LABELS[kind]}
                 </Text>
-                {!owned && <Text style={styles.profileChipAdd}>{t('+ activer')}</Text>}
+                {!owned && (
+                  <Text style={styles.profileChipAdd}>
+                    {kind === 'prestataire' ? t('+ offrir mes services') : t('+ activer')}
+                  </Text>
+                )}
               </Pressable>
             );
           })}
@@ -94,7 +110,7 @@ export function AccountScreen({ navigation }: Props) {
             ? t(
                 "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier."
               )
-            : t('Un seul compte, plusieurs profils. Activez Prestataire pour proposer vos services sans créer un second compte.')}
+            : t('Un seul compte, plusieurs profils. « Offrir mes services » crée un dossier Prestataire vérifié par 242Konnect, sans toucher à votre profil Client. Le mode Business se demande séparément.')}
         </Text>
       </View>
 
@@ -112,7 +128,7 @@ export function AccountScreen({ navigation }: Props) {
                 onPress={() => setLanguage(option.code)}
                 accessibilityRole="button"
                 accessibilityLabel={option.label}
-                accessibilityState={{ selected: active }}
+                aria-selected={active}
                 style={[styles.profileChip, active && styles.profileChipActive]}
               >
                 <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
@@ -201,6 +217,16 @@ export function AccountScreen({ navigation }: Props) {
           <Text style={styles.rowLabel}>
             {hasPin ? t('Changer mon code confidentiel') : t('Définir un code confidentiel')}
           </Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate('Confidentialite')}
+          accessibilityRole="button"
+          accessibilityLabel={t('Confidentialité')}
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        >
+          <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />
+          <Text style={styles.rowLabel}>{t('Confidentialité')}</Text>
           <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
         </Pressable>
         <Pressable

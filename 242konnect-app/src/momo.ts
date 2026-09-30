@@ -141,6 +141,7 @@ function parse(payload: Record<string, unknown>, simulated = false): Collection 
  * claimed to implement.
  */
 const simulated = new Map<string, number>();
+const simulatedByKey = new Map<string, string>();
 
 /** Numbers ending in 0 fail, so the failure path can be demonstrated too. */
 function simulatedOutcome(phone: string): CollectionStatus {
@@ -159,11 +160,21 @@ export async function requestToPay(input: {
   amount: number;
   /** Shown to the payer in the operator's prompt, where supported. */
   label: string;
+  /**
+   * One per order (Commande §06). The server answers a replay with the
+   * collection it already started, so a double tap cannot prompt — or debit —
+   * twice.
+   */
+  idempotencyKey?: string;
 }): Promise<Collection> {
   const phone = input.phone.replace(/\D/g, '');
 
   if (!momoGatewayConfigured) {
+    // The simulation honours the key too, so the double-tap path is the same.
+    const replay = input.idempotencyKey ? simulatedByKey.get(input.idempotencyKey) : undefined;
+    if (replay && simulated.has(replay)) return { id: replay, status: 'pending', simulated: true };
     const id = `SIM-${Date.now().toString(36).toUpperCase()}`;
+    if (input.idempotencyKey) simulatedByKey.set(input.idempotencyKey, id);
     simulated.set(id, Date.now());
     return { id, status: 'pending', simulated: true };
   }
@@ -176,6 +187,7 @@ export async function requestToPay(input: {
       amount: Math.round(input.amount),
       currency: 'XAF',
       label: input.label,
+      ...(input.idempotencyKey ? { idempotency_key: input.idempotencyKey } : {}),
     }),
   });
   return parse(payload);

@@ -116,7 +116,7 @@ export function PhoneField({
                     }}
                     accessibilityRole="button"
                     accessibilityLabel={`${c.nameFr}, +${c.dial}`}
-                    accessibilityState={{ selected: active }}
+                    aria-selected={active}
                     style={[styles.countryRow, active && styles.countryRowActive]}
                   >
                     <Text style={styles.countryFlag}>{c.flag}</Text>
@@ -197,7 +197,7 @@ export function SubmitButton({
       disabled={off}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ disabled: !!off, busy: !!busy }}
+      aria-disabled={!!off} aria-busy={!!busy}
       style={({ pressed }) => [styles.submit, off && styles.submitOff, pressed && !off && styles.pressed]}
     >
       <Text style={styles.submitLabel}>{busy ? 'Un instant…' : label}</Text>

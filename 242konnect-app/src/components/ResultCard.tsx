@@ -47,11 +47,12 @@ export function ResultCard({ professional: pro, favorite, onPress, onToggleFavor
             color={favorite ? colors.destructive : colors.mutedForeground}
           />
         </Pressable>
-        {pro.verified && (
-          <View style={styles.verifiedBadge}>
-            <Text style={styles.verifiedLabel}>{t('Vérifié par 242K')}</Text>
-          </View>
-        )}
+        {/* Client §12: Identified provider vs Professional verified. */}
+        <View style={[styles.verifiedBadge, !pro.verified && styles.identifiedBadge]}>
+          <Text style={styles.verifiedLabel}>
+            {pro.verified ? t('Vérifié par 242K') : t('Prestataire identifié')}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.row}>
@@ -66,7 +67,7 @@ export function ResultCard({ professional: pro, favorite, onPress, onToggleFavor
           <View style={styles.locationRow}>
             <Icon name="solar:map-point-linear" size={16} color={colors.mutedForeground} />
             <Text style={styles.location}>
-              {pro.city} • {pro.distanceKm} km
+              {pro.city} • {pro.distanceKm} km • {pro.reviewCount} {t('avis')} • {t('Score 242K')} {pro.score}
             </Text>
           </View>
           <View style={styles.tags}>
@@ -132,6 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
   },
+  identifiedBadge: { backgroundColor: colors.mutedForeground },
   verifiedLabel: {
     fontFamily: fonts.sansBold,
     fontSize: 10,

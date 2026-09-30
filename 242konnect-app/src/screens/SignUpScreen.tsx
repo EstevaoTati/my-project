@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon';
 import { UserAvatar } from '../components/Avatar';
 import { Field, FormError, PhoneField, SubmitButton } from '../components/form';
 import { LocationField } from '../components/LocationField';
+import { PricingEditor } from '../components/PricingEditor';
 import {
   DEFAULT_COUNTRY,
   DEFAULT_LOCATION,
@@ -19,12 +20,30 @@ import {
   ageFrom,
   INTERESTS,
   isValidEmail,
+  MAX_DOCUMENTS,
+  MAX_INTERESTS,
   MIN_PRESTATAIRE_AGE,
   PROFILE_LABELS,
   useAuth,
   type OtpChannel,
   type ProfileKind,
 } from '../auth';
+import {
+  currencyFor,
+  describePricing,
+  DURATIONS,
+  pricingProblem,
+  type Pricing,
+  type PricingModel,
+  type ProjectDuration,
+} from '../pricing';
+import {
+  PRIVACY,
+  PROVIDER_CONTRACT,
+  TERMS,
+  type ConsentRecord,
+  type LegalDocument,
+} from '../consent';
 import { trades } from '../data';
 import type { IconName } from '../icons';
 import type { AuthStackParamList } from '../navigation';
@@ -47,16 +66,26 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Inscription'>;
  */
 
 const PROFILES: { id: ProfileKind; hint: string; icon: IconName }[] = [
-  { id: 'particulier', hint: 'Je cherche un service', icon: 'solar:user-rounded-linear' },
-  { id: 'prestataire', hint: 'Je propose mes compétences', icon: 'mdi:wrench' },
+  { id: 'particulier', hint: T('Client · je cherche un service'), icon: 'solar:user-rounded-linear' },
+  { id: 'prestataire', hint: T('Je propose mes compétences'), icon: 'mdi:wrench' },
 ];
+
+/**
+ * Client §04 and Prestataire §01 both ask for three roles on this screen:
+ * Client, Service Provider and Business. Business is shown and not offered: it
+ * needs a separate request and 242Konnect's validation, and its own journey is
+ * the subject of the next specification. Showing it disabled tells a company
+ * where it stands; letting it be picked would open an account the app cannot
+ * yet serve, which is why the selectable kind was removed.
+ */
+const BUSINESS_HINT = T('Sur demande · validation 242Konnect requise');
 
 const CHANNELS: { id: OtpChannel; label: string }[] = [
   { id: 'email', label: T('E-mail') },
   { id: 'sms', label: 'SMS' },
 ];
 
-type Step = 'type' | 'identity' | 'details';
+type Step = 'type' | 'identity' | 'details' | 'consent';
 
 export function SignUpScreen({ navigation }: Props) {
   const t = useT();
@@ -84,13 +113,26 @@ export function SignUpScreen({ navigation }: Props) {
   const [birthDate, setBirthDate] = useState('');
   const [tradeId, setTradeId] = useState('');
   const [zone, setZone] = useState('');
-  const [hourlyRate, setHourlyRate] = useState('');
+  // No default model — §03: "Ne jamais imposer un tarif horaire par défaut".
+  const [priceModel, setPriceModel] = useState<PricingModel | null>(null);
+  const [priceAmount, setPriceAmount] = useState('');
+  const [negotiable, setNegotiable] = useState(false);
+  const [durations, setDurations] = useState<ProjectDuration[]>([]);
   const [bio, setBio] = useState('');
   const [formations, setFormations] = useState('');
   const [diplomas, setDiplomas] = useState('');
   const [experience, setExperience] = useState('');
   const [documents, setDocuments] = useState<string[]>([]);
   const [showTrades, setShowTrades] = useState(false);
+
+  // Consent (Client §10, Prestataire §06).
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [marketing, setMarketing] = useState(false);
+  const [contractRead, setContractRead] = useState(false);
+  const [acceptContract, setAcceptContract] = useState(false);
+  const [signature, setSignature] = useState('');
+  const [openDoc, setOpenDoc] = useState<LegalDocument['id'] | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,8 +151,20 @@ export function SignUpScreen({ navigation }: Props) {
     }
   };
 
-  const toggle = (list: string[], value: string, set: (next: string[]) => void) =>
-    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  const toggle = <V extends string>(list: V[], value: V, set: (next: V[]) => void, max = Infinity) => {
+    if (list.includes(value)) set(list.filter((v) => v !== value));
+    else if (list.length < max) set([...list, value]);
+  };
+
+  const currency = currencyFor(location.country);
+  const pricing: Pricing | undefined = priceModel
+    ? {
+        model: priceModel,
+        amount: priceModel === 'quote' ? undefined : Number(priceAmount) || undefined,
+        negotiable,
+        currency,
+      }
+    : undefined;
 
   const identityReady =
     name.trim().length >= 2 &&
@@ -127,8 +181,38 @@ export function SignUpScreen({ navigation }: Props) {
       : !!birthDate &&
         !!tradeId &&
         zone.trim().length > 0 &&
-        Number(hourlyRate) > 0 &&
+        !pricingProblem(pricing) &&
+        durations.length > 0 &&
         bio.trim().length > 0;
+
+  // The signature is the full name as given on the identity step.
+  const signatureMatches =
+    signature.trim().toLowerCase().replace(/\s+/g, ' ') ===
+    name.trim().toLowerCase().replace(/\s+/g, ' ');
+  const consentReady =
+    acceptTerms &&
+    acceptPrivacy &&
+    (profile !== 'prestataire' || (contractRead && acceptContract && signatureMatches));
+
+  const consents = (): ConsentRecord[] => {
+    const at = Date.now();
+    const base = { at, recorded: false };
+    return [
+      { ...base, kind: 'terms', version: TERMS.version, granted: acceptTerms },
+      { ...base, kind: 'privacy', version: PRIVACY.version, granted: acceptPrivacy },
+      // Recorded either way: a refusal is also a choice worth keeping.
+      { ...base, kind: 'marketing', version: PRIVACY.version, granted: marketing },
+      ...(profile === 'prestataire'
+        ? [{
+            ...base,
+            kind: 'provider_contract' as const,
+            version: PROVIDER_CONTRACT.version,
+            granted: acceptContract,
+            signature: signature.trim(),
+          }]
+        : []),
+    ];
+  };
 
   const age = birthDate ? ageFrom(birthDate) : null;
   const tooYoung = age !== null && age < MIN_PRESTATAIRE_AGE;
@@ -155,7 +239,10 @@ export function SignUpScreen({ navigation }: Props) {
                 birthDate,
                 tradeId,
                 zone,
-                hourlyRate: Number(hourlyRate),
+                // Kept for older readers of the row; `pricing` is the truth.
+                hourlyRate: pricing?.model === 'hourly' ? pricing.amount ?? 0 : 0,
+                pricing,
+                durations,
                 formations,
                 diplomas,
                 experience,
@@ -164,6 +251,7 @@ export function SignUpScreen({ navigation }: Props) {
                 verified: false,
               }
             : undefined,
+        consents: consents(),
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Impossible de créer le compte.');
@@ -174,12 +262,13 @@ export function SignUpScreen({ navigation }: Props) {
 
   const back = () => {
     setError(null);
-    if (step === 'details') setStep('identity');
+    if (step === 'consent') setStep('details');
+    else if (step === 'details') setStep('identity');
     else if (step === 'identity') setStep('type');
     else navigation.goBack();
   };
 
-  const STEP_INDEX: Record<Step, number> = { type: 0, identity: 1, details: 2 };
+  const STEP_INDEX: Record<Step, number> = { type: 0, identity: 1, details: 2, consent: 3 };
 
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -200,8 +289,8 @@ export function SignUpScreen({ navigation }: Props) {
 
         {/* Three steps, so the progress is worth showing — it tells someone
             filling a long prestataire form that it does end. */}
-        <View style={styles.progress} accessibilityLabel={`Étape ${STEP_INDEX[step] + 1} sur 3`}>
-          {[0, 1, 2].map((i) => (
+        <View style={styles.progress} accessibilityLabel={`Étape ${STEP_INDEX[step] + 1} sur 4`}>
+          {[0, 1, 2, 3].map((i) => (
             <View key={i} style={[styles.progressBar, i <= STEP_INDEX[step] && styles.progressBarOn]} />
           ))}
         </View>
@@ -220,7 +309,7 @@ export function SignUpScreen({ navigation }: Props) {
                     onPress={() => setProfile(option.id)}
                     accessibilityRole="radio"
                     accessibilityLabel={PROFILE_LABELS[option.id]}
-                    accessibilityState={{ selected }}
+                    aria-selected={selected}
                     style={[styles.type, selected && styles.typeSelected]}
                   >
                     <Icon
@@ -233,19 +322,32 @@ export function SignUpScreen({ navigation }: Props) {
                         {PROFILE_LABELS[option.id]}
                       </Text>
                       <Text style={[styles.typeHint, selected && styles.typeHintSelected]}>
-                        {option.hint}
+                        {t(option.hint)}
                       </Text>
                     </View>
                   </Pressable>
                 );
               })}
+              <Pressable
+                disabled
+                accessibilityRole="button"
+                accessibilityLabel={t('Business, sur demande')}
+                style={[styles.type, styles.typeDisabled]}
+              >
+                <Icon name="242k:briefcase" size={24} color={colors.mutedForeground} />
+                <View style={styles.typeBody}>
+                  <Text style={styles.typeLabel}>{t('Business')}</Text>
+                  <Text style={styles.typeHint}>{t(BUSINESS_HINT)}</Text>
+                </View>
+              </Pressable>
+              <Text style={styles.hint}>{t("Le compte Business demande une demande et une validation distinctes par 242Konnect. Il n'est pas encore ouvert à l'inscription : créez un compte Client ou Prestataire, la demande Business se fera ensuite avec le même identifiant.")}</Text>
             </View>
 
             <View style={styles.requires}>
               <Text style={styles.requiresTitle}>{t('Ce compte demande')}</Text>
               {(profile === 'particulier'
-                ? ['Nom, téléphone et e-mail', 'Adresse complète et un repère pour vous trouver', 'Vos centres d’intérêt (optionnel)']
-                : ['Une photo de profil (obligatoire)', `Votre date de naissance — ${MIN_PRESTATAIRE_AGE} ans minimum`, 'Votre métier, votre zone et votre tarif', 'Formations, diplômes et pièces justificatives']
+                ? ['Nom, téléphone et e-mail', 'Adresse complète et un repère pour vous trouver', `Jusqu’à ${MAX_INTERESTS} centres d’intérêt (optionnel)`]
+                : ['Une photo de profil (obligatoire)', `Votre date de naissance — ${MIN_PRESTATAIRE_AGE} ans minimum`, 'Votre métier, votre zone, votre modèle de prix et vos durées', `Formations, diplômes et jusqu'à ${MAX_DOCUMENTS} pièces justificatives`, 'La signature du contrat Prestataire — le profil reste non réservable jusqu’à validation']
               ).map((line) => (
                 <View key={line} style={styles.requireRow}>
                   <View style={styles.requireDot} />
@@ -324,7 +426,7 @@ export function SignUpScreen({ navigation }: Props) {
                         onPress={() => setChannel(option.id)}
                         accessibilityRole="radio"
                         accessibilityLabel={`Recevoir le code par ${option.label}`}
-                        accessibilityState={{ selected }}
+                        aria-selected={selected}
                         style={[styles.channelChip, selected && styles.channelChipSelected]}
                       >
                         <Text style={[styles.channelLabel, selected && styles.channelLabelSelected]}>
@@ -369,18 +471,24 @@ export function SignUpScreen({ navigation }: Props) {
                   placeholder="Près de quel repère ? (école, marché, station)"
                 />
                 <View>
-                  <Text style={styles.sectionLabel}>Centres d'intérêt (optionnel)</Text>
+                  <Text style={styles.sectionLabel}>
+                    {t("Centres d'intérêt (optionnel)")} · {interests.length}/{MAX_INTERESTS}
+                  </Text>
+                  <Text style={styles.hint}>{t("Jusqu'à trois. Ils servent à vous recommander des services.")}</Text>
                   <View style={styles.chips}>
                     {INTERESTS.map((item) => {
                       const on = interests.includes(item);
+                      // §06: a fourth cannot be picked; the chip says so.
+                      const full = !on && interests.length >= MAX_INTERESTS;
                       return (
                         <Pressable
                           key={item}
-                          onPress={() => toggle(interests, item, setInterests)}
+                          onPress={() => toggle(interests, item, setInterests, MAX_INTERESTS)}
+                          disabled={full}
                           accessibilityRole="button"
                           accessibilityLabel={`Centre d'intérêt ${item}`}
-                          accessibilityState={{ selected: on }}
-                          style={[styles.chip, on && styles.chipOn]}
+                          aria-selected={on} aria-disabled={full}
+                          style={[styles.chip, on && styles.chipOn, full && styles.chipFull]}
                         >
                           <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{item}</Text>
                         </Pressable>
@@ -425,13 +533,16 @@ export function SignUpScreen({ navigation }: Props) {
                   onChangeText={setZone}
                   placeholder={t('Quartiers ou communes couverts')}
                 />
-                <Field
-                  label="Tarif horaire (FCFA)"
-                  value={hourlyRate}
-                  onChangeText={(v) => setHourlyRate(v.replace(/\D/g, ''))}
-                  keyboardType="number-pad"
-                  inputMode="numeric"
-                  placeholder="15000"
+                <PricingEditor
+                  currency={currency}
+                  model={priceModel}
+                  onModel={setPriceModel}
+                  amount={priceAmount}
+                  onAmount={setPriceAmount}
+                  negotiable={negotiable}
+                  onNegotiable={setNegotiable}
+                  durations={durations}
+                  onDurations={setDurations}
                 />
                 <Field
                   label={t('Biographie')}
@@ -465,14 +576,19 @@ export function SignUpScreen({ navigation }: Props) {
                 />
 
                 <View style={styles.field}>
-                  <Text style={styles.sectionLabel}>{t('Pièces justificatives')}</Text>
-                  <Text style={styles.hint}>{t("Pièce d'identité, attestation, certificat. Vérifiées par 242Konnect.")}</Text>
+                  <Text style={styles.sectionLabel}>
+                    {t('Pièces justificatives')} · {documents.length}/{MAX_DOCUMENTS}
+                  </Text>
+                  <Text style={styles.hint}>{t("Pièce d'identité, attestation, certificat. Vérifiées par 242Konnect, jamais publiées.")}</Text>
                   {documents.map((doc, i) => (
                     <View key={`${doc}-${i}`} style={styles.docRow}>
                       <Icon name="242k:briefcase" size={16} color={colors.mutedForeground} />
                       <Text style={styles.docName} numberOfLines={1}>
                         Document {i + 1}
                       </Text>
+                      {/* §04: every document has a status. Until a reviewer
+                          moves it on, "reçu" is the only true one. */}
+                      <Text style={styles.docStatus}>{t('Reçu')}</Text>
                       <Pressable
                         onPress={() => setDocuments(documents.filter((_, j) => j !== i))}
                         accessibilityRole="button"
@@ -482,8 +598,13 @@ export function SignUpScreen({ navigation }: Props) {
                       </Pressable>
                     </View>
                   ))}
+                  {documents.length < MAX_DOCUMENTS && (
                   <Pressable
-                    onPress={() => pickImage((uri) => setDocuments((prev) => [...prev, uri]))}
+                    onPress={() =>
+                      pickImage((uri) =>
+                        setDocuments((prev) => (prev.length < MAX_DOCUMENTS ? [...prev, uri] : prev))
+                      )
+                    }
                     accessibilityRole="button"
                     accessibilityLabel={t('Ajouter une pièce justificative')}
                     style={styles.addDoc}
@@ -491,6 +612,7 @@ export function SignUpScreen({ navigation }: Props) {
                     <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
                     <Text style={styles.addDocLabel}>{t('Ajouter une pièce')}</Text>
                   </Pressable>
+                  )}
                 </View>
               </>
             )}
@@ -498,10 +620,116 @@ export function SignUpScreen({ navigation }: Props) {
 
             <FormError message={error} />
             <SubmitButton
+              label={t('Continuer')}
+              onPress={() => {
+                setError(null);
+                setStep('consent');
+              }}
+              disabled={!detailsReady || tooYoung}
+              accessibilityLabel={t('Continuer vers les consentements')}
+            />
+          </View>
+        )}
+
+        {step === 'consent' && (
+          <View style={styles.form}>
+            <Text style={styles.title}>
+              {profile === 'prestataire' ? t('Révision et contrat') : t('Consentements')}
+            </Text>
+            <Text style={styles.lede}>{t("Lisez puis acceptez. La date, l'heure et la version acceptée sont enregistrées.")}</Text>
+
+            {/* Prestataire §05: one last look at the whole dossier, with a
+                way back to each section that keeps what was typed. */}
+            {profile === 'prestataire' && (
+              <View style={styles.review}>
+                <ReviewRow label={t('Identité')} value={`${name.trim()} · ${email.trim()}`} onEdit={() => setStep('identity')} editLabel={t('Modifier')} />
+                <ReviewRow label={t('Localisation')} value={[location.city, location.state, location.country].filter(Boolean).join(', ')} onEdit={() => setStep('identity')} editLabel={t('Modifier')} />
+                <ReviewRow label={t('Service')} value={`${trades.find((x) => x.id === tradeId)?.label ?? '—'} · ${zone.trim()}`} onEdit={() => setStep('details')} editLabel={t('Modifier')} />
+                <ReviewRow label={t('Tarification')} value={`${describePricing(pricing, t)}${negotiable ? ` · ${t('Prix négociable')}` : ''}`} onEdit={() => setStep('details')} editLabel={t('Modifier')} />
+                <ReviewRow label={t('Disponibilité')} value={durations.map((d) => t(DURATIONS.find((x) => x.id === d)!.label)).join(', ')} onEdit={() => setStep('details')} editLabel={t('Modifier')} />
+                <ReviewRow label={t('Documents')} value={`${documents.length}/${MAX_DOCUMENTS}`} onEdit={() => setStep('details')} editLabel={t('Modifier')} />
+              </View>
+            )}
+
+            {[TERMS, PRIVACY, ...(profile === 'prestataire' ? [PROVIDER_CONTRACT] : [])].map((doc) => (
+              <View key={doc.id} style={styles.docCard}>
+                <Pressable
+                  onPress={() => {
+                    setOpenDoc(openDoc === doc.id ? null : doc.id);
+                    if (doc.id === 'provider_contract') setContractRead(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('Lire')} ${t(doc.title)}`}
+                  aria-expanded={openDoc === doc.id}
+                  style={styles.docHead}
+                >
+                  <Text style={styles.docTitle}>{t(doc.title)}</Text>
+                  <Text style={styles.docVersion}>v{doc.version}</Text>
+                  <Icon
+                    name={openDoc === doc.id ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'}
+                    size={16}
+                    color={colors.mutedForeground}
+                  />
+                </Pressable>
+                {openDoc === doc.id &&
+                  doc.sections.map((section) => (
+                    <View key={section.title} style={styles.docSection}>
+                      <Text style={styles.docSectionTitle}>{t(section.title)}</Text>
+                      <Text style={styles.docSectionBody}>{t(section.body)}</Text>
+                    </View>
+                  ))}
+              </View>
+            ))}
+
+            <Check
+              checked={acceptTerms}
+              onToggle={() => setAcceptTerms((v) => !v)}
+              label={t("J'accepte les conditions d'utilisation")}
+            />
+            <Check
+              checked={acceptPrivacy}
+              onToggle={() => setAcceptPrivacy((v) => !v)}
+              label={t("J'accepte la politique de confidentialité")}
+            />
+
+            {profile === 'prestataire' && (
+              <>
+                <Check
+                  checked={acceptContract}
+                  disabled={!contractRead}
+                  onToggle={() => setAcceptContract((v) => !v)}
+                  label={t("J'ai lu et j'accepte le contrat Prestataire")}
+                />
+                {!contractRead && (
+                  <Text style={styles.hint}>{t("Ouvrez le contrat pour pouvoir l'accepter.")}</Text>
+                )}
+                <Field
+                  label={t('Signature : votre nom complet')}
+                  value={signature}
+                  onChangeText={setSignature}
+                  autoCapitalize="words"
+                  placeholder={name.trim()}
+                  error={signature.trim() && !signatureMatches ? t('La signature doit reprendre votre nom complet.') : undefined}
+                />
+              </>
+            )}
+
+            {/* Separate from the mandatory ones, unticked by default. */}
+            <View style={styles.optional}>
+              <Text style={styles.requiresTitle}>{t('Optionnel')}</Text>
+              <Check
+                checked={marketing}
+                onToggle={() => setMarketing((v) => !v)}
+                label={t("Je souhaite recevoir les nouveautés et offres de 242Konnect")}
+              />
+            </View>
+
+            <FormError message={error} />
+            <SubmitButton
               label={t('Créer mon compte')}
               onPress={submit}
               busy={busy}
-              disabled={!detailsReady || tooYoung}
+              disabled={!consentReady || !detailsReady || tooYoung}
               accessibilityLabel={t('Créer mon compte')}
             />
           </View>
@@ -530,7 +758,7 @@ export function SignUpScreen({ navigation }: Props) {
             }}
             accessibilityRole="button"
             accessibilityLabel={trade.label}
-            accessibilityState={{ selected: trade.id === tradeId }}
+            aria-selected={trade.id === tradeId}
             style={[styles.sheetRow, trade.id === tradeId && styles.sheetRowOn]}
           >
             <Text style={styles.sheetRowLabel}>{trade.label}</Text>
@@ -542,6 +770,58 @@ export function SignUpScreen({ navigation }: Props) {
       </Sheet>
 
     </KeyboardAvoidingView>
+  );
+}
+
+function Check({
+  checked,
+  onToggle,
+  label,
+  disabled,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onToggle}
+      disabled={disabled}
+      accessibilityRole="checkbox"
+      accessibilityLabel={label}
+      aria-checked={checked} aria-disabled={!!disabled}
+      style={[styles.checkRow, disabled && styles.checkDisabled]}
+    >
+      <View style={[styles.box, checked && styles.boxOn]}>
+        {checked && <Icon name='242k:check' size={14} color={colors.accentForeground} />}
+      </View>
+      <Text style={styles.checkLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function ReviewRow({
+  label,
+  value,
+  onEdit,
+  editLabel,
+}: {
+  label: string;
+  value: string;
+  onEdit: () => void;
+  editLabel: string;
+}) {
+  return (
+    <View style={styles.reviewRow}>
+      <View style={styles.reviewBody}>
+        <Text style={styles.reviewLabel}>{label}</Text>
+        <Text style={styles.reviewValue} numberOfLines={2}>{value || '—'}</Text>
+      </View>
+      <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel={`${editLabel} ${label}`}>
+        <Text style={styles.reviewEdit}>{editLabel}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -582,6 +862,7 @@ const styles = StyleSheet.create({
   typeLabelSelected: { color: colors.accentForeground },
   typeHint: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
   typeHintSelected: { color: 'rgba(10,10,10,0.7)' },
+  typeDisabled: { opacity: 0.6, borderStyle: 'dashed' },
 
   requires: {
     padding: 14,
@@ -646,6 +927,66 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   chipLabel: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.foreground },
   chipLabelOn: { color: colors.accentForeground },
+  chipFull: { opacity: 0.4 },
+
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
+  checkDisabled: { opacity: 0.5 },
+  box: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  checkLabel: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
+
+  review: {
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    paddingHorizontal: 14,
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  reviewBody: { flex: 1 },
+  reviewLabel: { fontFamily: fonts.sansSemibold, fontSize: 12, color: colors.mutedForeground },
+  reviewValue: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
+  reviewEdit: { fontFamily: fonts.sansBold, fontSize: 12, color: colors.foreground, textDecorationLine: 'underline' },
+
+  docCard: {
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    paddingHorizontal: 14,
+  },
+  docHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12 },
+  docTitle: { flex: 1, fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
+  docVersion: { fontFamily: fonts.sans, fontSize: 11, color: colors.mutedForeground },
+  docSection: { paddingBottom: 10, gap: 2 },
+  docSectionTitle: { fontFamily: fonts.sansBold, fontSize: 12, color: colors.foreground },
+  docSectionBody: { fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: colors.mutedForeground },
+  optional: { gap: 6, paddingTop: 4 },
+  docStatus: {
+    fontFamily: fonts.sansBold,
+    fontSize: 11,
+    color: colors.mutedForeground,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    backgroundColor: colors.muted,
+  },
 
   docRow: {
     flexDirection: 'row',

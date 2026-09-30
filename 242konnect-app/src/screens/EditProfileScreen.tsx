@@ -17,6 +17,8 @@ import { Field, FormError, SubmitButton } from '../components/form';
 import { Sheet } from '../components/Sheet';
 import { ageFrom, formatStored, MIN_PRESTATAIRE_AGE, useAuth } from '../auth';
 import { trades } from '../data';
+import { PricingEditor } from '../components/PricingEditor';
+import { currencyFor, pricingOf, pricingProblem, type PricingModel, type ProjectDuration } from '../pricing';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { useT } from '../i18n';
@@ -28,7 +30,8 @@ export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { account, updateProfile } = useAuth();
 
-  const [name, setName] = useState(account?.name ?? '');
+  // Client §14 / Prestataire §02: the verified name is not freely editable.
+  const name = account?.name ?? '';
   const [bio, setBio] = useState(account?.bio ?? '');
   const [tradeId, setTradeId] = useState(account?.prestataire?.tradeId);
   /**
@@ -44,9 +47,15 @@ export function EditProfileScreen({ navigation }: Props) {
    * receive work.
    */
   const [zone, setZone] = useState(account?.prestataire?.zone ?? '');
-  const [hourlyRate, setHourlyRate] = useState(
-    account?.prestataire?.hourlyRate ? String(account.prestataire.hourlyRate) : ''
+  // Existing hourly-only accounts open on their hourly price; everyone else
+  // chooses — §03 forbids an hourly default.
+  const initialPricing = pricingOf(account?.prestataire, account?.location.country);
+  const [priceModel, setPriceModel] = useState<PricingModel | null>(initialPricing?.model ?? null);
+  const [priceAmount, setPriceAmount] = useState(
+    initialPricing?.amount ? String(initialPricing.amount) : ''
   );
+  const [negotiable, setNegotiable] = useState(initialPricing?.negotiable ?? false);
+  const [durations, setDurations] = useState<ProjectDuration[]>(account?.prestataire?.durations ?? []);
   const [birthDate, setBirthDate] = useState(account?.prestataire?.birthDate ?? '');
   const [avatar, setAvatar] = useState(account?.avatar);
   const [showTrades, setShowTrades] = useState(false);
@@ -91,8 +100,18 @@ export function EditProfileScreen({ navigation }: Props) {
         // way around the rules.
         if (!tradeId) throw new Error('Choisissez votre métier.');
         if (!zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
-        const rate = Number(hourlyRate);
-        if (!(rate > 0)) throw new Error('Indiquez votre tarif horaire.');
+        const currency = currencyFor(account.location.country);
+        const pricing = priceModel
+          ? {
+              model: priceModel,
+              amount: priceModel === 'quote' ? undefined : Number(priceAmount) || undefined,
+              negotiable,
+              currency,
+            }
+          : undefined;
+        const priceIssue = pricingProblem(pricing);
+        if (priceIssue) throw new Error(t(priceIssue));
+        if (!durations.length) throw new Error('Indiquez les durées de mission acceptées.');
         if (!birthDate) throw new Error('Indiquez votre date de naissance.');
         const age = ageFrom(birthDate);
         if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
@@ -113,7 +132,9 @@ export function EditProfileScreen({ navigation }: Props) {
           ...prestataire,
           tradeId,
           zone: zone.trim(),
-          hourlyRate: rate,
+          hourlyRate: pricing?.model === 'hourly' ? pricing.amount ?? 0 : 0,
+          pricing,
+          durations,
           birthDate,
           verified: account.prestataire?.verified ?? false,
         };
@@ -121,7 +142,6 @@ export function EditProfileScreen({ navigation }: Props) {
 
       // Merge rather than replace, so saving the name cannot wipe the rest.
       await updateProfile({
-        name,
         bio,
         avatar,
         ...(prestataire ? { prestataire } : {}),
@@ -156,7 +176,7 @@ export function EditProfileScreen({ navigation }: Props) {
         <Text style={styles.title}>{t('Modifier le profil')}</Text>
 
         <View style={styles.photoBlock}>
-          <UserAvatar name={name || account.name} avatar={avatar} size={96} border={colors.primary} />
+          <UserAvatar name={account.name} avatar={avatar} size={96} border={colors.primary} />
           <View style={styles.photoActions}>
             <Pressable
               onPress={pickFromLibrary}
@@ -191,7 +211,11 @@ export function EditProfileScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.form}>
-          <Field label={t('Nom complet')} value={name} onChangeText={setName} autoCapitalize="words" />
+          <View style={styles.readonly}>
+            <Text style={styles.readonlyLabel}>{t('Nom complet')}</Text>
+            <Text style={styles.readonlyValue}>{name}</Text>
+            <Text style={styles.readonlyHint}>{t('Le nom vérifié se corrige par une demande à 242Konnect, depuis Confidentialité.')}</Text>
+          </View>
 
           <View style={styles.readonly}>
             <Text style={styles.readonlyLabel}>{t('Numéro de téléphone')}</Text>
@@ -232,13 +256,16 @@ export function EditProfileScreen({ navigation }: Props) {
                 onChangeText={setZone}
                 placeholder={t('Quartiers ou communes couverts')}
               />
-              <Field
-                label="Tarif horaire (FCFA)"
-                value={hourlyRate}
-                onChangeText={setHourlyRate}
-                keyboardType="number-pad"
-                inputMode="numeric"
-                placeholder="12000"
+              <PricingEditor
+                currency={currencyFor(account.location.country)}
+                model={priceModel}
+                onModel={setPriceModel}
+                amount={priceAmount}
+                onAmount={setPriceAmount}
+                negotiable={negotiable}
+                onNegotiable={setNegotiable}
+                durations={durations}
+                onDurations={setDurations}
               />
               <Field
                 label={t('Date de naissance')}
@@ -275,7 +302,7 @@ export function EditProfileScreen({ navigation }: Props) {
             }}
             accessibilityRole="button"
             accessibilityLabel={trade.label}
-            accessibilityState={{ selected: trade.id === tradeId }}
+            aria-selected={trade.id === tradeId}
             style={[styles.tradeRow, trade.id === tradeId && styles.tradeRowSelected]}
           >
             <Text style={styles.tradeLabel}>{trade.label}</Text>

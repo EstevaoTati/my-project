@@ -255,7 +255,7 @@ export function HomeScreen({ navigation }: Props) {
               }}
               accessibilityRole="button"
               accessibilityLabel={option}
-              accessibilityState={{ selected }}
+              aria-selected={selected}
               style={[styles.cityRow, selected && styles.cityRowSelected]}
             >
               <Icon

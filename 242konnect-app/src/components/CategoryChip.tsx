@@ -19,7 +19,7 @@ export function CategoryChip({ category, onPress, selected }: Props) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Catégorie ${t(category.label)}`}
-      accessibilityState={{ selected: !!selected }}
+      aria-selected={!!selected}
       style={({ pressed }) => [styles.wrap, pressed && styles.pressed]}
     >
       <View style={[styles.tile, selected && styles.tileSelected]}>

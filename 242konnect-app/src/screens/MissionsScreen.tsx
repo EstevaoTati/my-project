@@ -28,7 +28,20 @@ import {
   pollCollection,
   requestToPay,
 } from '../momo';
-import { useStore, type Booking, type MissionStatus, type Payment } from '../store';
+import {
+  LONG_DURATIONS,
+  RESPONSE_DELAY_HOURS,
+  STAGES,
+  useStore,
+  VALIDATION_DELAY_HOURS,
+  type Booking,
+  type Dispute,
+  type MissionDuration,
+  type MissionStage,
+  type MissionStatus,
+  type Payment,
+} from '../store';
+import { useNavigation } from '@react-navigation/native';
 import { downloadReceipt } from '../receipt';
 import { pickAvatar } from '../photo';
 import { formatStored, useAuth } from '../auth';
@@ -44,13 +57,57 @@ import { colors, fonts, radius, shadow } from '../theme';
 import { T, useT } from '../i18n';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
-  demandee: { label: 'En attente', bg: colors.muted, fg: colors.mutedForeground },
-  acceptee: { label: T('À payer'), bg: colors.warningSurface, fg: colors.warning },
-  payee: { label: T('Fonds bloqués'), bg: colors.muted, fg: colors.foreground },
-  validee: { label: 'Validée', bg: colors.successSurface, fg: colors.success },
-  litige: { label: 'Litige', bg: colors.destructiveSurface, fg: colors.destructive },
-  annulee: { label: 'Annulée', bg: colors.muted, fg: colors.mutedForeground },
+  demandee: { label: T('À payer'), bg: colors.warningSurface, fg: colors.warning },
+  payee: { label: T('Envoyée · fonds bloqués'), bg: colors.muted, fg: colors.foreground },
+  refusee: { label: T('Non acceptée'), bg: colors.warningSurface, fg: colors.warning },
+  acceptee: { label: T('Acceptée'), bg: colors.successSurface, fg: colors.success },
+  validee: { label: T('Validée'), bg: colors.successSurface, fg: colors.success },
+  litige: { label: T('Litige'), bg: colors.destructiveSurface, fg: colors.destructive },
+  annulee: { label: T('Annulée'), bg: colors.muted, fg: colors.mutedForeground },
 };
+
+/** Commande §08: Accepted, On the way, Arrived, Work in progress, Completed. */
+const STAGE_LABELS: Record<MissionStage, string> = {
+  accepted: T('Acceptée'),
+  on_the_way: T('En route'),
+  arrived: T('Arrivé'),
+  in_progress: T('En cours'),
+  completed: T('Terminée'),
+};
+
+const DURATION_LABELS: Record<MissionDuration, string> = {
+  hours: T('Quelques heures'),
+  days: T('Quelques jours'),
+  weeks: T('Quelques semaines'),
+  months: T('Plusieurs mois'),
+  recurring: T('Service récurrent'),
+};
+
+/** Client §14: "My jobs distingue Active, Completed et Cancelled." */
+type Filter = 'active' | 'completed' | 'cancelled';
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: 'active', label: T('Actives') },
+  { id: 'completed', label: T('Terminées') },
+  { id: 'cancelled', label: T('Annulées') },
+];
+const inFilter = (b: Booking, f: Filter) =>
+  f === 'completed' ? b.status === 'validee' : f === 'cancelled' ? b.status === 'annulee' : b.status !== 'validee' && b.status !== 'annulee';
+
+const DISPUTE_REASONS = [
+  T('Travail non conforme'),
+  T('Travail incomplet'),
+  T('Prestataire absent'),
+  T('Dommages'),
+  T('Autre'),
+];
+const DISPUTE_OUTCOMES: { id: Dispute['outcome']; label: string }[] = [
+  { id: 'redo', label: T('Reprise du travail') },
+  { id: 'partial_refund', label: T('Remboursement partiel') },
+  { id: 'full_refund', label: T('Remboursement complet') },
+];
+
+/** Protection fee charged to the client — zero: the 12 % is taken from the payout. */
+const PROTECTION_FEE = 0;
 
 const pct = (r: number) => `${(r * 100).toLocaleString('fr-FR')} %`;
 
@@ -59,9 +116,52 @@ export function MissionsScreen() {
   const insets = useSafeAreaInsets();
   const {
     bookings, payments, payBooking, cancelBooking, validateMission, disputeMission,
-    acceptBooking, reviewMission, totalPaid, heldInEscrow,
+    acceptBooking, refuseBooking, advanceStage, reviewMission, totalPaid, heldInEscrow,
+    ensureThread,
   } = useStore();
   const { account } = useAuth();
+  // Untyped on purpose: this screen jumps across tabs (Messages, Accueil),
+  // which the tab navigator's own param list does not describe.
+  const navigation = useNavigation<{ navigate: (name: string, params?: object) => void }>();
+  const [filter, setFilter] = useState<Filter>('active');
+  const [authorized, setAuthorized] = useState(false);
+
+  const [disputing, setDisputing] = useState<Booking | null>(null);
+  const [disputeReason, setDisputeReason] = useState<string | null>(null);
+  const [disputeOutcome, setDisputeOutcome] = useState<Dispute['outcome'] | null>(null);
+  const [disputeDetails, setDisputeDetails] = useState('');
+  const [disputePhoto, setDisputePhoto] = useState<string | undefined>();
+
+  // §05: the verified country decides the methods on offer. Mobile Money is a
+  // Congolese rail; in the United States, card and bank only.
+  const methods = PAYMENT_METHODS.filter((m) =>
+    account?.location.country === 'US' ? m.id === 'carte' || m.id === 'virement' : true
+  );
+  const visible = bookings.filter((b) => inFilter(b, filter));
+
+  const openChat = (professionalId: string) => {
+    ensureThread(professionalId);
+    navigation.navigate('Messages', { screen: 'Discussion', params: { id: professionalId }, initial: false });
+  };
+
+  const openDispute = (booking: Booking) => {
+    setDisputing(booking);
+    setDisputeReason(null);
+    setDisputeOutcome(null);
+    setDisputeDetails('');
+    setDisputePhoto(undefined);
+  };
+
+  const submitDispute = () => {
+    if (!disputing || !disputeReason || !disputeOutcome) return;
+    disputeMission(disputing.id, {
+      reason: disputeReason,
+      outcome: disputeOutcome,
+      details: disputeDetails.trim(),
+      photo: disputePhoto,
+    });
+    setDisputing(null);
+  };
 
   const [paying, setPaying] = useState<Booking | null>(null);
   const [method, setMethod] = useState<PaymentMethod | null>(null);
@@ -103,6 +203,7 @@ export function MissionsScreen() {
     setReceipt(null);
     setPayError(null);
     setMomoPhase('idle');
+    setAuthorized(false);
     setPayPhone(account ? fromE164(account.phone).national : '');
   };
 
@@ -145,6 +246,7 @@ export function MissionsScreen() {
         phone,
         amount: paying.rate,
         label: `242Konnect · mission ${paying.id.slice(0, 6).toUpperCase()}`,
+        idempotencyKey: paying.idempotencyKey,
       });
 
       setMomoPhase('waiting');
@@ -229,10 +331,15 @@ export function MissionsScreen() {
 
   const confirmValidation = () => {
     if (!validating) return;
-    setSettled(validateMission(validating.id, speed) ?? null);
+    const result = validateMission(validating.id, speed) ?? null;
+    setSettled(result);
+    // The mission now belongs under "Terminées"; follow it there, so the
+    // review and the receipt it offers are on screen rather than filtered out.
+    if (result) setFilter('completed');
   };
 
-  const canPay = !!method && (!methodNeedsPhone(method) || isCompleteNumber(payPhone, payCountry));
+  const canPay =
+    !!method && authorized && (!methodNeedsPhone(method) || isCompleteNumber(payPhone, payCountry));
 
   /**
    * The operator the entered number looks like, when that disagrees with the one
@@ -258,6 +365,29 @@ export function MissionsScreen() {
         )}
       </View>
 
+      {bookings.length > 0 && (
+        <View style={styles.filters} accessibilityRole="tablist">
+          {FILTERS.map((f) => {
+            const on = filter === f.id;
+            const count = bookings.filter((b) => inFilter(b, f.id)).length;
+            return (
+              <Pressable
+                key={f.id}
+                onPress={() => setFilter(f.id)}
+                accessibilityRole="tab"
+                accessibilityLabel={`${t(f.label)} (${count})`}
+                aria-selected={on}
+                style={[styles.filter, on && styles.filterOn]}
+              >
+                <Text style={[styles.filterLabel, on && styles.filterLabelOn]}>
+                  {t(f.label)} · {count}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
       {bookings.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
@@ -275,10 +405,20 @@ export function MissionsScreen() {
             <Text style={styles.ruleText}>{t("Tous les paiements passent par 242Konnect. Ne remettez jamais d'argent directement au prestataire, même en pourboire.")}</Text>
           </View>
 
-          {bookings.map((booking) => {
+          {visible.length === 0 && (
+            <Text style={styles.escrowLine}>{t('Aucune mission dans cette catégorie.')}</Text>
+          )}
+          {visible.map((booking) => {
             const pro = getProfessional(booking.professionalId);
             if (!pro) return null;
-            const status = STATUS[booking.status];
+            const baseStatus = STATUS[booking.status];
+            // An accepted mission shows where it has got to (§08).
+            const status =
+              booking.status === 'acceptee' && booking.stage
+                ? { ...baseStatus, label: STAGE_LABELS[booking.stage] }
+                : baseStatus;
+            const responseDeadline = (booking.paidAt ?? 0) + RESPONSE_DELAY_HOURS * 3600_000;
+            const expired = booking.status === 'payee' && Date.now() > responseDeadline;
             const payment = payments.find((p) => p.id === booking.paymentId);
             return (
               <View key={booking.id} style={styles.card}>
@@ -301,10 +441,97 @@ export function MissionsScreen() {
                   <Text style={styles.rate}>{formatFcfaFull(booking.rate)} FCFA</Text>
                 </View>
 
+                {(!!booking.description || !!booking.address || !!booking.duration) && (
+                  <View style={styles.details}>
+                    {!!booking.description && <Text style={styles.detailText}>{booking.description}</Text>}
+                    {!!booking.duration && (
+                      <Text style={styles.detailMuted}>
+                        {t('Durée')} : {t(DURATION_LABELS[booking.duration])}
+                        {booking.contractAcceptedAt ? ` · ${t('contrat signé')}` : ''}
+                      </Text>
+                    )}
+                    {!!booking.address && (
+                      <Text style={styles.detailMuted}>
+                        {/* §01: private until acceptance. */}
+                        {booking.status === 'acceptee' || booking.status === 'litige' || booking.status === 'validee'
+                          ? `${t('Adresse communiquée au prestataire')} : ${booking.address}`
+                          : `${t('Adresse privée jusqu’à acceptation')} : ${booking.address}`}
+                      </Text>
+                    )}
+                  </View>
+                )}
+
                 {booking.status === 'payee' && (
                   <Text style={styles.escrowLine}>
                     242Konnect conserve {formatFcfaFull(booking.rate)} FCFA jusqu'à votre validation.
-                    {payment ? ` Réf. ${payment.reference}.` : ''}
+                    {payment ? ` Réf. ${payment.reference}.` : ''}{' '}
+                    {expired
+                      ? t('Le délai de réponse est dépassé.')
+                      : `${t('Réponse attendue avant')} ${new Date(responseDeadline).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}.`}
+                  </Text>
+                )}
+
+                {(booking.status === 'refusee' || expired) && (
+                  <View style={styles.actionsCol}>
+                    <Text style={styles.escrowLine}>{t("Le prestataire n'a pas accepté. Vos fonds restent protégés : choisissez un autre prestataire qualifié ou demandez le remboursement intégral.")}</Text>
+                    <View style={styles.actions}>
+                      <Pressable
+                        onPress={() => cancelBooking(booking.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Demander le remboursement de la mission avec ${pro.name}`}
+                        style={styles.ghost}
+                      >
+                        <Text style={styles.ghostLabel}>{t('Remboursement')}</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          cancelBooking(booking.id);
+                          navigation.navigate('Accueil');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('Choisir un autre prestataire')}
+                        style={styles.solid}
+                      >
+                        <Text style={styles.solidLabel}>{t('Autre prestataire')}</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+
+                {booking.status === 'acceptee' && (
+                  <View style={styles.tracker}>
+                    {STAGES.map((stage) => {
+                      const reached = STAGES.indexOf(stage) <= STAGES.indexOf(booking.stage ?? 'accepted');
+                      const at = booking.stageAt?.[stage];
+                      return (
+                        <View key={stage} style={styles.trackerRow}>
+                          <View style={[styles.trackerDot, reached && styles.trackerDotOn]} />
+                          <Text style={[styles.trackerLabel, reached && styles.trackerLabelOn]}>
+                            {t(STAGE_LABELS[stage])}
+                          </Text>
+                          {!!at && (
+                            <Text style={styles.trackerTime}>
+                              {new Date(at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    })}
+                    {booking.stage === 'completed' && (
+                      <Text style={styles.escrowLine}>
+                        {t('Validez ou signalez un problème sous')} {VALIDATION_DELAY_HOURS} h. {t("Les fonds restent bloqués jusqu'à votre décision.")}
+                      </Text>
+                    )}
+                  </View>
+                )}
+
+                {booking.status === 'annulee' && (
+                  <Text style={styles.escrowLine}>
+                    {booking.refundUnderReview
+                      ? t("Annulée après acceptation : le remboursement est calculé selon le préavis et le travail effectué, après examen par 242Konnect. Les fonds restent bloqués d'ici là.")
+                      : payment
+                        ? t('Remboursée intégralement.')
+                        : t('Annulée avant paiement : rien n’a été débité.')}
                   </Text>
                 )}
 
@@ -365,9 +592,17 @@ export function MissionsScreen() {
                 )}
 
                 {booking.status === 'litige' && (
-                  <Text style={styles.disputeLine}>{t("Les fonds restent bloqués jusqu'à la décision de 242Konnect.")}</Text>
+                  <View style={styles.details}>
+                    {!!booking.dispute && (
+                      <Text style={styles.detailText}>
+                        {t(booking.dispute.reason)} · {t(DISPUTE_OUTCOMES.find((o) => o.id === booking.dispute!.outcome)?.label ?? '')}
+                      </Text>
+                    )}
+                    <Text style={styles.disputeLine}>{t("Fonds gelés pendant l'examen. 242Konnect examine le contrat, le chat, les horaires et les preuves ; le prestataire peut répondre. Aucun remboursement n'est promis avant cette décision.")}</Text>
+                  </View>
                 )}
 
+                {/* §04–§06: nothing is sent until the order is reviewed and paid. */}
                 {booking.status === 'demandee' && (
                   <View style={styles.actions}>
                     <Pressable
@@ -378,45 +613,86 @@ export function MissionsScreen() {
                     >
                       <Text style={styles.ghostLabel}>{t('Annuler')}</Text>
                     </Pressable>
-                    {/* Stands in for the prestataire, who has no app yet. The
-                        state machine is real; only the actor is simulated, and
-                        the label says so rather than pretending otherwise. */}
-                    <Pressable
-                      onPress={() => acceptBooking(booking.id)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Simuler l'acceptation par ${pro.name}`}
-                      style={styles.solid}
-                    >
-                      <Text style={styles.solidLabel}>{t("Simuler l'acceptation")}</Text>
-                    </Pressable>
-                  </View>
-                )}
-
-                {booking.status === 'acceptee' && (
-                  <View style={styles.actions}>
-                    <Pressable
-                      onPress={() => cancelBooking(booking.id)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Annuler la mission avec ${pro.name}`}
-                      style={styles.ghost}
-                    >
-                      <Text style={styles.ghostLabel}>{t('Annuler')}</Text>
-                    </Pressable>
                     <Pressable
                       onPress={() => openPayment(booking)}
                       accessibilityRole="button"
                       accessibilityLabel={`Payer la mission avec ${pro.name}`}
                       style={styles.solid}
                     >
-                      <Text style={styles.solidLabel}>{t('Payer')}</Text>
+                      <Text style={styles.solidLabel}>{t('Revoir et payer')}</Text>
                     </Pressable>
                   </View>
                 )}
 
-                {booking.status === 'payee' && (
+                {booking.status === 'payee' && !expired && (
+                  <View style={styles.actionsCol}>
+                    <View style={styles.actions}>
+                      <Pressable
+                        onPress={() => cancelBooking(booking.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Annuler la demande à ${pro.name}`}
+                        style={styles.ghost}
+                      >
+                        <Text style={styles.ghostLabel}>{t('Annuler · remboursé')}</Text>
+                      </Pressable>
+                      {/* Stands in for the prestataire, who has no app yet. The
+                          state machine is real; only the actor is simulated, and
+                          the label says so rather than pretending otherwise. */}
+                      <Pressable
+                        onPress={() => acceptBooking(booking.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Simuler l'acceptation par ${pro.name}`}
+                        style={styles.solid}
+                      >
+                        <Text style={styles.solidLabel}>{t("Simuler l'acceptation")}</Text>
+                      </Pressable>
+                    </View>
+                    <Pressable
+                      onPress={() => refuseBooking(booking.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Simuler un refus par ${pro.name}`}
+                      style={styles.linkButton}
+                    >
+                      <Text style={styles.linkLabel}>{t('Simuler un refus')}</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {booking.status === 'acceptee' && booking.stage !== 'completed' && (
+                  <View style={styles.actionsCol}>
+                    <View style={styles.actions}>
+                      <Pressable
+                        onPress={() => openChat(pro.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Ouvrir le chat de la mission avec ${pro.name}`}
+                        style={styles.ghost}
+                      >
+                        <Text style={styles.ghostLabel}>{t('Message')}</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => advanceStage(booking.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Simuler l'étape suivante pour ${pro.name}`}
+                        style={styles.solid}
+                      >
+                        <Text style={styles.solidLabel}>{t("Simuler l'étape suivante")}</Text>
+                      </Pressable>
+                    </View>
+                    <Pressable
+                      onPress={() => cancelBooking(booking.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Annuler la mission avec ${pro.name}`}
+                      style={styles.linkButton}
+                    >
+                      <Text style={styles.linkLabel}>{t('Annuler (remboursement après examen)')}</Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {booking.status === 'acceptee' && booking.stage === 'completed' && (
                   <View style={styles.actions}>
                     <Pressable
-                      onPress={() => disputeMission(booking.id)}
+                      onPress={() => openDispute(booking)}
                       accessibilityRole="button"
                       accessibilityLabel={`Signaler un problème sur la mission avec ${pro.name}`}
                       style={styles.ghost}
@@ -487,6 +763,9 @@ export function MissionsScreen() {
               {receipt.operatorReference ? `\nTransaction opérateur ${receipt.operatorReference}` : ''}
             </Text>
             <Text style={styles.doneEscrow}>{t("242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation de la prestation.")}</Text>
+            <Text style={styles.doneBody}>
+              {t('Demande envoyée. Réponse du prestataire attendue sous')} {RESPONSE_DELAY_HOURS} h.
+            </Text>
             {receipt.simulated && (
               <Text style={styles.demoNote}>{t("Démonstration : aucun argent n'a été débité. Les paiements réels nécessitent les comptes marchands MTN MoMo et Airtel Money côté serveur.")}</Text>
             )}
@@ -511,13 +790,28 @@ export function MissionsScreen() {
           </View>
         ) : (
           <>
-            <Text style={styles.sheetAmount}>
-              {paying ? formatFcfaFull(paying.rate) : 0} <Text style={styles.sheetCurrency}>{t('FCFA')}</Text>
-            </Text>
-            <Text style={styles.sheetEscrow}>{t("Vous payez 242Konnect maintenant. Le prestataire se met en route une fois le paiement confirmé, et n'est payé qu'après votre validation.")}</Text>
+            {/* §04: the whole order, and a total identical to what is
+                authorised — no fee appears only after confirmation. */}
+            {paying && (() => {
+              const pro = getProfessional(paying.professionalId);
+              return (
+                <View style={styles.breakdown}>
+                  <Text style={styles.breakdownTitle}>{t('Récapitulatif de la commande')}</Text>
+                  <TextRow label={t('Service')} value={pro ? professionalTrade(pro)?.label ?? '' : ''} />
+                  <TextRow label={t('Prestataire')} value={pro?.name ?? ''} />
+                  <TextRow label={t('Horaire')} value={paying.slot} />
+                  {!!paying.duration && <TextRow label={t('Durée')} value={t(DURATION_LABELS[paying.duration])} />}
+                  {!!paying.address && <TextRow label={t('Adresse')} value={paying.address} />}
+                  <Row label={t('Prix de la prestation')} value={paying.rate} />
+                  <Row label={t('Frais de protection 242Konnect')} value={PROTECTION_FEE} />
+                  <Row label={t('Total autorisé')} value={paying.rate + PROTECTION_FEE} strong />
+                </View>
+              );
+            })()}
+            <Text style={styles.sheetEscrow}>{t("Vous payez 242Konnect maintenant et la demande est envoyée ensuite. Le paiement reste bloqué : il n'est versé au prestataire qu'après votre validation.")}</Text>
 
             <Text style={styles.sheetHint}>{t('Moyen de paiement')}</Text>
-            {PAYMENT_METHODS.map((m) => {
+            {methods.map((m) => {
               const selected = method === m.id;
               return (
                 <Pressable
@@ -525,7 +819,7 @@ export function MissionsScreen() {
                   onPress={() => setMethod(m.id)}
                   accessibilityRole="button"
                   accessibilityLabel={m.label}
-                  accessibilityState={{ selected }}
+                  aria-selected={selected}
                   style={[styles.method, selected && styles.methodSelected]}
                 >
                   <View style={styles.methodBody}>
@@ -559,6 +853,26 @@ export function MissionsScreen() {
               </View>
             )}
 
+            {/* §06: the rules, then an explicit authorisation. */}
+            <View style={styles.policy}>
+              <Text style={styles.breakdownTitle}>{t('Annulation et remboursement')}</Text>
+              <Text style={styles.policyText}>{t('Avant acceptation : remboursement intégral. Après acceptation : selon le préavis et le travail effectué, après examen. Refus ou absence de réponse sous 24 h : autre prestataire ou remboursement intégral.')}</Text>
+            </View>
+            <Pressable
+              onPress={() => setAuthorized((v) => !v)}
+              accessibilityRole="checkbox"
+              accessibilityLabel={t("J'autorise le paiement")}
+              aria-checked={authorized}
+              style={styles.authRow}
+            >
+              <View style={[styles.box, authorized && styles.boxOn]}>
+                {authorized && <Icon name="242k:check" size={14} color={colors.accentForeground} />}
+              </View>
+              <Text style={styles.authLabel}>
+                {t("J'autorise 242Konnect à prélever")} {formatFcfaFull(paying?.rate ?? 0)} FCFA {t("et à les conserver jusqu'à ma validation.")}
+              </Text>
+            </Pressable>
+
             {payError && (
               <View style={styles.payError}>
                 <Text style={styles.payErrorText}>{payError}</Text>
@@ -570,7 +884,7 @@ export function MissionsScreen() {
               disabled={!canPay}
               accessibilityRole="button"
               accessibilityLabel={t('Confirmer le paiement')}
-              accessibilityState={{ disabled: !canPay }}
+              aria-disabled={!canPay}
               style={[styles.solidWide, !canPay && styles.solidOff]}
             >
               <Text style={styles.solidLabel}>
@@ -602,7 +916,7 @@ export function MissionsScreen() {
               onPress={() => setRating(value)}
               accessibilityRole="button"
               accessibilityLabel={`Donner ${value} étoile${value > 1 ? 's' : ''}`}
-              accessibilityState={{ selected: rating === value }}
+              aria-selected={rating === value}
               hitSlop={4}
             >
               <Text style={[styles.star, value <= rating && styles.starOn]}>★</Text>
@@ -650,6 +964,78 @@ export function MissionsScreen() {
         </Pressable>
       </Sheet>
 
+      {/* ---- Dispute (§10) ---- */}
+      <Sheet visible={!!disputing} title={t('Signaler un problème')} onClose={() => setDisputing(null)}>
+        <Text style={styles.sheetEscrow}>{t("Le paiement reste bloqué pendant l'examen. 242Konnect examine le contrat, le chat, les horaires et les preuves, et le prestataire peut répondre.")}</Text>
+        <Text style={styles.sheetHint}>{t('Motif')}</Text>
+        <View style={styles.chips}>
+          {DISPUTE_REASONS.map((r) => (
+            <Pressable
+              key={r}
+              onPress={() => setDisputeReason(r)}
+              accessibilityRole="radio"
+              accessibilityLabel={t(r)}
+              aria-selected={disputeReason === r}
+              style={[styles.chip, disputeReason === r && styles.chipOn]}
+            >
+              <Text style={styles.chipLabel}>{t(r)}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.sheetHint}>{t('Ce que vous demandez')}</Text>
+        <View style={styles.chips}>
+          {DISPUTE_OUTCOMES.map((o) => (
+            <Pressable
+              key={o.id}
+              onPress={() => setDisputeOutcome(o.id)}
+              accessibilityRole="radio"
+              accessibilityLabel={t(o.label)}
+              aria-selected={disputeOutcome === o.id}
+              style={[styles.chip, disputeOutcome === o.id && styles.chipOn]}
+            >
+              <Text style={styles.chipLabel}>{t(o.label)}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.sheetHint}>{t('Détails')}</Text>
+        <TextInput
+          value={disputeDetails}
+          onChangeText={setDisputeDetails}
+          multiline
+          placeholder={t("Décrivez ce qui s'est passé")}
+          placeholderTextColor={colors.mutedForeground}
+          accessibilityLabel={t('Détails du problème')}
+          style={styles.reviewInput}
+        />
+        <View style={styles.photoRow}>
+          {!!disputePhoto && <Image source={{ uri: disputePhoto }} style={styles.reviewPhoto} />}
+          <Pressable
+            onPress={async () => {
+              try {
+                const next = await pickAvatar();
+                if (next) setDisputePhoto(next);
+              } catch {
+                // An unusable image is not worth blocking the report over.
+              }
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t('Ajouter une preuve photo')}
+            style={styles.ghost}
+          >
+            <Text style={styles.ghostLabel}>{t('Ajouter une preuve')}</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          onPress={submitDispute}
+          disabled={!disputeReason || !disputeOutcome}
+          accessibilityRole="button"
+          accessibilityLabel={t('Envoyer le signalement')}
+          style={[styles.solidWide, (!disputeReason || !disputeOutcome) && styles.solidOff]}
+        >
+          <Text style={styles.solidLabel}>{t('Envoyer le signalement')}</Text>
+        </Pressable>
+      </Sheet>
+
       {/* ---- Validation and settlement ---- */}
       <Sheet
         visible={!!validating}
@@ -683,7 +1069,7 @@ export function MissionsScreen() {
                   onPress={() => setSpeed(option)}
                   accessibilityRole="button"
                   accessibilityLabel={option === 'standard' ? 'Versement standard' : 'Versement express'}
-                  accessibilityState={{ selected }}
+                  aria-selected={selected}
                   style={[styles.method, selected && styles.methodSelected]}
                 >
                   <View style={styles.methodBody}>
@@ -723,6 +1109,15 @@ export function MissionsScreen() {
           </>
         )}
       </Sheet>
+    </View>
+  );
+}
+
+function TextRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={[styles.rowValue, styles.rowText]} numberOfLines={2}>{value}</Text>
     </View>
   );
 }
@@ -798,6 +1193,67 @@ const styles = StyleSheet.create({
   rowValue: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.foreground, fontVariant: ['tabular-nums'] },
   rowStrong: { fontFamily: fonts.sansBold, color: colors.foreground },
   actions: { flexDirection: 'row', gap: 10 },
+  actionsCol: { gap: 8 },
+  linkButton: { alignSelf: 'center', paddingVertical: 4 },
+  linkLabel: { fontFamily: fonts.sansSemibold, fontSize: 12, color: colors.mutedForeground, textDecorationLine: 'underline' },
+  details: { gap: 4 },
+  detailText: { fontFamily: fonts.sansMedium, fontSize: 13, lineHeight: 19, color: colors.foreground },
+  detailMuted: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.mutedForeground },
+  tracker: { gap: 6 },
+  trackerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  trackerDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border },
+  trackerDotOn: { backgroundColor: colors.success },
+  trackerLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.mutedForeground },
+  trackerLabelOn: { fontFamily: fonts.sansSemibold, color: colors.foreground },
+  trackerTime: { fontFamily: fonts.sans, fontSize: 11, color: colors.mutedForeground },
+  filters: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingBottom: 4 },
+  filter: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  filterOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterLabel: { fontFamily: fonts.sansSemibold, fontSize: 12, color: colors.foreground },
+  filterLabelOn: { color: colors.primaryForeground },
+  rowText: { flexShrink: 1, textAlign: 'right' },
+  policy: {
+    padding: 12,
+    gap: 4,
+    marginTop: 4,
+    marginBottom: 10,
+    borderRadius: radius.xl,
+    backgroundColor: colors.muted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  policyText: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.foreground },
+  authRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  authLabel: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 13, lineHeight: 19, color: colors.foreground },
+  box: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipLabel: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.foreground },
   ghost: {
     flex: 1,
     height: 44,

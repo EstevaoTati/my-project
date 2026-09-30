@@ -1,5 +1,6 @@
 /** The new sign-up order: infos, verification, then password. */
 const { chromium } = require("playwright");
+const { acceptConsents } = require("./lib/account");
 const http=require("http"),fs=require("fs"),path=require("path");
 const D=process.env.APP_DIST, LOG=process.env.API_LOG||"/tmp/242konnect-api.log";
 const T={".html":"text/html",".js":"text/javascript",".json":"application/json",".png":"image/png",".ttf":"font/ttf",".ico":"image/x-icon"};
@@ -37,6 +38,8 @@ await tap('[aria-label="Continuer vers les informations"]');
 await p.waitForSelector("text=Où intervenir ?",{timeout:15000});
 await fill('[aria-label="Adresse complète"]',"Avenue Tiboti, Mpaka");
 await fill("[aria-label=\"Référence de l'adresse\"]","En face du marché");
+await tap('[aria-label="Continuer vers les consentements"]');
+await acceptConsents(p);
 await tap('[aria-label="Créer mon compte"]');
 await p.waitForSelector("text=Vérification",{timeout:20000}); await p.waitForTimeout(900);
 

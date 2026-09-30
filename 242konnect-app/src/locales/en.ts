@@ -149,8 +149,6 @@ export const en: Record<string, string> = {
   'Pièces justificatives': 'Supporting documents',
   'Ajouter une pièce': 'Add a document',
   'Ajouter une pièce justificative': 'Add a supporting document',
-  "Pièce d'identité, attestation, certificat. Vérifiées par 242Konnect.":
-    'ID, attestation, certificate. Checked by 242Konnect.',
   "Ces informations sont vérifiées par 242Konnect avant l'attribution du badge « Prestataire vérifié ».":
     'These are checked by 242Konnect before the "Verified provider" badge is awarded.',
   'Obligatoire pour un prestataire.': 'Required for a provider.',
@@ -203,7 +201,6 @@ export const en: Record<string, string> = {
   'À payer': 'To pay',
 
   /* ---- Payment -------------------------------------------------------- */
-  Payer: 'Pay',
   'Moyen de paiement': 'Payment method',
   'Confirmer le paiement': 'Confirm payment',
   'Annuler le paiement': 'Cancel payment',
@@ -211,18 +208,13 @@ export const en: Record<string, string> = {
   'Numéro Mobile Money': 'Mobile Money number',
   'Le numéro du compte Mobile Money à débiter. Vous recevrez une demande de code PIN sur ce téléphone.':
     'The Mobile Money account to debit. You will get a PIN request on that phone.',
-  "Vous payez 242Konnect maintenant. Le prestataire se met en route une fois le paiement confirmé, et n'est payé qu'après votre validation.":
-    'You pay 242Konnect now. The provider sets off once the payment is confirmed, and is only paid after you approve the work.',
   "242Konnect conserve ce montant. Le prestataire ne sera payé qu'après votre validation de la prestation.":
     '242Konnect holds this amount. The provider is only paid once you approve the work.',
   "Tous les paiements passent par 242Konnect. Ne remettez jamais d'argent directement au prestataire, même en pourboire.":
     'All payments go through 242Konnect. Never hand money to a provider directly, not even as a tip.',
   'Télécharger le reçu': 'Download the receipt',
   Terminé: 'Done',
-  'Fonds bloqués': 'Funds held',
   'Signaler un problème': 'Report a problem',
-  "Les fonds restent bloqués jusqu'à la décision de 242Konnect.":
-    'The funds stay held until 242Konnect decides.',
 
   /* ---- Validation and settlement -------------------------------------- */
   Valider: 'Approve',
@@ -622,8 +614,6 @@ export const en: Record<string, string> = {
     'This code is required to finish setting up your account.',
   "Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.":
     'Your profile is saved on our servers and follows you from one device to the next. Your password stays on this phone: to sign in elsewhere, use account recovery.',
-  'Un seul compte, plusieurs profils. Activez Prestataire pour proposer vos services sans créer un second compte.':
-    'One account, several profiles. Turn on Prestataire to offer your services without creating a second account.',
   "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier.":
     'You offer services and you can book them too: the home screen, search and bookings work exactly as they do for a particulier.',
   'Adresse e-mail': 'E-mail address',
@@ -707,4 +697,462 @@ export const en: Record<string, string> = {
     'Are my conversations private?',
   'Elles restent sur votre appareil et ne sont envoyées à personne. Cela veut aussi dire que le professionnel ne les reçoit pas encore.':
     'They stay on your device and are not sent to anyone. That also means the professional does not receive them yet.',
+
+  /* ---- V1 specifications: consent, pricing, dossier, order cycle ---- */
+  'Modèle de prix':
+    'Pricing model',
+  'Devise selon votre pays :':
+    'Currency for your country:',
+  'Montant':
+    'Amount',
+  'Prix négociable':
+    'Negotiable price',
+  'Durées de mission acceptées':
+    'Job lengths you accept',
+  'Durée':
+    'Duration',
+  'Prestataire identifié':
+    'Identified provider',
+  'avis':
+    'reviews',
+  'Conditions d\'utilisation':
+    'Terms of use',
+  'Le service':
+    'The service',
+  '242Konnect met en relation des clients et des prestataires vérifiés. Toute demande, tout échange, tout devis et tout paiement passent par l\'application.':
+    '242Konnect connects clients with verified providers. Every request, message, quote and payment goes through the app.',
+  'Votre compte':
+    'Your account',
+  'Un numéro de téléphone et une adresse e-mail n\'appartiennent qu\'à un seul compte. Les informations fournies doivent être exactes. Le nom, le téléphone et le pays vérifiés ne se modifient qu\'avec le support.':
+    'A phone number and an e-mail address belong to one account only. The information you give must be accurate. A verified name, phone number or country can only be changed through support.',
+  'Paiements protégés':
+    'Protected payments',
+  '242Konnect conserve le paiement jusqu\'à la validation du service. Les paiements et négociations hors plateforme sont interdits et peuvent conduire à une suspension après contrôle.':
+    '242Konnect holds the payment until the service is approved. Payments and negotiations outside the platform are forbidden and may lead to suspension after review.',
+  'Annulations et litiges':
+    'Cancellations and disputes',
+  'Avant acceptation, une annulation est remboursée intégralement. Après acceptation, le remboursement dépend du préavis et du travail effectué. Un litige gèle les fonds pendant l\'examen du contrat, du chat, des horaires et des preuves.':
+    'Before acceptance, a cancellation is refunded in full. After acceptance, the refund depends on the notice given and the work done. A dispute freezes the funds while the contract, chat, times and evidence are reviewed.',
+  'Politique de confidentialité':
+    'Privacy policy',
+  'Localisation':
+    'Location',
+  'Utilisée pour proposer les services de votre pays et de votre ville, et seulement après votre autorisation. Votre adresse exacte reste privée jusqu\'à l\'acceptation d\'une mission.':
+    'Used to show services in your country and city, and only with your permission. Your exact address stays private until a job is accepted.',
+  'Photos et documents':
+    'Photos and documents',
+  'Votre photo de profil est visible des autres utilisateurs. Les pièces justificatives d\'un prestataire ne servent qu\'à sa vérification et ne sont jamais publiées.':
+    'Your profile photo is visible to other users. A provider\'s supporting documents are used only for verification and are never published.',
+  'Coordonnées':
+    'Contact details',
+  'Votre téléphone et votre e-mail ne sont jamais affichés publiquement. Les échanges passent par la messagerie de l\'application.':
+    'Your phone number and e-mail are never shown publicly. Conversations go through the in-app messaging.',
+  'Stockage local et mesure':
+    'Local storage and analytics',
+  'L\'application conserve votre session et vos préférences sur l\'appareil. Aucune technologie de mesure publicitaire n\'est utilisée.':
+    'The app keeps your session and preferences on the device. No advertising analytics are used.',
+  'Vos droits':
+    'Your rights',
+  'Vous pouvez consulter vos consentements, retirer l\'accord marketing et demander la correction ou la suppression de vos données depuis Profil › Confidentialité.':
+    'You can review your consents, withdraw marketing consent and ask for your data to be corrected or deleted from Profile › Privacy.',
+  'Contrat Prestataire':
+    'Provider agreement',
+  'Responsabilités':
+    'Responsibilities',
+  'Vous réalisez les missions acceptées avec soin, dans les délais convenus, et vous respectez les règles de sécurité de votre métier.':
+    'You carry out accepted jobs with care, on the agreed schedule, and follow your trade\'s safety rules.',
+  'Exactitude des informations':
+    'Accuracy of information',
+  'Votre identité, vos services, vos prix et vos pièces sont exacts. Une information fausse entraîne le refus ou la suspension du profil.':
+    'Your identity, services, prices and documents are accurate. False information leads to the profile being refused or suspended.',
+  'Paiements et frais':
+    'Payments and fees',
+  '242Konnect collecte le paiement du client et vous le verse après validation, déduction faite de la commission de 12 % et des frais de versement. Aucun paiement hors plateforme.':
+    '242Konnect collects the client\'s payment and pays you after approval, less the 12% commission and payout fees. No payments outside the platform.',
+  'Confidentialité':
+    'Privacy',
+  'Les coordonnées et l\'adresse exacte du client ne vous sont communiquées qu\'après acceptation, et uniquement pour la mission.':
+    'The client\'s contact details and exact address are shared with you only after acceptance, and only for the job.',
+  'Les annulations répétées ou tardives affectent votre score. En cas de litige, 242Konnect examine le contrat, le chat, les horaires et les preuves avant toute décision, et vous pouvez répondre.':
+    'Repeated or late cancellations lower your score. In a dispute, 242Konnect reviews the contract, chat, times and evidence before any decision, and you can respond.',
+  'Prix fixe':
+    'Fixed price',
+  'Un montant pour le service':
+    'One amount for the service',
+  'À partir de':
+    'From',
+  'Un prix de départ, ajusté selon le besoin':
+    'A starting price, adjusted to the job',
+  'Facturé à l\'heure':
+    'Billed by the hour',
+  'Sur devis':
+    'Quote required',
+  'Le prix est fixé après étude de la demande':
+    'The price is set after reviewing the request',
+  'Quelques heures':
+    'A few hours',
+  'Quelques jours':
+    'A few days',
+  'Quelques semaines':
+    'A few weeks',
+  '1 à 6 mois':
+    '1 to 6 months',
+  'Plus de 6 mois':
+    'More than 6 months',
+  'Choisissez un modèle de prix.':
+    'Choose a pricing model.',
+  'Indiquez un montant.':
+    'Enter an amount.',
+  '+ offrir mes services':
+    '+ offer my services',
+  'Un seul compte, plusieurs profils. « Offrir mes services » crée un dossier Prestataire vérifié par 242Konnect, sans toucher à votre profil Client. Le mode Business se demande séparément.':
+    'One account, several profiles. “Offer my services” opens a provider application reviewed by 242Konnect, without touching your client profile. Business mode is requested separately.',
+  'Mise à jour des conditions':
+    'Updated terms',
+  'Pour continuer, lisez et acceptez la version actuelle des documents ci-dessous. La date, l\'heure et la version sont enregistrées.':
+    'To continue, read and accept the current version of the documents below. The date, time and version are recorded.',
+  'Lire':
+    'Read',
+  'J\'accepte':
+    'I accept',
+  'Signature : votre nom complet':
+    'Signature: your full name',
+  'Accepter et continuer':
+    'Accept and continue',
+  'Le nom vérifié se corrige par une demande à 242Konnect, depuis Confidentialité.':
+    'A verified name is corrected by request to 242Konnect, from Privacy.',
+  'Dossier soumis':
+    'Application submitted',
+  'Reçu':
+    'Received',
+  'Complétez votre profil':
+    'Complete your profile',
+  'Identité':
+    'Identity',
+  'En examen par 242Konnect':
+    'Under review by 242Konnect',
+  'reçu(s)':
+    'received',
+  'Aucune pièce transmise':
+    'No documents sent',
+  'Décision finale':
+    'Final decision',
+  'Approuvé':
+    'Approved',
+  'En attente':
+    'Pending',
+  'Suivi de la vérification':
+    'Verification progress',
+  'Pendant l’examen, votre profil peut être prévisualisé avec un badge explicite, mais il ne peut pas être réservé avant approbation. En cas de refus, le motif vous est communiqué avec la possibilité de corriger.':
+    'During review your profile can be previewed with a clear badge, but it cannot be booked until approved. If it is refused, you are told why and can correct it.',
+  'Aperçu de votre profil':
+    'Your profile preview',
+  'Vérifié':
+    'Verified',
+  'En examen · non réservable':
+    'Under review · not bookable',
+  'Tarification':
+    'Pricing',
+  'Durées acceptées':
+    'Accepted lengths',
+  'signé le':
+    'signed on',
+  'Non signé':
+    'Not signed',
+  'Envoyée · fonds bloqués':
+    'Sent · funds held',
+  'Non acceptée':
+    'Not accepted',
+  'Acceptée':
+    'Accepted',
+  'Validée':
+    'Approved',
+  'Litige':
+    'Dispute',
+  'Annulée':
+    'Cancelled',
+  'En route':
+    'On the way',
+  'Arrivé':
+    'Arrived',
+  'Terminée':
+    'Completed',
+  'Plusieurs mois':
+    'Several months',
+  'Service récurrent':
+    'Recurring service',
+  'Actives':
+    'Active',
+  'Terminées':
+    'Completed',
+  'Annulées':
+    'Cancelled',
+  'Travail non conforme':
+    'Work not as agreed',
+  'Travail incomplet':
+    'Work incomplete',
+  'Prestataire absent':
+    'Provider did not show up',
+  'Dommages':
+    'Damage',
+  'Autre':
+    'Other',
+  'Reprise du travail':
+    'Redo the work',
+  'Remboursement partiel':
+    'Partial refund',
+  'Remboursement complet':
+    'Full refund',
+  'Aucune mission dans cette catégorie.':
+    'No jobs in this category.',
+  'contrat signé':
+    'contract signed',
+  'Adresse communiquée au prestataire':
+    'Address shared with the provider',
+  'Adresse privée jusqu’à acceptation':
+    'Address private until accepted',
+  'Le délai de réponse est dépassé.':
+    'The response time has passed.',
+  'Réponse attendue avant':
+    'Response expected by',
+  'Le prestataire n\'a pas accepté. Vos fonds restent protégés : choisissez un autre prestataire qualifié ou demandez le remboursement intégral.':
+    'The provider did not accept. Your funds stay protected: choose another qualified provider or ask for a full refund.',
+  'Remboursement':
+    'Refund',
+  'Choisir un autre prestataire':
+    'Choose another provider',
+  'Autre prestataire':
+    'Another provider',
+  'Validez ou signalez un problème sous':
+    'Approve or report a problem within',
+  'Les fonds restent bloqués jusqu\'à votre décision.':
+    'The funds stay held until you decide.',
+  'Annulée après acceptation : le remboursement est calculé selon le préavis et le travail effectué, après examen par 242Konnect. Les fonds restent bloqués d\'ici là.':
+    'Cancelled after acceptance: the refund is calculated from the notice given and the work done, after review by 242Konnect. The funds stay held until then.',
+  'Remboursée intégralement.':
+    'Refunded in full.',
+  'Annulée avant paiement : rien n’a été débité.':
+    'Cancelled before payment: nothing was charged.',
+  'Fonds gelés pendant l\'examen. 242Konnect examine le contrat, le chat, les horaires et les preuves ; le prestataire peut répondre. Aucun remboursement n\'est promis avant cette décision.':
+    'Funds frozen during review. 242Konnect reviews the contract, chat, times and evidence; the provider can respond. No refund is promised before that decision.',
+  'Revoir et payer':
+    'Review and pay',
+  'Annuler · remboursé':
+    'Cancel · refunded',
+  'Simuler un refus':
+    'Simulate a decline',
+  'Message':
+    'Message',
+  'Simuler l\'étape suivante':
+    'Simulate next step',
+  'Annuler (remboursement après examen)':
+    'Cancel (refund after review)',
+  'Demande envoyée. Réponse du prestataire attendue sous':
+    'Request sent. The provider\'s response is expected within',
+  'Récapitulatif de la commande':
+    'Order summary',
+  'Service':
+    'Service',
+  'Prestataire':
+    'Provider',
+  'Horaire':
+    'Time',
+  'Adresse':
+    'Address',
+  'Prix de la prestation':
+    'Service price',
+  'Frais de protection 242Konnect':
+    '242Konnect protection fee',
+  'Total autorisé':
+    'Total authorised',
+  'Vous payez 242Konnect maintenant et la demande est envoyée ensuite. Le paiement reste bloqué : il n\'est versé au prestataire qu\'après votre validation.':
+    'You pay 242Konnect now and the request is sent afterwards. The payment stays held: it reaches the provider only after you approve.',
+  'Annulation et remboursement':
+    'Cancellation and refund',
+  'Avant acceptation : remboursement intégral. Après acceptation : selon le préavis et le travail effectué, après examen. Refus ou absence de réponse sous 24 h : autre prestataire ou remboursement intégral.':
+    'Before acceptance: full refund. After acceptance: based on notice and work done, after review. Declined or no answer within 24 h: another provider or a full refund.',
+  'J\'autorise le paiement':
+    'I authorise the payment',
+  'J\'autorise 242Konnect à prélever':
+    'I authorise 242Konnect to charge',
+  'et à les conserver jusqu\'à ma validation.':
+    'and to hold it until I approve.',
+  'Le paiement reste bloqué pendant l\'examen. 242Konnect examine le contrat, le chat, les horaires et les preuves, et le prestataire peut répondre.':
+    'The payment stays held during the review. 242Konnect reviews the contract, chat, times and evidence, and the provider can respond.',
+  'Motif':
+    'Reason',
+  'Ce que vous demandez':
+    'What you are asking for',
+  'Détails':
+    'Details',
+  'Décrivez ce qui s\'est passé':
+    'Describe what happened',
+  'Détails du problème':
+    'Problem details',
+  'Ajouter une preuve photo':
+    'Add photo evidence',
+  'Ajouter une preuve':
+    'Add evidence',
+  'Envoyer le signalement':
+    'Send the report',
+  'Demande reçue. 242Konnect vous répondra par e-mail.':
+    'Request received. 242Konnect will reply by e-mail.',
+  'La demande n\'a pas pu être envoyée. Vérifiez votre connexion et réessayez.':
+    'The request could not be sent. Check your connection and try again.',
+  'Documents acceptés':
+    'Accepted documents',
+  'accepté le':
+    'accepted on',
+  'en attente d\'envoi':
+    'waiting to be sent',
+  'Non accepté':
+    'Not accepted',
+  'Préférences':
+    'Preferences',
+  'Communications marketing':
+    'Marketing messages',
+  'Optionnel. Nouveautés et offres de 242Konnect.':
+    'Optional. News and offers from 242Konnect.',
+  'L\'application conserve votre session et vos préférences sur cet appareil. Aucune technologie de mesure publicitaire n\'est utilisée.':
+    'The app keeps your session and preferences on this device. No advertising analytics are used.',
+  'Vos données':
+    'Your data',
+  'Responsable des données':
+    'Data controller',
+  '242Konnect — le contact dédié sera publié avant le lancement.':
+    '242Konnect — the dedicated contact will be published before launch.',
+  'Demander une correction':
+    'Request a correction',
+  'Demander la suppression':
+    'Request deletion',
+  'Ce qui doit être corrigé':
+    'What needs correcting',
+  'Motif (optionnel)':
+    'Reason (optional)',
+  'Une suppression est traitée après la clôture des missions et paiements en cours : les fonds bloqués et les litiges doivent pouvoir être justifiés.':
+    'Deletion is processed once ongoing jobs and payments are closed: held funds and disputes must remain accountable.',
+  'Envoyer la demande':
+    'Send the request',
+  'Demande préparée':
+    'Request ready',
+  'Votre demande est prête. Elle sera envoyée à {name} dès le paiement protégé : revoyez-la et payez depuis l\'onglet Missions.':
+    'Your request is ready. It will be sent to {name} as soon as the protected payment is made: review and pay from the Jobs tab.',
+  'Décrivez le besoin':
+    'Describe what you need',
+  'Ce qui doit être fait, les détails utiles':
+    'What needs doing, useful details',
+  'Description de la demande':
+    'Request description',
+  'Lieu de l\'intervention':
+    'Job location',
+  'Mon adresse enregistrée':
+    'My saved address',
+  'Une autre adresse':
+    'Another address',
+  'Quartier, avenue, numéro, repère':
+    'District, street, number, landmark',
+  'Adresse de l\'intervention':
+    'Job address',
+  'L\'adresse exacte reste privée jusqu\'à l\'acceptation. Le service couvre Pointe-Noire et le Congo : pour une autre ville, relancez une recherche locale.':
+    'The exact address stays private until acceptance. The service covers Pointe-Noire and Congo: for another city, run a new local search.',
+  'Contrat de projet et jalons':
+    'Project contract and milestones',
+  'Je signe le contrat de projet':
+    'I sign the project contract',
+  'Prix indicatif':
+    'Indicative price',
+  'Offrir mes services':
+    'Offer my services',
+  'Un dossier Prestataire séparé, vérifié par 242Konnect. Votre profil Client reste actif et inchangé ; le profil Prestataire n\'est réservable qu\'après approbation.':
+    'A separate provider application, reviewed by 242Konnect. Your client profile stays active and unchanged; the provider profile can be booked only after approval.',
+  'Pièces nécessaires':
+    'What you will need',
+  'Une photo de profil (obligatoire)':
+    'A profile photo (required)',
+  'Votre date de naissance — 16 ans minimum':
+    'Your date of birth — 16 or older',
+  'Votre métier, votre zone, votre modèle de prix et vos durées':
+    'Your trade, area, pricing model and job lengths',
+  'Jusqu\'à cinq pièces justificatives':
+    'Up to five supporting documents',
+  'La signature du contrat Prestataire':
+    'Your signature on the provider agreement',
+  'Changer la photo':
+    'Change photo',
+  'Ajouter une photo':
+    'Add a photo',
+  'Réservé aux 16 ans et plus.':
+    'For ages 16 and over.',
+  'Choisir un métier':
+    'Choose a trade',
+  'Expériences professionnelles (optionnel)':
+    'Work experience (optional)',
+  'J\'ai lu et j\'accepte le contrat Prestataire':
+    'I have read and accept the provider agreement',
+  'La signature doit reprendre votre nom complet.':
+    'The signature must match your full name.',
+  'Envoyer le dossier':
+    'Submit application',
+  'Score 242K : calculé à partir des missions réalisées, des avis, de la ponctualité et du taux d’annulation. « Professionnel vérifié » : identité et pièces contrôlées par 242Konnect. « Prestataire identifié » : identité confirmée, pièces en examen. « Business vérifié » : entreprise validée (bientôt).':
+    'Score 242K: based on completed jobs, reviews, punctuality and cancellation rate. “Professional verified”: identity and documents checked by 242Konnect. “Identified provider”: identity confirmed, documents under review. “Business verified”: approved company (coming soon).',
+  'Client · je cherche un service':
+    'Client · I am looking for a service',
+  'Je propose mes compétences':
+    'I offer my skills',
+  'Sur demande · validation 242Konnect requise':
+    'On request · 242Konnect approval required',
+  'Business, sur demande':
+    'Business, on request',
+  'Business':
+    'Business',
+  'Le compte Business demande une demande et une validation distinctes par 242Konnect. Il n\'est pas encore ouvert à l\'inscription : créez un compte Client ou Prestataire, la demande Business se fera ensuite avec le même identifiant.':
+    'A Business account needs a separate request and approval by 242Konnect. It is not yet open for sign-up: create a Client or Provider account, and request Business later with the same login.',
+  'Centres d\'intérêt (optionnel)':
+    'Interests (optional)',
+  'Jusqu\'à trois. Ils servent à vous recommander des services.':
+    'Up to three. They are used to recommend services to you.',
+  'Pièce d\'identité, attestation, certificat. Vérifiées par 242Konnect, jamais publiées.':
+    'ID, certificate, attestation. Checked by 242Konnect, never published.',
+  'Continuer vers les consentements':
+    'Continue to consents',
+  'Révision et contrat':
+    'Review and agreement',
+  'Consentements':
+    'Consents',
+  'Lisez puis acceptez. La date, l\'heure et la version acceptée sont enregistrées.':
+    'Read, then accept. The date, time and accepted version are recorded.',
+  'Modifier':
+    'Edit',
+  'Disponibilité':
+    'Availability',
+  'J\'accepte les conditions d\'utilisation':
+    'I accept the terms of use',
+  'J\'accepte la politique de confidentialité':
+    'I accept the privacy policy',
+  'Ouvrez le contrat pour pouvoir l\'accepter.':
+    'Open the agreement to be able to accept it.',
+  'Optionnel':
+    'Optional',
+  'Je souhaite recevoir les nouveautés et offres de 242Konnect':
+    'I would like to receive news and offers from 242Konnect',
+  'Portée et calendrier':
+    'Scope and schedule',
+  'Le travail décrit dans la demande, aux dates convenues dans le chat de la mission.':
+    'The work described in the request, on the dates agreed in the job chat.',
+  'Montant, acompte et jalons':
+    'Amount, deposit and milestones',
+  'Le montant est payé à 242Konnect et bloqué. Il est libéré par jalon, après votre validation de chaque étape.':
+    'The amount is paid to 242Konnect and held. It is released milestone by milestone, after you approve each stage.',
+  'Changements':
+    'Changes',
+  'Toute modification de prix, de portée ou d\'horaire exige un avenant accepté par les deux parties dans l\'application.':
+    'Any change of price, scope or schedule needs an amendment accepted by both parties in the app.',
+  'Retards':
+    'Delays',
+  'Un retard est signalé dans le chat ; un retard important permet un examen par 242Konnect.':
+    'A delay is reported in the chat; a significant delay can be reviewed by 242Konnect.',
+  'Avant acceptation : remboursement intégral. Après : selon le préavis et le travail effectué, après examen.':
+    'Before acceptance: full refund. After: based on notice and work done, after review.',
+  'Dès que possible':
+    'As soon as possible',
 };

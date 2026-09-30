@@ -117,7 +117,7 @@ export function ChatScreen({ route, navigation }: Props) {
           disabled={!draft.trim()}
           accessibilityRole="button"
           accessibilityLabel={t('Envoyer')}
-          accessibilityState={{ disabled: !draft.trim() }}
+          aria-disabled={!draft.trim()}
           style={[styles.send, !draft.trim() && styles.sendOff]}
         >
           <Icon name="solar:arrow-right-bold" size={20} color={colors.primaryForeground} />

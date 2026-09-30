@@ -137,6 +137,44 @@ async def test_mtn_request_to_pay_starts_pending(monkeypatch, stub):
 
 
 @pytest.mark.anyio
+async def test_same_idempotency_key_never_prompts_twice(monkeypatch, stub):
+    """Commande §06: a replayed payment must not create a second debit."""
+    use_env(monkeypatch, MTN_ENV)
+    transport = stub(
+        {
+            ("POST", "/collection/token/"): httpx.Response(200, json={"access_token": "t"}),
+            ("POST", "/collection/v1_0/requesttopay"): httpx.Response(202),
+        }
+    )
+
+    first = await momo.request_to_pay("mtn", "061234567", 25000, "mission", "order-abc-123")
+    prompts = sum(1 for r in transport.seen if r.url.path.endswith("/requesttopay"))
+    second = await momo.request_to_pay("mtn", "061234567", 25000, "mission", "order-abc-123")
+
+    assert second.id == first.id
+    assert sum(1 for r in transport.seen if r.url.path.endswith("/requesttopay")) == prompts
+
+    # The same key for a different amount is refused, not answered with the old payment.
+    with pytest.raises(momo.MomoError):
+        await momo.request_to_pay("mtn", "061234567", 99000, "mission", "order-abc-123")
+
+
+@pytest.mark.anyio
+async def test_failed_collection_can_be_retried_with_its_key(monkeypatch, stub):
+    use_env(monkeypatch, MTN_ENV)
+    stub(
+        {
+            ("POST", "/collection/token/"): httpx.Response(200, json={"access_token": "t"}),
+            ("POST", "/collection/v1_0/requesttopay"): httpx.Response(202),
+        }
+    )
+    first = await momo.request_to_pay("mtn", "061234567", 25000, "mission", "order-retry-1")
+    first.status = "failed"
+    second = await momo.request_to_pay("mtn", "061234567", 25000, "mission", "order-retry-1")
+    assert second.id != first.id
+
+
+@pytest.mark.anyio
 async def test_mtn_successful_status_carries_operator_reference(monkeypatch, stub):
     use_env(monkeypatch, MTN_ENV)
     stub(

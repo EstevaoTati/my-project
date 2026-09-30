@@ -83,11 +83,19 @@ class Collection:
 #: real deployment needs Redis or Postgres here — noted in the README.
 _STORE: dict[str, Collection] = {}
 
+#: Idempotency key -> collection id (Commande §06: "Empêcher le double débit
+#: avec une clé d'idempotence"). A retried request — a double tap, a timeout
+#: the app retried, a flaky network replaying the POST — gets the collection
+#: that already exists instead of a second PIN prompt and a second debit.
+_BY_KEY: dict[str, str] = {}
+
 
 def _prune() -> None:
     cutoff = time.time() - RECORD_TTL_SECONDS
     for key in [k for k, v in _STORE.items() if v.created_at < cutoff]:
         _STORE.pop(key, None)
+    for key in [k for k, v in _BY_KEY.items() if v not in _STORE]:
+        _BY_KEY.pop(key, None)
 
 
 def _msisdn(phone: str) -> str:
@@ -333,9 +341,29 @@ def configured(operator: Operator) -> bool:
     return (_mtn_config() if operator == "mtn" else _airtel_config()) is not None
 
 
-async def request_to_pay(operator: Operator, phone: str, amount: int, label: str) -> Collection:
-    """Asks the operator to prompt ``phone`` for its PIN. Debits nothing yet."""
+async def request_to_pay(
+    operator: Operator,
+    phone: str,
+    amount: int,
+    label: str,
+    idempotency_key: str | None = None,
+) -> Collection:
+    """Asks the operator to prompt ``phone`` for its PIN. Debits nothing yet.
+
+    With an ``idempotency_key`` already seen, returns that collection untouched
+    — unless it failed or expired, in which case a genuine retry is allowed.
+    Reusing a key for a different amount or number is refused rather than
+    silently answered with the other payment.
+    """
     _prune()
+    if idempotency_key and idempotency_key in _BY_KEY:
+        existing = _STORE.get(_BY_KEY[idempotency_key])
+        if existing is not None:
+            if existing.amount != amount or existing.phone != phone or existing.operator != operator:
+                raise MomoError("Cette référence de paiement a déjà servi pour un autre montant.")
+            if existing.status in ("pending", "successful"):
+                return existing
+
     record = Collection(id=str(uuid.uuid4()), operator=operator, phone=phone, amount=amount)
 
     if operator == "mtn":
@@ -344,6 +372,8 @@ async def request_to_pay(operator: Operator, phone: str, amount: int, label: str
         await _airtel_request_to_pay(record, label)
 
     _STORE[record.id] = record
+    if idempotency_key:
+        _BY_KEY[idempotency_key] = record.id
     return record
 
 

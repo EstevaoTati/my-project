@@ -14,6 +14,8 @@ import { ChatScreen } from './screens/ChatScreen';
 import { AccountScreen } from './screens/AccountScreen';
 import { EditProfileScreen } from './screens/EditProfileScreen';
 import { FaqScreen } from './screens/FaqScreen';
+import { ProviderDossierScreen } from './screens/ProviderDossierScreen';
+import { PrivacyScreen } from './screens/PrivacyScreen';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { SignInScreen } from './screens/SignInScreen';
@@ -24,6 +26,8 @@ import { PinScreen } from './screens/PinScreen';
 import { SetPinScreen } from './screens/SetPinScreen';
 import { ResetPasswordScreen } from './screens/ResetPasswordScreen';
 import { useAuth } from './auth';
+import { needsReacceptance } from './consent';
+import { ConsentGateScreen } from './screens/ConsentGateScreen';
 import type { CategoryId } from './data';
 import { colors } from './theme';
 
@@ -47,6 +51,8 @@ export type AccountStackParamList = {
   MonCompte: undefined;
   ModifierProfil: undefined;
   EspacePrestataire: undefined;
+  DossierPrestataire: undefined;
+  Confidentialite: undefined;
   FAQ: undefined;
 };
 
@@ -96,6 +102,8 @@ function AccountStackScreens() {
           so Accueil now shows the same home for every profile and the dashboard
           lives here, one tap from Profil. */}
       <Account.Screen name="EspacePrestataire" component={EspacePrestataireScreen} />
+      <Account.Screen name="DossierPrestataire" component={ProviderDossierScreen} />
+      <Account.Screen name="Confidentialite" component={PrivacyScreen} />
       <Account.Screen name="FAQ" component={FaqScreen} />
     </Account.Navigator>
   );
@@ -161,7 +169,13 @@ export function RootNavigator() {
   // Choosing or changing the PIN sits over the app: it is reached from the
   // account screen and offered once, straight after sign-up.
   if (pendingPinSetup) return <SetPinScreen />;
-  if (account) return <AppTabs />;
+  if (account) {
+    // Client §10 / Prestataire §06: no use of the account without the current
+    // mandatory consents — covers accounts from before they were recorded.
+    if (needsReacceptance(account.consents, account.profiles.includes('prestataire')).length)
+      return <ConsentGateScreen />;
+    return <AppTabs />;
+  }
   // A password reset owns the screen while it runs, for the same reason a
   // pending sign-up does: there is one thing to finish and nowhere else to be.
   if (resetting) return <ResetPasswordScreen />;

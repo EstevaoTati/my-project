@@ -12,13 +12,17 @@ import { useT } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Resultats'>;
 
-type SortId = 'pertinence' | 'prix' | 'note' | 'verifie';
+type SortId = 'pertinence' | 'prix' | 'note' | 'verifie' | 'distance' | 'disponible' | 'identifie';
 
 const SORTS: { id: SortId; label: string; icon?: 'solar:sort-from-top-to-bottom-bold' }[] = [
   { id: 'pertinence', label: 'Pertinence', icon: 'solar:sort-from-top-to-bottom-bold' },
   { id: 'prix', label: 'Prix' },
   { id: 'note', label: 'Note (4+)' },
   { id: 'verifie', label: 'Vérifié' },
+  // Client §12: distance, availability and provider type as filters too.
+  { id: 'distance', label: 'Moins de 5 km' },
+  { id: 'disponible', label: 'Disponible maintenant' },
+  { id: 'identifie', label: 'Prestataire identifié' },
 ];
 
 /**
@@ -34,6 +38,12 @@ function applySort(list: Professional[], sort: SortId): Professional[] {
       return [...list].filter((p) => p.rating >= 4).sort((a, b) => b.rating - a.rating);
     case 'verifie':
       return list.filter((p) => p.verified);
+    case 'distance':
+      return list.filter((p) => p.distanceKm < 5).sort((a, b) => a.distanceKm - b.distanceKm);
+    case 'disponible':
+      return list.filter((p) => p.availableNow);
+    case 'identifie':
+      return list.filter((p) => !p.verified);
     case 'pertinence':
     default:
       // Nearest first, which is what "relevance" means for an on-demand trade.
@@ -97,7 +107,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
                 // Distinguishes the "Vérifié" filter from the "Vérifié par 242K"
                 // badge on the cards below, which otherwise reads identically.
                 accessibilityLabel={`Trier par ${option.label}`}
-                accessibilityState={{ selected: active }}
+                aria-selected={active}
                 style={[styles.sortPill, active ? styles.sortPillActive : styles.sortPillInactive]}
               >
                 {option.icon && (
@@ -122,6 +132,9 @@ export function SearchResultsScreen({ route, navigation }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+        {/* Client §12: "Expliquer le calcul du score 242Konnect" and tell the
+            badges apart. */}
+        <Text style={styles.scoreNote}>{t('Score 242K : calculé à partir des missions réalisées, des avis, de la ponctualité et du taux d’annulation. « Professionnel vérifié » : identité et pièces contrôlées par 242Konnect. « Prestataire identifié » : identité confirmée, pièces en examen. « Business vérifié » : entreprise validée (bientôt).')}</Text>
         {results.length === 0 ? (
           <View style={styles.empty}>
             <Icon name="solar:magnifer-linear" size={32} color={colors.mutedForeground} />
@@ -181,6 +194,7 @@ const styles = StyleSheet.create({
   sortLabel: { fontFamily: fonts.sansSemibold, fontSize: 14 },
   sortLabelActive: { color: colors.primaryForeground },
   sortLabelInactive: { color: colors.foreground },
+  scoreNote: { fontFamily: fonts.sans, fontSize: 11, lineHeight: 16, color: colors.mutedForeground },
   list: { padding: 20, gap: 24 },
   empty: { alignItems: 'center', gap: 8, paddingVertical: 64 },
   emptyTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.foreground },

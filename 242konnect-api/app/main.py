@@ -119,6 +119,8 @@ class RequestToPayBody(BaseModel):
     amount: int = Field(gt=0, le=5_000_000)
     currency: str = Field(default="XAF", max_length=3)
     label: str = Field(default="242Konnect", max_length=160)
+    #: One per order: a replay of the same request returns the same collection.
+    idempotency_key: str | None = Field(default=None, min_length=8, max_length=64)
 
 
 def _collection_payload(record: momo.Collection) -> dict:
@@ -139,7 +141,9 @@ async def request_to_pay(body: RequestToPayBody) -> dict:
     app polls the status endpoint instead.
     """
     try:
-        record = await momo.request_to_pay(body.operator, body.phone, body.amount, body.label)
+        record = await momo.request_to_pay(
+            body.operator, body.phone, body.amount, body.label, body.idempotency_key
+        )
     except momo.MomoError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except httpx.HTTPError as exc:

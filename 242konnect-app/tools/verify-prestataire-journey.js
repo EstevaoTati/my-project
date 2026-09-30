@@ -185,7 +185,7 @@ const section = (n) => console.log(`\n── ${n} ──`);
     await tap('[aria-label="Prestataire"]');
     return (
       (await seen("text=Une photo de profil (obligatoire)")) &&
-      (await seen("text=Votre métier, votre zone et votre tarif"))
+      (await seen("text=Votre métier, votre zone, votre modèle de prix et vos durées"))
     );
   });
 
@@ -229,14 +229,54 @@ const section = (n) => console.log(`\n── ${n} ──`);
     await tap(`[aria-label="${TRADE}"]`);
     return seen(`text=${TRADE}`);
   });
-  await check("the account cannot be created until the rest is filled", async () => {
+  await check("the step cannot be left until the rest is filled", async () => {
+    const el = await visible('[aria-label="Continuer vers les consentements"]');
+    return el && (await el.getAttribute("aria-disabled")) === "true";
+  });
+  // Prestataire §03: "Ne jamais imposer un tarif horaire par défaut."
+  await check("no pricing model is imposed by default", async () =>
+    !(await seen('[aria-label="Montant"]')) &&
+    (await seen('[aria-label="Modèle de prix Sur devis"]')) &&
+    (await seen("text=/Devise selon votre pays : FCFA/")));
+  await check("filling zone, pricing, durations and biography completes the step", async () => {
+    await fill("[aria-label=\"Zone d'intervention\"]", ZONE);
+    await tap('[aria-label="Modèle de prix Tarif horaire"]');
+    await fill('[aria-label="Montant"]', RATE);
+    await tap('[aria-label="Durée Quelques heures"]');
+    await fill('[aria-label="Biographie"]', BIO);
+    const el = await visible('[aria-label="Continuer vers les consentements"]');
+    return el && (await el.getAttribute("aria-disabled")) !== "true";
+  });
+
+  // Prestataire §05–§06: review every section, then a signed contract.
+  section("Review and contract");
+  await check("the dossier is summarised with a way back to each section", async () => {
+    await tap('[aria-label="Continuer vers les consentements"]');
+    return (await seen("text=Révision et contrat")) &&
+      (await seen("text=/12\\s?000 FCFA\\/h/")) &&
+      (await seen('[aria-label="Modifier Tarification"]'));
+  });
+  await check("going back to a section keeps what was typed", async () => {
+    await tap('[aria-label="Modifier Tarification"]');
+    const kept = await (await visible('[aria-label="Montant"]')).inputValue();
+    await tap('[aria-label="Continuer vers les consentements"]');
+    return kept === RATE;
+  });
+  await check("the contract must be opened before it can be accepted", async () => {
+    const el = await visible("[aria-label=\"J'ai lu et j'accepte le contrat Prestataire\"]");
+    return el && (await el.getAttribute("aria-disabled")) === "true";
+  });
+  await check("a signature that is not the full name is refused", async () => {
+    await tap('[aria-label="Lire Contrat Prestataire"]');
+    await tap("[aria-label=\"J'ai lu et j'accepte le contrat Prestataire\"]");
+    await tap("[aria-label=\"J'accepte les conditions d'utilisation\"]");
+    await tap("[aria-label=\"J'accepte la politique de confidentialité\"]");
+    await fill('[aria-label="Signature : votre nom complet"]', "X");
     const el = await visible('[aria-label="Créer mon compte"]');
     return el && (await el.getAttribute("aria-disabled")) === "true";
   });
-  await check("filling zone, rate and biography completes the step", async () => {
-    await fill("[aria-label=\"Zone d'intervention\"]", ZONE);
-    await fill('[aria-label="Tarif horaire (FCFA)"]', RATE);
-    await fill('[aria-label="Biographie"]', BIO);
+  await check("signing with the full name allows the account to be created", async () => {
+    await fill('[aria-label="Signature : votre nom complet"]', ACCOUNT.name);
     const el = await visible('[aria-label="Créer mon compte"]');
     return el && (await el.getAttribute("aria-disabled")) !== "true";
   });
@@ -314,8 +354,14 @@ const section = (n) => console.log(`\n── ${n} ──`);
   // looking for "Vérifié" loosely matches the very sentence that says the
   // account is *not* verified. Only a standalone badge reading exactly
   // "Vérifié" would be the real failure.
+  await check("verification is tracked step by step", async () =>
+    (await seen("text=Suivi de la vérification")) &&
+    (await seen("text=Dossier soumis")) &&
+    (await seen("text=Décision finale")));
+  await check("the signed contract is on file", async () =>
+    seen("text=/v2026-09 · signé le/"));
   await check("the verification badge reads as pending, not verified", async () => {
-    const pending = await seen("text=En attente");
+    const pending = await seen("text=En examen · non réservable");
     const explains = await seen("text=/en attente de v[eé]rification/i");
     const claimsVerified = await visible('text="Vérifié"');
     if (claimsVerified) throw new Error("the account claims to be verified");

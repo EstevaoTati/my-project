@@ -4,7 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Icon } from '../components/Icon';
 import { UserAvatar } from '../components/Avatar';
-import { formatFcfaFull, getTrade } from '../data';
+import { getTrade } from '../data';
+import { describePricing, DURATIONS, pricingOf } from '../pricing';
+import { latestConsents } from '../consent';
 import { COMMISSION_RATE, PAYOUT_EXPRESS_RATE, PAYOUT_STANDARD_RATE, PAYOUT_STANDARD_DELAY_DAYS } from '../payments';
 import { useAuth } from '../auth';
 import type { AccountStackParamList } from '../navigation';
@@ -48,6 +50,37 @@ export function EspacePrestataireScreen({ navigation }: Props) {
 
   const details = account.prestataire;
   const trade = details?.tradeId ? getTrade(details.tradeId) : undefined;
+  const pricing = pricingOf(details, account.location.country);
+  const contract = latestConsents(account.consents).provider_contract;
+  const docCount = details?.documents?.length ?? 0;
+
+  /**
+   * Prestataire §07: submitted → identity → documents → decision. Only the
+   * first step is something this app can know happened; the rest belong to a
+   * reviewer, so they say "en examen" rather than pretending to progress.
+   */
+  const steps: { label: string; state: 'done' | 'review' | 'waiting' | 'missing'; hint: string }[] = [
+    {
+      label: t('Dossier soumis'),
+      state: details ? 'done' : 'missing',
+      hint: details?.submittedAt
+        ? new Date(details.submittedAt).toLocaleDateString('fr-FR')
+        : details
+          ? t('Reçu')
+          : t('Complétez votre profil'),
+    },
+    { label: t('Identité'), state: details ? 'review' : 'waiting', hint: t('En examen par 242Konnect') },
+    {
+      label: t('Documents'),
+      state: docCount ? 'review' : 'missing',
+      hint: docCount ? `${docCount} ${t('reçu(s)')}` : t('Aucune pièce transmise'),
+    },
+    {
+      label: t('Décision finale'),
+      state: details?.verified ? 'done' : 'waiting',
+      hint: details?.verified ? t('Approuvé') : t('En attente'),
+    },
+  ];
 
   return (
     <ScrollView
@@ -95,6 +128,39 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         </View>
       )}
 
+      <Section title={t('Suivi de la vérification')}>
+        {steps.map((step) => (
+          <View key={step.label} style={styles.row}>
+            <View style={[styles.stepDot, styles[`step_${step.state}`]]} />
+            <View style={styles.rowBody}>
+              <Text style={styles.rowLabel}>{step.label}</Text>
+              <Text style={styles.rowHint}>{step.hint}</Text>
+            </View>
+          </View>
+        ))}
+        <Text style={styles.sectionNote}>{t('Pendant l’examen, votre profil peut être prévisualisé avec un badge explicite, mais il ne peut pas être réservé avant approbation. En cas de refus, le motif vous est communiqué avec la possibilité de corriger.')}</Text>
+      </Section>
+
+      {/* §07: "Le Prestataire peut prévisualiser son profil pendant l'examen." */}
+      <Section title={t('Aperçu de votre profil')}>
+        <View style={styles.previewHead}>
+          <UserAvatar name={account.name} avatar={account.avatar} size={44} />
+          <View style={styles.identityBody}>
+            <Text style={styles.rowLabel}>{account.name}</Text>
+            <Text style={styles.rowHint}>
+              {trade?.label ?? '—'} · {describePricing(pricing, t)}
+              {pricing?.negotiable ? ` · ${t('Prix négociable')}` : ''}
+            </Text>
+          </View>
+          <View style={[styles.badge, details?.verified ? styles.badgeOn : styles.badgeOff]}>
+            <Text style={[styles.badgeLabel, details?.verified ? styles.badgeLabelOn : styles.badgeLabelOff]}>
+              {details?.verified ? t('Vérifié') : t('En examen · non réservable')}
+            </Text>
+          </View>
+        </View>
+        {!!account.bio && <Text style={styles.sectionNote}>{account.bio}</Text>}
+      </Section>
+
       <Section title={t('Revenus')}>
         <View style={styles.grid}>
           {['Aujourd’hui', 'Cette semaine', 'Ce mois', 'Cette année'].map((label) => (
@@ -109,11 +175,14 @@ export function EspacePrestataireScreen({ navigation }: Props) {
       </Section>
 
       <Section title={t('Demandes et missions')}>
+        {/* §08's four buckets, plus new requests. Counts come only from real
+            data, and there is none until requests reach prestataires. */}
         {[
-          ['Demandes en attente', 'Les demandes correspondant à votre métier arriveront ici.'],
+          ['Nouvelles demandes', 'Les demandes correspondant à votre métier et à votre zone arriveront ici.'],
           ['Missions acceptées', 'Rien pour le moment.'],
           ['Missions en cours', 'Rien pour le moment.'],
           ['Missions terminées', 'Rien pour le moment.'],
+          ['Missions annulées', 'Rien pour le moment.'],
         ].map(([label, hint]) => (
           <View key={label} style={styles.row}>
             <View style={styles.rowBody}>
@@ -149,7 +218,15 @@ export function EspacePrestataireScreen({ navigation }: Props) {
       </Section>
 
       <Section title={t('Vos conditions')}>
-        <InfoRow label={t('Tarif horaire')} value={details?.hourlyRate ? `${formatFcfaFull(details.hourlyRate)} FCFA` : '—'} />
+        <InfoRow label={t('Tarification')} value={`${describePricing(pricing, t)}${pricing?.negotiable ? ` · ${t('Prix négociable')}` : ''}`} />
+        <InfoRow
+          label={t('Durées acceptées')}
+          value={(details?.durations ?? []).map((d) => t(DURATIONS.find((x) => x.id === d)?.label ?? d)).join(', ') || '—'}
+        />
+        <InfoRow
+          label={t('Contrat Prestataire')}
+          value={contract?.granted ? `v${contract.version} · ${t('signé le')} ${new Date(contract.at).toLocaleDateString('fr-FR')}` : t('Non signé')}
+        />
         <InfoRow label={t('Commission 242Konnect')} value={`${COMMISSION_RATE * 100} %`} />
         <InfoRow
           label={t('Versement standard')}
@@ -167,8 +244,10 @@ export function EspacePrestataireScreen({ navigation }: Props) {
                 <Text style={styles.rowLabel}>Pièce justificative {i + 1}</Text>
                 <Text style={styles.rowHint}>{t('En attente de vérification par 242Konnect')}</Text>
               </View>
+              {/* §04 statuses: reçu, en examen, approuvé, refusé, à remplacer.
+                  Only a reviewer can move a document past "reçu". */}
               <View style={styles.pending}>
-                <Text style={styles.pendingLabel}>{t('En cours')}</Text>
+                <Text style={styles.pendingLabel}>{t('Reçu')}</Text>
               </View>
             </View>
           ))
@@ -311,6 +390,12 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   infoLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.mutedForeground },
   infoValue: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },
+  previewHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stepDot: { width: 12, height: 12, borderRadius: 6 },
+  step_done: { backgroundColor: colors.success },
+  step_review: { backgroundColor: colors.warning },
+  step_waiting: { backgroundColor: colors.border },
+  step_missing: { backgroundColor: colors.destructive },
   pending: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.md, backgroundColor: colors.warningSurface },
   pendingLabel: { fontFamily: fonts.sansBold, fontSize: 10, color: colors.warning },
   plan: { padding: 12, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border },

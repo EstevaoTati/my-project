@@ -146,7 +146,7 @@ export function FaqScreen({ navigation }: Props) {
                   onPress={() => toggle(item.q)}
                   accessibilityRole="button"
                   accessibilityLabel={t(item.q)}
-                  accessibilityState={{ expanded }}
+                  aria-expanded={expanded}
                   style={[styles.item, expanded && styles.itemOpen]}
                 >
                   <View style={styles.itemHead}>
