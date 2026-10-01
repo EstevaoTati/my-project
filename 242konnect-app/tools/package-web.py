@@ -6,12 +6,11 @@ The zip is the build directory plus two files that only make sense here:
 root*, and for a drag-and-drop deploy at app.netlify.com/drop the drop root is
 this zip's root — so here they are unambiguous.
 
-They are deliberately absent from the committed build directory. While
-242Konnect is still served as a sub-path of the landing page, that directory
-sits inside somebody else's published tree, where a `/*  /index.html  200` rule
-would be at best inert and at worst would replace the landing page with the
-app. `netlify.toml` (written by build-web.js) already covers the repo-connected
-deployment, so nothing is lost by keeping the pair out of the tree.
+242Konnect is its own product and its own Netlify site. The Estevao Tati
+landing page lives in estevao-tati-site/ with its own package
+(scripts/package-estevao-site.py); nothing of it belongs here, and this script
+refuses to finish if any of it turns up. For the repo-connected 242Konnect site
+`netlify.toml` (written by build-web.js) already carries the same rules.
 
 Usage:  python3 tools/package-web.py [build-dir] [output.zip]
 """
@@ -34,6 +33,11 @@ HEADERS = f"""/_expo/static/*
 # verification codes, profiles and the PIN function; without it sign-up fails
 # silently, because the browser blocks the request rather than the server.
 /*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' {SUPABASE}; frame-ancestors 'self';
 """
 
@@ -51,14 +55,25 @@ out = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else REPO / "242konnect-netl
 if not (build / "index.html").exists():
     raise SystemExit(f"no build at {build} — run npm run build:web first")
 
+# Nothing of the landing page may travel with the app: no page of its own, no
+# config, no asset. The bundle is checked too, because a stray import would put
+# the landing page's text inside the JavaScript rather than beside it.
+FOREIGN = ("estevao", "os.html", "gsap", "cloudfront", "bg-tech", "chakra petch")
+files = [p for p in sorted(build.rglob("*")) if p.is_file()]
+for p in files:
+    rel = str(p.relative_to(build)).lower()
+    text = p.read_text(encoding="utf-8", errors="ignore").lower() if p.suffix in (".html", ".js", ".toml", ".json") else ""
+    hit = next((f for f in FOREIGN if f in rel or f in text), None)
+    if hit:
+        raise SystemExit(f"landing-page content ({hit!r}) found in {rel} — the 242Konnect package must stand alone")
+
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     count = 0
-    for p in sorted(build.rglob("*")):
-        if p.is_file():
-            z.write(p, p.relative_to(build))
-            count += 1
+    for p in files:
+        z.write(p, p.relative_to(build))
+        count += 1
     z.writestr("_headers", HEADERS)
     z.writestr("_redirects", REDIRECTS)
     count += 2
 
-print(f"{out.name}: {count} entries, {out.stat().st_size:,} bytes")
+print(f"{out.name}: {count} entries, {out.stat().st_size:,} bytes — 242Konnect only")

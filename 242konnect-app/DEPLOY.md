@@ -3,10 +3,23 @@
 242Konnect is a product, not a page on the Mwinda Digital consulting site. It
 gets its own Netlify site, its own domain, and its own security policy.
 
-Today both are served by one Netlify project (`poetic-ganache-d4113e`), with
-the landing page at `/` and the app at `/242konnect-web`. That is why the
-share links carry someone's name and a borrowed path. This document is how to
-end that.
+**The two are now separate in the repository too.** The Estevao Tati landing
+page lives in `estevao-tati-site/` and the repo-root `netlify.toml` publishes
+that folder and nothing else — no 242Konnect route, header rule or Supabase
+exception remains in it. (It used to publish the whole repository, which put
+the app, the prototype, the API source and the migrations under that domain.)
+`tools/verify-csp.js` fails if any of that comes back.
+
+| | 242Konnect | Estevao Tati landing page |
+|---|---|---|
+| Folder published | `242konnect-web/` | `estevao-tati-site/` |
+| Config | `242konnect-web/netlify.toml` (generated) | repo-root `netlify.toml` |
+| Netlify base directory | `242konnect-web` | *(repo root)* |
+| Drag-and-drop package | `242konnect-netlify-package.zip` | `netlify-package.zip` |
+| Rebuild the package | `python3 tools/package-web.py` | `python3 scripts/package-estevao-site.py` |
+
+Each package script refuses to finish if the other site's content turns up in
+its zip.
 
 ## What the build produces
 
@@ -23,15 +36,9 @@ or the next build silently discards your change. That is not hypothetical: the
 relative-path rewrite was once done by hand, lost on the next rebuild, and
 shipped two blank-page preview links.
 
-`_headers` and `_redirects` are deliberately *not* in this folder. Netlify reads
-them from the publish directory root, which — while the app is still served as a
-sub-path of the landing page — is the repo root. Whether a copy sitting in a
-subfolder is ignored is a claim about Netlify's resolution that cannot be tested
-from the build environment, and if it were wrong a `/*  /index.html  200` rule
-would replace the landing page with the app. `netlify.toml` already covers the
-repo-connected deployment, so the pair lives only in the zip, where the drop root
-*is* this directory and there is no ambiguity. `python3 tools/package-web.py`
-builds it.
+`_headers` and `_redirects` are not in this folder: `netlify.toml` already
+covers the repo-connected deployment. They are added to the zip, where the drop
+root *is* this directory. `python3 tools/package-web.py` builds it.
 
 ## Giving it its own site (one step, needs your Netlify account)
 
@@ -97,17 +104,15 @@ new site: **Domain management → Add a domain** → `242konnect.cg` (or
 Nothing in this repo needs changing — the build is path-independent, so it
 works at a root, at a sub-path, and behind a custom domain alike.
 
-## Finishing the separation
+## The separation is done
 
-Until the new site exists, the root `netlify.toml` still routes
-`/242konnect-web` and `/242konnect` so the current preview links keep working.
-Once `https://242konnect.netlify.app` is live and you have checked it, delete
-those blocks — they are marked in that file — and the landing page stops
-carrying the app's configuration entirely.
+The landing page no longer serves `/242konnect-web` or `/242konnect`. Those old
+preview links stop working with the next landing-page deploy; 242Konnect is
+reached only through its own site.
 
-The static prototype at `/242konnect` (the original three HTML screens in
-`242konnect/`) is superseded by the real app and should go at the same time,
-unless you still want it as a lightweight no-install demo.
+The static prototype in `242konnect/` (the original three HTML screens) is no
+longer published anywhere. It is superseded by the app and kept in the
+repository only for reference.
 
 ## Checking a deployment
 

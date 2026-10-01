@@ -151,16 +151,10 @@ const NETLIFY_TOML = `# 242Konnect — the mobile app's web build, deployed as i
     Cache-Control = "public, max-age=0, must-revalidate"
 `;
 
-// `_headers` and `_redirects` are deliberately NOT written here.
-//
-// Netlify reads them from the *publish directory root*. While 242Konnect is
-// still served as a sub-path of the landing page, that root is the repo root,
-// so files sitting in this folder are inert — but "inert" is a claim about
-// another company's redirect resolution that cannot be tested from this
-// environment, and the downside if it is wrong is the landing page being
-// replaced wholesale by the app. A `/*  /index.html  200` rule is not something
-// to leave lying inside somebody else's published tree on the strength of an
-// assumption.
+// `_headers` and `_redirects` are not written here: `netlify.toml` below
+// already declares the same rules for the repo-connected site, whose base
+// directory is this folder. The landing page no longer publishes the repo root
+// (it publishes estevao-tati-site/), so this folder is nobody else's tree.
 //
 // Nothing is lost. `netlify.toml` above already declares the same redirect and
 // headers for a site whose base directory is this folder, which is the intended
