@@ -1155,4 +1155,121 @@ export const en: Record<string, string> = {
     'Before acceptance: full refund. After: based on notice and work done, after review.',
   'Dès que possible':
     'As soon as possible',
+  /* ---- Marketplace: directory, online requests, inbox, chat ---- */
+  'Votre session a expiré. Reconnectez-vous.':
+    'Your session has expired. Please sign in again.',
+  'Le paiement Mobile Money n’a pas abouti.':
+    'The Mobile Money payment did not go through.',
+  'Demandes en ligne':
+    'Online requests',
+  'Annuler la demande en ligne':
+    'Cancel the online request',
+  'Revoir et payer la demande en ligne':
+    'Review and pay the online request',
+  'Ouvrir le chat de la demande':
+    'Open the request chat',
+  'Demander le remboursement de la demande en ligne':
+    'Ask for a refund of the online request',
+  'Annuler la mission en ligne':
+    'Cancel the online job',
+  'Le prestataire recevra':
+    'The provider will receive',
+  'après commission et frais de versement.':
+    'after commission and payout fees.',
+  'Signaler un problème sur la demande en ligne':
+    'Report a problem with the online request',
+  'Confirmer le paiement en ligne':
+    'Confirm the online payment',
+  'Payer et envoyer la demande':
+    'Pay and send the request',
+  'Chat de la demande':
+    'Request chat',
+  'Prestataires inscrits':
+    'Registered providers',
+  'Aucun prestataire inscrit dans votre pays pour le moment.':
+    'No registered providers in your country yet.',
+  'Prestataire inscrit':
+    'Registered provider',
+  'Statut 242Konnect':
+    '242Konnect status',
+  'Chargement…':
+    'Loading…',
+  'Votre profil n\'est pas encore publié. Il le sera à votre prochaine connexion en ligne.':
+    'Your profile is not published yet. It will be the next time you are online.',
+  'Profil approuvé : les clients peuvent vous réserver.':
+    'Profile approved: clients can book you.',
+  'Profil refusé. Corrigez-le depuis Modifier le profil : il repassera en examen.':
+    'Profile refused. Correct it from Edit profile: it will go back under review.',
+  'Profil publié, en examen par 242Konnect : visible avec un badge, pas encore réservable.':
+    'Profile published and under review by 242Konnect: visible with a badge, not yet bookable.',
+  'Demandes reçues':
+    'Requests received',
+  'Nouvelles':
+    'New',
+  'Acceptées':
+    'Accepted',
+  'Les demandes payées par les clients arriveront ici.':
+    'Requests paid for by clients will appear here.',
+  'Client':
+    'Client',
+  'vous recevrez':
+    'you will receive',
+  'Paiement bloqué par 242Konnect. Adresse exacte et coordonnées communiquées après acceptation. Répondez avant':
+    'Payment held by 242Konnect. Exact address and contact details are shared after acceptance. Reply by',
+  'Votre profil doit être approuvé pour accepter une demande.':
+    'Your profile must be approved before you can accept a request.',
+  'Refuser la demande':
+    'Decline the request',
+  'Refuser':
+    'Decline',
+  'Accepter la demande':
+    'Accept the request',
+  'Accepter':
+    'Accept',
+  'Étape suivante':
+    'Next step',
+  'Clôture demandée : le client valide ou signale un problème. Le paiement est versé après sa validation.':
+    'Completion requested: the client approves or reports a problem. Payment is released after their approval.',
+  'Le client a signalé un problème. Les fonds sont gelés pendant l’examen ; répondez dans le chat.':
+    'The client reported a problem. Funds are frozen during the review; reply in the chat.',
+  'Expirée':
+    'Expired',
+  'Les échanges restent dans 242Konnect : ils servent de preuve en cas de litige. Ne partagez ni numéro ni paiement hors de l\'application.':
+    'Conversations stay in 242Konnect: they are the record if there is a dispute. Do not share phone numbers or payments outside the app.',
+  'Aucun message pour le moment.':
+    'No messages yet.',
+  'Votre message':
+    'Your message',
+  'Envoyer le message':
+    'Send the message',
+  'Cette conversation est fermée.':
+    'This conversation is closed.',
+  'Connectez-vous à nouveau pour voir ce prestataire.':
+    'Sign in again to see this provider.',
+  'Professionnel vérifié':
+    'Professional verified',
+  'Le téléphone et l’e-mail du prestataire ne sont jamais affichés : la demande et la messagerie passent par 242Konnect.':
+    'The provider\'s phone and e-mail are never shown: requests and messages go through 242Konnect.',
+  'Ceci est votre propre profil, tel que les clients le voient.':
+    'This is your own profile, as clients see it.',
+  'Ce prestataire est en cours de vérification par 242Konnect. Il pourra être réservé après approbation.':
+    'This provider is being verified by 242Konnect. They can be booked once approved.',
+  'Ce prestataire travaille sur devis. La demande de devis arrive bientôt.':
+    'This provider works on quotes. Quote requests are coming soon.',
+  'Envoyer une demande à':
+    'Send a request to',
+  'Envoyer une demande':
+    'Send a request',
+  'Votre demande':
+    'Your request',
+  'Votre demande est prête. Elle sera envoyée dès le paiement protégé : revoyez-la et payez depuis l\'onglet Missions.':
+    'Your request is ready. It will be sent as soon as the protected payment is made: review and pay from the Jobs tab.',
+  'L\'adresse exacte reste privée jusqu\'à l\'acceptation.':
+    'The exact address stays private until acceptance.',
+  'Montant à autoriser':
+    'Amount to authorise',
+  'Préparer la demande':
+    'Prepare the request',
+  'Envoi…':
+    'Sending…',
 };

@@ -9,6 +9,8 @@ import { describePricing, DURATIONS, pricingOf } from '../pricing';
 import { latestConsents } from '../consent';
 import { COMMISSION_RATE, PAYOUT_EXPRESS_RATE, PAYOUT_STANDARD_RATE, PAYOUT_STANDARD_DELAY_DAYS } from '../payments';
 import { useAuth } from '../auth';
+import { ProviderInbox } from '../components/online/ProviderInbox';
+import { marketplaceEnabled } from '../marketplace';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { useT } from '../i18n';
@@ -161,6 +163,10 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         {!!account.bio && <Text style={styles.sectionNote}>{account.bio}</Text>}
       </Section>
 
+      {/* The server's view: review status and paid requests. Absent on builds
+          without Supabase, where the placeholder sections below stand alone. */}
+      <ProviderInbox />
+
       <Section title={t('Revenus')}>
         <View style={styles.grid}>
           {['Aujourd’hui', 'Cette semaine', 'Ce mois', 'Cette année'].map((label) => (
@@ -174,6 +180,8 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         <Text style={styles.sectionNote}>{t("Aucune mission reçue : il n'y a pas encore de clients sur cette version. Les revenus apparaîtront ici dès qu'une prestation sera validée.")}</Text>
       </Section>
 
+      {/* Placeholders only where the real inbox above is unavailable. */}
+      {!marketplaceEnabled && (
       <Section title={t('Demandes et missions')}>
         {/* §08's four buckets, plus new requests. Counts come only from real
             data, and there is none until requests reach prestataires. */}
@@ -193,6 +201,7 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           </View>
         ))}
       </Section>
+      )}
 
       <Section title={t('Performance')}>
         <View style={styles.scoreRow}>

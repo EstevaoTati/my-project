@@ -62,8 +62,8 @@ Legend: ✅ done in the app · 🟡 partial · 🔴 needs a backend or a provide
 | 09 | 6-digit PIN, lock after 5 | 🟡 | Works live; lockout is per Edge isolate (in-memory) — should use `user_pin_security` |
 | 10 | Consent: CGU, privacy, explanations, separate marketing, recorded version/date | ✅ | Consent step, `consent_records`, `ConsentGateScreen`, Profil › Confidentialité. Data-controller contact: set `EXPO_PUBLIC_PRIVACY_CONTACT` |
 | 11 | Home: location, search, categories, notifications | 🟡 | Exists; notifications are local, not pushed |
-| 12 | Filters price/rating/distance/availability/verification/type; score explained; badge types | 🟡 | All filters + badge distinction + score explanation added. **Catalogue is static** (`src/data`) — real prestataires are not listed yet |
-| 13 | Provider profile, no phone/e-mail, contact via request/chat | 🟡 | Done in UI; chat is device-local, not delivered |
+| 12 | Filters price/rating/distance/availability/verification/type; score explained; badge types | 🟡 | Filters, badges and score explanation done. Registered prestataires now listed from the server ("Prestataires inscrits", filtered by country); the design catalogue is still demo data |
+| 13 | Provider profile, no phone/e-mail, contact via request/chat | ✅ | `ListingScreen`; chat per request in `request_messages` (2026-10-01) |
 | 14 | My jobs Active/Completed/Cancelled; verified name/phone locked; "Offer your services" separate dossier | ✅ | Filters in Missions; `ProviderDossierScreen` |
 
 ### Parcours Prestataire
@@ -76,10 +76,10 @@ Legend: ✅ done in the app · 🟡 partial · 🔴 needs a backend or a provide
 | 04 | Bio, education, experience, ≤5 documents with status | 🟡 | Cap and "Reçu" status done; **documents stay on the device** — no private upload, virus scan or reviewer statuses (needs Storage + back office) |
 | 05 | Review before submission, edit without losing data | ✅ | Review block with "Modifier" per section |
 | 06 | Contract: read, accept, sign; version/date/IP/proof; re-accept on new version | ✅ | Server-stamped in `consent_records` |
-| 07 | Verification tracking, preview, not bookable | ✅ UI / 🔴 review | Timeline + preview + badge; **no reviewer workflow** to move steps |
-| 08 | Dashboard: requests, missions (accepted/in progress/completed/cancelled), counters from real data | 🟡 | Buckets shown, counters honestly zero — no cross-user data yet |
-| 09 | Incoming request with hidden address, expiry, accept/decline/message | 🔴 | Needs server-side requests routed to prestataires |
-| 10 | Execution proofs (depart, arrival, before/after photos, time) | 🟡 | Stages timestamped client-side; no photo proofs from the prestataire side |
+| 07 | Verification tracking, preview, not bookable | ✅ / 🟡 | Server-side status, enforced by the database; approval is manual SQL until a reviewer console exists |
+| 08 | Dashboard: requests, missions (accepted/in progress/completed/cancelled), counters from real data | ✅ | Counters from `service_requests` (`ProviderInbox`) |
+| 09 | Incoming request with hidden address, expiry, accept/decline/message | ✅ | Address released by RLS only after acceptance; 24 h expiry |
+| 10 | Execution proofs (depart, arrival, before/after photos, time) | 🟡 | Stages driven by the prestataire and timestamped by the server; before/after photos not yet |
 | 11 | Availability calendar, long projects | 🔴 | Durations only; no calendar |
 | 12 | Earnings and payouts | 🟡 | Terms shown; no real balance |
 | 13 | Performance, score, programme | 🟡 | Structure only; score needs real data |
@@ -101,7 +101,15 @@ Legend: ✅ done in the app · 🟡 partial · 🔴 needs a backend or a provide
 | 10 | Dispute: reason, evidence, redo/partial/full refund, frozen funds | ✅ UI / 🔴 review | Structured form; no 242Konnect review console |
 | 11 | Cancellation rules, repeat-abuse scoring | 🟡 | Full refund before acceptance; after acceptance → held pending review. Abuse scoring needs a backend |
 
-## What blocks the 🔴 items
+## Update 2026-10-01 — shared backend
+
+The marketplace backend is live: see
+`2026-10-01-242konnect-marketplace-backend.md`. Requests, the address release,
+acceptance, stages, validation, disputes and chat now go through Supabase and
+reach the other person. Payment confirmation by the operator is the main item
+still simulated.
+
+## What blocks the 🔴 items (as of 2026-09-30)
 
 One thing, mostly: **there is no shared backend for requests, missions,
 payments and messages.** Everything transactional still lives on one device,

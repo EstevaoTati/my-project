@@ -17,6 +17,7 @@ import { ProCard } from '../components/ProCard';
 import { Sheet } from '../components/Sheet';
 import { categories, promo, topProfessionals } from '../data';
 import { useAuth } from '../auth';
+import { DirectorySection } from '../components/online/DirectorySection';
 import { CITIES, useStore, type City } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
@@ -209,6 +210,8 @@ export function HomeScreen({ navigation }: Props) {
             />
           ))}
         </View>
+
+        <DirectorySection onOpen={(id) => navigation.navigate('Inscrit', { id })} />
       </ScrollView>
 
       <Sheet

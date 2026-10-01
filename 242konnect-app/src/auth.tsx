@@ -35,6 +35,7 @@ import {
 } from './otpClient';
 import { ProfileConflictError, pushProfile, reconcileProfile } from './profileStore';
 import { freshSession, type SupabaseSession } from './supabase';
+import { upsertListing } from './marketplace';
 import {
   PROVIDER_CONTRACT_VERSION,
   recordConsents,
@@ -409,6 +410,12 @@ type AuthState = {
    * active profile does not change — Client §04, "le rôle principal ne doit
    * jamais changer automatiquement" — and nothing about the client side moves.
    */
+  /**
+   * The live Supabase session of the signed-in account, refreshed if needed —
+   * or null when there is none (no Supabase in this build, offline, or a
+   * token belonging to someone else). The marketplace screens need it.
+   */
+  marketSession: () => Promise<SupabaseSession | null>;
   submitProviderDossier: (input: {
     details: Omit<PrestataireDetails, 'verified' | 'submittedAt'>;
     bio: string;
@@ -616,6 +623,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       supabaseSession.current = live;
       try {
         await pushProfile(live, next);
+        // A prestataire's public listing follows the profile. The database
+        // keeps its review status; the app only refreshes the content.
+        await upsertListing(live, next).catch(() => {});
       } catch {
         // Including a conflict: the row already belongs to this user by id, so
         // a unique violation here means someone else took the address between
@@ -771,6 +781,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw e;
         }
         await rememberSupabaseSession(pending.session);
+        await upsertListing(pending.session, safe).catch(() => {});
         // The account row exists now, so the consents can point at it. A
         // failure leaves them marked unrecorded and they go with the next sync.
         withId.consents = await recordConsents(pending.session, withId.consents ?? []);
@@ -1136,6 +1147,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [account, persistAccount]
   );
 
+  const marketSession = useCallback<AuthState['marketSession']>(async () => {
+    if (!account) return null;
+    const live = await freshSession(supabaseSession.current);
+    if (!live || (account.supabaseUserId && live.userId !== account.supabaseUserId)) return null;
+    supabaseSession.current = live;
+    return live;
+  }, [account]);
+
   const value = useMemo<AuthState>(
     () => ({
       account,
@@ -1170,6 +1189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       giveConsents,
       requestData,
       submitProviderDossier,
+      marketSession,
       firstLaunch,
       markLaunched,
     }),
@@ -1206,6 +1226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       giveConsents,
       requestData,
       submitProviderDossier,
+      marketSession,
       firstLaunch,
       markLaunched,
     ]

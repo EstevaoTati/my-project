@@ -7,6 +7,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { EspacePrestataireScreen } from './screens/EspacePrestataireScreen';
 import { SearchResultsScreen } from './screens/SearchResultsScreen';
 import { ProfessionalProfileScreen } from './screens/ProfessionalProfileScreen';
+import { ListingScreen } from './screens/ListingScreen';
 import { TradesScreen } from './screens/TradesScreen';
 import { MissionsScreen } from './screens/MissionsScreen';
 import { MessagesScreen } from './screens/MessagesScreen';
@@ -40,6 +41,8 @@ export type HomeStackParamList = {
   Metiers: { category?: CategoryId } | undefined;
   Resultats: { category?: CategoryId; tradeId?: string; query?: string };
   Profil: { id: string };
+  /** A prestataire from the server directory, by auth user id. */
+  Inscrit: { id: string };
 };
 
 export type MessagesStackParamList = {
@@ -77,6 +80,7 @@ function HomeStackScreens() {
       <Home.Screen name="Metiers" component={TradesScreen} />
       <Home.Screen name="Resultats" component={SearchResultsScreen} />
       <Home.Screen name="Profil" component={ProfessionalProfileScreen} />
+      <Home.Screen name="Inscrit" component={ListingScreen} />
     </Home.Navigator>
   );
 }

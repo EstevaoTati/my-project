@@ -42,6 +42,7 @@ import {
   type Payment,
 } from '../store';
 import { useNavigation } from '@react-navigation/native';
+import { ClientRequests } from '../components/online/ClientRequests';
 import { downloadReceipt } from '../receipt';
 import { pickAvatar } from '../photo';
 import { formatStored, useAuth } from '../auth';
@@ -389,6 +390,9 @@ export function MissionsScreen() {
       )}
 
       {bookings.length === 0 ? (
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+        {/* Requests to prestataires registered on the server. */}
+        <ClientRequests />
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
             <Icon name="solar:calendar-mark-linear" size={32} color={colors.mutedForeground} />
@@ -396,8 +400,10 @@ export function MissionsScreen() {
           <Text style={styles.emptyTitle}>{t('Aucune mission')}</Text>
           <Text style={styles.emptyBody}>{t('Réservez un prestataire depuis son profil : la mission apparaîtra ici, avec le paiement.')}</Text>
         </View>
+        </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <ClientRequests />
           {/* §2.2 and §6.4, stated once at the top rather than buried: the money
               never goes directly to the prestataire. */}
           <View style={styles.rule}>
