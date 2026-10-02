@@ -1,0 +1,1444 @@
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  hashPassword,
+  passwordProblem,
+  verifyPassword,
+  type StoredSecret,
+} from './credentials';
+import {
+  COUNTRY_CODES,
+  DEFAULT_COUNTRY,
+  DEFAULT_LOCATION,
+  formatStored,
+  isCompleteNumber,
+  normalizeNational,
+  toE164,
+  type CountryCode,
+  type Location,
+} from './countries';
+import {
+  canSendOtp,
+  checkCode,
+  otpProvider,
+  OTP_UNAVAILABLE_MESSAGE,
+  requestCode,
+  type OtpDelivery,
+} from './otpClient';
+import { ProfileConflictError, pullProfile, pushProfile, reconcileProfile } from './profileStore';
+import { PinError } from './pin';
+import { freshSession, supabaseConfigured, type SupabaseSession } from './supabase';
+import { upsertListing } from './marketplace';
+import { InvalidCredentialsError, setServerPassword, signInWithPassword } from './serverAuth';
+import {
+  fetchConsents,
+  PROVIDER_CONTRACT_VERSION,
+  recordConsents,
+  requestDataChange,
+  type ConsentRecord,
+  type DataRequestKind,
+} from './consent';
+import { pricingProblem, type Pricing, type ProjectDuration } from './pricing';
+import {
+  knownToHavePin,
+  pinStatus,
+  rememberHasPin,
+  setPin as storePin,
+  verifyPin as checkPin,
+  PIN_LENGTH,
+} from './pin';
+
+/**
+ * Accounts, stored on the device.
+ *
+ * There is no backend yet, so an account created here lives in AsyncStorage on
+ * this device and nowhere else. It survives closing the app, but it does not
+ * exist on any server and cannot be used from a second phone. Everything below
+ * is shaped so that swapping in a real API means replacing the functions that
+ * touch storage, not rewriting the screens.
+ *
+ * Two rules come straight from the cahier des charges §9.10:
+ *
+ *  - **One account, several profiles.** A person has a single login — one phone
+ *    number, one e-mail — and activates Particulier and/or Prestataire on top of
+ *    it. The spec is explicit that separate accounts per profile is the wrong
+ *    shape: "l'utilisateur n'a qu'une seule connexion et peut changer de profil
+ *    depuis son espace personnel".
+ *  - **Uniqueness.** A phone number and an e-mail each belong to exactly one
+ *    account, and the refusal message is quoted from the spec.
+ *
+ * The uniqueness check here only sees accounts on this device. Real uniqueness
+ * needs a shared database — see docs/decisions.
+ */
+
+/**
+ * The two account types 242Konnect actually offers.
+ *
+ * A third, Business, existed here and was removed on the founder's instruction:
+ * an entreprise books services the same way a person does, so it was a second
+ * form and a second dashboard earning nothing that Particulier did not already
+ * do. Removing the kind rather than hiding it keeps `profiles` honest — a stored
+ * account can no longer claim a profile the app cannot open.
+ *
+ * The `business` jsonb column is left in `public.profiles`. It is nullable and
+ * nothing writes it now; dropping it would destroy any data already there, and
+ * that is the founder's call rather than a side effect of this change.
+ */
+export type ProfileKind = 'particulier' | 'prestataire';
+
+export const PROFILE_LABELS: Record<ProfileKind, string> = {
+  particulier: 'Particulier',
+  prestataire: 'Prestataire',
+};
+
+/**
+ * Per-profile detail. §2.2 asks a different set of each account type, so they
+ * are separate objects rather than a pile of optional fields on Account: a
+ * Prestataire has a date of birth and a trade, a Particulier has an address and
+ * interests, and flattening them would make "is this profile complete?"
+ * impossible to answer.
+ */
+export type ParticulierDetails = {
+  /** §2.2: adresse complète + référence de l'adresse (how to find it locally). */
+  address: string;
+  addressReference: string;
+  interests: string[];
+};
+
+export type PrestataireDetails = {
+  /** ISO date. §2.2 forbids under-16s. */
+  birthDate: string;
+  tradeId: string;
+  zone: string;
+  /**
+   * Legacy: the only price the first form could express. New accounts carry
+   * `pricing` instead and leave this at the hourly amount or 0 — read prices
+   * through `pricingOf`, never from here.
+   */
+  hourlyRate: number;
+  /** Parcours Prestataire §03: model, amount, negotiable, currency by country. */
+  pricing?: Pricing;
+  /** Project lengths accepted, from a few hours to more than six months. */
+  durations?: ProjectDuration[];
+  formations: string;
+  diplomas: string;
+  experience: string;
+  /**
+   * The pièces justificatives, at most `MAX_DOCUMENTS` (Prestataire §04). Each
+   * is "reçu" until 242Konnect's review moves it on — there is no reviewer
+   * back office yet, so no other status can honestly be shown.
+   */
+  documents: string[];
+  /** When the dossier was submitted for review (Prestataire §07). */
+  submittedAt?: number;
+  /** Awarded by 242Konnect after checking documents (§7.6) — never self-set. */
+  verified: boolean;
+};
+
+export const MIN_PRESTATAIRE_AGE = 16;
+
+/** Prestataire §04: "jusqu'à cinq pièces justificatives". */
+export const MAX_DOCUMENTS = 5;
+
+/** Client §06: "Empêcher la sélection de plus de trois intérêts". */
+export const MAX_INTERESTS = 3;
+
+export const INTERESTS = [
+  'Maison', 'Bricolage', 'Automobile', 'Beauté', 'Santé', 'Éducation',
+  'Événementiel', 'Informatique', 'Jardinage', 'Nettoyage',
+];
+
+export type Account = {
+  /**
+   * Canonical number: dial code plus national digits, e.g. "242061234567".
+   * One unambiguous string across countries, and the identity the account is
+   * keyed on. Use `formatStored` to display it.
+   */
+  phone: string;
+  /** Which numbering plan `phone` belongs to, so it can be edited back. */
+  phoneCountry: CountryCode;
+  /** Where the person is. Congo uses a city; the US uses a state and a city. */
+  location: Location;
+  /** The other half of the identity (§2.2 — OTP goes to one or the other). */
+  email: string;
+  name: string;
+  /** Profile photo as a data URI. Kept small so it fits in AsyncStorage. */
+  avatar?: string;
+  bio?: string;
+  /** Which profiles this one account has activated (§9.10). */
+  profiles: ProfileKind[];
+  /** The profile currently in use; switched from the Profil tab. */
+  activeProfile: ProfileKind;
+  /**
+   * The `auth.users` id, learned the first time a code is accepted. It is what
+   * ties this account to its row in public.profiles and to its PIN, and what
+   * stops a device token belonging to one account being spent on another.
+   */
+  supabaseUserId?: string;
+  /** Populated only for the profiles this account has activated. */
+  particulier?: ParticulierDetails;
+  prestataire?: PrestataireDetails;
+  /**
+   * Every consent given, oldest first (Client §10, Prestataire §06). The
+   * device's copy; `public.consent_records` holds the stamped original.
+   */
+  consents?: ConsentRecord[];
+  createdAt: number;
+};
+
+/** What someone can change afterwards. Phone and e-mail are the identity. */
+export type ProfileEdits = Partial<
+  Pick<Account, 'name' | 'avatar' | 'bio' | 'particulier' | 'prestataire'>
+>;
+
+/** Everything collected across the sign-up steps, before the code is confirmed. */
+export type SignUpDraft = {
+  name: string;
+  /** National digits as typed; combined with `phoneCountry` on submission. */
+  phone: string;
+  phoneCountry: CountryCode;
+  email: string;
+  location: Location;
+  profile: ProfileKind;
+  channel: OtpChannel;
+  avatar?: string;
+  bio?: string;
+  particulier?: ParticulierDetails;
+  prestataire?: PrestataireDetails;
+  /** Accepted on the last sign-up step, before any code is sent. */
+  consents: ConsentRecord[];
+};
+
+/** Years between an ISO date and today. Used for the under-16 rule. */
+export function ageFrom(isoDate: string): number | null {
+  const born = new Date(isoDate);
+  if (Number.isNaN(born.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - born.getFullYear();
+  const monthDelta = now.getMonth() - born.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < born.getDate())) age -= 1;
+  return age;
+}
+
+/**
+ * The account as written to storage. The password is never among these fields:
+ * only a salt and a hash, so reading the store does not hand over credentials.
+ */
+type StoredAccount = Account & { secret: StoredSecret };
+
+const ACCOUNTS_KEY = '242k.accounts';
+const SESSION_KEY = '242k.session';
+/**
+ * The Supabase session that goes with the local one, so a profile edit made an
+ * hour after signing in can still reach the server. Refreshed on use rather
+ * than on a timer — see `freshSession`.
+ */
+const SUPABASE_SESSION_KEY = '242k.supabase';
+/**
+ * Set the first time the app finishes launching. The directives route the very
+ * first open to "Commencer" and every later open straight to Connexion (or the
+ * dashboard), so that distinction has to survive a restart.
+ */
+const LAUNCHED_KEY = '242k.launched';
+
+export const OTP_LENGTH = 6;
+
+/** Re-exported so screens don't need to know where the verification service lives. */
+export { canSendOtp, otpProvider, OTP_UNAVAILABLE_MESSAGE };
+export { MIN_PASSWORD, passwordProblem, passwordStrength } from './credentials';
+/**
+ * Numbers are international now, so display goes through the country-aware
+ * helper. The old Congo-only `formatPhone`/`normalizePhone`/`PHONE_LENGTH` are
+ * gone rather than kept as aliases: leaving them would let a nine-digit
+ * assumption creep back in.
+ */
+export { formatStored, fromE164 } from './countries';
+
+/** Shown when the device has no room left for the account data. */
+export const STORAGE_FULL_MESSAGE =
+  "La mémoire de cette application est pleine sur cet appareil. Choisissez une photo de profil plus légère, ou libérez de l'espace, puis réessayez.";
+
+/** The refusal the spec dictates, quoted rather than paraphrased. */
+export const DUPLICATE_ACCOUNT_MESSAGE =
+  'Ce numéro de téléphone ou cette adresse e-mail est déjà associé(e) à un compte 242Konnect. Veuillez vous connecter ou utiliser la procédure de récupération de compte.';
+
+
+export function isValidEmail(input: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.trim());
+}
+
+/** Where a verification code was sent, so the OTP screen can say so. */
+export type OtpChannel = 'sms' | 'email';
+
+export type PendingSignUp = SignUpDraft & {
+  /**
+   * Which service mailed the code, and how long it stays valid. Not the code:
+   * that exists only in the user's inbox and in the service that issued it, so
+   * nothing on this device — and nothing on this screen — can reveal it.
+   */
+  delivery: OtpDelivery;
+  /**
+   * Set once the code has been accepted. The account still does not exist:
+   * the password is chosen after this point, which is the order the founder
+   * asked for — Informations, Vérification, Création du mot de passe, Compte
+   * créé. Collecting the password first is what produced a verification e-mail
+   * that said nothing about the password the screen was already demanding.
+   */
+  verified: boolean;
+  /** The canonical number, computed once the draft is accepted. */
+  storedPhone: string;
+  /**
+   * The Supabase session the accepted code bought. Null until then, and null on
+   * builds pointed at the 242Konnect API instead. It is what authorises the row
+   * in `public.profiles` once the password is chosen.
+   */
+  session: SupabaseSession | null;
+};
+
+/** A sign-in that has passed the password and is waiting on its second factor. */
+export type PendingSignIn = {
+  /** Resolved from storage, but not signed in until the factor is accepted. */
+  account: Account;
+  /**
+   * Which second factor is being asked for.
+   *
+   * `pin` when this device has been signed into by this account before and a
+   * PIN exists — the fast path, and the one that keeps two-factor switched on,
+   * because waiting for an e-mail at every sign-in is what makes people turn it
+   * off. `email` otherwise, and whenever the PIN is forgotten or locked.
+   */
+  method: 'pin' | 'email';
+  /** Set on the `email` path only: what was sent, and for how long. */
+  delivery: OtpDelivery | null;
+  /**
+   * The device's Supabase session, refreshed from the token left behind by the
+   * last successful sign-in. Present only on the `pin` path — the PIN function
+   * needs a bearer token, and at sign-in there is no other way to have one.
+   */
+  session: SupabaseSession | null;
+  /**
+   * True when this is the app opening on an account already signed in on this
+   * device: the PIN is the whole log-in. Backing out of it signs the device
+   * out, rather than leaving the account one reload away.
+   */
+  unlock?: boolean;
+  /**
+   * Accounts from before the password moved to Supabase: the password typed
+   * here was checked against this device's copy, and is handed to Supabase
+   * once the e-mail code proves the address. Held in memory only.
+   */
+  migratePassword?: string;
+};
+
+/** Set when the app is asking for the PIN — offering it, or insisting. */
+export type PendingPinSetup = {
+  replacing: boolean;
+  /**
+   * True when the account cannot be used until a PIN exists.
+   *
+   * Every new account must establish one, so this is set at sign-up and again
+   * on launch if an account somehow has none — force-closing the app during
+   * the step would otherwise be a way around it. Changing an existing PIN from
+   * the account screen is not required, so that path leaves it false.
+   */
+  required: boolean;
+};
+
+type AuthState = {
+  account: Account | null;
+  /** True until the stored session has been read, so we don't flash a form. */
+  restoring: boolean;
+  /** Set once sign-up details are accepted and a code is awaiting entry. */
+  pending: PendingSignUp | null;
+  /** Validates the whole draft and issues a code; no account is created yet. */
+  startSignUp: (draft: SignUpDraft) => Promise<void>;
+  /** Checks the code and moves on to choosing a password. No account yet. */
+  confirmSignUp: (code: string) => Promise<void>;
+  /** Creates the account with the chosen password. The last step. */
+  completeSignUp: (password: string) => Promise<void>;
+  /** Issues a fresh code for the pending sign-up. */
+  resendCode: () => Promise<void>;
+  cancelSignUp: () => void;
+  /**
+   * Checks the password and sends a code. Does **not** sign anyone in: the
+   * session is created by `confirmSignIn` once that code is entered.
+   */
+  signIn: (input: { identifier: string; password: string }) => Promise<void>;
+  /** Set between a correct password and the code that completes the sign-in. */
+  pendingSignIn: PendingSignIn | null;
+  confirmSignIn: (code: string) => Promise<void>;
+  resendSignInCode: () => Promise<void>;
+  cancelSignIn: () => void;
+  /** Checks the 6-digit PIN. Server-side, like every other factor here. */
+  confirmPin: (pin: string) => Promise<void>;
+  /** Abandons the PIN and mails a code instead — forgotten, or locked out. */
+  useEmailCodeInstead: () => Promise<void>;
+  /** Set while the app is offering to define or replace the PIN. */
+  pendingPinSetup: PendingPinSetup | null;
+  /** Opens that screen. `replacing` demands the current PIN as well. */
+  startPinSetup: (replacing: boolean) => void;
+  /** Stores the chosen PIN. Hashed by the Edge Function, never here. */
+  definePin: (pin: string, current?: string) => Promise<void>;
+  skipPinSetup: () => void;
+  /** Whether this account can sign in with a PIN on this device. */
+  hasPin: boolean;
+  /**
+   * Whether this account is known to exist in `public.profiles`.
+   *
+   * `null` while it has not been established — no session yet, no Supabase in
+   * this build, or the check has not run. `false` means the app tried and could
+   * not, which is worth showing rather than hiding: an account that lives only
+   * on one phone is one uninstall away from gone.
+   */
+  accountSynced: boolean | null;
+  /** Sends a code to the address on file so a forgotten password can be reset. */
+  startPasswordReset: (identifier: string) => Promise<{ email: string }>;
+  /** Checks that code and sets the new password. */
+  completePasswordReset: (code: string, password: string) => Promise<void>;
+  /** Set while a reset is in progress, so the navigator can show its screens. */
+  resetting: { email: string; phone: string; verified: boolean } | null;
+  cancelPasswordReset: () => void;
+  signOut: () => Promise<void>;
+  updateProfile: (edits: ProfileEdits) => Promise<void>;
+  /** Switches which profile is in use (§9.10). */
+  switchProfile: (kind: ProfileKind) => Promise<void>;
+  /** Activates an additional profile on the same account. */
+  activateProfile: (kind: ProfileKind) => Promise<void>;
+  /**
+   * Adds consents to the account and sends them to the audit trail — a
+   * re-accepted document version, or a marketing opt-in changed later.
+   */
+  giveConsents: (records: Pick<ConsentRecord, 'kind' | 'version' | 'granted' | 'signature'>[]) => Promise<void>;
+  /** Files a correction or deletion request. False when it could not be sent. */
+  requestData: (kind: DataRequestKind, details: string) => Promise<boolean>;
+  /**
+   * "Offer your services" from an existing account (Client §14): a separate
+   * prestataire dossier, signed contract included, submitted for review. The
+   * active profile does not change — Client §04, "le rôle principal ne doit
+   * jamais changer automatiquement" — and nothing about the client side moves.
+   */
+  /**
+   * The live Supabase session of the signed-in account, refreshed if needed —
+   * or null when there is none (no Supabase in this build, offline, or a
+   * token belonging to someone else). The marketplace screens need it.
+   */
+  marketSession: () => Promise<SupabaseSession | null>;
+  submitProviderDossier: (input: {
+    details: Omit<PrestataireDetails, 'verified' | 'submittedAt'>;
+    bio: string;
+    avatar?: string;
+    signature: string;
+  }) => Promise<void>;
+  /** True until the app has been opened once on this device. */
+  firstLaunch: boolean;
+  markLaunched: () => void;
+};
+
+const AuthContext = createContext<AuthState | null>(null);
+
+/**
+ * A write that turns a quota failure into something a person can act on.
+ *
+ * On web AsyncStorage is localStorage, so a large avatar surfaces as a
+ * `QuotaExceededError` whose own message is "Storage Full" — which is what the
+ * founder saw, with nothing to do about it. Photos are bounded in `photo.ts`;
+ * this is the backstop and, more importantly, the explanation.
+ */
+async function setItemChecked(key: string, value: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(key, value);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (/quota|storage|full/i.test(message)) throw new Error(STORAGE_FULL_MESSAGE);
+    throw e;
+  }
+}
+
+/**
+ * A fixed salt/hash used only to spend the same work when no account matched.
+ *
+ * Without it, an unknown identifier returns immediately while a known one pays
+ * for a hash, and the difference is measurable — which turns sign-in into a way
+ * to test whether a number is registered.
+ */
+const DECOY_SECRET = {
+  salt: '242konnect-decoy',
+  hash: '0'.repeat(64),
+};
+
+/**
+ * Finds an account by phone number or e-mail (§3.2 allows either).
+ *
+ * Numbers are matched on the canonical form, and a bare national number is
+ * tried against every served country — someone typing "06 123 45 67" is not
+ * going to type their dial code first.
+ */
+async function findAccount(identifier: string): Promise<StoredAccount | undefined> {
+  const raw = identifier.trim().toLowerCase();
+  const digits = identifier.replace(/\D/g, '');
+  const accounts = await readAccounts();
+
+  const byEmail = accounts.find((a) => a.email === raw);
+  if (byEmail) return byEmail;
+  if (!digits) return undefined;
+
+  return accounts.find((a) => {
+    if (a.phone === digits) return true;
+    // Typed without the dial code.
+    return COUNTRY_CODES.some((code: CountryCode) => toE164(digits, code) === a.phone);
+  });
+}
+
+async function readAccounts(): Promise<StoredAccount[]> {
+  try {
+    const raw = await AsyncStorage.getItem(ACCOUNTS_KEY);
+    return raw ? (JSON.parse(raw) as StoredAccount[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [account, setAccount] = useState<Account | null>(null);
+  const [restoring, setRestoring] = useState(true);
+  const [firstLaunch, setFirstLaunch] = useState(false);
+  const [pending, setPending] = useState<PendingSignUp | null>(null);
+  const [resetting, setResetting] = useState<AuthState['resetting']>(null);
+  const [pendingSignIn, setPendingSignIn] = useState<PendingSignIn | null>(null);
+  const [pendingPinSetup, setPendingPinSetup] = useState<PendingPinSetup | null>(null);
+  const [hasPin, setHasPin] = useState(false);
+  const [accountSynced, setAccountSynced] = useState<boolean | null>(null);
+  // Held in a ref, not state: nothing renders from it, and a profile edit must
+  // read the token that exists now rather than the one captured when the
+  // callback was created.
+  const supabaseSession = useRef<SupabaseSession | null>(null);
+
+  const rememberSupabaseSession = useCallback(async (next: SupabaseSession | null) => {
+    supabaseSession.current = next;
+    try {
+      if (next) await AsyncStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(next));
+      else await AsyncStorage.removeItem(SUPABASE_SESSION_KEY);
+    } catch {
+      // Losing it costs a sync, not a sign-in: the account is on the device and
+      // the next verification issues a new one.
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [raw, launched, supa] = await Promise.all([
+          AsyncStorage.getItem(SESSION_KEY),
+          AsyncStorage.getItem(LAUNCHED_KEY),
+          AsyncStorage.getItem(SUPABASE_SESSION_KEY),
+        ]);
+        const restored = raw ? (JSON.parse(raw) as Account) : null;
+        if (supa) supabaseSession.current = JSON.parse(supa) as SupabaseSession;
+        const pinHint = restored?.supabaseUserId ? await knownToHavePin(restored.supabaseUserId) : false;
+        setHasPin(pinHint);
+        setFirstLaunch(launched === null);
+        // An account that logs in with a PIN is not opened until the PIN is
+        // given: decided below, once the server has been asked. Everything
+        // else (no Supabase in this build, no PIN yet) opens as before.
+        const pinGated = !!restored?.supabaseUserId && supabaseConfigured;
+        if (restored && !pinGated) setAccount(restored);
+
+        // Every account must have a PIN, so a signed-in account without one is
+        // asked for it again here. Force-closing the app during the step at
+        // sign-up would otherwise be the way around it.
+        //
+        // The server is asked rather than the local flag: that flag is a cache,
+        // and clearing app data would wipe it. Insisting on a *new* PIN when one
+        // already exists would fail anyway — replacing one needs the old one —
+        // so the truth has to come from the service that holds it.
+        if (restored?.supabaseUserId && pinGated) {
+          const live = await freshSession(supabaseSession.current);
+          if (!(live && live.userId === restored.supabaseUserId)) {
+            // Offline, or the device token has lapsed. With a PIN known for
+            // this account the PIN screen still stands guard — it retries the
+            // session when the PIN is entered, and offers the e-mail code.
+            if (pinHint) setPendingSignIn({ account: restored, method: 'pin', delivery: null, session: null, unlock: true });
+            else setAccount(restored);
+          }
+          if (live && live.userId === restored.supabaseUserId) {
+            supabaseSession.current = live;
+
+            // The account must exist on the server, not just on this phone.
+            // Writing it here is what stops an account that was created while
+            // the row could not be written from staying invisible for ever —
+            // every launch is another chance to put it right.
+            const sync = await reconcileProfile(live, restored);
+            setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+            let current: Account = restored;
+            if (sync.status === 'pulled') {
+              current = { ...restored, ...sync.account };
+              await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
+            }
+
+            // Consents given while the server was unreachable are still owed
+            // to the audit trail; every launch is another chance to send them.
+            if (current.consents?.some((c) => !c.recorded)) {
+              const consents = await recordConsents(live, current.consents);
+              if (consents.every((c) => c.recorded)) {
+                current = { ...current, consents };
+                await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
+              }
+            }
+
+            let established: boolean | null = null;
+            try {
+              established = (await pinStatus(live)).hasPin;
+            } catch {
+              // The PIN service is unreachable: fall back to what this device
+              // last knew rather than locking someone out on a network blip.
+              established = pinHint ? true : null;
+            }
+            setHasPin(established === true);
+            if (established === true) {
+              // The personal PIN is the log-in: nothing opens until it is given.
+              setPendingSignIn({ account: current, method: 'pin', delivery: null, session: live, unlock: true });
+            } else {
+              setAccount(current);
+              // Every account must have one; ask now if it does not.
+              if (established === false) setPendingPinSetup({ replacing: false, required: true });
+            }
+          }
+        }
+      } catch {
+        // A corrupt session is not worth blocking sign-in over; start signed out.
+      } finally {
+        setRestoring(false);
+      }
+    })();
+  }, []);
+
+  const persistSession = useCallback(async (next: Account | null) => {
+    if (next) await setItemChecked(SESSION_KEY, JSON.stringify(next));
+    else await AsyncStorage.removeItem(SESSION_KEY);
+    // Only after the write succeeds. Updating state first is what made a failed
+    // write look like a save that silently undid itself on the next launch.
+    setAccount(next);
+  }, []);
+
+  /**
+   * Writes an updated account to both the roster and the live session.
+   *
+   * Storage first, memory second, and both writes before either is announced.
+   * The previous order set React state before the write, so a full quota left
+   * the edit on screen and nowhere else — which is exactly the "changes not
+   * saved" the founder reported, with "Storage Full" as its other face.
+   */
+  const persistAccount = useCallback(
+    async (next: Account) => {
+      // The stored record also holds the password, so merge into it rather than
+      // replacing the row with a password-less copy — that would lock the user out.
+      const accounts = await readAccounts();
+      const merged = accounts.map((a) => (a.phone === next.phone ? { ...a, ...next } : a));
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify(merged));
+      await persistSession(next);
+
+      // Then the server, and only then — the device is the copy that must never
+      // be lost, and it works offline. A failed sync leaves the edit saved here
+      // and re-sent on the next one; interrupting someone because Pointe-Noire's
+      // network dropped a request would be the wrong trade.
+      const live = await freshSession(supabaseSession.current);
+      // The token that survives sign-out could belong to whoever used this
+      // phone last, so it is only spent on the row it actually owns.
+      if (!live || (next.supabaseUserId && live.userId !== next.supabaseUserId)) return;
+      supabaseSession.current = live;
+      try {
+        await pushProfile(live, next);
+        // A prestataire's public listing follows the profile. The database
+        // keeps its review status; the app only refreshes the content.
+        await upsertListing(live, next).catch(() => {});
+      } catch {
+        // Including a conflict: the row already belongs to this user by id, so
+        // a unique violation here means someone else took the address between
+        // sign-up and now. That is a support matter, not a lost edit.
+      }
+    },
+    [persistSession]
+  );
+
+  const startSignUp = useCallback<AuthState['startSignUp']>(
+    async (draft) => {
+      const mail = draft.email.trim().toLowerCase();
+      const country = draft.phoneCountry ?? DEFAULT_COUNTRY;
+      const stored = toE164(draft.phone, country);
+
+      // Shared identity rules. No password here any more: it is chosen after
+      // verification, so the code can be requested before one exists.
+      if (draft.name.trim().length < 2) throw new Error('Entrez votre nom complet.');
+      if (!isCompleteNumber(draft.phone, country))
+        throw new Error('Entrez un numéro de téléphone complet.');
+      if (!isValidEmail(mail)) throw new Error('Entrez une adresse e-mail valide.');
+      if (!draft.location?.city?.trim()) throw new Error('Indiquez votre ville.');
+      if (draft.location.country === 'US' && !draft.location.state)
+        throw new Error("Choisissez votre État.");
+
+      // Per-profile rules — §2.2 asks for a different set from each.
+      if (draft.profile === 'particulier') {
+        const d = draft.particulier;
+        if (!d?.address.trim()) throw new Error('Indiquez votre adresse complète.');
+        if (!d?.addressReference.trim())
+          throw new Error("Indiquez une référence d'adresse (un repère pour vous trouver).");
+        if ((d.interests ?? []).length > MAX_INTERESTS)
+          throw new Error(`Choisissez au plus ${MAX_INTERESTS} centres d'intérêt.`);
+      }
+
+      if (draft.profile === 'prestataire') {
+        const d = draft.prestataire;
+        // "photo de profil obligatoire" is stated for prestataires only.
+        if (!draft.avatar) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
+        if (!d?.birthDate) throw new Error('Indiquez votre date de naissance.');
+        const age = ageFrom(d.birthDate);
+        if (age === null) throw new Error('Date de naissance invalide (JJ/MM/AAAA).');
+        if (age < MIN_PRESTATAIRE_AGE)
+          throw new Error(
+            `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
+          );
+        if (!d.tradeId) throw new Error('Choisissez votre métier.');
+        if (!d.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+        const priceIssue = pricingProblem(d.pricing);
+        if (priceIssue) throw new Error(priceIssue);
+        if (!d.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
+        if (!draft.bio?.trim()) throw new Error('Rédigez une courte biographie.');
+        if (d.documents.length > MAX_DOCUMENTS)
+          throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
+      }
+
+      // Client §10 / Prestataire §06: nothing is activated without them.
+      const granted = (kind: string) => draft.consents?.some((c) => c.kind === kind && c.granted);
+      if (!granted('terms') || !granted('privacy'))
+        throw new Error("Acceptez les conditions d'utilisation et la politique de confidentialité.");
+      if (draft.profile === 'prestataire' && !granted('provider_contract'))
+        throw new Error('Lisez et signez le contrat Prestataire.');
+
+      // §9.10: a phone number and an e-mail each belong to one account only.
+      const accounts = await readAccounts();
+      if (accounts.some((a) => a.phone === stored || a.email === mail))
+        throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+
+      // Mailing the code can fail (offline, service down, nothing configured);
+      // the sign-up must not look started if no code actually went out.
+      const delivery = await requestCode(stored, mail, {
+        name: draft.name.trim(),
+        phone: stored,
+        profile: draft.profile,
+      });
+      setPending({
+        ...draft,
+        name: draft.name.trim(),
+        phoneCountry: country,
+        email: mail,
+        storedPhone: stored,
+        delivery,
+        verified: false,
+        session: null,
+      });
+    },
+    []
+  );
+
+  const confirmSignUp = useCallback<AuthState['confirmSignUp']>(
+    async (code) => {
+      if (!pending) throw new Error('Aucune inscription en cours.');
+      // Always server-side: the device holds nothing to compare against, so
+      // attempts are capped and the code expires where it was issued.
+      const session = await checkCode(pending.storedPhone, pending.email, code, pending.delivery);
+
+      // Verified, but deliberately not created. The password comes next.
+      // The session is kept because it is the one moment identity is proven;
+      // `completeSignUp` spends it on the row in public.profiles.
+      setPending((prev) => (prev ? { ...prev, verified: true, session } : prev));
+    },
+    [pending]
+  );
+
+  const completeSignUp = useCallback<AuthState['completeSignUp']>(
+    async (password) => {
+      if (!pending) throw new Error('Aucune inscription en cours.');
+      if (!pending.verified) throw new Error("Vérifiez d'abord le code reçu.");
+
+      const problem = passwordProblem(password);
+      if (problem) throw new Error(problem);
+
+      const accounts = await readAccounts();
+      // Re-check: another sign-up could have claimed the number or the address
+      // while this one was being verified.
+      if (accounts.some((a) => a.phone === pending.storedPhone || a.email === pending.email))
+        throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+
+      const created: StoredAccount = {
+        phone: pending.storedPhone,
+        phoneCountry: pending.phoneCountry,
+        email: pending.email,
+        name: pending.name,
+        location: pending.location,
+        secret: await hashPassword(password),
+        avatar: pending.avatar,
+        bio: pending.bio,
+        profiles: [pending.profile],
+        activeProfile: pending.profile,
+        particulier: pending.particulier,
+        prestataire: pending.prestataire
+          ? { ...pending.prestataire, submittedAt: Date.now() }
+          : undefined,
+        consents: pending.consents,
+        createdAt: Date.now(),
+      };
+      const withId: StoredAccount = pending.session
+        ? { ...created, supabaseUserId: pending.session.userId }
+        : created;
+      const { secret: _omit, ...safe } = withId;
+
+      // The server first, this time, and on purpose: `email` and `phone` are
+      // UNIQUE in public.profiles, so this is where a number already registered
+      // from someone else's phone is refused. The local check above only ever
+      // saw this device. Nothing is written here if the row is rejected — an
+      // account that exists on the phone but not on the platform is worse than
+      // no account.
+      if (pending.session) {
+        // The password goes to Supabase Auth first: it is what lets this
+        // account sign in from any device. If it cannot be stored, nothing is
+        // created and the same step can simply be retried.
+        await setServerPassword(pending.session, password);
+        try {
+          await pushProfile(pending.session, safe);
+        } catch (e) {
+          if (e instanceof ProfileConflictError) throw new Error(DUPLICATE_ACCOUNT_MESSAGE);
+          throw e;
+        }
+        await rememberSupabaseSession(pending.session);
+        await upsertListing(pending.session, safe).catch(() => {});
+        // The account row exists now, so the consents can point at it. A
+        // failure leaves them marked unrecorded and they go with the next sync.
+        withId.consents = await recordConsents(pending.session, withId.consents ?? []);
+      }
+
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...accounts, withId]));
+      setPending(null);
+      await persistSession({ ...safe, consents: withId.consents });
+      // Every account establishes a PIN, as asked. Only when there is a session
+      // to authorise it: on a build with no Supabase behind it the PIN cannot be
+      // stored at all, and gating an account behind a step that cannot succeed
+      // would lock the person out of an account they just created.
+      if (pending.session) setPendingPinSetup({ replacing: false, required: true });
+    },
+    [pending, persistSession, rememberSupabaseSession]
+  );
+
+  const resendCode = useCallback(async () => {
+    if (!pending) return;
+    const delivery = await requestCode(pending.storedPhone, pending.email, {
+      name: pending.name,
+      phone: pending.storedPhone,
+      profile: pending.profile,
+    });
+    setPending((prev) => (prev ? { ...prev, delivery } : prev));
+  }, [pending]);
+
+  const cancelSignUp = useCallback(() => setPending(null), []);
+
+  /**
+   * The account as Supabase holds it, for a session that just proved who this
+   * is — merged over whatever this device remembers, with the consents from
+   * the audit trail. This is what makes an account follow its owner to a new
+   * phone instead of living on one.
+   */
+  const accountFromServer = useCallback(
+    async (session: SupabaseSession, local: StoredAccount | undefined): Promise<Account | null> => {
+      const [row, consents] = await Promise.all([
+        pullProfile(session).catch(() => null),
+        fetchConsents(session),
+      ]);
+      const { secret: _omit, ...localSafe } = local ?? ({} as StoredAccount);
+      if (!row && !local) return null;
+      const merged = {
+        ...(local ? localSafe : {}),
+        ...(row ?? {}),
+        createdAt: row?.createdAt ?? local?.createdAt ?? Date.now(),
+        supabaseUserId: session.userId,
+        consents: consents.length ? consents : local?.consents ?? [],
+      } as Account;
+      if (!row) {
+        // Known here, missing there: write it up now.
+        await pushProfile(session, merged).catch(() => {});
+      }
+      return merged;
+    },
+    []
+  );
+
+  /** Keeps this device's roster in step with a sign-in made against the server. */
+  const rememberOnDevice = useCallback(async (next: Account, password: string) => {
+    const accounts = await readAccounts();
+    const secret = await hashPassword(password);
+    const others = accounts.filter((a) => a.phone !== next.phone && a.email !== next.email);
+    await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...others, { ...next, secret }]));
+  }, []);
+
+  const signIn = useCallback<AuthState['signIn']>(
+    async ({ identifier, password }) => {
+      const found = await findAccount(identifier);
+
+      /* ---------------------------------------------------------------- *
+       * Builds without Supabase (the local API, used by the test suites):
+       * the password is checked on the device and a mailed code completes
+       * the sign-in, exactly as before.
+       * ---------------------------------------------------------------- */
+      if (otpProvider !== 'supabase') {
+        // Same message whether the account is unknown or the password is wrong,
+        // and the hash is computed either way so the timing does not tell.
+        const ok = found
+          ? await verifyPassword(password, found.secret)
+          : await verifyPassword(password, DECOY_SECRET).then(() => false);
+        if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
+        const { secret: _omit, ...safe } = found;
+        const delivery = await requestCode(safe.phone, safe.email, { name: safe.name, phone: safe.phone });
+        setPendingSignIn({ account: safe, method: 'email', delivery, session: null });
+        return;
+      }
+
+      /* ---------------------------------------------------------------- *
+       * Supabase: the password is checked by Supabase Auth, from any
+       * device, and the personal PIN is the second step.
+       * ---------------------------------------------------------------- */
+      const raw = identifier.trim().toLowerCase();
+      const email = raw.includes('@') ? raw : found?.email;
+      if (!email)
+        throw new Error(
+          "Sur un nouvel appareil, connectez-vous avec votre adresse e-mail. Votre numéro sera reconnu ensuite."
+        );
+
+      let session: SupabaseSession;
+      try {
+        session = await signInWithPassword(email, password);
+      } catch (e) {
+        if (!(e instanceof InvalidCredentialsError)) throw e;
+        // An account from before the password moved to Supabase: its password
+        // only ever existed on this device. If it matches, prove the address
+        // by e-mail and hand the password to Supabase on the way through.
+        if (found && (await verifyPassword(password, found.secret))) {
+          const { secret: _omit, ...safe } = found;
+          const delivery = await requestCode(
+            safe.phone,
+            safe.email,
+            { name: safe.name, phone: safe.phone },
+            { createUser: false }
+          );
+          setPendingSignIn({ account: safe, method: 'email', delivery, session: null, migratePassword: password });
+          return;
+        }
+        throw new Error('Identifiant ou mot de passe incorrect.');
+      }
+
+      const account = await accountFromServer(session, found);
+      if (!account)
+        throw new Error(
+          "Cette adresse n'a pas terminé son inscription. Créez votre compte : la même adresse sera reprise."
+        );
+      await rememberSupabaseSession(session);
+      await rememberOnDevice(account, password);
+
+      let established = false;
+      try {
+        established = (await pinStatus(session)).hasPin;
+      } catch {
+        established = await knownToHavePin(session.userId);
+      }
+      if (established) {
+        // The personal PIN completes the log-in.
+        setPendingSignIn({ account, method: 'pin', delivery: null, session });
+        return;
+      }
+      // No PIN yet: signed in, and the PIN is required before the app opens.
+      setAccountSynced(true);
+      await persistAccount(account);
+      setHasPin(false);
+      setPendingPinSetup({ replacing: false, required: true });
+    },
+    [accountFromServer, persistAccount, rememberOnDevice, rememberSupabaseSession]
+  );
+
+  const confirmSignIn = useCallback<AuthState['confirmSignIn']>(
+    async (code) => {
+      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      // Server-side, so attempts are capped and the code expires where it was
+      // issued rather than on this device.
+      if (!pendingSignIn.delivery) throw new Error('Aucun code en attente.');
+      const session = await checkCode(
+        pendingSignIn.account.phone,
+        pendingSignIn.account.email,
+        code,
+        pendingSignIn.delivery
+      );
+
+      // The profile as last saved from any device wins over this one's copy.
+      // That is the difference between an account and a file on a phone: sign
+      // in after a reinstall and the profile is there.
+      let signedIn = pendingSignIn.account;
+      if (session) {
+        // Learned here and kept: it is what lets the next sign-in on this
+        // device recognise the account and offer the PIN.
+        signedIn = { ...signedIn, supabaseUserId: session.userId };
+        await rememberSupabaseSession(session);
+        // Pre-migration account: its password now goes to Supabase, so the
+        // next sign-in works from any device.
+        if (pendingSignIn.migratePassword)
+          await setServerPassword(session, pendingSignIn.migratePassword).catch(() => {});
+        setHasPin(await knownToHavePin(session.userId));
+        // Reconcile rather than only read: an account whose row was never
+        // written used to sign in happily and stay missing from the server,
+        // because the "next edit" that was supposed to push it never came.
+        const sync = await reconcileProfile(session, signedIn);
+        setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+        if (sync.status === 'pulled') signedIn = { ...signedIn, ...sync.account };
+      }
+
+      setPendingSignIn(null);
+      await persistAccount(signedIn);
+      // Every account logs in with its PIN from now on: ask for one if the
+      // server has none.
+      if (session) {
+        try {
+          const { hasPin: established } = await pinStatus(session);
+          setHasPin(established);
+          if (!established) setPendingPinSetup({ replacing: false, required: true });
+        } catch {
+          // Unreachable: the next launch asks again.
+        }
+      }
+    },
+    [pendingSignIn, persistAccount, rememberSupabaseSession]
+  );
+
+  const resendSignInCode = useCallback(async () => {
+    if (!pendingSignIn) return;
+    const delivery = await requestCode(pendingSignIn.account.phone, pendingSignIn.account.email, {
+      name: pendingSignIn.account.name,
+      phone: pendingSignIn.account.phone,
+    });
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
+  }, [pendingSignIn]);
+
+  /**
+   * The PIN as the second factor.
+   *
+   * The comparison is the Edge Function's, not this file's — a check the device
+   * could perform is a check an attacker holding the device can perform 10^6
+   * times. All that happens here is that a success is turned into a session.
+   */
+  const confirmPin = useCallback<AuthState['confirmPin']>(
+    async (pin) => {
+      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      // Opened offline, the PIN screen may not hold a session yet: try again
+      // now that someone is here to enter the PIN.
+      let session = pendingSignIn.session;
+      if (!session) {
+        const live = await freshSession(supabaseSession.current);
+        if (live && (!pendingSignIn.account.supabaseUserId || live.userId === pendingSignIn.account.supabaseUserId))
+          session = live;
+      }
+      if (!session)
+        throw new Error(
+          'Connexion impossible pour vérifier votre code. Vérifiez votre réseau, ou recevez un code par e-mail.'
+        );
+      supabaseSession.current = session;
+      await checkPin(session, pin);
+
+      let signedIn = { ...pendingSignIn.account, supabaseUserId: session.userId };
+      const sync = await reconcileProfile(session, signedIn);
+      setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
+      if (sync.status === 'pulled') signedIn = { ...signedIn, ...sync.account };
+      setPendingSignIn(null);
+      setHasPin(true);
+      await persistAccount(signedIn);
+    },
+    [pendingSignIn, persistAccount]
+  );
+
+  /** Forgotten PIN, or locked out: fall back to the code, which proves the same address. */
+  const useEmailCodeInstead = useCallback(async () => {
+    if (!pendingSignIn) return;
+    const delivery = await requestCode(
+      pendingSignIn.account.phone,
+      pendingSignIn.account.email,
+      { name: pendingSignIn.account.name, phone: pendingSignIn.account.phone },
+      { createUser: false }
+    );
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
+  }, [pendingSignIn]);
+
+  /**
+   * Opens the PIN screen to define or change it — decided by the server.
+   *
+   * The device's "has a PIN" flag is a cache: a new phone, a cleared browser
+   * or a fresh install loses it. Trusting it offered "Définir" for an account
+   * that already had a PIN, the server rightly refused the PIN without the
+   * current one, and the person was stuck — which is what the PIN function's
+   * logs showed in production. So the screen opens at once and the server's
+   * answer switches it to "Changer" when a PIN already exists.
+   */
+  const startPinSetup = useCallback((replacing: boolean) => {
+    setPendingPinSetup({ replacing, required: false });
+    (async () => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live) return;
+      try {
+        const { hasPin: established } = await pinStatus(live);
+        setHasPin(established);
+        setPendingPinSetup((prev) => (prev && !prev.required ? { ...prev, replacing: established } : prev));
+      } catch {
+        // Unreachable: the screen keeps the device's guess, and definePin
+        // recovers if the server disagrees.
+      }
+    })();
+  }, []);
+  // Refuses to dismiss a required step. The screen hides the way out as well;
+  // this is the half that cannot be got around by re-rendering.
+  const skipPinSetup = useCallback(
+    () => setPendingPinSetup((prev) => (prev?.required ? prev : null)),
+    []
+  );
+
+  const definePin = useCallback<AuthState['definePin']>(
+    async (pin, current) => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live)
+        throw new Error(
+          'Votre session de vérification a expiré. Reconnectez-vous pour définir un code.'
+        );
+      supabaseSession.current = live;
+      try {
+        await storePin(live, pin, current);
+      } catch (e) {
+        // A PIN already exists on the server that this device did not know
+        // about: switch the screen to "change", which asks for the current one.
+        if (e instanceof PinError && e.code === 'current_pin_incorrect' && !current) {
+          setHasPin(true);
+          setPendingPinSetup((prev) => (prev ? { ...prev, replacing: true } : prev));
+          throw new Error(
+            'Un code confidentiel existe déjà sur ce compte. Saisissez votre code actuel pour le remplacer.'
+          );
+        }
+        throw e;
+      }
+      setHasPin(true);
+      // Done: straight into the app.
+      setPendingPinSetup(null);
+    },
+    []
+  );
+
+  const cancelSignIn = useCallback(() => {
+    // Backing out of the PIN that opens the app means "not me / another
+    // account": the remembered account is signed out rather than left one
+    // reload away.
+    if (pendingSignIn?.unlock) AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
+    setPendingSignIn(null);
+  }, [pendingSignIn]);
+
+  /* ---------------------------------------------------------------- *
+   * Forgotten passwords
+   * ---------------------------------------------------------------- */
+
+  const startPasswordReset = useCallback<AuthState['startPasswordReset']>(
+    async (identifier) => {
+      const found = await findAccount(identifier);
+      const raw = identifier.trim().toLowerCase();
+      // With Supabase the account may live only on the server — a new phone —
+      // so an e-mail address is enough to start.
+      if (otpProvider === 'supabase' && (found || raw.includes('@'))) {
+        const email = found?.email ?? raw;
+        try {
+          await requestCode(found?.phone ?? email, email, {}, { createUser: false });
+        } catch {
+          // Unknown address: the same answer as a known one, below.
+        }
+        setResetting({ email, phone: found?.phone ?? '', verified: false });
+        return { email };
+      }
+      // Deliberately the same outcome either way: confirming that an address is
+      // unknown turns this screen into a way to enumerate accounts.
+      if (!found) {
+        setResetting(null);
+        throw new Error(
+          "Si un compte existe pour cet identifiant, un code vient d'être envoyé à l'adresse e-mail associée."
+        );
+      }
+      await requestCode(found.phone, found.email, { name: found.name, phone: found.phone });
+      setResetting({ email: found.email, phone: found.phone, verified: false });
+      return { email: found.email };
+    },
+    []
+  );
+
+  const completePasswordReset = useCallback<AuthState['completePasswordReset']>(
+    async (code, password) => {
+      if (!resetting) throw new Error('Aucune réinitialisation en cours.');
+      const problem = passwordProblem(password);
+      if (problem) throw new Error(problem);
+
+      const delivery: OtpDelivery = { provider: otpProvider === 'supabase' ? 'supabase' : 'api', expiresIn: 600 };
+      const session = await checkCode(resetting.phone, resetting.email, code, delivery);
+      // The new password goes to Supabase Auth, so it works on every device.
+      if (session) {
+        await setServerPassword(session, password);
+        await rememberSupabaseSession(session);
+      }
+
+      const accounts = await readAccounts();
+      const secret = await hashPassword(password);
+      const next = accounts.map((a) =>
+        a.phone === resetting.phone || a.email === resetting.email ? { ...a, secret } : a
+      );
+      await setItemChecked(ACCOUNTS_KEY, JSON.stringify(next));
+      setResetting(null);
+    },
+    [resetting, rememberSupabaseSession]
+  );
+
+  const cancelPasswordReset = useCallback(() => setResetting(null), []);
+
+  const signOut = useCallback(async () => {
+    // The Supabase token deliberately stays behind.
+    //
+    // It is not the app's session — that is the record `persistSession(null)`
+    // clears, and clearing it is what signs someone out. What remains is a
+    // device token: proof that this account has been verified on this phone
+    // before, which is exactly what the PIN path needs and cannot obtain any
+    // other way. On its own it signs nobody in and unlocks nothing; the PIN
+    // function still demands the PIN, and the app still demands the password.
+    //
+    // Someone who wants the device forgotten uninstalls, or clears the app's
+    // data — both drop it, and the next sign-in falls back to the mailed code.
+    await persistSession(null);
+    setHasPin(false);
+    setPendingPinSetup(null);
+  }, [persistSession]);
+
+  const markLaunched = useCallback(() => {
+    setFirstLaunch(false);
+    AsyncStorage.setItem(LAUNCHED_KEY, '1').catch(() => {});
+  }, []);
+
+  const updateProfile = useCallback<AuthState['updateProfile']>(
+    async (edits) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (edits.name !== undefined && edits.name.trim().length < 2)
+        throw new Error('Entrez votre nom complet.');
+      await persistAccount({ ...account, ...edits, name: edits.name?.trim() ?? account.name });
+    },
+    [account, persistAccount]
+  );
+
+  const switchProfile = useCallback<AuthState['switchProfile']>(
+    async (kind) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account.profiles.includes(kind))
+        throw new Error("Ce profil n'est pas encore activé sur votre compte.");
+      await persistAccount({ ...account, activeProfile: kind });
+    },
+    [account, persistAccount]
+  );
+
+  const activateProfile = useCallback<AuthState['activateProfile']>(
+    async (kind) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (account.profiles.includes(kind)) {
+        await persistAccount({ ...account, activeProfile: kind });
+        return;
+      }
+      await persistAccount({
+        ...account,
+        profiles: [...account.profiles, kind],
+        activeProfile: kind,
+      });
+    },
+    [account, persistAccount]
+  );
+
+  const giveConsents = useCallback<AuthState['giveConsents']>(
+    async (records) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      const now = Date.now();
+      let consents: ConsentRecord[] = [
+        ...(account.consents ?? []),
+        ...records.map((r) => ({ ...r, at: now, recorded: false })),
+      ];
+      const live = await freshSession(supabaseSession.current);
+      if (live && (!account.supabaseUserId || live.userId === account.supabaseUserId)) {
+        supabaseSession.current = live;
+        consents = await recordConsents(live, consents);
+      }
+      await persistAccount({ ...account, consents });
+    },
+    [account, persistAccount]
+  );
+
+  const requestData = useCallback<AuthState['requestData']>(
+    async (kind, details) => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live || (account?.supabaseUserId && live.userId !== account.supabaseUserId)) return false;
+      supabaseSession.current = live;
+      return requestDataChange(live, kind, details);
+    },
+    [account]
+  );
+
+  const submitProviderDossier = useCallback<AuthState['submitProviderDossier']>(
+    async ({ details, bio, avatar, signature }) => {
+      if (!account) throw new Error('Aucun compte connecté.');
+      if (!(avatar ?? account.avatar)) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
+      if (!details.birthDate) throw new Error('Indiquez votre date de naissance.');
+      const age = ageFrom(details.birthDate);
+      if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
+      if (age < MIN_PRESTATAIRE_AGE)
+        throw new Error(
+          `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
+        );
+      if (!details.tradeId) throw new Error('Choisissez votre métier.');
+      if (!details.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+      const priceIssue = pricingProblem(details.pricing);
+      if (priceIssue) throw new Error(priceIssue);
+      if (!details.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
+      if (!bio.trim()) throw new Error('Rédigez une courte biographie.');
+      if (details.documents.length > MAX_DOCUMENTS)
+        throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
+      const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (norm(signature) !== norm(account.name))
+        throw new Error('La signature doit reprendre votre nom complet.');
+
+      const now = Date.now();
+      let consents: ConsentRecord[] = [
+        ...(account.consents ?? []),
+        {
+          kind: 'provider_contract',
+          version: PROVIDER_CONTRACT_VERSION,
+          granted: true,
+          signature: signature.trim(),
+          at: now,
+          recorded: false,
+        },
+      ];
+      const live = await freshSession(supabaseSession.current);
+      if (live && (!account.supabaseUserId || live.userId === account.supabaseUserId)) {
+        supabaseSession.current = live;
+        consents = await recordConsents(live, consents);
+      }
+      await persistAccount({
+        ...account,
+        avatar: avatar ?? account.avatar,
+        bio: bio.trim(),
+        profiles: account.profiles.includes('prestataire')
+          ? account.profiles
+          : [...account.profiles, 'prestataire'],
+        prestataire: { ...details, verified: false, submittedAt: now },
+        consents,
+      });
+    },
+    [account, persistAccount]
+  );
+
+  const marketSession = useCallback<AuthState['marketSession']>(async () => {
+    if (!account) return null;
+    const live = await freshSession(supabaseSession.current);
+    if (!live || (account.supabaseUserId && live.userId !== account.supabaseUserId)) return null;
+    supabaseSession.current = live;
+    return live;
+  }, [account]);
+
+  const value = useMemo<AuthState>(
+    () => ({
+      account,
+      restoring,
+      pending,
+      startSignUp,
+      confirmSignUp,
+      completeSignUp,
+      resendCode,
+      cancelSignUp,
+      signIn,
+      pendingSignIn,
+      confirmSignIn,
+      resendSignInCode,
+      cancelSignIn,
+      confirmPin,
+      useEmailCodeInstead,
+      pendingPinSetup,
+      startPinSetup,
+      definePin,
+      skipPinSetup,
+      hasPin,
+      accountSynced,
+      signOut,
+      startPasswordReset,
+      completePasswordReset,
+      cancelPasswordReset,
+      resetting,
+      updateProfile,
+      switchProfile,
+      activateProfile,
+      giveConsents,
+      requestData,
+      submitProviderDossier,
+      marketSession,
+      firstLaunch,
+      markLaunched,
+    }),
+    [
+      account,
+      restoring,
+      pending,
+      startSignUp,
+      confirmSignUp,
+      completeSignUp,
+      resendCode,
+      cancelSignUp,
+      signIn,
+      pendingSignIn,
+      confirmSignIn,
+      resendSignInCode,
+      cancelSignIn,
+      confirmPin,
+      useEmailCodeInstead,
+      pendingPinSetup,
+      startPinSetup,
+      definePin,
+      skipPinSetup,
+      hasPin,
+      accountSynced,
+      signOut,
+      startPasswordReset,
+      completePasswordReset,
+      cancelPasswordReset,
+      resetting,
+      updateProfile,
+      switchProfile,
+      activateProfile,
+      giveConsents,
+      requestData,
+      submitProviderDossier,
+      marketSession,
+      firstLaunch,
+      markLaunched,
+    ]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  return ctx;
+}
