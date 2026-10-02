@@ -283,3 +283,21 @@ npm run test:sha256    # the fallback matches Node's SHA-256, including non-ASCI
 `tools/verify-insecure-origin.js` drives the real build on a non-localhost http
 origin and asserts WebCrypto is genuinely unavailable before proving sign-up and
 sign-in still work.
+
+## Log-in: password in Supabase, personal PIN to enter
+
+Since 2 October 2026 the password is stored by **Supabase Auth**, not on the
+phone, so an account signs in from any device. Opening the app asks for the
+personal PIN only; signing in after a sign-out (or on a new device) is e-mail +
+password, then the PIN. See
+`docs/decisions/2026-10-02-242konnect-pin-login-supabase-accounts.md`.
+
+Dashboard settings this relies on — **Authentication → Providers → Email**:
+e-mail provider enabled (password sign-in is part of it), minimum password
+length **8 or less** (the app requires 8). Leave "Secure password change" off,
+or the password set right after the sign-up code may be refused.
+
+```bash
+npm run verify:pin-login   # build against the stand-in first — see the file header
+```
+

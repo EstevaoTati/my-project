@@ -181,7 +181,15 @@ const supabaseHeaders = () => ({ apikey: SUPABASE_KEY, Authorization: `Bearer ${
 export async function requestCode(
   key: string,
   email: string,
-  metadata: OtpMetadata = {}
+  metadata: OtpMetadata = {},
+  options: {
+    /**
+     * False for recovery and sign-in codes: those are for accounts that
+     * already exist, and letting GoTrue create a user for an unknown address
+     * would turn "forgot password" into a way to open blank accounts.
+     */
+    createUser?: boolean;
+  } = {}
 ): Promise<OtpDelivery> {
   if (otpProvider === 'none') throw new OtpApiError(OTP_UNAVAILABLE_MESSAGE);
 
@@ -191,7 +199,7 @@ export async function requestCode(
     // with it rather than only on the device.
     await postJson(
       `${SUPABASE_URL}/auth/v1/otp`,
-      { email, create_user: true, data: metadata },
+      { email, create_user: options.createUser ?? true, data: metadata },
       supabaseHeaders(),
       (status, reason) => {
         if (status === 429)

@@ -1272,4 +1272,13 @@ export const en: Record<string, string> = {
     'Prepare the request',
   'Envoi…':
     'Sending…',
+  /* ---- PIN log-in ---- */
+  'Bonjour, {name}':
+    'Hello, {name}',
+  'Saisissez votre code confidentiel à {digits} chiffres pour vous connecter.':
+    'Enter your {digits}-digit PIN to sign in.',
+  'Se connecter avec un autre compte':
+    'Sign in with another account',
+  'Ce n’est pas vous ? Se connecter avec un autre compte':
+    'Not you? Sign in with another account',
 };

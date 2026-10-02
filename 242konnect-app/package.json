@@ -43,7 +43,8 @@
     "verify:paths": "node tools/verify-paths.js",
     "test:sha256": "node tools/sha256.test.mjs",
     "verify:prestataire": "node tools/verify-prestataire-journey.js",
-    "verify:marketplace": "node tools/verify-marketplace-journey.js"
+    "verify:marketplace": "node tools/verify-marketplace-journey.js",
+    "verify:pin-login": "node tools/verify-pin-login.js"
   },
   "private": true
 }

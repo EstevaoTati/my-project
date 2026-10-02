@@ -33,10 +33,13 @@ import {
   requestCode,
   type OtpDelivery,
 } from './otpClient';
-import { ProfileConflictError, pushProfile, reconcileProfile } from './profileStore';
-import { freshSession, type SupabaseSession } from './supabase';
+import { ProfileConflictError, pullProfile, pushProfile, reconcileProfile } from './profileStore';
+import { PinError } from './pin';
+import { freshSession, supabaseConfigured, type SupabaseSession } from './supabase';
 import { upsertListing } from './marketplace';
+import { InvalidCredentialsError, setServerPassword, signInWithPassword } from './serverAuth';
 import {
+  fetchConsents,
   PROVIDER_CONTRACT_VERSION,
   recordConsents,
   requestDataChange,
@@ -321,6 +324,18 @@ export type PendingSignIn = {
    * needs a bearer token, and at sign-in there is no other way to have one.
    */
   session: SupabaseSession | null;
+  /**
+   * True when this is the app opening on an account already signed in on this
+   * device: the PIN is the whole log-in. Backing out of it signs the device
+   * out, rather than leaving the account one reload away.
+   */
+  unlock?: boolean;
+  /**
+   * Accounts from before the password moved to Supabase: the password typed
+   * here was checked against this device's copy, and is handed to Supabase
+   * once the e-mail code proves the address. Held in memory only.
+   */
+  migratePassword?: string;
 };
 
 /** Set when the app is asking for the PIN — offering it, or insisting. */
@@ -526,10 +541,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(SUPABASE_SESSION_KEY),
         ]);
         const restored = raw ? (JSON.parse(raw) as Account) : null;
-        if (restored) setAccount(restored);
         if (supa) supabaseSession.current = JSON.parse(supa) as SupabaseSession;
-        if (restored?.supabaseUserId) setHasPin(await knownToHavePin(restored.supabaseUserId));
+        const pinHint = restored?.supabaseUserId ? await knownToHavePin(restored.supabaseUserId) : false;
+        setHasPin(pinHint);
         setFirstLaunch(launched === null);
+        // An account that logs in with a PIN is not opened until the PIN is
+        // given: decided below, once the server has been asked. Everything
+        // else (no Supabase in this build, no PIN yet) opens as before.
+        const pinGated = !!restored?.supabaseUserId && supabaseConfigured;
+        if (restored && !pinGated) setAccount(restored);
 
         // Every account must have a PIN, so a signed-in account without one is
         // asked for it again here. Force-closing the app during the step at
@@ -539,8 +559,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // and clearing app data would wipe it. Insisting on a *new* PIN when one
         // already exists would fail anyway — replacing one needs the old one —
         // so the truth has to come from the service that holds it.
-        if (restored?.supabaseUserId) {
+        if (restored?.supabaseUserId && pinGated) {
           const live = await freshSession(supabaseSession.current);
+          if (!(live && live.userId === restored.supabaseUserId)) {
+            // Offline, or the device token has lapsed. With a PIN known for
+            // this account the PIN screen still stands guard — it retries the
+            // session when the PIN is entered, and offers the e-mail code.
+            if (pinHint) setPendingSignIn({ account: restored, method: 'pin', delivery: null, session: null, unlock: true });
+            else setAccount(restored);
+          }
           if (live && live.userId === restored.supabaseUserId) {
             supabaseSession.current = live;
 
@@ -553,7 +580,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             let current: Account = restored;
             if (sync.status === 'pulled') {
               current = { ...restored, ...sync.account };
-              setAccount(current);
               await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
             }
 
@@ -563,19 +589,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const consents = await recordConsents(live, current.consents);
               if (consents.every((c) => c.recorded)) {
                 current = { ...current, consents };
-                setAccount(current);
                 await setItemChecked(SESSION_KEY, JSON.stringify(current)).catch(() => {});
               }
             }
 
+            let established: boolean | null = null;
             try {
-              const { hasPin: established } = await pinStatus(live);
-              setHasPin(established);
-              if (!established) setPendingPinSetup({ replacing: false, required: true });
+              established = (await pinStatus(live)).hasPin;
             } catch {
-              // Offline, or the service is unreachable. A PIN cannot be set now
-              // either, so gating the account would strand someone with no way
-              // forward. The next launch asks again.
+              // The PIN service is unreachable: fall back to what this device
+              // last knew rather than locking someone out on a network blip.
+              established = pinHint ? true : null;
+            }
+            setHasPin(established === true);
+            if (established === true) {
+              // The personal PIN is the log-in: nothing opens until it is given.
+              setPendingSignIn({ account: current, method: 'pin', delivery: null, session: live, unlock: true });
+            } else {
+              setAccount(current);
+              // Every account must have one; ask now if it does not.
+              if (established === false) setPendingPinSetup({ replacing: false, required: true });
             }
           }
         }
@@ -774,6 +807,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // account that exists on the phone but not on the platform is worse than
       // no account.
       if (pending.session) {
+        // The password goes to Supabase Auth first: it is what lets this
+        // account sign in from any device. If it cannot be stored, nothing is
+        // created and the same step can simply be retried.
+        await setServerPassword(pending.session, password);
         try {
           await pushProfile(pending.session, safe);
         } catch (e) {
@@ -811,51 +848,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const cancelSignUp = useCallback(() => setPending(null), []);
 
+  /**
+   * The account as Supabase holds it, for a session that just proved who this
+   * is — merged over whatever this device remembers, with the consents from
+   * the audit trail. This is what makes an account follow its owner to a new
+   * phone instead of living on one.
+   */
+  const accountFromServer = useCallback(
+    async (session: SupabaseSession, local: StoredAccount | undefined): Promise<Account | null> => {
+      const [row, consents] = await Promise.all([
+        pullProfile(session).catch(() => null),
+        fetchConsents(session),
+      ]);
+      const { secret: _omit, ...localSafe } = local ?? ({} as StoredAccount);
+      if (!row && !local) return null;
+      const merged = {
+        ...(local ? localSafe : {}),
+        ...(row ?? {}),
+        createdAt: row?.createdAt ?? local?.createdAt ?? Date.now(),
+        supabaseUserId: session.userId,
+        consents: consents.length ? consents : local?.consents ?? [],
+      } as Account;
+      if (!row) {
+        // Known here, missing there: write it up now.
+        await pushProfile(session, merged).catch(() => {});
+      }
+      return merged;
+    },
+    []
+  );
+
+  /** Keeps this device's roster in step with a sign-in made against the server. */
+  const rememberOnDevice = useCallback(async (next: Account, password: string) => {
+    const accounts = await readAccounts();
+    const secret = await hashPassword(password);
+    const others = accounts.filter((a) => a.phone !== next.phone && a.email !== next.email);
+    await setItemChecked(ACCOUNTS_KEY, JSON.stringify([...others, { ...next, secret }]));
+  }, []);
+
   const signIn = useCallback<AuthState['signIn']>(
     async ({ identifier, password }) => {
       const found = await findAccount(identifier);
 
-      // Same message whether the account is unknown or the password is wrong —
-      // saying which is wrong tells an attacker which numbers are registered,
-      // which is exactly the "knowing the number should not be enough" the
-      // correction note asks for. The hash is still computed when no account
-      // matched, so the two paths take comparable time.
-      const ok = found
-        ? await verifyPassword(password, found.secret)
-        : await verifyPassword(password, DECOY_SECRET).then(() => false);
-      if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
-
-      const { secret: _omit, ...safe } = found;
-
-      // The password is only the first factor. Something else must be proved
-      // before the session exists, and there are two ways to prove it.
-      //
-      // The PIN, when this device already holds a refreshable Supabase token
-      // for this exact account. That token is what makes the PIN checkable at
-      // all — the Edge Function needs a bearer token, and before any factor is
-      // proved there is no other source of one. It is also why the PIN is a
-      // genuine second factor rather than a shortcut past one: it takes the
-      // password (known), this device (the token), and the PIN (known) — and
-      // the token alone signs nobody in, because the app's session is the
-      // separate record that sign-out clears.
-      //
-      // Otherwise the mailed code, which needs nothing but the address.
-      //
-      // Either way the account is resolved here and deliberately not persisted.
-      const device = safe.supabaseUserId ? await freshSession(supabaseSession.current) : null;
-      if (device && device.userId === safe.supabaseUserId && (await knownToHavePin(device.userId))) {
-        supabaseSession.current = device;
-        setPendingSignIn({ account: safe, method: 'pin', delivery: null, session: device });
+      /* ---------------------------------------------------------------- *
+       * Builds without Supabase (the local API, used by the test suites):
+       * the password is checked on the device and a mailed code completes
+       * the sign-in, exactly as before.
+       * ---------------------------------------------------------------- */
+      if (otpProvider !== 'supabase') {
+        // Same message whether the account is unknown or the password is wrong,
+        // and the hash is computed either way so the timing does not tell.
+        const ok = found
+          ? await verifyPassword(password, found.secret)
+          : await verifyPassword(password, DECOY_SECRET).then(() => false);
+        if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
+        const { secret: _omit, ...safe } = found;
+        const delivery = await requestCode(safe.phone, safe.email, { name: safe.name, phone: safe.phone });
+        setPendingSignIn({ account: safe, method: 'email', delivery, session: null });
         return;
       }
 
-      const delivery = await requestCode(safe.phone, safe.email, {
-        name: safe.name,
-        phone: safe.phone,
-      });
-      setPendingSignIn({ account: safe, method: 'email', delivery, session: null });
+      /* ---------------------------------------------------------------- *
+       * Supabase: the password is checked by Supabase Auth, from any
+       * device, and the personal PIN is the second step.
+       * ---------------------------------------------------------------- */
+      const raw = identifier.trim().toLowerCase();
+      const email = raw.includes('@') ? raw : found?.email;
+      if (!email)
+        throw new Error(
+          "Sur un nouvel appareil, connectez-vous avec votre adresse e-mail. Votre numéro sera reconnu ensuite."
+        );
+
+      let session: SupabaseSession;
+      try {
+        session = await signInWithPassword(email, password);
+      } catch (e) {
+        if (!(e instanceof InvalidCredentialsError)) throw e;
+        // An account from before the password moved to Supabase: its password
+        // only ever existed on this device. If it matches, prove the address
+        // by e-mail and hand the password to Supabase on the way through.
+        if (found && (await verifyPassword(password, found.secret))) {
+          const { secret: _omit, ...safe } = found;
+          const delivery = await requestCode(
+            safe.phone,
+            safe.email,
+            { name: safe.name, phone: safe.phone },
+            { createUser: false }
+          );
+          setPendingSignIn({ account: safe, method: 'email', delivery, session: null, migratePassword: password });
+          return;
+        }
+        throw new Error('Identifiant ou mot de passe incorrect.');
+      }
+
+      const account = await accountFromServer(session, found);
+      if (!account)
+        throw new Error(
+          "Cette adresse n'a pas terminé son inscription. Créez votre compte : la même adresse sera reprise."
+        );
+      await rememberSupabaseSession(session);
+      await rememberOnDevice(account, password);
+
+      let established = false;
+      try {
+        established = (await pinStatus(session)).hasPin;
+      } catch {
+        established = await knownToHavePin(session.userId);
+      }
+      if (established) {
+        // The personal PIN completes the log-in.
+        setPendingSignIn({ account, method: 'pin', delivery: null, session });
+        return;
+      }
+      // No PIN yet: signed in, and the PIN is required before the app opens.
+      setAccountSynced(true);
+      await persistAccount(account);
+      setHasPin(false);
+      setPendingPinSetup({ replacing: false, required: true });
     },
-    [persistSession]
+    [accountFromServer, persistAccount, rememberOnDevice, rememberSupabaseSession]
   );
 
   const confirmSignIn = useCallback<AuthState['confirmSignIn']>(
@@ -880,6 +991,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // device recognise the account and offer the PIN.
         signedIn = { ...signedIn, supabaseUserId: session.userId };
         await rememberSupabaseSession(session);
+        // Pre-migration account: its password now goes to Supabase, so the
+        // next sign-in works from any device.
+        if (pendingSignIn.migratePassword)
+          await setServerPassword(session, pendingSignIn.migratePassword).catch(() => {});
         setHasPin(await knownToHavePin(session.userId));
         // Reconcile rather than only read: an account whose row was never
         // written used to sign in happily and stay missing from the server,
@@ -891,6 +1006,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setPendingSignIn(null);
       await persistAccount(signedIn);
+      // Every account logs in with its PIN from now on: ask for one if the
+      // server has none.
+      if (session) {
+        try {
+          const { hasPin: established } = await pinStatus(session);
+          setHasPin(established);
+          if (!established) setPendingPinSetup({ replacing: false, required: true });
+        } catch {
+          // Unreachable: the next launch asks again.
+        }
+      }
     },
     [pendingSignIn, persistAccount, rememberSupabaseSession]
   );
@@ -913,11 +1039,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const confirmPin = useCallback<AuthState['confirmPin']>(
     async (pin) => {
-      if (!pendingSignIn?.session) throw new Error('Aucune connexion en cours.');
-      await checkPin(pendingSignIn.session, pin);
+      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      // Opened offline, the PIN screen may not hold a session yet: try again
+      // now that someone is here to enter the PIN.
+      let session = pendingSignIn.session;
+      if (!session) {
+        const live = await freshSession(supabaseSession.current);
+        if (live && (!pendingSignIn.account.supabaseUserId || live.userId === pendingSignIn.account.supabaseUserId))
+          session = live;
+      }
+      if (!session)
+        throw new Error(
+          'Connexion impossible pour vérifier votre code. Vérifiez votre réseau, ou recevez un code par e-mail.'
+        );
+      supabaseSession.current = session;
+      await checkPin(session, pin);
 
-      let signedIn = { ...pendingSignIn.account, supabaseUserId: pendingSignIn.session.userId };
-      const sync = await reconcileProfile(pendingSignIn.session, signedIn);
+      let signedIn = { ...pendingSignIn.account, supabaseUserId: session.userId };
+      const sync = await reconcileProfile(session, signedIn);
       setAccountSynced(sync.status === 'pulled' || sync.status === 'created');
       if (sync.status === 'pulled') signedIn = { ...signedIn, ...sync.account };
       setPendingSignIn(null);
@@ -930,17 +1069,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /** Forgotten PIN, or locked out: fall back to the code, which proves the same address. */
   const useEmailCodeInstead = useCallback(async () => {
     if (!pendingSignIn) return;
-    const delivery = await requestCode(pendingSignIn.account.phone, pendingSignIn.account.email, {
-      name: pendingSignIn.account.name,
-      phone: pendingSignIn.account.phone,
-    });
+    const delivery = await requestCode(
+      pendingSignIn.account.phone,
+      pendingSignIn.account.email,
+      { name: pendingSignIn.account.name, phone: pendingSignIn.account.phone },
+      { createUser: false }
+    );
     setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
   }, [pendingSignIn]);
 
-  const startPinSetup = useCallback(
-    (replacing: boolean) => setPendingPinSetup({ replacing, required: false }),
-    []
-  );
+  /**
+   * Opens the PIN screen to define or change it — decided by the server.
+   *
+   * The device's "has a PIN" flag is a cache: a new phone, a cleared browser
+   * or a fresh install loses it. Trusting it offered "Définir" for an account
+   * that already had a PIN, the server rightly refused the PIN without the
+   * current one, and the person was stuck — which is what the PIN function's
+   * logs showed in production. So the screen opens at once and the server's
+   * answer switches it to "Changer" when a PIN already exists.
+   */
+  const startPinSetup = useCallback((replacing: boolean) => {
+    setPendingPinSetup({ replacing, required: false });
+    (async () => {
+      const live = await freshSession(supabaseSession.current);
+      if (!live) return;
+      try {
+        const { hasPin: established } = await pinStatus(live);
+        setHasPin(established);
+        setPendingPinSetup((prev) => (prev && !prev.required ? { ...prev, replacing: established } : prev));
+      } catch {
+        // Unreachable: the screen keeps the device's guess, and definePin
+        // recovers if the server disagrees.
+      }
+    })();
+  }, []);
   // Refuses to dismiss a required step. The screen hides the way out as well;
   // this is the half that cannot be got around by re-rendering.
   const skipPinSetup = useCallback(
@@ -956,14 +1118,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Votre session de vérification a expiré. Reconnectez-vous pour définir un code.'
         );
       supabaseSession.current = live;
-      await storePin(live, pin, current);
+      try {
+        await storePin(live, pin, current);
+      } catch (e) {
+        // A PIN already exists on the server that this device did not know
+        // about: switch the screen to "change", which asks for the current one.
+        if (e instanceof PinError && e.code === 'current_pin_incorrect' && !current) {
+          setHasPin(true);
+          setPendingPinSetup((prev) => (prev ? { ...prev, replacing: true } : prev));
+          throw new Error(
+            'Un code confidentiel existe déjà sur ce compte. Saisissez votre code actuel pour le remplacer.'
+          );
+        }
+        throw e;
+      }
       setHasPin(true);
+      // Done: straight into the app.
       setPendingPinSetup(null);
     },
     []
   );
 
-  const cancelSignIn = useCallback(() => setPendingSignIn(null), []);
+  const cancelSignIn = useCallback(() => {
+    // Backing out of the PIN that opens the app means "not me / another
+    // account": the remembered account is signed out rather than left one
+    // reload away.
+    if (pendingSignIn?.unlock) AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
+    setPendingSignIn(null);
+  }, [pendingSignIn]);
 
   /* ---------------------------------------------------------------- *
    * Forgotten passwords
@@ -972,6 +1154,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const startPasswordReset = useCallback<AuthState['startPasswordReset']>(
     async (identifier) => {
       const found = await findAccount(identifier);
+      const raw = identifier.trim().toLowerCase();
+      // With Supabase the account may live only on the server — a new phone —
+      // so an e-mail address is enough to start.
+      if (otpProvider === 'supabase' && (found || raw.includes('@'))) {
+        const email = found?.email ?? raw;
+        try {
+          await requestCode(found?.phone ?? email, email, {}, { createUser: false });
+        } catch {
+          // Unknown address: the same answer as a known one, below.
+        }
+        setResetting({ email, phone: found?.phone ?? '', verified: false });
+        return { email };
+      }
       // Deliberately the same outcome either way: confirming that an address is
       // unknown turns this screen into a way to enumerate accounts.
       if (!found) {
@@ -994,15 +1189,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (problem) throw new Error(problem);
 
       const delivery: OtpDelivery = { provider: otpProvider === 'supabase' ? 'supabase' : 'api', expiresIn: 600 };
-      await checkCode(resetting.phone, resetting.email, code, delivery);
+      const session = await checkCode(resetting.phone, resetting.email, code, delivery);
+      // The new password goes to Supabase Auth, so it works on every device.
+      if (session) {
+        await setServerPassword(session, password);
+        await rememberSupabaseSession(session);
+      }
 
       const accounts = await readAccounts();
       const secret = await hashPassword(password);
-      const next = accounts.map((a) => (a.phone === resetting.phone ? { ...a, secret } : a));
+      const next = accounts.map((a) =>
+        a.phone === resetting.phone || a.email === resetting.email ? { ...a, secret } : a
+      );
       await setItemChecked(ACCOUNTS_KEY, JSON.stringify(next));
       setResetting(null);
     },
-    [resetting]
+    [resetting, rememberSupabaseSession]
   );
 
   const cancelPasswordReset = useCallback(() => setResetting(null), []);

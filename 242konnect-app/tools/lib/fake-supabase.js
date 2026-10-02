@@ -28,6 +28,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   const requests = new Map();
   const addresses = new Map();
   const messages = [];
+  const consents = [];
   let messageId = 0;
 
   const STAGES = ["accepted", "on_the_way", "arrived", "in_progress", "completed"];
@@ -38,7 +39,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "authorization, apikey, content-type, prefer, x-client-info",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS",
     });
     res.end(body === undefined ? "" : JSON.stringify(body));
   };
@@ -123,6 +124,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
         // ---- GoTrue
         if (path === "/auth/v1/otp" && req.method === "POST") {
           const email = String(body.email).toLowerCase();
+          // GoTrue refuses to create a user when asked not to.
+          if (body.create_user === false && !users.has(email))
+            return send(res, 422, { error_code: "otp_disabled", msg: "Signups not allowed for otp" });
           const user = users.get(email) || { id: crypto.randomUUID() };
           user.code = String(crypto.randomInt(0, 1e6)).padStart(6, "0");
           users.set(email, user);
@@ -135,9 +139,21 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           user.code = null; // single use
           return send(res, 200, session(user.id));
         }
+        if (path === "/auth/v1/token" && q.get("grant_type") === "password") {
+          const user = users.get(String(body.email || "").toLowerCase());
+          if (!user || !user.password || user.password !== body.password)
+            return send(res, 400, { error_code: "invalid_credentials", msg: "Invalid login credentials" });
+          return send(res, 200, session(user.id));
+        }
         if (path === "/auth/v1/token") {
           const m = /^ref-(.+)$/.exec(body.refresh_token || "");
           return m ? send(res, 200, session(m[1])) : fail(res, 400, "invalid refresh token");
+        }
+        if (path === "/auth/v1/user" && req.method === "PUT") {
+          const user = [...users.values()].find((u) => u.id === uid);
+          if (!user) return send(res, 401, { msg: "JWT expected" });
+          if (typeof body.password === "string") user.password = body.password;
+          return send(res, 200, { id: uid });
         }
         // ---- pin function
         if (path === "/functions/v1/pin") {
@@ -164,7 +180,14 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           const row = profiles.get(eq(q, "id"));
           return send(res, 200, row && row.id === uid ? [row] : []);
         }
-        if (table === "consent_records" || table === "data_requests") return send(res, 201);
+        if (table === "consent_records") {
+          if (req.method === "POST") {
+            for (const c of [].concat(body)) consents.push({ ...c, user_id: uid, accepted_at: now() });
+            return send(res, 201);
+          }
+          return send(res, 200, consents.filter((c) => c.user_id === uid));
+        }
+        if (table === "data_requests") return send(res, 201);
 
         // ---- directory
         if (table === "provider_listings") {
@@ -257,6 +280,22 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     close: () => server.close(),
     /** What 242Konnect's reviewers would do from the dashboard. */
     approveAll: () => listings.forEach((l) => (l.status = "approved")),
+    /** An account from before the password moved to Supabase. */
+    forgetServerPassword: (email) => {
+      const u = users.get(email);
+      if (u) delete u.password;
+    },
+    serverPassword: (email) => users.get(email)?.password,
+    pinOf: (email) => {
+      const u = users.get(email);
+      return u ? pins.get(u.id) : undefined;
+    },
+    hasPin: (email) => {
+      const u = users.get(email);
+      return !!u && pins.has(u.id);
+    },
+    profiles,
+    consents,
     listings,
     requests,
     outbox,

@@ -173,9 +173,13 @@ const unescape = (text) =>
     await (await vis('[aria-label="Mot de passe"]')).fill("Demo2024");
     await tap('[aria-label="Se connecter"]');
     await page.waitForTimeout(1800);
-    // The account must not exist, and the refusal must be the generic one that
-    // does not reveal whether the number is registered.
-    const refused = await vis("text=Identifiant ou mot de passe incorrect");
+    // The account must not exist, and the refusal must be one that does not
+    // reveal whether the number is registered: the generic wrong-credentials
+    // message, or — on a Supabase build, for any number this device has never
+    // signed in with — the request to use the e-mail address instead.
+    const refused =
+      (await vis("text=Identifiant ou mot de passe incorrect")) ||
+      (await vis("text=/connectez-vous avec votre adresse e-mail/"));
     const insideTheApp = await vis("text=Catégories");
     if (insideTheApp) throw new Error("the demo account still signs in");
     return !!refused;

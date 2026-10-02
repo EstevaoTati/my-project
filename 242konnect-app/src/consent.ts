@@ -215,3 +215,37 @@ export async function requestDataChange(
     return false;
   }
 }
+
+/**
+ * The consents already given, from the audit trail — so signing in on a new
+ * device does not ask someone to accept documents they accepted elsewhere.
+ * Empty on any failure: the gate then asks again, which is safe.
+ */
+export async function fetchConsents(session: SupabaseSession | null): Promise<ConsentRecord[]> {
+  if (!session || !supabaseConfigured) return [];
+  try {
+    const response = await supabaseFetch(
+      `/rest/v1/consent_records?user_id=eq.${encodeURIComponent(session.userId)}&select=kind,version,granted,signature,accepted_at&order=accepted_at.asc`,
+      {},
+      session
+    );
+    if (!response.ok) return [];
+    const rows = (await response.json()) as {
+      kind: ConsentKind;
+      version: string;
+      granted: boolean;
+      signature: string | null;
+      accepted_at: string;
+    }[];
+    return rows.map((r) => ({
+      kind: r.kind,
+      version: r.version,
+      granted: r.granted,
+      ...(r.signature ? { signature: r.signature } : {}),
+      at: Date.parse(r.accepted_at),
+      recorded: true,
+    }));
+  } catch {
+    return [];
+  }
+}

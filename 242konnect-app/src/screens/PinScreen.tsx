@@ -66,9 +66,16 @@ export function PinScreen() {
           <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
         </Pressable>
 
-        <Text style={styles.title}>{t('Votre code confidentiel')}</Text>
+        {/* Opening the app on a known account: the PIN is the whole log-in. */}
+        <Text style={styles.title}>
+          {pendingSignIn.unlock
+            ? t('Bonjour, {name}', { name: pendingSignIn.account.name.split(' ')[0] })
+            : t('Votre code confidentiel')}
+        </Text>
         <Text style={styles.lede}>
-          {t('Saisissez vos {digits} chiffres pour terminer la connexion.', { digits: PIN_LENGTH })}
+          {pendingSignIn.unlock
+            ? t('Saisissez votre code confidentiel à {digits} chiffres pour vous connecter.', { digits: PIN_LENGTH })
+            : t('Saisissez vos {digits} chiffres pour terminer la connexion.', { digits: PIN_LENGTH })}
         </Text>
 
         <CodeField
@@ -114,6 +121,17 @@ export function PinScreen() {
             {switching ? t('Envoi en cours…') : t('Code oublié ? Recevoir un code par e-mail')}
           </Text>
         </Pressable>
+
+        {pendingSignIn.unlock && (
+          <Pressable
+            onPress={cancelSignIn}
+            accessibilityRole="button"
+            accessibilityLabel={t('Se connecter avec un autre compte')}
+            style={styles.fallback}
+          >
+            <Text style={styles.otherText}>{t('Ce n’est pas vous ? Se connecter avec un autre compte')}</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -135,4 +153,5 @@ const styles = StyleSheet.create({
   lede: { fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: colors.mutedForeground },
   fallback: { alignItems: 'center', paddingVertical: 6 },
   fallbackText: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.foreground },
+  otherText: { fontFamily: fonts.sans, fontSize: 13, color: colors.mutedForeground },
 });
