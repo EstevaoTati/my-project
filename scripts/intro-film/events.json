@@ -1,0 +1,132 @@
+[
+ {
+  "t": 0,
+  "kind": "riser",
+  "gain": 1
+ },
+ {
+  "t": 1.15,
+  "kind": "accent",
+  "gain": 1
+ },
+ {
+  "t": 2.1,
+  "kind": "tick",
+  "gain": 0.5
+ },
+ {
+  "t": 4.65,
+  "kind": "whoosh",
+  "gain": 0.6
+ },
+ {
+  "t": 18.028,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 33.164,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 45.935,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 58.471,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 68.987,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 79.162,
+  "kind": "whoosh",
+  "gain": 0.85
+ },
+ {
+  "t": 19.728,
+  "kind": "tick",
+  "gain": 0.8
+ },
+ {
+  "t": 22.917,
+  "kind": "tick",
+  "gain": 0.8
+ },
+ {
+  "t": 30.501,
+  "kind": "tick",
+  "gain": 0.8
+ },
+ {
+  "t": 34.264,
+  "kind": "tick",
+  "gain": 0.45
+ },
+ {
+  "t": 34.544,
+  "kind": "tick",
+  "gain": 0.45
+ },
+ {
+  "t": 34.824,
+  "kind": "tick",
+  "gain": 0.45
+ },
+ {
+  "t": 35.104,
+  "kind": "tick",
+  "gain": 0.45
+ },
+ {
+  "t": 34.814,
+  "kind": "tick",
+  "gain": 0.7
+ },
+ {
+  "t": 37.495,
+  "kind": "tick",
+  "gain": 0.7
+ },
+ {
+  "t": 39.543,
+  "kind": "tick",
+  "gain": 0.7
+ },
+ {
+  "t": 48.985,
+  "kind": "tick",
+  "gain": 0.6
+ },
+ {
+  "t": 50.285,
+  "kind": "tick",
+  "gain": 0.6
+ },
+ {
+  "t": 51.485,
+  "kind": "tick",
+  "gain": 0.6
+ },
+ {
+  "t": 59.371,
+  "kind": "accent",
+  "gain": 1.2
+ },
+ {
+  "t": 59.371,
+  "kind": "lift",
+  "gain": 1
+ },
+ {
+  "t": 79.762,
+  "kind": "accent",
+  "gain": 0.8
+ }
+]
