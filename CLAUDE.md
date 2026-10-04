@@ -215,6 +215,11 @@ suite is the BI harness in `scripts/bi-harness/`. The default branch is `main`; 
   `logo-lockup` (loader), `logo-full` (og:image), `favicon-{32,180,512}.png`
   (the gold "A"), `scene-{office,devices,ai-desk,globe}` (web-sized). Originals
   live in `docs/brand-source/`, which is not served.
+- `scripts/intro-film/` — the founder's 90 s introduction film, rendered as
+  code (canvas frames → 4K H.264, synthesised score, Kokoro TTS narrator,
+  SRT). Not served. Never use a video model for names/URLs/logo; the presenter
+  is the real photo, not an animated likeness. See its README and
+  `docs/decisions/2026-10-04-intro-film-built-as-code.md`.
 - `i18n.js` — FR/EN translation engine and dictionary (see below).
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.

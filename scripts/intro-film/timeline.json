@@ -1,0 +1,165 @@
+{
+ "total": 90.0,
+ "scenes": {
+  "s1": [
+   0.0,
+   5.0
+  ],
+  "s2": [
+   5.0,
+   18.378
+  ],
+  "s3": [
+   18.378,
+   33.514
+  ],
+  "s4": [
+   33.514,
+   46.285
+  ],
+  "s5": [
+   46.285,
+   58.821
+  ],
+  "s6": [
+   58.821,
+   69.337
+  ],
+  "s7": [
+   69.337,
+   79.512
+  ],
+  "s8": [
+   79.512,
+   90.0
+  ]
+ },
+ "cues": [
+  {
+   "text": "I'm Estevao Tati,",
+   "file": "vo/s2_0.wav",
+   "dur": 1.3377083333333333,
+   "at": 5.9
+  },
+  {
+   "text": "an AI consultant and AI OS founder.",
+   "file": "vo/s2_1.wav",
+   "dur": 2.8750416666666667,
+   "at": 7.478
+  },
+  {
+   "text": "I help individuals and businesses turn the possibilities of artificial intelligence",
+   "file": "vo/s2_2.wav",
+   "dur": 5.289833333333333,
+   "at": 10.903
+  },
+  {
+   "text": "into practical solutions.",
+   "file": "vo/s2_3.wav",
+   "dur": 1.655,
+   "at": 16.273
+  },
+  {
+   "text": "Every project begins with a clear need.",
+   "file": "vo/s3_0.wav",
+   "dur": 2.389375,
+   "at": 19.078
+  },
+  {
+   "text": "My work connects AI strategy with implementation:",
+   "file": "vo/s3_1.wav",
+   "dur": 3.3737083333333335,
+   "at": 22.017
+  },
+  {
+   "text": "identifying useful applications, selecting an approach,",
+   "file": "vo/s3_2.wav",
+   "dur": 3.7106666666666666,
+   "at": 25.751
+  },
+  {
+   "text": "and building systems around the work people actually do.",
+   "file": "vo/s3_3.wav",
+   "dur": 3.3622083333333332,
+   "at": 29.701
+  },
+  {
+   "text": "That can include assistants connected to documents,",
+   "file": "vo/s4_0.wav",
+   "dur": 2.841833333333333,
+   "at": 34.114
+  },
+  {
+   "text": "agents that coordinate tasks,",
+   "file": "vo/s4_1.wav",
+   "dur": 1.858,
+   "at": 37.195
+  },
+  {
+   "text": "and automated workflows.",
+   "file": "vo/s4_2.wav",
+   "dur": 1.6955416666666667,
+   "at": 39.293
+  },
+  {
+   "text": "The aim is to make AI useful within real business processes.",
+   "file": "vo/s4_3.wav",
+   "dur": 4.2965,
+   "at": 41.539
+  },
+  {
+   "text": "I also design and develop websites, web applications, and mobile experiences,",
+   "file": "vo/s5_0.wav",
+   "dur": 5.636083333333334,
+   "at": 46.885
+  },
+  {
+   "text": "bringing the interface and the underlying technology together",
+   "file": "vo/s5_1.wav",
+   "dur": 3.7199583333333335,
+   "at": 52.762
+  },
+  {
+   "text": "around the needs of the project.",
+   "file": "vo/s5_2.wav",
+   "dur": 1.8098333333333334,
+   "at": 56.561
+  },
+  {
+   "text": "Explore MWINDA DIGITAL to discover its approach to AI and digital innovation,",
+   "file": "vo/s6_0.wav",
+   "dur": 5.5185,
+   "at": 60.121
+  },
+  {
+   "text": "and find a starting point for your next business idea.",
+   "file": "vo/s6_1.wav",
+   "dur": 3.007041666666667,
+   "at": 65.88
+  },
+  {
+   "text": "Whether you're an entrepreneur, a professional, or an organization exploring AI,",
+   "file": "vo/s7_0.wav",
+   "dur": 5.463875,
+   "at": 70.037
+  },
+  {
+   "text": "let's start with your goals and shape the next step together.",
+   "file": "vo/s7_1.wav",
+   "dur": 3.3212083333333333,
+   "at": 75.741
+  },
+  {
+   "text": "Visit my portfolio or MWINDA DIGITAL.",
+   "file": "vo/s8_0.wav",
+   "dur": 2.9085833333333335,
+   "at": 80.312
+  },
+  {
+   "text": "Let's talk about your next project.",
+   "file": "vo/s8_1.wav",
+   "dur": 1.9914583333333333,
+   "at": 83.77
+  }
+ ]
+}
