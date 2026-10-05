@@ -84,7 +84,9 @@ publish the other's files.
   `supabase/`, published build `242konnect-web/` (its own generated
   `netlify.toml`; Netlify base directory `242konnect-web`). Package:
   `242konnect-netlify-package.zip`, built by `npm run build:web -- --output-dir
-  ../242konnect-web` then `python3 242konnect-app/tools/package-web.py`. Deploy
+  ../242konnect-web` then `python3 242konnect-app/tools/package-web.py`. Lighter
+  variant (subset fonts, smaller photos): `242konnect-netlify-package-lite.zip`,
+  built by `python3 242konnect-app/tools/package-web-lite.py`. Deploy
   doc: `242konnect-app/DEPLOY.md`.
 - `242konnect-app/tools/verify-csp.js` checks the separation; both package
   scripts refuse to include the other product's content.

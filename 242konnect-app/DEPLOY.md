@@ -95,6 +95,12 @@ anywhere in the URL.
 `_headers` and `_redirects`; rebuild it with `python3 tools/package-web.py`. Drag it onto <https://app.netlify.com/drop>. Useful for a one-off
 share; the repo-connected site is better, because it redeploys on every push.
 
+`242konnect-netlify-package-lite.zip` is the same app at about half the size
+(≈0.95 MB instead of 1.8 MB): fonts cut to the Latin characters French and
+English use, photos capped at 800 px. The JavaScript is untouched and every file
+keeps its name. Rebuild it with `pip install fonttools pillow` then
+`python3 tools/package-web-lite.py`.
+
 ## Your own domain
 
 `.netlify.app` is fine for testers, wrong for customers in Pointe-Noire. In the
