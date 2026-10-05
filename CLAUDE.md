@@ -73,11 +73,21 @@ idea, say so and propose the better path.
 
 ## This repository
 
-Static marketing site for Mwinda Digital, deployed on Netlify.
+Two separate products, deployed as two separate Netlify sites. Never let one
+publish the other's files.
 
-- Plain HTML/CSS/JS — no build step, no framework. Main pages: `index.html`,
-  `demo.html`, `preview.html`.
-- `i18n.js` handles translations; keep all user-facing strings translatable.
-- `netlify.toml`, `_headers`, `_redirects` control deployment; see
-  `DEPLOY-NETLIFY.md` for the deploy process.
+- **Estevao Tati landing page** — `estevao-tati-site/` (plain HTML/CSS/JS, no
+  build). The repo-root `netlify.toml` publishes that folder only. Deploy doc:
+  `docs/estevao-tati-site-deploy.md`. Drag-and-drop package: `netlify-package.zip`,
+  built by `python3 scripts/package-estevao-site.py`.
+- **242Konnect** — app source `242konnect-app/`, API `242konnect-api/`, database
+  `supabase/`, published build `242konnect-web/` (its own generated
+  `netlify.toml`; Netlify base directory `242konnect-web`). Package:
+  `242konnect-netlify-package.zip`, built by `npm run build:web -- --output-dir
+  ../242konnect-web` then `python3 242konnect-app/tools/package-web.py`. Lighter
+  variant (subset fonts, smaller photos): `242konnect-netlify-package-lite.zip`,
+  built by `python3 242konnect-app/tools/package-web-lite.py`. Deploy
+  doc: `242konnect-app/DEPLOY.md`.
+- `242konnect-app/tools/verify-csp.js` checks the separation; both package
+  scripts refuse to include the other product's content.
 - Verify changes by opening the affected page before committing.
