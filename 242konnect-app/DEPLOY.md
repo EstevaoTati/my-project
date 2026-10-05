@@ -101,6 +101,12 @@ English use, photos capped at 800 px. The JavaScript is untouched and every file
 keeps its name. Rebuild it with `pip install fonttools pillow` then
 `python3 tools/package-web-lite.py`.
 
+Where a .zip is refused, `242konnect-lite.html` at the repo root is the same
+lite app as **one HTML file** (2.7 MB): the JavaScript, fonts and photos are
+inlined, so it opens from anywhere, even straight from disk. Rebuild it with
+`LITE_BUILD_DIR=/tmp/lite python3 tools/package-web-lite.py` then
+`BUILD_DIR=/tmp/lite OUT_FILE=../242konnect-lite.html python3 tools/build-preview.py`.
+
 ## Your own domain
 
 `.netlify.app` is fine for testers, wrong for customers in Pointe-Noire. In the

@@ -71,14 +71,19 @@ def main():
         raise SystemExit(f"expected one bundle, found {len(js_files)}")
     bundle = js_files[0].read_text()
 
-    refs = sorted(set(re.findall(r'"(assets/[^"]+)"', bundle)))
+    # build:web rewrites asset URLs to "./assets/…" so the site works at any
+    # depth; older exports wrote "assets/…". Both forms are swapped.
+    refs = sorted(set(re.findall(r'"((?:\./)?assets/[^"]+)"', bundle)))
+    if not refs:
+        # Without the fonts inlined the app never gets past useFonts: a blank page.
+        raise SystemExit("ERROR: no asset references found in the bundle")
     swapped = 0
     for ref in refs:
-        asset = BUILD / ref
+        asset = BUILD / ref.removeprefix("./")
         if asset.exists():
             bundle = bundle.replace(f'"{ref}"', '"' + data_uri(asset) + '"')
             swapped += 1
-    leftover = re.findall(r'"assets/[^"]+"', bundle)
+    leftover = re.findall(r'"(?:\./)?assets/[^"]+"', bundle)
     if leftover:
         raise SystemExit(f"ERROR: {len(leftover)} asset refs unresolved: {leftover[:3]}")
 
