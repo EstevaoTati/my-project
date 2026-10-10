@@ -92,7 +92,7 @@
     if (!p) return;
     if (/^https?:/.test(p.src)) { img.src = p.src; img.removeAttribute("srcset"); }
     else {
-      var base = "/" + p.src.replace(/^\//, "");
+      var base = p.src.replace(/^\//, "");   // relative: works at / and under a sub-path
       img.srcset = base + "-720.webp 720w, " + base + "-1400.webp 1400w";
       img.sizes = sizes || "100vw";
       img.src = base + "-1400.webp";
@@ -359,7 +359,8 @@
         else personalize();
         return true;
       }
-      if (r._status === 501) backend = false;
+      // 501 = not configured; no "error" field = no API at all (static hosting).
+      if (r._status === 501 || !r.error) backend = false;
       if (r._status === 404) sset("localStorage", "ss.invite", null);
       invite = null; token = null; personalize();
       return r._status;
@@ -613,7 +614,7 @@
   // ---------------------------------------------------------------- boot --
   function loadContent() {
     return api("/api/content").then(function (r) { if (r._status !== 200 || !r.photos) throw 0; return r; })
-      .catch(function () { return fetch("/content.json").then(function (r) { return r.json(); }); });
+      .catch(function () { return fetch("content.json").then(function (r) { return r.json(); }); });
   }
 
   window.i18n.init();

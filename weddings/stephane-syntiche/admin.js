@@ -437,7 +437,7 @@
       var draw = function () {
         lib.textContent = "";
         content.photos.forEach(function (p, i) {
-          var src = /^https?:/.test(p.src) ? p.src : "/" + p.src + "-720.webp";
+          var src = /^https?:/.test(p.src) ? p.src : p.src + "-720.webp";
           var card = h("div", { class: "photo-card" }, [h("img", { src: src, alt: "", loading: "lazy" })]);
           card.appendChild(h("p", { class: "small", text: p.id }));
           var cat = h("select", { "aria-label": "Category", onchange: function () { p.category = cat.value; } });
