@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0B1426">
+  <title>Door Check-in — Stephane &amp; Syntiche</title>
+  <link rel="icon" href="assets/monogram.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Manrope:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="admin.css?v=1">
+  <link rel="stylesheet" href="checkin.css?v=1">
+</head>
+<body class="door">
+  <main class="login" id="login">
+    <form class="login-card" id="loginForm">
+      <p class="mono">S<em>&amp;</em>S</p>
+      <h1>Door check-in</h1>
+      <label class="field"><span>Staff key</span><input type="password" name="key" autocomplete="current-password" required></label>
+      <button class="btn btn--navy" type="submit">Start</button>
+      <p class="error" role="alert" hidden></p>
+    </form>
+  </main>
+
+  <div class="door-app" id="app" hidden>
+    <header class="door-top">
+      <p class="mono">S<em>&amp;</em>S</p>
+      <p class="door-stats" id="stats" aria-live="polite">—</p>
+      <button class="link" id="logout" type="button">Sign out</button>
+    </header>
+
+    <section class="scan">
+      <div class="viewer" id="viewer">
+        <video id="video" playsinline muted></video>
+        <div class="frame" aria-hidden="true"></div>
+        <button class="btn btn--navy" id="camBtn" type="button">Scan a QR code</button>
+      </div>
+      <form class="manual" id="manual">
+        <label class="field"><span>…or type the code from the card</span><input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD2345.xxxxxxxxxxxx" required></label>
+        <button class="btn btn--ghost" type="submit">Look up</button>
+      </form>
+    </section>
+
+    <section class="result" id="result" aria-live="assertive" hidden>
+      <p class="r-status" id="rStatus"></p>
+      <h2 id="rLabel"></h2>
+      <p class="r-meta" id="rMeta"></p>
+      <ul class="r-people" id="rPeople"></ul>
+      <div class="r-actions" id="rActions">
+        <div class="stepper">
+          <button type="button" class="btn btn--ghost" id="minus" aria-label="One fewer">−</button>
+          <output id="count">1</output>
+          <button type="button" class="btn btn--ghost" id="plus" aria-label="One more">+</button>
+        </div>
+        <button class="btn btn--navy btn--xl" id="checkBtn" type="button">Check in</button>
+      </div>
+      <button class="btn btn--ghost" id="undoBtn" type="button" hidden>Undo check-in (admin)</button>
+      <button class="link" id="nextBtn" type="button">Next guest</button>
+    </section>
+  </div>
+
+  <script src="assets/vendor/jsQR.js" defer></script>
+  <script src="checkin.js?v=1" defer></script>
+</body>
+</html>
