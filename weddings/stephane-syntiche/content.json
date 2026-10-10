@@ -1,0 +1,98 @@
+{
+  "_readme": "Defaults for the public site. Everything here can be overridden from the dashboard (stored in wed_settings). null means NOT YET PROVIDED — the site shows 'to be announced', it never invents a value.",
+  "couple": { "a": "Stephane", "b": "Syntiche" },
+  "date": "2027-03-13",
+  "timezone": "America/Los_Angeles",
+  "city": "Sumner",
+  "region": "Washington",
+  "country": "USA",
+
+  "ceremony": { "venue": null, "address": null, "start": null, "end": null, "note": { "en": null, "fr": null } },
+  "reception": { "venue": null, "address": null, "start": null, "end": null, "note": { "en": null, "fr": null } },
+
+  "dress_code": { "en": null, "fr": null },
+  "contact": { "name": null, "email": null, "phone": null },
+  "photo_credit": null,
+
+  "rsvp": {
+    "enabled": true,
+    "deadline": null,
+    "allow_update": true,
+    "meals": [],
+    "ask_dietary": true
+  },
+
+  "gifts": {
+    "enabled": true,
+    "registry_url": null,
+    "fund_url": null,
+    "fund_label": { "en": null, "fr": null },
+    "message": { "en": null, "fr": null }
+  },
+
+  "music": { "src": null, "title": null, "license": null },
+
+  "scenes": {
+    "intro": "two-souls",
+    "hero": "embrace-at-table",
+    "souls": "two-souls",
+    "promise": "over-the-shoulder-bw",
+    "reveal": "navy-hand-in-hand",
+    "countdown": "fireside",
+    "ornament": "two-souls",
+    "finale": "embrace-at-table"
+  },
+
+  "photos": [
+    { "id": "embrace-at-table", "src": "assets/photos/embrace-at-table", "w": 1400, "h": 1865, "focus": "50% 40%", "category": "moments",
+      "alt": { "en": "Stephane embraces Syntiche from behind, both smiling at the camera", "fr": "Stephane enlace Syntiche, tous deux sourient à l'objectif" } },
+    { "id": "two-souls", "src": "assets/photos/two-souls", "w": 1400, "h": 1865, "focus": "50% 22%", "category": "story",
+      "alt": { "en": "Stephane and Syntiche in matching grey, her arm around his shoulder", "fr": "Stephane et Syntiche assortis en gris, son bras sur son épaule" } },
+    { "id": "fireside", "src": "assets/photos/fireside", "w": 1400, "h": 1865, "focus": "55% 45%", "category": "story",
+      "alt": { "en": "Syntiche seated by the fireplace, smiling up at Stephane", "fr": "Syntiche assise près de la cheminée, souriant à Stephane" } },
+    { "id": "the-kiss-bw", "src": "assets/photos/the-kiss-bw", "w": 1400, "h": 1865, "focus": "45% 25%", "category": "moments",
+      "alt": { "en": "Black and white: Syntiche kisses Stephane on the cheek", "fr": "Noir et blanc : Syntiche embrasse Stephane sur la joue" } },
+    { "id": "over-the-shoulder-bw", "src": "assets/photos/over-the-shoulder-bw", "w": 1400, "h": 2055, "focus": "40% 30%", "category": "moments",
+      "alt": { "en": "Black and white: Syntiche looks over Stephane's shoulder in an embrace", "fr": "Noir et blanc : Syntiche regarde par-dessus l'épaule de Stephane" } },
+    { "id": "the-proposal", "src": "assets/photos/the-proposal", "w": 1400, "h": 2100, "focus": "50% 45%", "category": "proposal",
+      "alt": { "en": "The proposal at night, under a floral heart reading 'Will you marry me?'", "fr": "La demande, la nuit, sous un cœur fleuri « Will you marry me? »" } },
+    { "id": "navy-hand-in-hand", "src": "assets/photos/navy-hand-in-hand", "w": 1400, "h": 2354, "focus": "50% 22%", "category": "celebration",
+      "alt": { "en": "Stephane and Syntiche in navy blue, hand in hand", "fr": "Stephane et Syntiche en bleu nuit, main dans la main" } }
+  ],
+
+  "story": [
+    { "id": "met", "photo": "fireside", "when": null,
+      "title": { "en": "How we met", "fr": "Notre rencontre" },
+      "text": { "en": null, "fr": null } },
+    { "id": "first", "photo": "the-kiss-bw", "when": null,
+      "title": { "en": "Our first unforgettable moment", "fr": "Notre premier moment inoubliable" },
+      "text": { "en": null, "fr": null } },
+    { "id": "journey", "photo": "two-souls", "when": null,
+      "title": { "en": "Our journey together", "fr": "Notre chemin ensemble" },
+      "text": { "en": null, "fr": null } },
+    { "id": "proposal", "photo": "the-proposal", "when": null,
+      "title": { "en": "The proposal", "fr": "La demande" },
+      "text": { "en": null, "fr": null } },
+    { "id": "wedding", "photo": "navy-hand-in-hand", "when": "2027-03-13",
+      "title": { "en": "Our wedding day", "fr": "Le jour de notre mariage" },
+      "text": { "en": "Sumner, Washington — and you, we hope, beside us.", "fr": "Sumner, Washington — et vous, nous l'espérons, à nos côtés." } }
+  ],
+
+  "program": [],
+
+  "faq": [
+    { "id": "when", "auto": "when", "q": { "en": "When is the wedding?", "fr": "Quand a lieu le mariage ?" }, "a": { "en": null, "fr": null } },
+    { "id": "where", "auto": "where", "q": { "en": "Where will the wedding take place?", "fr": "Où se déroulera le mariage ?" }, "a": { "en": null, "fr": null } },
+    { "id": "arrive", "q": { "en": "What time should guests arrive?", "fr": "À quelle heure les invités doivent-ils arriver ?" }, "a": { "en": null, "fr": null } },
+    { "id": "rsvp", "auto": "rsvp", "q": { "en": "How do I confirm my attendance?", "fr": "Comment confirmer ma présence ?" }, "a": { "en": null, "fr": null } },
+    { "id": "partner", "q": { "en": "Can I bring a partner?", "fr": "Puis-je venir accompagné(e) ?" }, "a": { "en": null, "fr": null } },
+    { "id": "children", "q": { "en": "Are children invited?", "fr": "Les enfants sont-ils invités ?" }, "a": { "en": null, "fr": null } },
+    { "id": "dress", "auto": "dress", "q": { "en": "Is there a dress code?", "fr": "Y a-t-il un code vestimentaire ?" }, "a": { "en": null, "fr": null } },
+    { "id": "parking", "q": { "en": "Is parking available?", "fr": "Y a-t-il un parking ?" }, "a": { "en": null, "fr": null } },
+    { "id": "getting", "q": { "en": "How do I get to the venue?", "fr": "Comment se rendre sur le lieu ?" }, "a": { "en": null, "fr": null } },
+    { "id": "stay", "q": { "en": "Are there accommodation recommendations?", "fr": "Avez-vous des recommandations d'hébergement ?" }, "a": { "en": null, "fr": null } },
+    { "id": "registry", "auto": "registry", "q": { "en": "Is there a wedding gift registry?", "fr": "Y a-t-il une liste de mariage ?" }, "a": { "en": null, "fr": null } },
+    { "id": "update", "auto": "update", "q": { "en": "Can I update my RSVP?", "fr": "Puis-je modifier ma réponse ?" }, "a": { "en": null, "fr": null } },
+    { "id": "contact", "auto": "contact", "q": { "en": "Who can I contact for assistance?", "fr": "Qui contacter en cas de question ?" }, "a": { "en": null, "fr": null } }
+  ]
+}

@@ -285,6 +285,22 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   keeping four dead script hashes and an origin no page used. Run
   `node scripts/update-csp.mjs --check` before committing.
 
+### Client sites in `weddings/`
+
+- `weddings/stephane-syntiche/` — wedding site, invitations, RSVP, dashboard
+  and door check-in for Stephane & Syntiche (March 13, 2027, Sumner WA).
+  **Its own Netlify site** (base directory = that folder), its own functions,
+  `content.json` and CSP. It does **not** share code with the company site, so
+  edits there cannot break a client's wedding. The company site forces **404**
+  on `/weddings/*` (both `netlify.toml` and `_redirects`): keep that rule, or
+  the root deploy serves client pages and function source.
+- Test it with `node weddings/stephane-syntiche/scripts/test.mjs --e2e`
+  (real functions, fake Supabase, Chromium). Setup lives in its
+  `docs/SETUP.md`. Rationale in
+  `docs/decisions/2026-10-10-wedding-site-stephane-syntiche.md`.
+- Unknown wedding facts are `null` and display as "to be announced".
+  **Never fill them with plausible values.**
+
 ### MWINDA OS infrastructure in this repo
 
 - `.claude/agents/{architect,researcher,strategist}.md` — specialized
