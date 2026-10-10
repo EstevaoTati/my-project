@@ -33,9 +33,7 @@
   "music": { "src": null, "title": null, "license": null },
 
   "scenes": {
-    "intro": "two-souls",
     "hero": "embrace-at-table",
-    "souls": "two-souls",
     "promise": "over-the-shoulder-bw",
     "reveal": "navy-hand-in-hand",
     "countdown": "fireside",
@@ -69,14 +67,14 @@
       "title": { "en": "Our first unforgettable moment", "fr": "Notre premier moment inoubliable" },
       "text": { "en": "One friendly first conversation was all it took to connect.",
                 "fr": "Un premier échange sympathique a suffi à créer le contact." } },
-    { "id": "journey", "photo": "two-souls", "when": null,
+    { "id": "journey", "photo": null, "when": null,
       "title": { "en": "Our journey together", "fr": "Notre chemin ensemble" },
       "text": { "en": "Our conversations then carried on over social media…",
                 "fr": "Nos conversations se sont ensuite poursuivies sur les réseaux sociaux…" } },
-    { "id": "proposal", "photo": "the-proposal", "when": null,
+    { "id": "proposal", "photo": null, "when": null,
       "title": { "en": "The proposal", "fr": "La demande" },
       "text": { "en": null, "fr": null } },
-    { "id": "wedding", "photo": "navy-hand-in-hand", "when": "2027-03-13",
+    { "id": "wedding", "photo": null, "when": "2027-03-13",
       "title": { "en": "Our wedding day", "fr": "Le jour de notre mariage" },
       "text": { "en": "And we will keep writing our story…", "fr": "Et nous continuerons à écrire notre histoire…" } }
   ],

@@ -54,8 +54,8 @@
     for (var i = 0; i < stars.length; i++) {
       var s = stars[i];
       var tw = reduced ? 0.8 : 0.55 + 0.45 * Math.sin(t * 0.001 * s.s + s.p);
-      ctx.globalAlpha = tw * (0.35 + s.r * 0.45);
-      ctx.fillStyle = s.warm ? "#F2E4CC" : "#FFFFFF";
+      ctx.globalAlpha = tw * (0.25 + s.r * 0.3);
+      ctx.fillStyle = s.warm ? "#C9A66B" : "#AEB8CB";
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
       if (s.r > 1.25 && tw > 0.85) { // a few stars flare into a cross
         ctx.globalAlpha = (tw - 0.85) * 2.2;
@@ -73,7 +73,7 @@
       }
       ctx.globalAlpha = m.a * (0.6 + 0.4 * Math.sin(t * 0.002 + m.p));
       var g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 4);
-      g.addColorStop(0, "rgba(242,228,204,1)"); g.addColorStop(0.35, "rgba(216,185,133,.55)"); g.addColorStop(1, "rgba(216,185,133,0)");
+      g.addColorStop(0, "rgba(201,166,107,.9)"); g.addColorStop(0.35, "rgba(216,185,133,.45)"); g.addColorStop(1, "rgba(216,185,133,0)");
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 4, 0, 6.283); ctx.fill();
     }
     // golden shower
@@ -108,7 +108,7 @@
     burst: function (fx, fy) {
       if (reduced) return;
       var x = W * (fx == null ? 0.5 : fx), y = H * (fy == null ? 0.4 : fy);
-      var colors = ["#D8B985", "#F2E4CC", "#FFFFFF", "#E9C9C7"];
+      var colors = ["#D8B985", "#B8914F", "#E9C9C7", "#C9A66B"];
       var n = lowPower ? 60 : 130;
       for (var i = 0; i < n; i++) {
         var a = Math.random() * 6.283, v = rand(40, 260);

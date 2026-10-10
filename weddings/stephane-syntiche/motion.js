@@ -39,14 +39,12 @@
     var intro = $("#intro");
     if (!intro || intro.hidden) return;
     var tl = gsap.timeline({ delay: 0.3 });
-    gsap.set(".intro-photo", { opacity: 0, scale: 1.12, filter: "blur(16px)" });
     gsap.set("[data-intro]", { opacity: 0 });
     tl.fromTo("[data-intro='1']", { opacity: 0, y: 24, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.6 })
       .fromTo("[data-intro='2']", { opacity: 0, y: 24, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.6 }, "+=0.5")
       .to("[data-intro='1'], [data-intro='2']", { opacity: 0, y: -18, filter: "blur(6px)", duration: 1, stagger: 0.1 }, "+=1.1")
       .set("[data-intro='1'], [data-intro='2']", { display: "none" })
-      .to(".intro-photo", { opacity: 0.42, scale: 1, filter: "blur(0px)", duration: 2.6, ease: "power2.inOut" }, "-=0.4")
-      .set("[data-intro='3']", { opacity: 1 }, "<0.6")
+      .set("[data-intro='3']", { opacity: 1 }, "+=0.2")
       .from(".intro-title .names > *", { opacity: 0, y: 40, letterSpacing: "0.4em", duration: 1.6, stagger: 0.18 }, "<")
       .from(".intro-title > :not(.names)", { opacity: 0, y: 18, duration: 1, stagger: 0.14 }, "-=0.9")
       .call(function () { sky().glow(0.7); });
@@ -93,16 +91,11 @@
 
   // ------------------------------------------------ II. two souls, one --
   function soulsScene() {
-    var gap = function () { return Math.min(innerWidth * 0.13, 170); };
-    gsap.set(".souls-copy", { opacity: 0, y: 30 });
-    var tl = gsap.timeline({ scrollTrigger: { trigger: "#couple", start: "top top", end: "+=120%", scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true } });
-    tl.fromTo(".soul--a", { x: function () { return -gap(); }, rotate: -4, y: 30 }, { x: 0, rotate: 0, y: 0, ease: "power2.inOut", duration: 1 }, 0)
-      .fromTo(".soul--b", { x: function () { return gap(); }, rotate: 4, y: -30 }, { x: 0, rotate: 0, y: 0, ease: "power2.inOut", duration: 1 }, 0)
-      .fromTo(".souls-line", { opacity: 0, scaleX: 1.6 }, { opacity: 1, scaleX: 1.2, duration: 0.35, ease: "none" }, 0)
-      .to(".souls-line", { opacity: 0, scaleX: 0.02, duration: 0.45, ease: "power2.in" }, 0.55)
-      .to(".soul figcaption", { opacity: 0, y: 10, duration: 0.25 }, 0.8)
-      .fromTo(".souls-stage", { filter: "drop-shadow(0 0 0 rgba(216,185,133,0))" }, { filter: "drop-shadow(0 0 40px rgba(216,185,133,.45))", duration: 0.3 }, 0.9)
-      .to(".souls-copy", { opacity: 1, y: 0, duration: 0.35 }, 0.95);
+    // Words only: a gold line draws itself, then the promise of the title.
+    var tl = gsap.timeline({ scrollTrigger: { trigger: "#couple", start: "top 70%", once: true } });
+    tl.fromTo(".souls-line", { scaleX: 0 }, { scaleX: 1, duration: 1.6, ease: "power3.inOut" })
+      .from("#couple .eyebrow", { opacity: 0, y: 16, duration: 0.9 }, 0)
+      .from(".souls-copy > *", { opacity: 0, y: 34, filter: "blur(6px)", duration: 1.3, stagger: 0.18 }, 0.5);
   }
 
   // ----------------------------------------------------- III. the story --
@@ -131,6 +124,10 @@
     $$(".milestone").forEach(function (m, i) {
       var fx = FX[m.getAttribute("data-fx")] || FX.curtain;
       var tl = gsap.timeline({ scrollTrigger: { trigger: m, start: "top 75%", once: true } });
+      if (!$(".ms-img", m)) {   // a chapter in words alone
+        tl.from($$(".ms-copy > *", m), { opacity: 0, y: 40, duration: 1.2, stagger: 0.14 });
+        return;
+      }
       tl.add(fx(m, i), 0)
         .from($$(".ms-copy > *", m), { opacity: 0, y: 40, duration: 1.1, stagger: 0.12 }, 0.35);
       // A slow, scroll-linked drift inside every frame keeps the photos alive.
@@ -262,20 +259,30 @@
     });
   }
 
+  var dynCtx = null;
+  function dynamicScenes() {
+    if (dynCtx) dynCtx.revert();
+    dynCtx = gsap.context(function () { storyScene(); programScene(); });
+  }
+
   // -------------------------------------------------------------- build --
   function build(detail) {
     if (built) return; built = true;
     if (detail && detail.intro) playIntro(); else heroEntrance();
-    heroScene(); soulsScene(); storyScene(); promiseScene(); revealScene();
-    heads(); countdownScene(); detailsScene(); programScene(); invitationScene(); rsvpScene(); giftsScene(); finaleScene();
+    heroScene(); soulsScene(); promiseScene(); revealScene();
+    heads(); countdownScene(); detailsScene(); dynamicScenes(); invitationScene(); rsvpScene(); giftsScene(); finaleScene();
     batch(".gal-item", "gal"); batch(".gb-card", "gb"); batch(".faq-item", "faq");
     pointerFx();
     document.addEventListener("ss:gallery", function () { batch(".gal-item", "gal"); ST.refresh(); });
     document.addEventListener("ss:guestbook", function () { batch(".gb-card", "gb"); ST.refresh(); });
     document.addEventListener("ss:relayout", function () {
-      // Language switch re-renders the story/program/faq: rebind their scenes.
-      ST.getAll().forEach(function (t) { var tr = t.trigger; if (tr && tr.closest && tr.closest("#story, #program")) t.kill(); });
-      storyScene(); programScene(); batch(".faq-item", "faq"); ST.refresh();
+      // A language switch re-renders the story, program and FAQ. The new
+      // elements arrive fully visible; replaying their entrances adds nothing
+      // and re-creating triggers mid-page crashed ScrollTrigger. So: drop the
+      // old scenes and re-measure the page.
+      if (dynCtx) { dynCtx.revert(); dynCtx = null; }
+      (batches.faq || []).forEach(function (t) { t.kill(); }); batches.faq = [];
+      ST.refresh();
     });
     addEventListener("load", function () { ST.refresh(); });
     // Pins add height above deep-linked sections: land where the link meant.

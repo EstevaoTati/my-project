@@ -419,7 +419,7 @@
       return wrap;
     }
     if (type === "photo") {
-      var sel = h("select", { "aria-label": label, onchange: function () { set(obj, path, sel.value); } });
+      var sel = h("select", { "aria-label": label, onchange: function () { set(obj, path, sel.value || null); } }, [h("option", { value: "", text: "— no photo —" })]);
       (content.photos || []).forEach(function (p) { sel.appendChild(h("option", { value: p.id, text: p.id, selected: p.id === v || null })); });
       wrap.appendChild(sel); return wrap;
     }

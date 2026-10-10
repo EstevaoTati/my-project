@@ -132,12 +132,15 @@
     var list = $("#storyList"); list.textContent = "";
     var roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
     C.story.forEach(function (m, i) {
-      var p = photo(m.photo);
-      var img = h("img", { alt: L(p.alt) || "", loading: "lazy", decoding: "async" });
-      setImg(img, p, "(min-width: 900px) 45vw, 92vw");
+      var media = null;
+      if (m.photo) {
+        var p = photo(m.photo), img = h("img", { alt: L(p.alt) || "", loading: "lazy", decoding: "async" });
+        setImg(img, p, "(min-width: 900px) 45vw, 92vw");
+        media = h("div", { class: "ms-media" }, [h("div", { class: "ms-img" }, [img])]);
+      }
       var text = L(m.text);
-      list.appendChild(h("li", { class: "milestone", "data-fx": STORY_FX[i % STORY_FX.length] }, [
-        h("div", { class: "ms-media" }, [h("div", { class: "ms-img" }, [img])]),
+      list.appendChild(h("li", { class: media ? "milestone" : "milestone milestone--text", "data-fx": STORY_FX[i % STORY_FX.length] }, [
+        media,
         h("div", { class: "ms-copy" }, [
           h("span", { class: "ms-num", "aria-hidden": "true", text: roman[i] || String(i + 1) }),
           m.when ? h("p", { class: "eyebrow", text: fmtDate(m.when) }) : null,
