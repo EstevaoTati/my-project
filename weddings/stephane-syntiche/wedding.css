@@ -386,17 +386,6 @@ main { overflow-x: clip; }
 
 /* ----------------------------------------------------------- gifts ---- */
 .gifts { text-align: center; overflow: hidden; padding-top: clamp(40px, 6vw, 80px); }
-.gift-orn { position: relative; width: 140px; height: 260px; margin: 0 auto 10px; }
-.gift-string { position: absolute; left: 50%; top: 0; width: 1px; height: 110px; background: linear-gradient(transparent, var(--gold)); }
-.gift-sphere { position: absolute; left: 50%; top: 106px; width: 130px; height: 130px; translate: -50% 0; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(30% 30% at 34% 28%, rgba(255,255,255,.95), rgba(255,255,255,.35) 40%, rgba(242,228,204,.4) 70%, rgba(216,185,133,.45));
-  border: 1px solid rgba(216,185,133,.55); box-shadow: 0 30px 50px -24px rgba(122,91,42,.5), inset 0 0 26px rgba(216,185,133,.4);
-  animation: float 5s ease-in-out infinite alternate; }
-.gift-sphere svg { width: 46px; fill: var(--gold); filter: drop-shadow(0 0 10px rgba(216,185,133,.8)); }
-@keyframes float { to { transform: translateY(-10px) rotate(2deg); } }
-.spark { position: absolute; width: 8px; height: 8px; background: var(--gold); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: twinkle 2.4s ease-in-out infinite; }
-.s1 { left: -10px; top: 130px; } .s2 { right: -16px; top: 150px; animation-delay: .8s; } .s3 { left: 6px; top: 230px; animation-delay: 1.4s; width: 6px; height: 6px; } .s4 { right: 4px; top: 100px; animation-delay: 2s; }
-@media (prefers-reduced-motion: reduce) { .gift-sphere, .spark { animation: none; } }
 .gift-msg { max-width: 52ch; margin: 1.4em auto 0; color: var(--ink-soft); font: 400 1.15rem/1.7 var(--f-display); }
 .gift-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .gift-soon { flex-basis: 100%; font-style: italic; color: var(--ink-soft); margin: 12px 0 0; }
@@ -468,3 +457,47 @@ main { overflow-x: clip; }
 .gift-bank-title { font: 400 clamp(1.9rem, 4vw, 2.6rem)/1.2 var(--f-display); margin: 0 0 .5em; }
 .gift-bank-text { margin: 0; color: var(--ink-soft); font: 400 1.15rem/1.7 var(--f-display); white-space: pre-line; }
 .gift-bank-text.tba { font-style: italic; }
+
+/* =====================================================================
+   RSVP & GIFTS — after the couple's reference: warm sand paper, Jost for
+   the words people read and fill in, bronze for every accent, square edges.
+   ===================================================================== */
+:root { --sand: #F7F5F0; --sand-2: #EFECE6; --card: #FDFCF9; --bronze: #7E6646; --bronze-line: #D9CBB0; --stone: #6B655D; --field: #F4F1EB; --field-line: #E2DACB; }
+.rsvp, .gifts { font-family: "Jost", var(--f-ui); }
+.rsvp { background: var(--sand-2); padding-top: clamp(80px, 10vw, 130px); }
+.rsvp .section-head { margin-bottom: 18px; }
+.rsvp-band { text-align: center; color: var(--bronze); font: 400 clamp(1.05rem, 2vw, 1.25rem)/1.5 "Jost", sans-serif; margin: 0 auto clamp(28px, 4vw, 44px); max-width: 680px; }
+.rsvp-card { background: var(--card); border: 0; box-shadow: none; border-radius: 0; max-width: 720px; padding: clamp(28px, 6vw, 56px) clamp(22px, 6vw, 56px); }
+.reply-head { border-bottom-color: var(--field-line); }
+.reply-head .eyebrow { color: var(--bronze); letter-spacing: .32em; font-family: "Jost", sans-serif; font-weight: 500; }
+.reply-head .mono { color: var(--bronze); font: italic 400 2rem/1 var(--f-display); letter-spacing: .08em; }
+.reply-head .mono em { font: inherit; font-style: italic; }
+.rsvp-form .field > span, .choice--plain legend { font: 400 1.12rem/1.4 "Jost", sans-serif; color: var(--ink); }
+.rsvp-form .field > span small { color: var(--stone); font-size: .95rem; }
+.rsvp-form .field input, .rsvp-form .field textarea { background: var(--field); border: 1px solid var(--field-line); border-radius: 0; min-height: 56px; font: 400 1.05rem/1.4 "Jost", sans-serif; }
+.rsvp-form .field textarea { min-height: 120px; }
+.rsvp-form .field input::placeholder, .rsvp-form .field textarea::placeholder { color: #9A938A; font-size: 1.2rem; }
+.rsvp-form .field input:focus, .rsvp-form .field textarea:focus { border-color: var(--bronze); box-shadow: 0 0 0 3px rgba(126,102,70,.14); background: var(--card); }
+.choice--plain { gap: 18px; }
+.choice--plain .choice-opt span { border: 1px solid var(--bronze-line); background: transparent; padding: 20px 12px; }
+.choice--plain .choice-opt strong { font: 400 1.08rem/1.2 "Jost", sans-serif; color: var(--bronze); }
+.choice--plain .choice-opt input:checked + span { background: var(--bronze); border-color: var(--bronze); box-shadow: none; }
+.choice--plain .choice-opt input:checked + span strong { color: var(--card); }
+.field-hint { color: var(--stone); font: 400 1rem/1.5 "Jost", sans-serif; }
+.rsvp-form > .btn--block, .rsvp .btn--block { background: var(--bronze); border-color: var(--bronze); color: #fff; justify-content: flex-start; padding: 0 30px;
+  min-height: 64px; font: 500 .95rem/1 "Jost", sans-serif; letter-spacing: .3em; border-radius: 0; }
+.rsvp .btn--block:hover { background: #6E5839; box-shadow: none; }
+.link-btn { color: var(--bronze); font-family: "Jost", sans-serif; }
+.rsvp-hello { color: var(--bronze); }
+.rsvp-done .display { color: var(--ink); }
+
+.gifts { background: var(--sand); padding-top: clamp(80px, 10vw, 130px); }
+.gift-icon { display: block; width: 64px; height: 64px; margin: 0 auto 30px; fill: none; stroke: var(--bronze); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.gifts .section-head { margin-bottom: clamp(36px, 5vw, 56px); }
+.gifts .eyebrow { color: var(--bronze); font: 500 .95rem/1 "Jost", sans-serif; letter-spacing: .3em; text-transform: none; margin-bottom: 1.8em; }
+.gifts .display { font-size: clamp(2.6rem, 7vw, 5rem); color: #3A3631; margin-bottom: .6em; }
+.gift-msg { font: 300 clamp(1.08rem, 2vw, 1.3rem)/2 "Jost", sans-serif; color: var(--stone); max-width: 58ch; margin: 0 auto; }
+.gift-bank { border-top-color: #DAD5CC; max-width: 860px; }
+.gift-bank-title { font: 400 clamp(2.2rem, 5vw, 3.2rem)/1.2 var(--f-display); color: #3A3631; }
+.gift-bank-text { font: 300 clamp(1.08rem, 2vw, 1.3rem)/1.9 "Jost", sans-serif; color: var(--stone); }
+.gift-bank-text.tba { font-style: normal; opacity: 1; }

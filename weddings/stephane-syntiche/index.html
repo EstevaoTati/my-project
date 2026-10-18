@@ -14,7 +14,7 @@
   <link rel="icon" href="assets/monogram.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Manrope:wght@400;500;600&family=Pinyon+Script&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500&family=Manrope:wght@400;500;600&family=Pinyon+Script&display=swap">
   <link rel="preload" as="image" href="assets/photos/black-tie-1400.webp" imagesrcset="assets/photos/black-tie-720.webp 720w, assets/photos/black-tie-1400.webp 1400w" imagesizes="100vw">
   <link rel="stylesheet" href="wedding.css?v=1">
 </head>
@@ -175,8 +175,8 @@
       <header class="section-head">
         <p class="eyebrow eyebrow--gold" data-i18n="rsvp.eyebrow">RSVP</p>
         <h2 id="rsvpTitle" class="display" data-i18n="rsvp.title">Will you celebrate with us?</h2>
-        <p class="lede" id="rsvpDeadline"></p>
       </header>
+      <p class="rsvp-band" id="rsvpDeadline"></p>
 
       <div class="rsvp-card" id="rsvpCard" aria-live="polite">
         <!-- Open reply: anyone invited can answer here -->
@@ -257,11 +257,10 @@
 
     <!-- ======================================================== GIFTS ==== -->
     <section id="gifts" class="scene gifts light" aria-labelledby="giftsTitle">
-      <div class="gift-orn" aria-hidden="true">
-        <span class="gift-string"></span>
-        <span class="gift-sphere"><svg viewBox="0 0 32 30"><path d="M16 28 C 6 20 1 14 1 8.5 A 7.5 7.5 0 0 1 16 5 A 7.5 7.5 0 0 1 31 8.5 C 31 14 26 20 16 28 Z"/></svg></span>
-        <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i><i class="spark s4"></i>
-      </div>
+      <svg class="gift-icon" viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="7" y="18" width="34" height="8" rx="1"/><rect x="10" y="26" width="28" height="16" rx="1"/>
+        <path d="M24 18v24M24 18c-3-6-12-8-12-2.5 0 3.5 7 2.5 12 2.5M24 18c3-6 12-8 12-2.5 0 3.5-7 2.5-12 2.5"/>
+      </svg>
       <header class="section-head">
         <p class="eyebrow" data-i18n="gifts.eyebrow">Gifts</p>
         <h2 id="giftsTitle" class="display"><span data-i18n="gifts.title1">Your presence</span> <em data-i18n="gifts.title2">is the gift</em></h2>

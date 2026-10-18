@@ -148,8 +148,7 @@
   }
 
   function giftsScene() {
-    gsap.from(".gift-sphere", { y: -160, opacity: 0, duration: 2, ease: "elastic.out(1, 0.45)", scrollTrigger: { trigger: "#gifts", start: "top 70%", once: true } });
-    gsap.from(".gift-string", { scaleY: 0, transformOrigin: "50% 0%", duration: 1.2, scrollTrigger: { trigger: "#gifts", start: "top 70%", once: true } });
+    gsap.from(".gift-icon", { y: 24, opacity: 0, duration: 1.4, scrollTrigger: { trigger: "#gifts", start: "top 75%", once: true } });
     gsap.from(".gift-actions > *", { opacity: 0, y: 20, stagger: 0.1, scrollTrigger: { trigger: ".gift-actions", start: "top 90%", once: true } });
   }
 

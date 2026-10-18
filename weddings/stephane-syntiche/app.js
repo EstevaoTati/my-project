@@ -361,7 +361,7 @@
 
   function renderRsvp() {
     var dl = C.rsvp && C.rsvp.deadline;
-    $("#rsvpDeadline").textContent = dl ? t("rsvp.deadline", { date: fmtDate(dl) }) : "";
+    $("#rsvpDeadline").textContent = dl ? t("rsvp.deadline", { date: fmtDate(dl) }) : t("rsvp.asap");
     if (C.rsvp && C.rsvp.enabled === false) return showPane("soon");
     if (!invite) {
       if (!backend) return showPane("soon");
