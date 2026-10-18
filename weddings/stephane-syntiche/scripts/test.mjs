@@ -47,6 +47,9 @@ await test("content: unknown facts stay null — nothing invented", () => {
   assert.equal(c.rsvp.deadline, null);
   assert.equal(c.gifts.registry_url, null);
   assert.equal(c.gifts.fund_url, null);
+  assert.equal(c.gifts.bank_details.en, null, "banking details are the couple's to publish");
+  assert.match(c.gifts.message.en, /monetary contribution/);
+  assert.match(c.gifts.message.fr, /contribution financière/);
   assert.deepEqual(c.program, []);
   for (const s of Object.values(c.scenes)) assert.ok(c.photos.some((p) => p.id === s), "scene photo exists: " + s);
 });
@@ -118,6 +121,24 @@ await test("RSVP: closed after the deadline, locked when updates are off", async
   assert.equal((await post("/api/invite", { action: "rsvp", token: g.token, attending: false })).body.error, "rsvp_closed");
   await admin({ action: "settings.save", content: { rsvp: { deadline: null, allow_update: false } } });
   assert.equal((await post("/api/invite", { action: "rsvp", token: g.token, attending: false })).body.error, "rsvp_locked");
+  await admin({ action: "settings.save", content: {} });
+});
+await test("open RSVP: validated, filed under Online RSVP, one reply per email", async () => {
+  const send = (b) => post("/api/invite", { action: "reply", elapsed: 9000, lang: "en", ...b });
+  assert.equal((await send({ name: "", party: "single", email: "a@b.co", attending: true })).body.error, "name_required");
+  assert.equal((await send({ name: "Ana", party: "couple", email: "a@b.co", attending: true })).body.error, "partner_required");
+  assert.equal((await send({ name: "Ana", party: "single", email: "nope", attending: true })).body.error, "email_invalid");
+  let r = await send({ name: "Ana Lopes", party: "couple", partner: "Rui Lopes", email: "Ana@Example.com", attending: true, message: "So happy!" });
+  assert.equal(r.status, 200); assert.equal(r.body.seats, 2); assert.equal(r.body.updated, false);
+  r = await send({ name: "Ana Lopes", party: "single", email: "ana@example.com", attending: false });
+  assert.equal(r.body.updated, true, "same email updates the earlier reply");
+  const rows = (await admin({ action: "guests.list" })).body.guests.filter((g) => g.email === "ana@example.com");
+  assert.equal(rows.length, 1); assert.equal(rows[0].group_name, "Online RSVP"); assert.equal(rows[0].rsvp_status, "declined");
+  const before = tables.wed_invitations.length;
+  await send({ name: "Bot", party: "single", email: "bot@x.co", attending: true, website: "spam" });
+  assert.equal(tables.wed_invitations.length, before, "honeypot stored nothing");
+  await admin({ action: "settings.save", content: { rsvp: { open: false } } });
+  assert.equal((await send({ name: "Late", party: "single", email: "late@x.co", attending: true })).body.error, "rsvp_disabled");
   await admin({ action: "settings.save", content: {} });
 });
 await test("content: dashboard edits are merged over the defaults", async () => {
@@ -206,7 +227,7 @@ if (process.argv.includes("--e2e")) {
     const p = await page({ viewport: { width: 1280, height: 860 } });
     await p.goto(url + "/?invite=" + fresh.token, { waitUntil: "networkidle" });
     await p.evaluate(() => document.querySelector("#rsvp").scrollIntoView());
-    await p.check("[name=attending][value=yes]");
+    await p.check("#rsvpForm [name=attending][value=yes]");
     await p.click("#addAttendee");
     await p.fill("#attendeeList li:nth-child(3) [name=att-name]", "Petit Mbuyi");
     assert.equal(await p.isHidden("#addAttendee"), true);
@@ -217,11 +238,35 @@ if (process.argv.includes("--e2e")) {
     assert.match(await p.textContent("#doneTitle"), /can't wait/);
     assert.deepEqual(p.errors, []);
   });
+  await test("open RSVP in the browser: couple reply, confirmation, nothing to hunt for", async () => {
+    const p = await page();
+    await p.goto(url + "/#rsvp", { waitUntil: "networkidle" });
+    await p.waitForSelector("#openForm:not([hidden])");
+    await p.fill("#openName", "Marie Kabila");
+    await p.check("#openForm [name=party][value=couple]");
+    assert.equal(await p.isVisible("#partnerField"), true);
+    await p.click("#openForm button[type=submit]");
+    assert.match(await p.textContent("#openForm .form-error"), /partner|conjoint/i);
+    await p.fill("#openPartner", "Paul Kabila");
+    await p.fill("#openEmail", "marie@example.com");
+    await p.check("#openForm [name=attending][value=yes]");
+    await p.waitForTimeout(3100);   // the form refuses replies faster than a human
+    await p.click("#openForm button[type=submit]");
+    await p.waitForSelector("[data-pane=done]:not([hidden])");
+    assert.match(await p.textContent("#doneSummary"), /Marie Kabila, Paul Kabila/);
+    assert.deepEqual(p.errors, []);
+  });
+  await test("the date is written in full", async () => {
+    const p = await page();
+    await p.goto(url + "/", { waitUntil: "networkidle" });
+    const lang = await p.evaluate(() => document.documentElement.lang);
+    assert.match(await p.textContent(".hero-meta"), lang === "fr" ? /Samedi 13 mars 2027/ : /Saturday, March 13, 2027/);
+  });
   for (const mode of [{ reduced: true, name: "reduced motion" }, { blockGsap: true, name: "GSAP failed to load" }]) {
     await test(`${mode.name}: every chapter is still visible`, async () => {
       const p = await page(mode);
       await p.goto(url + "/", { waitUntil: "networkidle" });
-      for (const sel of ["#heroNames", "#soulsTitle", "#storyTitle", ".milestone .ms-title", "#promiseTitle", "#revealTitle", ".reveal-date", "#cdTitle", ".event-card", "#rsvpTitle", "#giftsTitle", ".gal-item", "#faqTitle", "#finaleNames"]) {
+      for (const sel of ["#heroNames", "#revealTitle", ".reveal-date", "#cdTitle", ".event-card", "#rsvpTitle", "#openForm", "#giftsTitle", ".gift-bank-title", "#faqTitle", "#finaleNames"]) {
         await p.evaluate((s) => document.querySelector(s).scrollIntoView({ block: "center" }), sel);
         await p.waitForTimeout(80);
         const op = await p.evaluate((s) => { let e = document.querySelector(s), o = 1; while (e) { o *= +getComputedStyle(e).opacity; e = e.parentElement; } return o; }, sel);

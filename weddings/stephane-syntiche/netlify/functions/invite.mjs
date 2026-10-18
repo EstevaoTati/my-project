@@ -6,11 +6,69 @@
 // answer, so the endpoint cannot be used to discover which codes exist.
 import {
   json, clientIp, SlidingWindow, originRejected, readJson, audit, clamp,
-  dbConfigured, db, verifyInvite, loadContent, rsvpClosed,
+  dbConfigured, db, verifyInvite, loadContent, rsvpClosed, newCode,
 } from "./_lib.mjs";
 
 const OPEN_RATE = new SlidingWindow({ windowMs: 60_000, max: 30 });
 const RSVP_RATE = new SlidingWindow({ windowMs: 3_600_000, max: 20 });
+const ONLINE_GROUP = "Online RSVP";
+const looksLikeEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+
+/**
+ * An RSVP from the open form — no personal link. The reply is filed as an
+ * invitation in the "Online RSVP" group so the dashboard counts it like any
+ * other. One reply per email address: answering again with the same email
+ * updates the earlier reply instead of adding a second party.
+ */
+async function openReply(req, body, ip) {
+  const content = await loadContent();
+  if (content.rsvp?.enabled === false || content.rsvp?.open === false) return json(409, { error: "rsvp_disabled" });
+  if (rsvpClosed(content)) return json(409, { error: "rsvp_closed" });
+
+  // Silent bot filter: a honeypot and a minimum time on the form.
+  const trapped = typeof body.website === "string" && body.website.trim() !== "";
+  const tooFast = Number.isFinite(Number(body.elapsed)) && Number(body.elapsed) < 3000;
+  if (trapped || tooFast) { audit("invite.open_bot_filtered", { ip }); return json(200, { ok: true, status: "attending" }); }
+
+  const name = clamp(body.name, 120);
+  const couple = body.party === "couple";
+  const partner = couple ? clamp(body.partner, 120) : "";
+  const email = clamp(body.email, 160).toLowerCase();
+  if (!name) return json(400, { error: "name_required" });
+  if (couple && !partner) return json(400, { error: "partner_required" });
+  if (!looksLikeEmail(email)) return json(400, { error: "email_invalid" });
+  if (typeof body.attending !== "boolean") return json(400, { error: "attending_required" });
+
+  const names = couple ? [name, partner] : [name];
+  const now = new Date().toISOString();
+  const row = {
+    label: names.join(" & "),
+    greeting: name.split(/\s+/)[0],
+    kind: couple ? "couple" : "individual",
+    party: names,
+    max_guests: names.length,
+    lang: body.lang === "en" ? "en" : "fr",
+    group_name: ONLINE_GROUP,
+    email,
+    rsvp_status: body.attending ? "attending" : "declined",
+    rsvp_seats: body.attending ? names.length : 0,
+    rsvp_attendees: body.attending ? names.map((n) => ({ name: n, meal: null, dietary: null })) : [],
+    rsvp_message: clamp(body.message, 1000) || null,
+    rsvp_at: now,
+    opened_at: now,
+    updated_at: now,
+  };
+  try {
+    const existing = (await db.select("wed_invitations", `group_name=eq.${encodeURIComponent(ONLINE_GROUP)}&email=eq.${encodeURIComponent(email)}&select=id,rsvp_status&limit=1`))?.[0];
+    if (existing && content.rsvp?.allow_update === false) return json(409, { error: "rsvp_locked" });
+    if (existing) await db.update("wed_invitations", `id=eq.${existing.id}`, row);
+    else await db.insert("wed_invitations", { ...row, code: newCode() });
+    audit("invite.open_rsvp", { ip, status: row.rsvp_status, seats: row.rsvp_seats, updated: Boolean(existing) });
+    return json(200, { ok: true, status: row.rsvp_status, seats: row.rsvp_seats, names, updated: Boolean(existing) });
+  } catch {
+    return json(503, { error: "unavailable" });
+  }
+}
 
 /** The guest-visible projection of an invitation row. */
 export function guestView(row) {
@@ -48,9 +106,11 @@ export default async (req) => {
   if (parsed.invalid) return json(400, { error: "invalid_json" });
   const body = parsed.value || {};
 
-  const limiter = body.action === "rsvp" ? RSVP_RATE : OPEN_RATE;
+  const limiter = body.action === "rsvp" || body.action === "reply" ? RSVP_RATE : OPEN_RATE;
   const wait = limiter.check(ip);
   if (wait) return json(429, { error: "rate_limited" }, { "retry-after": String(wait) });
+
+  if (body.action === "reply") return openReply(req, body, ip);
 
   const code = verifyInvite(body.token);
   if (!code) { audit("invite.bad_token", { ip }); return json(404, { error: "invitation_not_found" }); }

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Manrope:wght@400;500;600&family=Pinyon+Script&display=swap">
-  <link rel="preload" as="image" href="assets/photos/embrace-at-table-1400.webp" imagesrcset="assets/photos/embrace-at-table-720.webp 720w, assets/photos/embrace-at-table-1400.webp 1400w" imagesizes="100vw">
+  <link rel="preload" as="image" href="assets/photos/black-tie-1400.webp" imagesrcset="assets/photos/black-tie-720.webp 720w, assets/photos/black-tie-1400.webp 1400w" imagesizes="100vw">
   <link rel="stylesheet" href="wedding.css?v=1">
 </head>
 <body>
@@ -29,11 +29,12 @@
       <p class="intro-line" data-intro="1" data-i18n="intro.line1">Some stories are written in the stars.</p>
       <p class="intro-line" data-intro="2" data-i18n="intro.line2">Ours was written in love.</p>
       <div class="intro-title" data-intro="3">
+        <div class="intro-photo"><img data-scene="hero" alt="" fetchpriority="high"></div>
         <p id="introNames" class="names names--xl"><span class="n-a" data-couple="a">Stephane</span><span class="amp" aria-label="and">&amp;</span><span class="n-b" data-couple="b">Syntiche</span></p>
         <p class="eyebrow eyebrow--gold" data-i18n="hero.subtitle">The Beginning of Forever</p>
-        <p class="intro-meta"><span data-fill="dateLong">March 13, 2027</span><span class="dot" aria-hidden="true">·</span><span data-fill="placeShort">Sumner, Washington</span></p>
+        <p class="intro-meta"><span data-fill="dateFull">Saturday, March 13, 2027</span><span class="dot" aria-hidden="true">·</span><span data-fill="placeShort">Sumner, Washington</span></p>
         <p class="intro-welcome" data-fill="welcome" hidden></p>
-        <button type="button" class="btn btn--gold btn--lg" id="enterBtn" data-i18n="intro.enter">Enter our love story</button>
+        <button type="button" class="btn btn--gold btn--lg" id="enterBtn" data-i18n="intro.enter">Discover our wedding</button>
       </div>
     </div>
     <button type="button" class="intro-skip" id="skipBtn" data-i18n="intro.skip">Skip intro</button>
@@ -46,9 +47,8 @@
     </a>
     <nav class="nav-links" id="navLinks" aria-label="Main">
       <a href="#home" data-i18n="nav.home">Home</a>
-      <a href="#story" data-i18n="nav.story">Our Story</a>
       <a href="#wedding" data-i18n="nav.wedding">The Wedding</a>
-      <a href="#gallery" data-i18n="nav.gallery">Gallery</a>
+      <a href="#program" data-i18n="nav.program">Program</a>
       <a href="#gifts" data-i18n="nav.gifts">Gifts</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </nav>
@@ -80,45 +80,14 @@
       <div class="hero-copy">
         <h1 id="heroNames" class="names names--hero"><span data-couple="a">Stephane</span><span class="amp">&amp;</span><span data-couple="b">Syntiche</span></h1>
         <p class="hero-sub" data-i18n="hero.subtitle">The Beginning of Forever</p>
-        <p class="hero-meta"><span data-fill="dateLong">March 13, 2027</span><span class="rule" aria-hidden="true"></span><span data-fill="placeLong">Sumner, Washington, USA</span></p>
+        <p class="hero-meta"><span data-fill="dateFull">Saturday, March 13, 2027</span><span class="rule" aria-hidden="true"></span><span data-fill="placeLong">Sumner, Washington, USA</span></p>
         <p class="hero-welcome" data-fill="welcome" hidden></p>
       </div>
-      <a class="scroll-cue" href="#couple"><span data-i18n="hero.scroll">Scroll</span><i aria-hidden="true"></i></a>
+      <a class="scroll-cue" href="#reveal"><span data-i18n="hero.scroll">Scroll</span><i aria-hidden="true"></i></a>
     </section>
 
-    <!-- ===================================== 02 TWO SOULS, ONE DESTINY ==== -->
-    <section id="couple" class="scene souls" aria-labelledby="soulsTitle">
-      <div class="souls-pin">
-        <p class="eyebrow eyebrow--gold" data-i18n="souls.chapter">Chapter II</p>
-        <span class="souls-line" aria-hidden="true"></span>
-        <div class="souls-copy">
-          <h2 id="soulsTitle" class="display" data-i18n="souls.title">Two souls. One destiny.</h2>
-          <p class="lede" data-i18n="souls.sub">A beautiful journey toward forever.</p>
-        </div>
-      </div>
-    </section>
 
-    <!-- ============================================ 03 OUR LOVE STORY ==== -->
-    <section id="story" class="scene story light" aria-labelledby="storyTitle">
-      <header class="section-head">
-        <p class="eyebrow" data-i18n="story.chapter">Chapter III · Our Love Story</p>
-        <h2 id="storyTitle" class="display" data-i18n="story.title">Every love story has a beginning.</h2>
-        <span class="flourish" aria-hidden="true"></span>
-      </header>
-      <ol class="story-list" id="storyList"></ol>
-    </section>
 
-    <!-- ================================================ 04 THE PROMISE ==== -->
-    <section id="promise" class="scene promise" aria-labelledby="promiseTitle">
-      <div class="promise-pin">
-        <div class="promise-frame"><img data-scene="promise" alt="" loading="lazy" decoding="async"></div>
-        <div class="promise-light" aria-hidden="true"></div>
-        <div class="promise-copy">
-          <p class="eyebrow eyebrow--gold" data-i18n="promise.chapter">Chapter IV</p>
-          <h2 id="promiseTitle" class="display display--italic" data-i18n="promise.title">Forever starts with a promise.</h2>
-        </div>
-      </div>
-    </section>
 
     <!-- ========================================= 05 THE WEDDING REVEAL ==== -->
     <section id="reveal" class="scene reveal" aria-labelledby="revealTitle">
@@ -131,21 +100,16 @@
         <span class="orn orn--4 orn--pearl"></span><span class="orn orn--5"></span><span class="orn orn--6 orn--crystal"></span>
       </div>
       <div class="reveal-inner">
-        <p class="eyebrow eyebrow--gold" data-i18n="reveal.chapter">Chapter V · The Reveal</p>
-        <div class="crystal" aria-hidden="true">
-          <div class="crystal-img"><img data-scene="reveal" alt="" loading="lazy" decoding="async"></div>
-          <span class="crystal-shine"></span>
-        </div>
+        <p class="eyebrow eyebrow--gold" data-i18n="reveal.chapter">Save the date</p>
         <h2 id="revealTitle" class="display display--xl" data-i18n="reveal.title">We are getting married.</h2>
-        <p class="reveal-date" data-fill="dateLong">March 13, 2027</p>
+        <p class="reveal-date" data-fill="dateFull">Saturday, March 13, 2027</p>
         <p class="reveal-place" data-fill="placeLong">Sumner, Washington, USA</p>
         <p class="lede" data-i18n="reveal.sub">Join us as we begin forever.</p>
       </div>
     </section>
 
     <!-- ===================================================== COUNTDOWN ==== -->
-    <section id="countdown" class="scene countdown" aria-labelledby="cdTitle">
-      <div class="countdown-bg" aria-hidden="true"><img data-scene="countdown" alt="" loading="lazy" decoding="async"></div>
+    <section id="countdown" class="scene countdown light" aria-labelledby="cdTitle">
       <div class="countdown-inner">
         <h2 id="cdTitle" class="display" data-i18n="cd.title">Counting down to forever.</h2>
         <div class="cd" id="cd" role="timer" aria-live="off">
@@ -192,7 +156,7 @@
           <p class="inv-small" data-i18n="inv.cordially">You are cordially invited</p>
           <p class="inv-small" data-i18n="inv.celebrate">to celebrate the wedding of</p>
           <h2 id="invTitle" class="names names--card"><span data-couple="a">Stephane</span><span class="amp">&amp;</span><span data-couple="b">Syntiche</span></h2>
-          <p class="inv-date" data-fill="dateLong">March 13, 2027</p>
+          <p class="inv-date" data-fill="dateFull">Saturday, March 13, 2027</p>
           <p class="inv-small" data-fill="placeShort">Sumner, Washington</p>
           <p class="inv-personal" id="invPersonal" hidden></p>
           <a class="btn btn--navy btn--sm" href="#rsvp" data-i18n="inv.respond">Respond</a>
@@ -215,7 +179,31 @@
       </header>
 
       <div class="rsvp-card" id="rsvpCard" aria-live="polite">
-        <!-- No invitation on this device -->
+        <!-- Open reply: anyone invited can answer here -->
+        <form class="rsvp-pane rsvp-form" data-pane="open" id="openForm" novalidate hidden>
+          <div class="reply-head"><span class="eyebrow" data-i18n="rsvp.yourReply">Your reply</span><span class="mono">S<em>&amp;</em>S</span></div>
+          <label class="field"><span><span data-i18n="rsvp.fullName">Full name</span> *</span><input id="openName" name="name" maxlength="120" autocomplete="name" required></label>
+          <fieldset class="choice choice--plain">
+            <legend><span data-i18n="rsvp.invitation">Your invitation</span> *</legend>
+            <label class="choice-opt"><input type="radio" name="party" value="single" required><span><strong data-i18n="rsvp.single">Single</strong></span></label>
+            <label class="choice-opt"><input type="radio" name="party" value="couple"><span><strong data-i18n="rsvp.couple">Couple</strong></span></label>
+          </fieldset>
+          <p class="field-hint" data-i18n="rsvp.partyHint">Please reply for yourself, or for you and your partner.</p>
+          <label class="field" id="partnerField" hidden><span><span data-i18n="rsvp.partner">Your partner's full name</span> *</span><input id="openPartner" name="partner" maxlength="120" autocomplete="off"></label>
+          <label class="field"><span><span data-i18n="rsvp.email">Email address</span> *</span><input id="openEmail" name="email" type="email" maxlength="160" autocomplete="email" required></label>
+          <fieldset class="choice choice--plain">
+            <legend><span data-i18n="rsvp.attendingQ">Will you be attending?</span> *</legend>
+            <label class="choice-opt"><input type="radio" name="attending" value="yes" required><span><strong>✓ <b data-i18n="rsvp.accepts">Joyfully accepts</b></strong></span></label>
+            <label class="choice-opt"><input type="radio" name="attending" value="no"><span><strong>✕ <b data-i18n="rsvp.declines">Regretfully declines</b></strong></span></label>
+          </fieldset>
+          <label class="field"><span><span data-i18n="rsvp.messageCouple">Message to the couple</span> <small data-i18n="rsvp.optional">(optional)</small></span><textarea id="openMessage" name="message" rows="4" maxlength="1000" data-i18n-attr="placeholder" data-i18n="rsvp.littleLove" placeholder="Leave a little love…"></textarea></label>
+          <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+          <button class="btn btn--navy btn--lg btn--block" type="submit" data-i18n="rsvp.sendRsvp">Send RSVP</button>
+          <p class="form-error" role="alert" hidden></p>
+          <p class="form-alt"><button type="button" class="link-btn" id="haveCode" data-i18n="rsvp.haveCode">I have a personal invitation code</button></p>
+        </form>
+
+        <!-- Personal invitation code -->
         <div class="rsvp-pane" data-pane="code" hidden>
           <p data-i18n="rsvp.needLink">Each invitation carries a personal link. Open it from the message you received — or enter the code printed on your card.</p>
           <form class="code-form" id="codeForm" novalidate>
@@ -226,6 +214,7 @@
             <button class="btn btn--gold" type="submit" data-i18n="rsvp.codeGo">Open my invitation</button>
             <p class="form-error" role="alert" hidden></p>
           </form>
+          <p class="form-alt"><button type="button" class="link-btn" id="backToOpen" data-i18n="rsvp.backToOpen">Reply without a code</button></p>
         </div>
 
         <!-- Loading / unavailable -->
@@ -274,48 +263,19 @@
         <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i><i class="spark s4"></i>
       </div>
       <header class="section-head">
-        <h2 id="giftsTitle" class="display" data-i18n="gifts.title">A gift of love</h2>
-        <p class="lede" data-i18n="gifts.sub">Your presence is our greatest gift.</p>
+        <p class="eyebrow" data-i18n="gifts.eyebrow">Gifts</p>
+        <h2 id="giftsTitle" class="display"><span data-i18n="gifts.title1">Your presence</span> <em data-i18n="gifts.title2">is the gift</em></h2>
         <p class="gift-msg" id="giftMsg"></p>
       </header>
+      <div class="gift-bank">
+        <h3 class="gift-bank-title" data-i18n="gifts.bankTitle">Banking details</h3>
+        <p class="gift-bank-text" id="bankDetails"></p>
+      </div>
       <div class="gift-actions" id="giftActions"></div>
     </section>
 
-    <!-- ====================================================== GALLERY ==== -->
-    <section id="gallery" class="scene gallery" aria-labelledby="galTitle">
-      <header class="section-head">
-        <p class="eyebrow eyebrow--gold" data-i18n="gal.eyebrow">Gallery</p>
-        <h2 id="galTitle" class="display" data-i18n="gal.title">Moments we hold close.</h2>
-      </header>
-      <div class="gal-filters" role="group" aria-label="Filter" id="galFilters"></div>
-      <ul class="gal-grid" id="galGrid"></ul>
-    </section>
 
-    <dialog class="lightbox" id="lightbox" aria-label="Photo">
-      <figure><img alt=""><figcaption></figcaption></figure>
-      <button type="button" class="lb-btn lb-prev" data-i18n-attr="aria-label" data-i18n="gal.prev" aria-label="Previous">‹</button>
-      <button type="button" class="lb-btn lb-next" data-i18n-attr="aria-label" data-i18n="gal.next" aria-label="Next">›</button>
-      <button type="button" class="lb-btn lb-close" data-i18n-attr="aria-label" data-i18n="gal.close" aria-label="Close">×</button>
-    </dialog>
 
-    <!-- ==================================================== GUESTBOOK ==== -->
-    <section id="guestbook" class="scene guestbook light light--warm" aria-labelledby="gbTitle">
-      <header class="section-head">
-        <p class="eyebrow" data-i18n="gb.eyebrow">Guestbook</p>
-        <h2 id="gbTitle" class="display" data-i18n="gb.title">Words from the heart.</h2>
-        <p class="lede" data-i18n="gb.sub">Congratulations, blessings, wishes — they will stay with us forever.</p>
-      </header>
-      <ul class="gb-cards" id="gbCards"></ul>
-      <form class="gb-form" id="gbForm" novalidate>
-        <label class="field"><span data-i18n="gb.name">Your name</span><input name="name" maxlength="80" required autocomplete="name"></label>
-        <label class="field"><span data-i18n="gb.message">Your message</span><textarea name="message" rows="4" maxlength="600" required></textarea></label>
-        <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
-        <button class="btn btn--navy" type="submit" data-i18n="gb.send">Leave a message</button>
-        <p class="form-note" data-i18n="gb.moderated">Messages appear once the couple has read them.</p>
-        <p class="form-error" role="alert" hidden></p>
-        <p class="form-ok" role="status" hidden data-i18n="gb.thanks">Thank you. Your words will appear here once read by the couple.</p>
-      </form>
-    </section>
 
     <!-- ========================================================== FAQ ==== -->
     <section id="faq" class="scene faq light" aria-labelledby="faqTitle">
@@ -334,7 +294,7 @@
       <div class="finale-inner">
         <h2 id="finaleNames" class="names names--hero"><span data-couple="a">Stephane</span><span class="amp">&amp;</span><span data-couple="b">Syntiche</span></h2>
         <p class="eyebrow eyebrow--gold" data-i18n="finale.begins">Our forever begins</p>
-        <p class="finale-meta"><span data-fill="dateLong">March 13, 2027</span><span class="dot" aria-hidden="true">·</span><span data-fill="placeShort">Sumner, Washington</span></p>
+        <p class="finale-meta"><span data-fill="dateFull">Saturday, March 13, 2027</span><span class="dot" aria-hidden="true">·</span><span data-fill="placeShort">Sumner, Washington</span></p>
         <p class="display display--italic finale-msg" data-i18n="finale.msg">We can't wait to celebrate with you.</p>
         <a class="btn btn--gold btn--lg btn--glow" href="#rsvp" data-i18n="finale.cta">Confirm your presence</a>
       </div>
@@ -343,7 +303,7 @@
 
   <footer class="footer">
     <span class="mono mono--lg">S<em>&amp;</em>S</span>
-    <p data-fill="dateLong">March 13, 2027</p>
+    <p data-fill="dateFull">Saturday, March 13, 2027</p>
     <p class="footer-credit" id="photoCredit" hidden></p>
     <p class="footer-privacy" data-i18n="footer.privacy">Your details are used only to organise this wedding, and are deleted after it.</p>
   </footer>

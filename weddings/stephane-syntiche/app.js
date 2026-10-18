@@ -19,6 +19,8 @@
   var token = null;        // CODE.SIG
   var backend = true;      // false once the API says "not configured"
   var rsvpEditing = false;
+  var codeMode = false;    // guest chose "I have a personal invitation code"
+  var openResult = null;   // last reply sent through the open form
 
   // ------------------------------------------------------------- helpers --
   function h(tag, attrs, kids) {
@@ -123,31 +125,7 @@
   function scenes() {
     $$("img[data-scene]").forEach(function (img) {
       var p = photo(C.scenes[img.getAttribute("data-scene")]);
-      setImg(img, p, img.closest(".soul, .crystal") ? "(min-width: 900px) 40vw, 80vw" : "100vw");
-    });
-  }
-
-  var STORY_FX = ["curtain", "focus", "slide", "iris", "zoom"];
-  function renderStory() {
-    var list = $("#storyList"); list.textContent = "";
-    var roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
-    C.story.forEach(function (m, i) {
-      var media = null;
-      if (m.photo) {
-        var p = photo(m.photo), img = h("img", { alt: L(p.alt) || "", loading: "lazy", decoding: "async" });
-        setImg(img, p, "(min-width: 900px) 45vw, 92vw");
-        media = h("div", { class: "ms-media" }, [h("div", { class: "ms-img" }, [img])]);
-      }
-      var text = L(m.text);
-      list.appendChild(h("li", { class: media ? "milestone" : "milestone milestone--text", "data-fx": STORY_FX[i % STORY_FX.length] }, [
-        media,
-        h("div", { class: "ms-copy" }, [
-          h("span", { class: "ms-num", "aria-hidden": "true", text: roman[i] || String(i + 1) }),
-          m.when ? h("p", { class: "eyebrow", text: fmtDate(m.when) }) : null,
-          h("h3", { class: "ms-title", text: L(m.title) }),
-          h("p", { class: text ? "ms-text" : "ms-text ms-text--pending", text: text || t("story.pending") })
-        ])
-      ]));
+      setImg(img, p, img.closest(".intro-photo") ? "(min-width: 900px) 30vw, 70vw" : "100vw");
     });
   }
 
@@ -237,57 +215,12 @@
     var g = C.gifts || {};
     $("#gifts").hidden = g.enabled === false;
     $("#giftMsg").textContent = L(g.message) || "";
+    // Banking details are the couple's to publish; until then, say when.
+    $("#bankDetails").textContent = L(g.bank_details) || t("gifts.bankSoon");
+    $("#bankDetails").classList.toggle("tba", !L(g.bank_details));
     var box = $("#giftActions"); box.textContent = "";
-    if (g.registry_url) box.appendChild(h("a", { class: "btn btn--navy", href: g.registry_url, target: "_blank", rel: "noopener", text: t("gifts.registry") }));
     if (g.fund_url) box.appendChild(h("a", { class: "btn btn--gold", href: g.fund_url, target: "_blank", rel: "noopener", text: L(g.fund_label) || t("gifts.fund") }));
-    box.appendChild(h("a", { class: "btn btn--ghost", href: "#guestbook", text: t("gifts.message") }));
-    if (!g.registry_url && !g.fund_url) box.appendChild(h("p", { class: "gift-soon", text: t("gifts.soon") }));
-  }
-
-  // ------------------------------------------------------------ gallery --
-  var galFilter = "all", galItems = [], lbIndex = 0;
-  function renderGallery() {
-    var cats = ["all"];
-    C.photos.forEach(function (p) { if (p.category && cats.indexOf(p.category) < 0) cats.push(p.category); });
-    var f = $("#galFilters"); f.textContent = "";
-    cats.forEach(function (c) {
-      f.appendChild(h("button", { type: "button", class: "chip", "aria-pressed": String(c === galFilter), text: t("gal." + c),
-        onclick: function () { galFilter = c; renderGallery(); } }));
-    });
-    var grid = $("#galGrid"); grid.textContent = "";
-    galItems = C.photos.filter(function (p) { return galFilter === "all" || p.category === galFilter; });
-    galItems.forEach(function (p, i) {
-      var img = h("img", { alt: L(p.alt) || "", loading: "lazy", decoding: "async" });
-      setImg(img, p, "(min-width: 1100px) 30vw, (min-width: 640px) 45vw, 92vw");
-      grid.appendChild(h("li", { class: "gal-item" }, [
-        h("button", { type: "button", "aria-label": t("gal.open", { alt: L(p.alt) || "" }), onclick: function () { openLightbox(i); } }, [img])
-      ]));
-    });
-    document.dispatchEvent(new Event("ss:gallery"));
-  }
-  function openLightbox(i) {
-    var lb = $("#lightbox"); lbIndex = (i + galItems.length) % galItems.length;
-    var p = galItems[lbIndex], img = $("img", lb);
-    setImg(img, p, "100vw"); img.alt = L(p.alt) || "";
-    $("figcaption", lb).textContent = L(p.alt) || "";
-    if (!lb.open) { lb.showModal ? lb.showModal() : lb.setAttribute("open", ""); }
-  }
-  function initLightbox() {
-    var lb = $("#lightbox");
-    $(".lb-prev", lb).addEventListener("click", function () { openLightbox(lbIndex - 1); });
-    $(".lb-next", lb).addEventListener("click", function () { openLightbox(lbIndex + 1); });
-    $(".lb-close", lb).addEventListener("click", function () { lb.close ? lb.close() : lb.removeAttribute("open"); });
-    lb.addEventListener("click", function (e) { if (e.target === lb) lb.close(); });
-    lb.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowLeft") openLightbox(lbIndex - 1);
-      if (e.key === "ArrowRight") openLightbox(lbIndex + 1);
-    });
-    var x0 = null;
-    lb.addEventListener("pointerdown", function (e) { x0 = e.clientX; });
-    lb.addEventListener("pointerup", function (e) {
-      if (x0 == null) return; var dx = e.clientX - x0; x0 = null;
-      if (Math.abs(dx) > 50) openLightbox(lbIndex + (dx < 0 ? 1 : -1));
-    });
+    if (g.registry_url) box.appendChild(h("a", { class: "btn btn--ghost", href: g.registry_url, target: "_blank", rel: "noopener", text: t("gifts.registry") }));
   }
 
   // ---------------------------------------------------------------- FAQ --
@@ -298,7 +231,7 @@
       case "where": return C.ceremony.venue && C.ceremony.address ? t("faq.auto.where", { venue: C.ceremony.venue, address: C.ceremony.address }) : t("faq.auto.whereTba");
       case "rsvp": return dl ? t("faq.auto.rsvpBy", { date: dl }) : t("faq.auto.rsvp");
       case "dress": return L(C.dress_code);
-      case "registry": return C.gifts && C.gifts.enabled !== false && (C.gifts.registry_url || C.gifts.fund_url) ? t("faq.auto.registry") : null;
+      case "registry": return C.gifts && C.gifts.enabled !== false ? t("faq.auto.registry") : null;
       case "update": return C.rsvp && C.rsvp.allow_update === false ? t("faq.auto.updateNo") : dl ? t("faq.auto.updateBy", { date: dl }) : t("faq.auto.update");
       case "contact":
         var c = C.contact || {};
@@ -430,7 +363,13 @@
     var dl = C.rsvp && C.rsvp.deadline;
     $("#rsvpDeadline").textContent = dl ? t("rsvp.deadline", { date: fmtDate(dl) }) : "";
     if (C.rsvp && C.rsvp.enabled === false) return showPane("soon");
-    if (!invite) return showPane(backend ? "code" : "soon");
+    if (!invite) {
+      if (!backend) return showPane("soon");
+      if (rsvpClosed()) return showPane("closed");
+      if (openResult && !rsvpEditing) return renderDone();
+      var openAllowed = !C.rsvp || C.rsvp.open !== false;
+      return showPane(codeMode || !openAllowed ? "code" : "open");
+    }
 
     var answered = invite.rsvp.status !== "pending";
     if (answered && !rsvpEditing) return renderDone();
@@ -451,16 +390,47 @@
   }
 
   function renderDone() {
-    var yes = invite.rsvp.status === "attending";
-    $("#doneTitle").textContent = t(yes ? "rsvp.yesDone" : "rsvp.noDone");
-    $("#doneSummary").textContent = yes
-      ? t("rsvp.summaryYes", { n: invite.rsvp.seats, names: invite.rsvp.attendees.map(function (a) { return a.name; }).join(", ") })
-      : t("rsvp.summaryNo");
+    var r = invite
+      ? { yes: invite.rsvp.status === "attending", seats: invite.rsvp.seats, names: invite.rsvp.attendees.map(function (a) { return a.name; }) }
+      : { yes: openResult.status === "attending", seats: openResult.seats, names: openResult.names };
+    $("#doneTitle").textContent = t(r.yes ? "rsvp.yesDone" : "rsvp.noDone");
+    $("#doneSummary").textContent = r.yes ? t("rsvp.summaryYes", { n: r.seats, names: r.names.join(", ") }) : t("rsvp.summaryNo");
     $("#changeRsvp").hidden = (C.rsvp && C.rsvp.allow_update === false) || rsvpClosed();
     showPane("done");
   }
 
+  function initOpenForm() {
+    var form = $("#openForm"), err = $(".form-error", form), started = Date.now();
+    form.addEventListener("change", function (e) {
+      if (e.target.name === "party") $("#partnerField").hidden = e.target.value !== "couple";
+    });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault(); err.hidden = true;
+      var party = $("[name=party]:checked", form), att = $("[name=attending]:checked", form);
+      var name = $("#openName").value.trim(), partner = $("#openPartner").value.trim(), email = $("#openEmail").value.trim();
+      var missing = !name ? "rsvp.nameMissing" : !party ? "rsvp.partyMissing" : party.value === "couple" && !partner ? "rsvp.partnerMissing"
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) ? "rsvp.emailMissing" : !att ? "rsvp.choose" : null;
+      if (missing) { err.textContent = t(missing); err.hidden = false; return; }
+      var btn = $("button[type=submit]", form); btn.disabled = true; btn.textContent = t("rsvp.sending");
+      api("/api/invite", { action: "reply", name: name, party: party.value, partner: partner, email: email, attending: att.value === "yes",
+        message: $("#openMessage").value, website: form.elements.website.value, elapsed: Date.now() - started, lang: lang() })
+        .then(function (r) {
+          if (r._status === 200 && r.ok) {
+            openResult = { status: r.status, seats: r.seats || 0, names: r.names || [name] };
+            rsvpEditing = false; renderDone(); $("[data-pane=done]").focus();
+            document.dispatchEvent(new CustomEvent("ss:rsvp", { detail: { attending: r.status === "attending" } }));
+          } else if (r._status === 501 || (!r.error && r._status >= 400)) { backend = false; renderRsvp(); }
+          else { err.textContent = errorText(r); err.hidden = false; }
+        })
+        .catch(function () { err.textContent = t("err.generic"); err.hidden = false; })
+        .then(function () { btn.disabled = false; btn.textContent = t("rsvp.sendRsvp"); });
+    });
+    $("#haveCode").addEventListener("click", function () { codeMode = true; renderRsvp(); });
+    $("#backToOpen").addEventListener("click", function () { codeMode = false; renderRsvp(); });
+  }
+
   function initRsvp() {
+    initOpenForm();
     var form = $("#rsvpForm"), err = $(".form-error", form);
     form.addEventListener("change", function (e) {
       if (e.target.name === "attending") $("#attendeesBox").hidden = e.target.value !== "yes";
@@ -506,35 +476,6 @@
     });
   }
 
-  // ------------------------------------------------------------ guestbook --
-  function loadGuestbook() {
-    api("/api/guestbook").then(function (r) { drawGuestbook(r.entries || []); }).catch(function () { drawGuestbook([]); });
-  }
-  function drawGuestbook(entries) {
-    var ul = $("#gbCards"); ul.textContent = "";
-    if (!entries.length) { ul.appendChild(h("li", { class: "gb-empty", text: t("gb.empty") })); return; }
-    entries.forEach(function (e) {
-      ul.appendChild(h("li", { class: "gb-card" }, [h("p", { class: "gb-msg", text: e.message }), h("p", { class: "gb-name", text: "— " + e.name })]));
-    });
-    document.dispatchEvent(new Event("ss:guestbook"));
-  }
-  function initGuestbook() {
-    var form = $("#gbForm"), err = $(".form-error", form), ok = $(".form-ok", form), started = Date.now();
-    form.addEventListener("submit", function (e) {
-      e.preventDefault(); err.hidden = true; ok.hidden = true;
-      var name = form.elements.name.value.trim(), msg = form.elements.message.value.trim();
-      if (!name || msg.length < 2) { err.textContent = t("gb.required"); err.hidden = false; return; }
-      var btn = $("button[type=submit]", form); btn.disabled = true;
-      api("/api/guestbook", { name: name, message: msg, website: form.elements.website.value, elapsed: Date.now() - started, token: token, lang: lang() })
-        .then(function (r) {
-          if (r._status === 200) { ok.hidden = false; form.elements.message.value = ""; }
-          else { err.textContent = errorText(r); err.hidden = false; }
-        })
-        .catch(function () { err.textContent = t("err.generic"); err.hidden = false; })
-        .then(function () { btn.disabled = false; });
-    });
-  }
-
   // ------------------------------------------------------- intro & nav --
   function initIntro() {
     var intro = $("#intro");
@@ -568,7 +509,7 @@
     window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
 
     if ("IntersectionObserver" in window) {
-      var map = { home: "home", couple: "home", story: "story", promise: "story", reveal: "wedding", countdown: "wedding", wedding: "wedding", program: "wedding", invitation: "wedding", rsvp: "rsvp", gifts: "gifts", gallery: "gallery", guestbook: "gifts", faq: "faq", finale: "rsvp" };
+      var map = { home: "home", reveal: "home", countdown: "home", wedding: "wedding", program: "program", invitation: "program", rsvp: "rsvp", gifts: "gifts", faq: "faq", finale: "rsvp" };
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
           if (!e.isIntersecting) return;
@@ -610,7 +551,7 @@
   }
 
   function renderAll() {
-    fills(); renderStory(); renderEvents(); renderProgram(); renderGifts(); renderGallery(); renderFaq(); credit();
+    fills(); renderEvents(); renderProgram(); renderGifts(); renderFaq(); credit();
     countdown(); personalize();
   }
 
@@ -622,11 +563,11 @@
 
   window.i18n.init();
   var introShown = initIntro();
-  initNav(); initLightbox(); initRsvp(); initGuestbook(); initEnvelope();
+  initNav(); initRsvp(); initEnvelope();
 
   loadContent().then(function (content) {
     C = content;
-    scenes(); renderAll(); initSound(); loadGuestbook();
+    scenes(); renderAll(); initSound();
     document.addEventListener("ss:lang", function () { renderAll(); document.dispatchEvent(new Event("ss:relayout")); });
     var tk = readInviteFromUrl();
     var ready = tk ? openInvite(tk) : Promise.resolve();

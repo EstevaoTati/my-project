@@ -44,3 +44,15 @@ Venues, addresses, times, RSVP deadline, dress code, story text, program,
 gift links, contact person, photographer credit, guest list. Confirm also
 that "Stephane" is the groom and "Syntiche" the bride: the "Two Souls" labels
 assume it.
+
+## Update 2026-10-18 — information first
+
+At the couple's request the site was cut back to wedding information and RSVP:
+the love story, Chapter II, the promise scene, the gallery and the guestbook
+are gone, and only two photographs remain (the black-tie portrait at the
+welcome, the embrace seen over Stephane's shoulder at the close). The date is
+written in full everywhere. RSVP gained an **open form** modelled on a
+reference site the couple liked: no personal link needed, one reply per email
+address. Trade-off accepted: anyone with the site link can reply and seat caps
+apply only to personal invitations; replies land in the dashboard's
+"Online RSVP" group for the couple to review. `rsvp.open` switches it off.

@@ -12,21 +12,23 @@ Wedding website, digital invitations and guest management for
 
 ## What's in it
 
-- **Eleven scenes**, each with its own motion technique: an arch-framed photo
-  that opens to full screen; two halves of one photograph drifting together;
-  five story milestones (curtain, blur-to-focus, slide, iris, Ken Burns); a
-  promise that dissolves into light; branches parting around a crystal sphere
-  as the date rises and gold falls; a live countdown; a self-drawing program
-  line; a golden envelope that opens on arrival; a finale that darkens into stars.
-- **Personal invitations.** Every invitation has a signed link and QR code. The
-  guest is greeted by name, in their language, and their RSVP form is
-  prefilled with their party and capped at the seats they were given.
-- **RSVP** with dietary needs and optional meal choices, a deadline, and
-  updates (both switchable).
+- **Wedding information first.** Welcome photo and names, the full date
+  (Saturday, March 13, 2027 · Sumner, Washington), a countdown, ceremony and
+  reception cards with calendar and directions, the program, a golden-envelope
+  invitation, gifts, FAQ, and a closing photo. Two photographs in total, chosen
+  by the couple.
+- **RSVP, two ways.** An open form on the page (name, single or couple,
+  email, attending, message): anyone with the site link can reply, and
+  replying again with the same email updates the earlier answer. Guests with a
+  personal link or QR code get a prefilled form capped at their seats.
+  Open replies appear in the dashboard under the group "Online RSVP".
+- **Gifts:** the couple's wording, asking for a monetary contribution because
+  they relocate abroad after the wedding. Banking details stay off the site
+  until the couple enters them in the dashboard.
 - **Dashboard:** live counts, guest list with search and filters, CSV
   import/export, share by WhatsApp / SMS / email / copied link / QR, optional
   automatic email (Resend), content editing in both languages, photo upload
-  and scene assignment, guestbook moderation, seating planner.
+  and scene assignment, seating planner.
 - **Door app:** scan the QR code (or type it), confirm the count, done.
   Duplicates are refused; only an admin can undo.
 
@@ -41,7 +43,7 @@ them in from the dashboard (*Content* tab → **Save & publish**).
 
 ```bash
 node scripts/dev-server.mjs          # http://localhost:8787 — fake database, dev keys printed
-node scripts/test.mjs --e2e          # 26 checks: unit, API, browser (phone + desktop)
+node scripts/test.mjs --e2e          # 29 checks: unit, API, browser (phone + desktop)
 ```
 
 No build step and no npm install: the functions use only Node built-ins, and
