@@ -9,6 +9,7 @@ import { categories } from '../data';
 import type { IconName } from '../icons';
 import { colors, fonts, radius, shadow } from '../theme';
 import { T, useT } from '../i18n';
+import { pro, useProMode } from '../proTheme';
 
 /**
  * Custom tab bar, because the design puts a raised circular action in the
@@ -49,6 +50,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const [showPost, setShowPost] = useState(false);
   const [posted, setPosted] = useState<string | null>(null);
+  // Mode Pro: anthracite bar, yellow for the active tab and for the centre
+  // action, which opens the provider's own space instead of posting a request
+  // — the central button follows the hat being worn.
+  const proMode = useProMode();
+  const activeColor = proMode ? pro.accent : colors.primary;
+  const idleColor = proMode ? pro.muted : colors.mutedForeground;
 
   // The professional profile has its own "Réserver maintenant" action bar
   // pinned to the bottom. Leaving the tab bar up stacks two bars on top of each
@@ -101,11 +108,17 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           <Icon
             name={focused ? meta.active : meta.inactive}
             size={24}
-            color={focused ? colors.primary : colors.mutedForeground}
+            color={focused ? activeColor : idleColor}
           />
-          {BADGED.has(routeName) && <View style={styles.badge} />}
+          {BADGED.has(routeName) && <View style={[styles.badge, proMode && styles.badgePro]} />}
         </View>
-        <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>
+        <Text
+          style={[
+            styles.label,
+            focused ? styles.labelActive : styles.labelInactive,
+            proMode && { color: focused ? activeColor : idleColor },
+          ]}
+        >
           {t(meta.label)}
         </Text>
       </Pressable>
@@ -116,21 +129,32 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <>
-      <View style={[styles.bar, { paddingBottom: Math.max(12, insets.bottom) }]}>
+      <View style={[styles.bar, proMode && styles.barPro, { paddingBottom: Math.max(12, insets.bottom) }]}>
         {routes.slice(0, 2).map((r, i) => renderTab(r.key, r.name, i))}
 
         <View style={styles.fabSlot}>
-          <Pressable
-            onPress={() => {
-              setPosted(null);
-              setShowPost(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('Publier une demande')}
-            style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-          >
-            <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
-          </Pressable>
+          {proMode ? (
+            <Pressable
+              onPress={() => navigation.navigate('Profil', { screen: 'EspacePrestataire', initial: false })}
+              accessibilityRole="button"
+              accessibilityLabel={t('Mon Espace Pro')}
+              style={({ pressed }) => [styles.fab, styles.fabPro, pressed && styles.fabPressed]}
+            >
+              <Icon name="mdi:wrench" size={26} color={pro.accentText} />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setPosted(null);
+                setShowPost(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('Publier une demande')}
+              style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+            >
+              <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
+            </Pressable>
+          )}
         </View>
 
         {routes.slice(2).map((r, i) => renderTab(r.key, r.name, i + 2))}
@@ -193,6 +217,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
   },
+  barPro: { backgroundColor: pro.surface, borderTopColor: pro.line },
   tab: { alignItems: 'center', gap: 4, width: 64 },
   label: { fontSize: 10 },
   labelActive: { fontFamily: fonts.sansBold, color: colors.primary },
@@ -208,6 +233,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.card,
   },
+  badgePro: { borderColor: pro.surface },
   // Lifts the action above the bar the way the design does.
   fabSlot: { width: 64, alignItems: 'center' },
   fab: {
@@ -223,6 +249,7 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
     ...shadow.primaryGlow,
   },
+  fabPro: { backgroundColor: pro.accent, borderColor: pro.ground },
   fabPressed: { opacity: 0.9 },
   postHint: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginBottom: 12 },
   postRow: {

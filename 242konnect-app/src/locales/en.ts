@@ -612,8 +612,8 @@ export const en: Record<string, string> = {
     'Later — I will get a code by e-mail at every sign-in.',
   'Ce code est nécessaire pour finaliser votre compte.':
     'This code is required to finish setting up your account.',
-  "Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.":
-    'Your profile is saved on our servers and follows you from one device to the next. Your password stays on this phone: to sign in elsewhere, use account recovery.',
+  'Votre profil et votre mot de passe sont enregistrés sur nos serveurs : connectez-vous sur un autre appareil avec votre adresse e-mail, votre mot de passe puis votre code confidentiel.':
+    'Your profile and password are saved on our servers: on another device, sign in with your e-mail address, your password and then your PIN.',
   "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier.":
     'You offer services and you can book them too: the home screen, search and bookings work exactly as they do for a particulier.',
   'Adresse e-mail': 'E-mail address',
@@ -1281,4 +1281,11 @@ export const en: Record<string, string> = {
     'Sign in with another account',
   'Ce n’est pas vous ? Se connecter avec un autre compte':
     'Not you? Sign in with another account',
+  'Mon Espace Pro': 'My Pro space',
+  'Espace Pro': 'Pro space',
+  'Ouvrir mon tableau de bord': 'Open my dashboard',
+  'Tableau de bord': 'Dashboard',
+  'Métier non renseigné': 'Trade not set',
+  'Prestataire vérifié': 'Verified provider',
+  'Vérification en cours': 'Verification in progress',
 };

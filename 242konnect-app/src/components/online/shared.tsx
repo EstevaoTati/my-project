@@ -15,6 +15,7 @@ import { STAGES, type MissionStage } from '../../store';
 import type { SupabaseSession } from '../../supabase';
 import { colors, fonts, radius } from '../../theme';
 import { T, useT } from '../../i18n';
+import { pro } from '../../proTheme';
 
 /**
  * Loads something from the marketplace and keeps it fresh while the screen is
@@ -83,7 +84,7 @@ export function requestStatusLabel(r: RemoteRequest): string {
 }
 
 /** Commande §08: every step, with the server's own time for each. */
-export function StageTracker({ request }: { request: RemoteRequest }) {
+export function StageTracker({ request, proMode = false }: { request: RemoteRequest; proMode?: boolean }) {
   const t = useT();
   const current = STAGES.indexOf(request.stage ?? 'accepted');
   return (
@@ -92,10 +93,19 @@ export function StageTracker({ request }: { request: RemoteRequest }) {
         const at = request.stageAt[stage];
         return (
           <View key={stage} style={styles.trackerRow}>
-            <View style={[styles.dot, i <= current && styles.dotOn]} />
-            <Text style={[styles.trackerLabel, i <= current && styles.trackerLabelOn]}>{t(STAGE_LABELS[stage])}</Text>
+            <View style={[styles.dot, proMode && trackerPro.dot, i <= current && styles.dotOn, proMode && i <= current && trackerPro.dotOn]} />
+            <Text
+              style={[
+                styles.trackerLabel,
+                proMode && trackerPro.label,
+                i <= current && styles.trackerLabelOn,
+                proMode && i <= current && trackerPro.labelOn,
+              ]}
+            >
+              {t(STAGE_LABELS[stage])}
+            </Text>
             {!!at && (
-              <Text style={styles.trackerTime}>
+              <Text style={[styles.trackerTime, proMode && trackerPro.label]}>
                 {new Date(at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </Text>
             )}
@@ -293,4 +303,36 @@ const styles = StyleSheet.create({
   },
   sendOff: { opacity: 0.5 },
   sendLabel: { fontFamily: fonts.sansBold, fontSize: 14, color: colors.primaryForeground },
+});
+
+/**
+ * The same cards on the anthracite ground of Mode Pro (proTheme.ts), for the
+ * prestataire's own space. Layered over `onlineStyles` key by key.
+ */
+const onlinePro: Partial<Record<keyof typeof onlineStyles, object>> = {
+  card: { backgroundColor: pro.surface, borderColor: pro.line },
+  name: { color: pro.text },
+  sub: { color: pro.muted },
+  chip: { backgroundColor: pro.raised },
+  chipText: { color: pro.text },
+  line: { color: pro.muted },
+  body: { color: pro.text },
+  amount: { color: pro.accent },
+  ghost: { borderColor: pro.line },
+  ghostLabel: { color: pro.text },
+  solid: { backgroundColor: pro.accent },
+  solidLabel: { color: pro.accentText },
+  error: { color: pro.destructive },
+  sectionTitle: { color: pro.muted },
+};
+
+export const onlineStylesPro = Object.fromEntries(
+  Object.entries(onlineStyles).map(([key, value]) => [key, [value, onlinePro[key as keyof typeof onlineStyles]]])
+) as unknown as typeof onlineStyles;
+
+const trackerPro = StyleSheet.create({
+  dot: { backgroundColor: pro.line },
+  dotOn: { backgroundColor: pro.success },
+  label: { color: pro.muted },
+  labelOn: { color: pro.text },
 });

@@ -12,8 +12,9 @@ import { useAuth } from '../auth';
 import { ProviderInbox } from '../components/online/ProviderInbox';
 import { marketplaceEnabled } from '../marketplace';
 import type { AccountStackParamList } from '../navigation';
-import { colors, fonts, radius, shadow } from '../theme';
+import { fonts, radius, shadow } from '../theme';
 import { useT } from '../i18n';
+import { pro } from '../proTheme';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'EspacePrestataire'>;
 
@@ -36,6 +37,9 @@ type Props = NativeStackScreenProps<AccountStackParamList, 'EspacePrestataire'>;
  * counterparty show a stated empty state rather than invented numbers. What is
  * real — the profile, the trade and rate, the documents submitted, the payout
  * terms — is shown for real.
+ *
+ * Always drawn in Mode Pro (proTheme.ts): this space only exists for
+ * prestataires, so it never takes the Client look.
  */
 
 const SUBSCRIPTIONS = [
@@ -98,9 +102,12 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           hitSlop={8}
           style={styles.back}
         >
-          <Icon name="solar:alt-arrow-left-linear" size={24} color={colors.foreground} />
+          <Icon name="solar:alt-arrow-left-linear" size={24} color={pro.text} />
         </Pressable>
         <Text style={styles.screenTitle}>{t('Espace Prestataire')}</Text>
+        <View style={styles.proPill}>
+          <Text style={styles.proPillLabel}>PRO</Text>
+        </View>
       </View>
 
       <View style={styles.identity}>
@@ -121,7 +128,7 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           is never something the prestataire can switch on. */}
       {!details?.verified && (
         <View style={styles.notice}>
-          <Icon name="solar:shield-check-bold" size={18} color={colors.warning} />
+          <Icon name="solar:shield-check-bold" size={18} color={pro.warning} />
           <Text style={styles.noticeText}>
             {details
               ? "Votre compte est en attente de vérification. 242Konnect contrôle vos pièces justificatives avant d'attribuer le badge « Prestataire vérifié »."
@@ -309,111 +316,113 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+  root: { flex: 1, backgroundColor: pro.ground },
   content: { paddingHorizontal: 20, paddingBottom: 140, gap: 18 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   back: {
     padding: 8,
     borderRadius: radius.xl,
-    backgroundColor: colors.card,
+    backgroundColor: pro.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: pro.line,
     ...shadow.sm,
   },
-  screenTitle: { flex: 1, fontFamily: fonts.heading, fontSize: 24, color: colors.foreground },
+  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm, backgroundColor: pro.accent },
+  proPillLabel: { fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1, color: pro.accentText },
+  screenTitle: { flex: 1, fontFamily: fonts.heading, fontSize: 24, color: pro.text },
   identity: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     padding: 14,
-    backgroundColor: colors.card,
+    backgroundColor: pro.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: pro.line,
     borderRadius: radius['2xl'],
     ...shadow.sm,
   },
   identityBody: { flex: 1 },
-  name: { fontFamily: fonts.heading, fontSize: 17, color: colors.foreground },
-  trade: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
-  zone: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, marginTop: 2 },
+  name: { fontFamily: fonts.heading, fontSize: 17, color: pro.text },
+  trade: { fontFamily: fonts.sansMedium, fontSize: 13, color: pro.muted },
+  zone: { fontFamily: fonts.sans, fontSize: 12, color: pro.muted, marginTop: 2 },
   badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.lg },
-  badgeOn: { backgroundColor: colors.successSurface },
-  badgeOff: { backgroundColor: colors.warningSurface },
+  badgeOn: { backgroundColor: pro.successSurface },
+  badgeOff: { backgroundColor: pro.warningSurface },
   badgeLabel: { fontFamily: fonts.sansBold, fontSize: 11 },
-  badgeLabelOn: { color: colors.success },
-  badgeLabelOff: { color: colors.warning },
+  badgeLabelOn: { color: pro.success },
+  badgeLabelOff: { color: pro.warning },
   notice: {
     flexDirection: 'row',
     gap: 10,
     padding: 12,
     borderRadius: radius.xl,
-    backgroundColor: colors.warningSurface,
+    backgroundColor: pro.warningSurface,
     borderWidth: 1,
-    borderColor: 'rgba(180,83,9,0.25)',
+    borderColor: 'rgba(251,191,36,0.3)',
   },
-  noticeText: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 12, lineHeight: 18, color: colors.warning },
+  noticeText: { flex: 1, fontFamily: fonts.sansMedium, fontSize: 12, lineHeight: 18, color: pro.warning },
   section: { gap: 8 },
   sectionTitle: {
     fontFamily: fonts.sansBold,
     fontSize: 11,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    color: colors.mutedForeground,
+    color: pro.muted,
   },
   card: {
     padding: 14,
     gap: 10,
-    backgroundColor: colors.card,
+    backgroundColor: pro.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: pro.line,
     borderRadius: radius['2xl'],
   },
-  sectionNote: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.mutedForeground },
+  sectionNote: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: pro.muted },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   gridCell: {
     flexGrow: 1,
     flexBasis: '45%',
     padding: 12,
     borderRadius: radius.xl,
-    backgroundColor: colors.muted,
+    backgroundColor: pro.raised,
   },
-  gridValue: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.foreground },
-  gridUnit: { fontFamily: fonts.sans, fontSize: 11, color: colors.mutedForeground },
-  gridLabel: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.mutedForeground, marginTop: 2 },
+  gridValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.accent },
+  gridUnit: { fontFamily: fonts.sans, fontSize: 11, color: pro.muted },
+  gridLabel: { fontFamily: fonts.sansMedium, fontSize: 11, color: pro.muted, marginTop: 2 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: pro.line,
   },
   rowBody: { flex: 1 },
-  rowLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
-  rowHint: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
-  rowCount: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.mutedForeground },
+  rowLabel: { fontFamily: fonts.sansSemibold, fontSize: 14, color: pro.text },
+  rowHint: { fontFamily: fonts.sans, fontSize: 12, color: pro.muted },
+  rowCount: { fontFamily: fonts.headingBold, fontSize: 18, color: pro.muted },
   scoreRow: { flexDirection: 'row', alignItems: 'center' },
   scoreBlock: { flex: 1, alignItems: 'center' },
-  scoreDivider: { width: 1, height: 32, backgroundColor: colors.border },
-  scoreValue: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.foreground },
+  scoreDivider: { width: 1, height: 32, backgroundColor: pro.line },
+  scoreValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.accent },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  infoLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.mutedForeground },
-  infoValue: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },
+  infoLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: pro.muted },
+  infoValue: { fontFamily: fonts.sansSemibold, fontSize: 13, color: pro.text },
   previewHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepDot: { width: 12, height: 12, borderRadius: 6 },
-  step_done: { backgroundColor: colors.success },
-  step_review: { backgroundColor: colors.warning },
-  step_waiting: { backgroundColor: colors.border },
-  step_missing: { backgroundColor: colors.destructive },
-  pending: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.md, backgroundColor: colors.warningSurface },
-  pendingLabel: { fontFamily: fonts.sansBold, fontSize: 10, color: colors.warning },
-  plan: { padding: 12, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border },
-  planActive: { borderColor: colors.accent, backgroundColor: colors.muted },
+  step_done: { backgroundColor: pro.success },
+  step_review: { backgroundColor: pro.warning },
+  step_waiting: { backgroundColor: pro.line },
+  step_missing: { backgroundColor: pro.destructive },
+  pending: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.md, backgroundColor: pro.warningSurface },
+  pendingLabel: { fontFamily: fonts.sansBold, fontSize: 10, color: pro.warning },
+  plan: { padding: 12, borderRadius: radius.xl, borderWidth: 1, borderColor: pro.line },
+  planActive: { borderColor: pro.accent, backgroundColor: pro.accentSoft },
   planHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  planLabel: { fontFamily: fonts.sansBold, fontSize: 14, color: colors.foreground },
-  planPrice: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
-  planPerk: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
-  planCurrent: { fontFamily: fonts.sansBold, fontSize: 11, color: colors.foreground, marginTop: 6 },
+  planLabel: { fontFamily: fonts.sansBold, fontSize: 14, color: pro.text },
+  planPrice: { fontFamily: fonts.sansMedium, fontSize: 13, color: pro.muted },
+  planPerk: { fontFamily: fonts.sans, fontSize: 12, color: pro.muted },
+  planCurrent: { fontFamily: fonts.sansBold, fontSize: 11, color: pro.accent, marginTop: 6 },
   footer: { paddingTop: 4 },
-  footerText: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: colors.mutedForeground },
+  footerText: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: pro.muted },
 });

@@ -10,6 +10,7 @@ import { UserAvatar } from '../components/Avatar';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { LANGUAGES, T, useI18n, useT } from '../i18n';
+import { pro, useProMode } from '../proTheme';
 
 /**
  * The Profil tab, once there's an account behind it.
@@ -32,26 +33,40 @@ export function AccountScreen({ navigation }: Props) {
     useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
 
+  // Mode Pro (proTheme.ts): the whole Profil screen turns anthracite while the
+  // Prestataire profile is active, so the active hat is never in doubt.
+  const proMode = useProMode();
+  const s = proMode ? stylesPro : styles;
+  const iconColor = proMode ? pro.accent : colors.primary;
+  const mutedColor = proMode ? pro.muted : colors.mutedForeground;
+
   if (!account) return null;
 
   return (
     <ScrollView
-      style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}
+      style={s.root}
+      contentContainerStyle={[s.content, { paddingTop: insets.top + 24 }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.title}>{t('Profil')}</Text>
+      <Text style={s.title}>{t('Profil')}</Text>
 
-      <View style={styles.card}>
+      <View style={s.card}>
         <UserAvatar name={account.name} avatar={account.avatar} size={52} />
-        <View style={styles.identity}>
-          <Text style={styles.name}>{account.name}</Text>
-          <Text style={styles.phone}>{formatStored(account.phone)}</Text>
-          <Text style={styles.email} numberOfLines={1}>
+        <View style={s.identity}>
+          <View style={s.nameRow}>
+            <Text style={s.name}>{account.name}</Text>
+            {proMode && (
+              <View style={s.proPill}>
+                <Text style={s.proPillLabel}>PRO</Text>
+              </View>
+            )}
+          </View>
+          <Text style={s.phone}>{formatStored(account.phone)}</Text>
+          <Text style={s.email} numberOfLines={1}>
             {account.email}
           </Text>
           {!!account.bio && (
-            <Text style={styles.bio} numberOfLines={2}>
+            <Text style={s.bio} numberOfLines={2}>
               {account.bio}
             </Text>
           )}
@@ -60,9 +75,9 @@ export function AccountScreen({ navigation }: Props) {
 
       {/* §9.10: one account, several profiles, switched from here — not three
           separate accounts. Profiles not yet activated can be added in place. */}
-      <View style={styles.profiles}>
-        <Text style={styles.profilesLabel}>{t('Profil actif')}</Text>
-        <View style={styles.profileRow}>
+      <View style={s.profiles}>
+        <Text style={s.profilesLabel}>{t('Profil actif')}</Text>
+        <View style={s.profileRow}>
           {(Object.keys(PROFILE_LABELS) as ProfileKind[]).map((kind) => {
             const active = account.activeProfile === kind;
             const owned = account.profiles.includes(kind);
@@ -87,13 +102,13 @@ export function AccountScreen({ navigation }: Props) {
                       : `Activer le profil ${PROFILE_LABELS[kind]}`
                 }
                 aria-selected={active}
-                style={[styles.profileChip, active && styles.profileChipActive]}
+                style={[s.profileChip, active && s.profileChipActive]}
               >
-                <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
+                <Text style={[s.profileChipLabel, active && s.profileChipLabelActive]}>
                   {PROFILE_LABELS[kind]}
                 </Text>
                 {!owned && (
-                  <Text style={styles.profileChipAdd}>
+                  <Text style={s.profileChipAdd}>
                     {kind === 'prestataire' ? t('+ offrir mes services') : t('+ activer')}
                   </Text>
                 )}
@@ -105,7 +120,7 @@ export function AccountScreen({ navigation }: Props) {
             attente" and to swap the whole Accueil tab for a dashboard; it now
             keeps the marketplace and adds its own space below, so there is
             nothing to warn about. */}
-        <Text style={styles.profilesNote}>
+        <Text style={s.profilesNote}>
           {account.activeProfile === 'prestataire'
             ? t(
                 "Vous proposez vos services et vous pouvez aussi en réserver : l'accueil, la recherche et les réservations fonctionnent comme pour un particulier."
@@ -117,9 +132,9 @@ export function AccountScreen({ navigation }: Props) {
       {/* French and English, as the correction note asks for. Placed on the
           account screen rather than buried in settings: someone who needs
           English needs it on their first visit, not after finding a submenu. */}
-      <View style={styles.languages}>
-        <Text style={styles.profilesLabel}>{t('Langue')}</Text>
-        <View style={styles.profileRow}>
+      <View style={s.languages}>
+        <Text style={s.profilesLabel}>{t('Langue')}</Text>
+        <View style={s.profileRow}>
           {LANGUAGES.map((option) => {
             const active = option.code === language;
             return (
@@ -129,9 +144,9 @@ export function AccountScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={option.label}
                 aria-selected={active}
-                style={[styles.profileChip, active && styles.profileChipActive]}
+                style={[s.profileChip, active && s.profileChipActive]}
               >
-                <Text style={[styles.profileChipLabel, active && styles.profileChipLabelActive]}>
+                <Text style={[s.profileChipLabel, active && s.profileChipLabelActive]}>
                   {option.flag}  {option.label}
                 </Text>
               </Pressable>
@@ -140,22 +155,22 @@ export function AccountScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={styles.stats}>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{favoriteCount}</Text>
-          <Text style={styles.statLabel}>{t('Favoris')}</Text>
+      <View style={s.stats}>
+        <View style={s.stat}>
+          <Text style={s.statValue}>{favoriteCount}</Text>
+          <Text style={s.statLabel}>{t('Favoris')}</Text>
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{bookings.length}</Text>
-          <Text style={styles.statLabel}>{t('Missions')}</Text>
+        <View style={s.statDivider} />
+        <View style={s.stat}>
+          <Text style={s.statValue}>{bookings.length}</Text>
+          <Text style={s.statLabel}>{t('Missions')}</Text>
         </View>
-        <View style={styles.statDivider} />
-        <View style={[styles.stat, styles.statWide]}>
-          <Text style={styles.statCity} numberOfLines={1}>
+        <View style={s.statDivider} />
+        <View style={[s.stat, s.statWide]}>
+          <Text style={s.statCity} numberOfLines={1}>
             {city.split(',')[0]}
           </Text>
-          <Text style={styles.statLabel}>{t('Ville')}</Text>
+          <Text style={s.statLabel}>{t('Ville')}</Text>
         </View>
       </View>
 
@@ -164,9 +179,9 @@ export function AccountScreen({ navigation }: Props) {
           is what let verified sign-ups sit on devices and never reach the
           server. Nothing is claimed while the answer is still unknown (null). */}
       {accountSynced === false && (
-        <View style={styles.syncWarning}>
-          <Icon name="solar:shield-check-bold" size={18} color={colors.warning} />
-          <Text style={styles.syncWarningText}>
+        <View style={s.syncWarning}>
+          <Icon name="solar:shield-check-bold" size={18} color={proMode ? pro.warning : colors.warning} />
+          <Text style={s.syncWarningText}>
             {t(
               "Ce compte n'a pas encore pu être enregistré sur nos serveurs : il n'existe que sur cet appareil. Reconnectez-vous une fois en ligne pour le sauvegarder."
             )}
@@ -175,22 +190,22 @@ export function AccountScreen({ navigation }: Props) {
       )}
 
       {payments.length > 0 && (
-        <Text style={styles.paymentsLine}>
+        <Text style={s.paymentsLine}>
           {payments.length} paiement{payments.length > 1 ? 's' : ''} enregistré
           {payments.length > 1 ? 's' : ''} sur cet appareil
         </Text>
       )}
 
-      <View style={styles.list}>
+      <View style={s.list}>
         <Pressable
           onPress={() => navigation.navigate('ModifierProfil')}
           accessibilityRole="button"
           accessibilityLabel={t('Modifier le profil')}
-          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          style={({ pressed }) => [s.row, pressed && s.pressed]}
         >
-          <Icon name="solar:user-rounded-linear" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>{t('Modifier le profil')}</Text>
-          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+          <Icon name="solar:user-rounded-linear" size={20} color={iconColor} />
+          <Text style={s.rowLabel}>{t('Modifier le profil')}</Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={mutedColor} />
         </Pressable>
         {/* Only for accounts that actually have the profile: the dashboard reads
             `account.prestataire`, and offering it to a particulier would open a
@@ -200,50 +215,50 @@ export function AccountScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('EspacePrestataire')}
             accessibilityRole="button"
             accessibilityLabel={t('Espace Prestataire')}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            style={({ pressed }) => [s.row, pressed && s.pressed]}
           >
-            <Icon name="mdi:wrench" size={20} color={colors.primary} />
-            <Text style={styles.rowLabel}>{t('Espace Prestataire')}</Text>
-            <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+            <Icon name="mdi:wrench" size={20} color={iconColor} />
+            <Text style={s.rowLabel}>{t('Espace Prestataire')}</Text>
+            <Icon name="solar:arrow-right-bold" size={16} color={mutedColor} />
           </Pressable>
         )}
         <Pressable
           onPress={() => startPinSetup(hasPin)}
           accessibilityRole="button"
           accessibilityLabel={hasPin ? t('Changer mon code confidentiel') : t('Définir un code confidentiel')}
-          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          style={({ pressed }) => [s.row, pressed && s.pressed]}
         >
-          <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>
+          <Icon name="solar:shield-check-bold" size={20} color={iconColor} />
+          <Text style={s.rowLabel}>
             {hasPin ? t('Changer mon code confidentiel') : t('Définir un code confidentiel')}
           </Text>
-          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+          <Icon name="solar:arrow-right-bold" size={16} color={mutedColor} />
         </Pressable>
         <Pressable
           onPress={() => navigation.navigate('Confidentialite')}
           accessibilityRole="button"
           accessibilityLabel={t('Confidentialité')}
-          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          style={({ pressed }) => [s.row, pressed && s.pressed]}
         >
-          <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>{t('Confidentialité')}</Text>
-          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+          <Icon name="solar:shield-check-bold" size={20} color={iconColor} />
+          <Text style={s.rowLabel}>{t('Confidentialité')}</Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={mutedColor} />
         </Pressable>
         <Pressable
           onPress={() => navigation.navigate('FAQ')}
           accessibilityRole="button"
           accessibilityLabel={t('Questions fréquentes')}
-          style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          style={({ pressed }) => [s.row, pressed && s.pressed]}
         >
-          <Icon name="solar:chat-round-dots-linear" size={20} color={colors.primary} />
-          <Text style={styles.rowLabel}>{t('Questions fréquentes')}</Text>
-          <Icon name="solar:arrow-right-bold" size={16} color={colors.mutedForeground} />
+          <Icon name="solar:chat-round-dots-linear" size={20} color={iconColor} />
+          <Text style={s.rowLabel}>{t('Questions fréquentes')}</Text>
+          <Icon name="solar:arrow-right-bold" size={16} color={mutedColor} />
         </Pressable>
         {SOON.map((row) => (
-          <View key={row.label} style={styles.row}>
-            <Icon name={row.icon} size={20} color={colors.mutedForeground} />
-            <Text style={styles.rowLabel}>{row.label}</Text>
-            <Text style={styles.rowSoon}>{t('Bientôt')}</Text>
+          <View key={row.label} style={s.row}>
+            <Icon name={row.icon} size={20} color={mutedColor} />
+            <Text style={s.rowLabel}>{row.label}</Text>
+            <Text style={s.rowSoon}>{t('Bientôt')}</Text>
           </View>
         ))}
       </View>
@@ -252,12 +267,12 @@ export function AccountScreen({ navigation }: Props) {
         onPress={signOut}
         accessibilityRole="button"
         accessibilityLabel={t('Se déconnecter')}
-        style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+        style={({ pressed }) => [s.signOut, pressed && s.pressed]}
       >
-        <Text style={styles.signOutLabel}>{t('Se déconnecter')}</Text>
+        <Text style={s.signOutLabel}>{t('Se déconnecter')}</Text>
       </Pressable>
 
-      <Text style={styles.disclaimer}>{t("Votre profil est enregistré sur nos serveurs et vous suit d'un appareil à l'autre. Votre mot de passe, lui, reste sur ce téléphone : pour vous connecter ailleurs, utilisez la récupération de compte.")}</Text>
+      <Text style={s.disclaimer}>{t("Votre profil et votre mot de passe sont enregistrés sur nos serveurs : connectez-vous sur un autre appareil avec votre adresse e-mail, votre mot de passe puis votre code confidentiel.")}</Text>
     </ScrollView>
   );
 }
@@ -287,6 +302,9 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontFamily: fonts.heading, fontSize: 18, color: colors.primaryForeground },
   identity: { flex: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm, backgroundColor: pro.accent },
+  proPillLabel: { fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1, color: pro.accentText },
   name: { fontFamily: fonts.heading, fontSize: 17, color: colors.foreground },
   phone: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
   bio: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, marginTop: 4 },
@@ -409,3 +427,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+/** Mode Pro overrides, layered over `styles` key by key. */
+const proOverrides: Partial<Record<keyof typeof styles, object>> = {
+  root: { backgroundColor: pro.ground },
+  title: { color: pro.text },
+  card: { backgroundColor: pro.surface, borderColor: pro.line },
+  name: { color: pro.text },
+  phone: { color: pro.muted },
+  email: { color: pro.muted },
+  bio: { color: pro.muted },
+  profiles: { backgroundColor: pro.surface, borderColor: pro.line },
+  profilesLabel: { color: pro.muted },
+  profileChip: { backgroundColor: pro.raised, borderColor: pro.line },
+  profileChipActive: { backgroundColor: pro.accent, borderColor: pro.accent },
+  profileChipLabel: { color: pro.text },
+  profileChipLabelActive: { color: pro.accentText },
+  profileChipAdd: { color: pro.muted },
+  profilesNote: { color: pro.muted },
+  stats: { backgroundColor: pro.surface, borderColor: pro.line },
+  statDivider: { backgroundColor: pro.line },
+  statValue: { color: pro.text },
+  statCity: { color: pro.text },
+  statLabel: { color: pro.muted },
+  list: { backgroundColor: pro.surface, borderColor: pro.line },
+  row: { borderBottomColor: pro.line },
+  rowLabel: { color: pro.text },
+  rowSoon: { color: pro.muted },
+  paymentsLine: { color: pro.muted },
+  syncWarning: { backgroundColor: pro.warningSurface, borderColor: 'rgba(251,191,36,0.3)' },
+  syncWarningText: { color: pro.warning },
+  signOut: { borderColor: pro.destructive },
+  signOutLabel: { color: pro.destructive },
+  disclaimer: { color: pro.muted },
+};
+
+const stylesPro = Object.fromEntries(
+  Object.entries(styles).map(([key, value]) => [key, [value, proOverrides[key as keyof typeof styles]]])
+) as unknown as typeof styles;

@@ -15,9 +15,10 @@ import { formatAmount } from '../../pricing';
 import { settle } from '../../payments';
 import { STAGES } from '../../store';
 import type { SupabaseSession } from '../../supabase';
-import { colors, fonts } from '../../theme';
+import { fonts } from '../../theme';
+import { pro } from '../../proTheme';
 import { useT } from '../../i18n';
-import { onlineStyles as o, RequestChatSheet, requestStatusLabel, STAGE_LABELS, StageTracker, useMarketData } from './shared';
+import { onlineStylesPro as o, RequestChatSheet, requestStatusLabel, STAGE_LABELS, StageTracker, useMarketData } from './shared';
 
 type Inbox = { listing: Listing | null; requests: RemoteRequest[]; addresses: Record<string, string> };
 
@@ -156,7 +157,7 @@ export function ProviderInbox() {
                 <Text style={o.body}>
                   {t('Adresse')} : {data?.addresses[r.id] || '—'}
                 </Text>
-                <StageTracker request={r} />
+                <StageTracker request={r} proMode />
                 <View style={o.actions}>
                   <Pressable onPress={() => setChat(r)} accessibilityRole="button" accessibilityLabel={t('Ouvrir le chat de la demande')} style={o.ghost}>
                     <Text style={o.ghostLabel}>{t('Message')}</Text>
@@ -201,7 +202,7 @@ function Count({ label, value }: { label: string; value: number }) {
 const styles = StyleSheet.create({
   root: { gap: 10 },
   counts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  count: { flexGrow: 1, flexBasis: '18%', padding: 10, borderRadius: 12, backgroundColor: colors.muted, alignItems: 'center' },
-  countValue: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.foreground },
-  countLabel: { fontFamily: fonts.sansMedium, fontSize: 10, color: colors.mutedForeground },
+  count: { flexGrow: 1, flexBasis: '18%', padding: 10, borderRadius: 12, backgroundColor: pro.surface, borderWidth: 1, borderColor: pro.line, alignItems: 'center' },
+  countValue: { fontFamily: fonts.headingBold, fontSize: 18, color: pro.accent },
+  countLabel: { fontFamily: fonts.sansMedium, fontSize: 10, color: pro.muted },
 });
