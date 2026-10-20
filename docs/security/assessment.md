@@ -20,7 +20,7 @@ Each finding below is marked **verified** (shown by a test or a query) or
 | Auth | Supabase Auth (GoTrue): e-mail OTP, then e-mail + password; access token (JWT, 1 h) + refresh token | Supabase |
 | Data | PostgreSQL 17 behind PostgREST; RLS on every exposed table | Supabase |
 | Server logic | `request_action()` state machine (SECURITY DEFINER), triggers that stamp server-owned fields | Supabase |
-| Edge Functions | `pin` (v6 live, v7 in repo), `search-providers` (Dify integration, not in repo), `refresh-reference` (Mwinda Digital, other product) | Supabase |
+| Edge Functions | `pin` (v7), `payment` (v1, Mobile Money confirmation), `search-providers` (v5, Dify integration), `refresh-reference` (Mwinda Digital, other product) | Supabase |
 | API | FastAPI: e-mail OTP (fallback provider) and MTN/Airtel Mobile Money collections | **not deployed**; production uses Supabase for OTP |
 | Hosting | Netlify (static web build) | Netlify |
 | Third parties | Supabase, Netlify, SMTP provider (via Supabase), MTN MoMo and Airtel Money APIs (sandbox), Dify (calls `search-providers`) | external |
@@ -63,7 +63,7 @@ Each finding below is marked **verified** (shown by a test or a query) or
 | **S**poofing | Using someone else's account | Auth | Supabase Auth; e-mail OTP at sign-up; password at sign-in; PIN to reopen | No MFA option (R-02) |
 | | Claiming another identity in a row | profiles, requests, messages, consents | Triggers force `client_id` / `sender_id` / `user_id` from `auth.uid()`; `email` forced from the JWT (F-04) | — |
 | | Guessing a PIN | `pin` function | Persistent lock: 5 tries, 15 min; 24 h after 3 locks (F-03) | Live once v7 is deployed |
-| **T**ampering | Marking a request as paid | `request_action('pay')` | **Open — F-01**, fix proposed | Critical until decided |
+| **T**ampering | Marking a request as paid | `request_action('pay')` | **Fixed — F-01** (2026-10-20): only the `payment` function, after the operator, with the amount checked | Low |
 | | Self-approving a listing, self-verifying | provider_listings, profiles | Column grants exclude `status`; trigger keeps `prestataire.verified` (F-04) | — |
 | | Rewriting the audit trail | consent_records, security_events | Insert-only grants; append-only trigger | — |
 | **R**epudiation | "I never accepted that contract" | consent_records | Server timestamp, IP and user agent; append-only | — |
@@ -83,7 +83,7 @@ Each finding below is marked **verified** (shown by a test or a query) or
 
 Severities: Critical, High, Medium, Low.
 
-### F-01 · Critical · verified — A client can declare its own payment
+### F-01 · Critical · verified · **fixed 2026-10-20** — A client can declare its own payment
 
 `request_action(id, 'pay', {method, payment_ref})` moves a draft to `sent` on
 the client's word alone. Nothing checks with the operator that money moved,
@@ -91,28 +91,38 @@ nor that the amount matches. The prestataire then sees a paid job.
 `verify-marketplace.sql` ("A pays once") shows it working.
 
 - **Impact:** fake paid jobs today. The day escrow goes live, theft of service.
-- **Fix (prepared, not applied):** `supabase/proposed/20261020000000_verified_payments.sql`.
+- **Fix (applied to production 2026-10-20, founder's go-ahead):**
+  `supabase/migrations/20261020000000_verified_payments.sql` and the `payment`
+  Edge Function.
   - The client's `pay` action is removed.
-  - Only the service role can call `confirm_payment()`, and only for the exact amount.
-  - A mismatch is logged, not raised, so the evidence survives.
+  - The `payment` function starts the MTN/Airtel collection with the amount
+    read from the request, reads the result from the operator, and calls
+    `confirm_payment()` with the service role. Collections are kept in
+    `payment_collections` (service role only), one live per request.
+  - `confirm_payment()` checks the amount against what the operator reports.
+    A mismatch, or money collected for a cancelled request, is logged
+    (`payment.amount_mismatch`, `payment.orphaned`) rather than applied.
   - The prestataire cannot accept an unverified payment.
-  - 7/7 tests pass: `PROPOSED=1 bash supabase/tests/run-local.sh`.
-- **Why it waits:** it switches booking off until a payment backend with
-  operator credentials is deployed. That is a product decision.
-- **Interim option:** apply it now, and label requests as "paiement à vérifier"
-  manually until MoMo goes live.
+  - Tests: 12/12 on production and the replica (`payment_tests.sql`), 26/26
+    marketplace, operator adapters 19/19, marketplace journey 17/17.
+- **Consequence, accepted:** until the MTN/Airtel credentials are set as
+  function secrets, the function answers `payments_unavailable` and requests
+  stay in `draft`: booking is paused rather than unverified. Production had no
+  requests when this was applied.
+- **Card and bank transfer** are no longer offered for online requests: no
+  processor confirms them server-side yet.
 
 ### F-02 · High · verified — Production differs from the repository
 
 Three migrations were applied live but never committed. The live `pin`
-function (v6) is not the repo's version. `search-providers` exists only in
-production. So the code that runs could not be rebuilt or reviewed from the
+function (v6) is not the repo's version. `search-providers` existed only in
+production (now in the repo, v5). So the code that runs could not be rebuilt or reviewed from the
 repo.
 
 - **Fix:** the three migrations are now committed. Function definitions,
   policies and grants were compared object by object: a replica built from the
   repo matches production on all 37 security objects (§4). `pin` v7 replaces
-  both versions. `search-providers` is listed in R-06.
+  both versions. `search-providers` is in `supabase/functions/` since v5 (R-06, closed).
 
 ### F-03 · High · verified — The PIN lockout could be bypassed
 
@@ -257,6 +267,20 @@ This is the Supabase advisor's finding. It is a dashboard setting (deployment ch
 
 - **Note:** the limits are in-process, so they hold for one worker only (R-05).
 
+### F-16 · Medium · verified — Identity documents stored inline in profile JSON
+
+Found while applying the hardening (part 6 of 9 failed on the 20 KB cap):
+prestataires' identity documents are stored as data URLs inside
+`profiles.prestataire`, up to 28 KB each today.
+
+- **Impact:** every read of the profile row carries the documents; they get
+  no separate access control, retention or audit; the row grows without bound.
+- **Interim:** the size cap is 2 MB (`profiles_details_size`), so the
+  migration could apply without touching existing rows.
+- **Fix (recommended):** a private Storage bucket, `prestataire-documents`,
+  path `<user id>/…`, readable by the owner and by reviewers only; the profile
+  keeps the path, not the file. Then lower the cap back to 20 KB.
+
 ### Reviewed and found correct
 
 - `user_pin` and `user_pin_security`: RLS on, no policy, no grant.
@@ -283,7 +307,10 @@ This is the Supabase advisor's finding. It is a dashboard setting (deployment ch
 | Same tests without the hardening migration (proves they detect the flaws) | 23 pass, **18 fail** — the vulnerabilities above |
 | Replica fidelity: functions, policies, table and column grants vs production | 37/37 identical (3 functions differ only in comments/whitespace) |
 | Existing marketplace rules on the hardened replica | 25/25 |
-| Proposed verified payments (F-01) | 7/7 |
+| Verified payments (F-01), replica and production | 12/12 |
+| Marketplace rules after F-01, production | 26/26 |
+| Security tests on production after both migrations | 44/44 |
+| `payment` function operator adapters (MTN, Airtel, fake operator) | 19/19 · `deno check` clean |
 | PIN core logic (hashing, v6 rows, step-up) | 17/17 · `deno check` clean |
 | API tests (31 existing + 16 security) | 47/47 |
 | pip-audit (API) | 0 known vulnerabilities |

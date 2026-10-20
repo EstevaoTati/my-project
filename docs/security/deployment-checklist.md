@@ -1,25 +1,20 @@
 # 242Konnect — security deployment checklist
 
-Nothing below has been applied to production yet. Each step that changes
-production needs the founder's go-ahead.
+Steps 1–3 were applied to production on 2026-10-20, on the founder's
+go-ahead ("Tout autorisé"). They are kept here as the record and as the
+procedure for a rebuild. Steps 4–6 need access that the repository does not
+have.
 
-## Step 1 — Database hardening migration (non-destructive)
+## Step 1 — Database hardening migration — **done 2026-10-20**
 
-`supabase/migrations/20261019120000_security_hardening.sql`
+`supabase/migrations/20261019120000_security_hardening.sql`, applied in nine
+parts (`security_hardening_0` … `_8`).
 
-- [ ] Re-run the local replica tests:
-
-      PGHOST=… bash supabase/tests/run-local.sh
-      # expect 44 passed, 0 failed
-
-- [ ] Apply in a quiet hour: Supabase MCP `apply_migration`, or the dashboard
-      SQL editor. It takes brief locks on `profiles` and `provider_listings`
-      (milliseconds on today's row counts).
-- [ ] Re-run `supabase/tests/security_tests.sql` on production. It rolls back,
-      so nothing is written. Every row must read `ok = true`.
-- [ ] Re-run `242konnect-app/tools/verify-marketplace.sql`. Expect 25 rows,
-      all `t`.
-- [ ] Check the Security Advisor: the `rls_auto_enable` warnings should be gone.
+- [x] Local replica tests: 44/44.
+- [x] Applied. Part 6 first failed on the 20 KB profile-details cap (identity
+      documents stored inline, F-16); the cap is 2 MB.
+- [x] `supabase/tests/security_tests.sql` on production, rolled back: 44/44.
+- [x] Security Advisor: the `rls_auto_enable` warning is gone.
 
 **Rollback:** every change is additive.
 - `drop trigger profiles_guard`, `enforce_quota`.
@@ -27,39 +22,54 @@ production needs the founder's go-ahead.
 - Drop the new constraints.
 - The new table and functions can stay.
 
-## Step 2 — PIN function v7
+## Step 2 — PIN function v7 — **done 2026-10-20**
 
-**Prerequisite:** Step 1, which adds `pin_register_attempt` and
-`security_events`.
-
-- [ ] Deploy `supabase/functions/pin` (files `index.ts` and `core.ts`) with
-      `verify_jwt = false`. Same as v6: the function validates the token
-      itself.
-- [ ] Smoke test with a real account:
+- [x] Deployed `supabase/functions/pin` (`index.ts`, `core.ts`),
+      `verify_jwt = false`: version 7.
+- [x] "Code oublié ?" in the app leads to the e-mail code, then to
+      `action: "reset"` (PIN log-in suite 22/22).
+- [ ] Smoke test with a real account (not possible from the build
+      environment: supabase.co is unreachable from it):
 
       wrong PIN ×5      → 429 locked
       status            → lockedUntil set
       after 15 min      → right PIN works
       user_pin          → pin_hash now starts with pbkdf2$sha256$210000$
 
-- [ ] Check that a real access token carries `amr` (decode it). The `reset`
-      action depends on it.
-- [ ] Wire "Code oublié ?" in the app to `action: "reset"` after the e-mail
-      code. Until then, the action is only reachable from outside the app, and
-      still needs a fresh code.
+- [ ] Check that a real access token after an e-mail code carries `amr` with
+      `otp` (decode it). If it does not, `reset` answers `step_up_required`
+      and the person keeps signing in with e-mail codes.
 
 **Rollback:** redeploy v6. It ignores the new table.
 
-## Step 3 — Verified payments (F-01) — needs a product decision
+## Step 3 — Verified payments (F-01) — **done 2026-10-20**
 
-- [ ] Decide: apply now (booking pauses until MoMo is live), or with the MoMo
-      launch.
-- [ ] Run `PROPOSED=1 bash supabase/tests/run-local.sh`. Expect 7/7, plus 44/44.
-- [ ] Move the file from `supabase/proposed/` to `supabase/migrations/` and
-      apply it.
-- [ ] Deploy the payment confirmation path: the API, or an Edge Function that
-      receives the operator callback and calls `confirm_payment()` with the
-      service role.
+- [x] `supabase/migrations/20261020000000_verified_payments.sql`, applied in
+      three parts (`verified_payments_0` … `_2`). Production had no requests.
+- [x] `payment_tests.sql` 12/12, `verify-marketplace.sql` 26/26 and
+      `security_tests.sql` 44/44 on production, all rolled back, no residue.
+- [x] `payment` Edge Function deployed (version 1, `verify_jwt = false`).
+- [ ] **To reopen booking:** set the operator secrets on the `payment`
+      function (dashboard → Edge Functions → Secrets, or
+      `supabase secrets set`):
+  - MTN: `MTN_MOMO_SUBSCRIPTION_KEY`, `MTN_MOMO_API_USER`, `MTN_MOMO_API_KEY`,
+    `MTN_MOMO_ENVIRONMENT` (`sandbox` or the production target),
+    `MTN_MOMO_BASE_URL` for production;
+  - Airtel: `AIRTEL_CLIENT_ID`, `AIRTEL_CLIENT_SECRET`, `AIRTEL_ENVIRONMENT`,
+    `AIRTEL_COUNTRY` (`CG`).
+  - Test first with the sandbox credentials and a sandbox number.
+- [ ] Optional: `PAYMENT_ALLOWED_ORIGIN` and `PIN_ALLOWED_ORIGIN` set to the
+      app's domain.
+
+**Rollback:** re-create `request_action` from
+`20261001010000_marketplace.sql`. Not recommended: it reopens F-01.
+
+## Step 3b — `search-providers` v5 (R-06) — **done 2026-10-20**
+
+- [x] In the repo, constant-time key check, deployed as version 5.
+- [ ] `DIFY_SEARCH_TOKEN` must be at least 32 characters, or the function
+      answers 503. If Dify gets 503, set a new key:
+      `openssl rand -base64 32`, in Supabase and in Dify.
 
 ## Step 4 — Supabase dashboard settings
 

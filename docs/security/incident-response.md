@@ -29,7 +29,7 @@
    | Service-role key leaked | **Rotate the JWT secret / API keys** (below). This signs everyone out. |
    | A policy too open | Apply a migration that tightens it. Run `bash supabase/tests/run-local.sh` first. |
    | Edge Function compromised | Redeploy the repo version, or delete the function. |
-   | Payments | Pause booking by applying `supabase/proposed/verified_payments.sql` (removes client-declared payments). |
+   | Payments | Pause booking by unsetting the MTN/Airtel secrets on the `payment` function (`supabase secrets unset …`): it then answers `payments_unavailable`. Collections already started are kept in `payment_collections`. |
 
 5. **Root cause.** Reproduce it in a test on the local replica, so that it can
    never come back silently.
@@ -64,7 +64,7 @@ access leaves.
 |---|---|---|---|
 | Database | Supabase daily backups (7 days on Pro). Point-in-time recovery is an add-on. | 24 h (PITR: minutes) | 1–4 h |
 | Schema and policies | `supabase/migrations/` in git, verified against production (assessment §4) | 0 | < 1 h on a new project |
-| Edge Functions | `supabase/functions/` in git (`search-providers`: R-06) | 0 | < 30 min |
+| Edge Functions | `supabase/functions/` in git (`pin`, `payment`, `search-providers`) | 0 | < 30 min |
 | Web app | Netlify deploys + `242konnect-netlify-package*.zip` in git | 0 | < 15 min |
 | Auth users | Part of the database backup | as DB | as DB |
 

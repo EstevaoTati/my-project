@@ -79,7 +79,7 @@ jobs:
         run: |
           node --experimental-strip-types supabase/functions/pin/core.test.mjs
           node --experimental-strip-types supabase/functions/payment/operators.test.mjs
-          deno check supabase/functions/pin/index.ts supabase/functions/payment/index.ts
+          deno check supabase/functions/pin/index.ts supabase/functions/payment/index.ts supabase/functions/search-providers/index.ts
       - name: npm audit — critical blocks
         working-directory: 242konnect-app
         run: npm audit --omit=dev --audit-level=critical

@@ -96,4 +96,7 @@ publish the other's files.
   production, even inside a rolled-back transaction: schema changes take table
   locks. Production changes (migrations, Edge Functions, dashboard settings)
   need the founder's approval. CI gate: `.github/workflows/security.yml`.
+  Edge Functions live in `supabase/functions/` (`pin`, `payment`,
+  `search-providers`); the repo version is the one deployed. Only the
+  `payment` function marks a request paid — never add a client-side path.
 - Verify changes by opening the affected page before committing.
