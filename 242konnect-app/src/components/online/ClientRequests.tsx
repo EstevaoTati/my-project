@@ -12,10 +12,11 @@ import {
   marketplaceEnabled,
   requestAction,
   getAddress,
+  payRequest,
+  PaymentError,
   type RemoteRequest,
 } from '../../marketplace';
 import { PAYMENT_METHODS, methodNeedsPhone, settle, type PaymentMethod } from '../../payments';
-import { pollCollection, requestToPay } from '../../momo';
 import { formatAmount } from '../../pricing';
 import { DEFAULT_COUNTRY, fromE164, isCompleteNumber, normalizeNational, type CountryCode } from '../../countries';
 import { colors, fonts, radius } from '../../theme';
@@ -48,7 +49,9 @@ export function ClientRequests() {
   const [payPhone, setPayPhone] = useState('');
   const [payCountry, setPayCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [busy, setBusy] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [sheetError, setSheetError] = useState<string | null>(null);
+  const [sheetNote, setSheetNote] = useState<string | null>(null);
   const [chat, setChat] = useState<RemoteRequest | null>(null);
   const [disputing, setDisputing] = useState<RemoteRequest | null>(null);
   const [reason, setReason] = useState<string | null>(null);
@@ -60,9 +63,10 @@ export function ClientRequests() {
   const requests = data ?? [];
   if (requests.length === 0 && !error) return null;
 
-  const methods = PAYMENT_METHODS.filter((m) =>
-    account.location.country === 'US' ? m.id === 'carte' || m.id === 'virement' : true
-  );
+  // Only what the payment service can verify with the operator (F-01): Mobile
+  // Money, in the Republic of the Congo. Card and transfer return once a
+  // processor confirms them server-side.
+  const methods = PAYMENT_METHODS.filter((m) => account.location.country !== 'US' && (m.id === 'mtn' || m.id === 'airtel'));
 
   const act = async (r: RemoteRequest, action: Parameters<typeof requestAction>[2], payload = {}) => {
     setActionError(null);
@@ -81,6 +85,7 @@ export function ClientRequests() {
     setMethod(null);
     setAuthorized(false);
     setSheetError(null);
+    setSheetNote(null);
     setPayPhone(fromE164(account.phone).national);
     setPayCountry(account.phoneCountry ?? DEFAULT_COUNTRY);
     const session = await marketSession();
@@ -88,38 +93,36 @@ export function ClientRequests() {
   };
 
   /**
-   * Collects, then records. For Mobile Money the operator has to report the
-   * collection successful before `pay` is called; the order's idempotency key
-   * goes with both, so a double tap can neither prompt nor record twice.
+   * Starts a Mobile Money collection on the server and waits for the operator.
+   * The app never marks the request paid: the payment service does, once the
+   * operator confirms the money and the amount (security finding F-01).
    */
   const confirmPay = async () => {
-    if (!paying || !method) return;
+    if (!paying || (method !== 'mtn' && method !== 'airtel')) return;
     setBusy(true);
     setSheetError(null);
+    setSheetNote(null);
     try {
-      let ref = `242K-${paying.idempotencyKey.slice(-6).toUpperCase()}`;
-      if (method === 'mtn' || method === 'airtel') {
-        const phone = normalizeNational(payPhone, payCountry);
-        const started = await requestToPay({
-          operator: method,
-          phone,
-          amount: paying.amount,
-          label: `242Konnect · ${paying.id.slice(0, 6).toUpperCase()}`,
-          idempotencyKey: paying.idempotencyKey,
-        });
-        const settled = await pollCollection(started.id, phone, {});
-        if (settled.status !== 'successful') throw new Error(t('Le paiement Mobile Money n’a pas abouti.'));
-        ref = settled.operatorReference ?? started.id;
-      }
       const session = await marketSession();
       if (!session) throw new Error(t('Votre session a expiré. Reconnectez-vous.'));
-      await requestAction(session, paying.id, 'pay', { method, payment_ref: ref });
-      setPaying(null);
+      const outcome = await payRequest(session, paying.id, method, normalizeNational(payPhone, payCountry), {
+        onPending: () => setWaiting(true),
+      });
+      if (outcome.status !== 'successful') throw new Error(outcome.reason ?? t('Le paiement Mobile Money n’a pas abouti.'));
       await refresh();
+      if (outcome.requestStatus !== 'sent') {
+        // Collected but not applied: a different amount, or a request cancelled
+        // meanwhile. The server flagged it for review.
+        setSheetNote(t('Paiement reçu. 242Konnect le vérifie avant de transmettre la demande ; en cas d’écart, vous êtes remboursé.'));
+        return;
+      }
+      setPaying(null);
     } catch (e) {
-      setSheetError(e instanceof Error ? e.message : 'Paiement impossible.');
+      if (e instanceof PaymentError && e.code === 'payments_unavailable') setSheetNote(e.message);
+      else setSheetError(e instanceof Error ? e.message : 'Paiement impossible.');
     } finally {
       setBusy(false);
+      setWaiting(false);
     }
   };
 
@@ -268,6 +271,9 @@ export function ClientRequests() {
               <Line label={t('Total autorisé')} value={formatAmount(paying.amount, paying.currency)} strong />
             </View>
             <Text style={o.sectionTitle}>{t('Moyen de paiement')}</Text>
+            {methods.length === 0 && (
+              <Text style={o.line}>{t("Le paiement en ligne n'est pas encore disponible dans votre pays.")}</Text>
+            )}
             {methods.map((m) => (
               <Pressable
                 key={m.id}
@@ -305,6 +311,8 @@ export function ClientRequests() {
                 {t("et à les conserver jusqu'à ma validation.")}
               </Text>
             </Pressable>
+            {waiting && <Text style={o.line}>{t('Confirmez le paiement sur votre téléphone en saisissant votre code Mobile Money.')}</Text>}
+            {!!sheetNote && <Text style={o.line}>{sheetNote}</Text>}
             {!!sheetError && <Text style={o.error}>{sheetError}</Text>}
             <Pressable
               onPress={confirmPay}

@@ -1,5 +1,5 @@
 -- The marketplace's rules, proved against the database as three real users:
--- A (client), B (prestataire), C (stranger) — the three oldest auth.users.
+-- A (client), B (prestataire: the oldest account with no listing), C (stranger).
 --
 -- Runs inside a transaction and ROLLS BACK, so it is safe against production:
 -- the listing, request, address and message it creates never persist.
@@ -15,7 +15,11 @@ grant usage on sequence t_n_seq to authenticated;
 do $$
 declare
   ids uuid[] := (select array_agg(id order by created_at) from (select id, created_at from auth.users order by created_at limit 3) u);
-  a uuid := ids[1]; b uuid := ids[2]; c uuid := ids[3];
+  a uuid := ids[1];
+  -- B must have no listing yet, so a real prestataire's listing is never touched.
+  b uuid := (select u.id from auth.users u where u.id <> ids[1]
+              and not exists (select 1 from public.provider_listings l where l.id = u.id) order by u.created_at limit 1);
+  c uuid := (select u.id from auth.users u where u.id not in (ids[1], b) order by u.created_at limit 1);
   req uuid; r record; n int; v text;
 begin
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -62,16 +66,23 @@ begin
   end;
 
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
-  perform public.request_action(req, 'pay', '{"method":"carte","payment_ref":"242K-TEST01"}');
-  perform public.request_action(req, 'pay', '{"method":"carte","payment_ref":"242K-TEST01"}');
-  select status into v from public.service_requests where id = req;
-  insert into t(step, ok, detail) values ('A pays once; replay is a no-op', v = 'sent', v);
   begin
-    perform public.request_action(req, 'pay', '{"method":"carte","payment_ref":"242K-OTHER"}');
-    insert into t(step, ok) values ('a second, different payment is refused', false);
+    perform public.request_action(req, 'pay', '{"method":"carte","payment_ref":"242K-TEST01"}');
+    insert into t(step, ok) values ('A cannot declare its own payment', false);
   exception when others then
-    insert into t(step, ok, detail) values ('a second, different payment is refused', true, sqlerrm);
+    insert into t(step, ok, detail) values ('A cannot declare its own payment', true, sqlerrm);
   end;
+  -- The payment service, once the operator reported the collection successful.
+  execute 'reset role';
+  perform public.confirm_payment(req, 'mtn', 'MTN-TEST-0001', 9000);
+  perform public.confirm_payment(req, 'mtn', 'MTN-TEST-0001', 9000);
+  select status into v from public.service_requests where id = req;
+  insert into t(step, ok, detail) values ('payment confirmed once; replay is a no-op', v = 'sent', v);
+  perform public.confirm_payment(req, 'mtn', 'MTN-TEST-0002', 9000);
+  select payment_ref into v from public.service_requests where id = req;
+  insert into t(step, ok, detail) values ('a second, different payment does not replace the first', v = 'MTN-TEST-0001', v);
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  execute 'set local role authenticated';
   begin
     perform public.request_action(req, 'validate');
     insert into t(step, ok) values ('A cannot release funds before completion', false);

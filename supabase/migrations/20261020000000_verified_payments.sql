@@ -1,29 +1,59 @@
--- PROPOSED — not in supabase/migrations on purpose. Needs a product decision
--- before it is applied, because it changes the live booking flow.
+-- Verified payments (security finding F-01, Critical). Applied 2026-10-20 on
+-- the founder's go-ahead; production had no service requests at the time, so
+-- nothing in flight was affected.
 --
--- F-01 (Critical): a client can declare its own payment.
+-- Before: a client could declare its own payment.
 --   request_action(id, 'pay', {"method":"mtn","payment_ref":"anything"})
---   moves a draft to 'sent' — "paid" — on the client's word alone. Nothing
---   checks with MTN, Airtel or a card processor that money moved, nor that the
---   amount matches. The request then reaches the prestataire as a paid job.
---   Today no real money flows, so the damage is fake paid jobs; the day escrow
---   goes live it is theft of service.
+--   moved a draft to 'sent' — "paid" — on the client's word alone. Nothing
+--   checked with MTN or Airtel that money moved, nor that the amount matched.
 --
--- Fix: only a trusted server may mark a request paid, and only for the exact
--- amount, after the operator confirmed the collection.
---   - the client's 'pay' action is removed from request_action()
---   - confirm_payment() is callable by the service role only — the payment
---     backend (242konnect-api, or an Edge Function receiving the operator's
---     callback) calls it once the collection is SUCCESSFUL
---   - every confirmation is in public.security_events
+-- Now only the payment service may mark a request paid, and only for the
+-- exact amount, after the operator reported the collection successful:
+--   - the client's 'pay' action is gone from request_action()
+--   - public.payment_collections records each collection the `payment` Edge
+--     Function starts. RLS on, no policies: only the service role reads or
+--     writes it. The amount is copied from the request, never from the app.
+--   - confirm_payment() is callable by the service role only; the function
+--     calls it once the operator reports SUCCESSFUL
+--   - every confirmation, mismatch and orphaned debit is in security_events
+--   - a prestataire can accept only a verified payment
 --
--- Consequence: until a payment backend is deployed with operator credentials,
--- no request can leave 'draft'. Applying this before that switches booking
--- off. See docs/security/assessment.md, F-01, for the interim option.
+-- Until the operators' credentials are set as function secrets, the function
+-- answers payments_unavailable and requests stay in 'draft': booking is paused
+-- rather than unverified.
 
 alter table public.service_requests
   add column if not exists payment_verified_at timestamptz,
   add column if not exists payment_amount_confirmed integer;
+
+create table if not exists public.payment_collections (
+  -- Also the operator transaction id we send (MTN X-Reference-Id, Airtel
+  -- transaction.id), so a retried call can never become a second debit.
+  id           uuid primary key default gen_random_uuid(),
+  request_id   uuid not null references public.service_requests (id) on delete cascade,
+  client_id    uuid not null references auth.users (id) on delete cascade,
+  method       text not null check (method in ('mtn', 'airtel')),
+  msisdn       text not null check (msisdn ~ '^[0-9]{6,15}$'),
+  amount       integer not null check (amount > 0),
+  -- What the operator reports it collected (MTN does; Airtel does not). This,
+  -- not the request amount, is what confirm_payment() checks.
+  amount_collected integer,
+  status       text not null default 'pending' check (status in ('pending', 'successful', 'failed', 'expired')),
+  operator_ref text check (length(operator_ref) <= 80),
+  reason       text check (length(reason) <= 200),
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+-- One live collection per request: a double tap cannot prompt twice.
+create unique index if not exists payment_collections_one_live
+  on public.payment_collections (request_id) where status in ('pending', 'successful');
+create index if not exists payment_collections_client_recent
+  on public.payment_collections (client_id, created_at desc);
+
+alter table public.payment_collections enable row level security;
+revoke all on public.payment_collections from public, anon, authenticated;
+grant select, insert, update on public.payment_collections to service_role;
 
 create or replace function public.confirm_payment(
   p_request     uuid,
@@ -51,12 +81,18 @@ begin
     raise exception 'request not found' using errcode = 'P0002';
   end if;
 
-  -- Idempotent: the operator may call back more than once for one collection.
-  if r.status = 'sent' and r.payment_ref = p_operator_ref then
+  -- Idempotent: the same collection may be confirmed more than once (a
+  -- repeated poll), including after the prestataire accepted.
+  if r.payment_verified_at is not null and r.payment_ref = p_operator_ref then
     return r;
   end if;
   if r.status <> 'draft' then
-    raise exception 'request is not awaiting payment' using errcode = '22023';
+    -- Money was collected for a request that was cancelled, or already paid
+    -- another way, while the payer typed their PIN. Kept as evidence for a
+    -- manual refund; returned unchanged for the same reason as a mismatch.
+    perform public.log_security_event('payment.orphaned', 'high', r.client_id,
+      jsonb_build_object('request', r.id, 'status', r.status, 'amount', p_amount, 'method', p_method, 'operator_ref', p_operator_ref));
+    return r;
   end if;
   if p_amount is distinct from r.amount then
     -- Logged and returned unchanged rather than raised: an exception would roll

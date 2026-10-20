@@ -6,8 +6,10 @@
  * marketplace journey — a client paying, a prestataire accepting, the address
  * released, the mission validated — could otherwise only be checked one half
  * at a time. This speaks the same HTTP (GoTrue `/auth/v1`, PostgREST
- * `/rest/v1`, the `pin` function, `rpc/request_action`) and mirrors the rules of
- * `supabase/migrations/20261001010000_marketplace.sql`.
+ * `/rest/v1`, the `pin` and `payment` functions, `rpc/request_action`) and
+ * mirrors the rules of `supabase/migrations/20261001010000_marketplace.sql` and
+ * `20261020000000_verified_payments.sql`: the client cannot declare a payment;
+ * the payment function confirms it, as if the operator had reported success.
  *
  * It is NOT the proof of those rules — `tools/verify-marketplace.sql` is, run
  * against the real database as three users. This proves the app drives them.
@@ -30,6 +32,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   const messages = [];
   const consents = [];
   const revoked = new Set(); // access tokens ended by /auth/v1/logout
+  const collections = new Map(); // id -> payment collection
+  // false: operator credentials not set, as in production until MoMo goes live.
+  let paymentsLive = true;
   let messageId = 0;
 
   const STAGES = ["accepted", "on_the_way", "arrived", "in_progress", "completed"];
@@ -76,16 +81,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     const set = (patch) => Object.assign(r, patch, { updated_at: now() });
 
     if (isClient && a === "pay") {
-      if (r.status === "sent" && r.payment_ref === pl.payment_ref) return r;
-      if (r.status !== "draft") throw [400, "this request is already paid"];
-      if (!["mtn", "airtel", "carte", "virement"].includes(pl.method)) throw [400, "unknown payment method"];
-      set({
-        status: "sent",
-        payment_method: pl.method,
-        payment_ref: pl.payment_ref,
-        paid_at: now(),
-        response_deadline: new Date(Date.now() + 24 * 3600e3).toISOString(),
-      });
+      throw [403, "payments are confirmed by the payment service, not by the app"];
     } else if (isClient && a === "cancel") {
       if (r.status === "draft") set({ status: "cancelled", refund_status: "none" });
       else if (["sent", "refused"].includes(r.status)) set({ status: "cancelled", refund_status: "full" });
@@ -99,6 +95,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
       set({ status: "disputed", dispute: { reason: pl.reason, outcome: pl.outcome, details: pl.details || "" } });
     } else if (isProvider && a === "accept") {
       if (r.status !== "sent" || expired) throw [400, "this request can no longer be accepted"];
+      if (!r.payment_verified_at) throw [400, "payment not verified"];
       if (listings.get(uid)?.status !== "approved") throw [400, "your profile is not approved yet"];
       set({ status: "accepted", stage: "accepted", accepted_at: now(), stage_at: { accepted: now() } });
     } else if (isProvider && a === "decline") {
@@ -176,6 +173,47 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           }
           if (body.action === "verify")
             return pins.get(uid) === body.pin ? send(res, 200, {}) : send(res, 401, { error: "pin_incorrect", attemptsLeft: 4 });
+        }
+        // ---- payment function: the operator "confirms" on the first status read
+        if (path === "/functions/v1/payment") {
+          if (!uid) return send(res, 401, { error: "missing_token", message: "Votre session a expiré. Reconnectez-vous." });
+          if (body.action === "start") {
+            if (!["mtn", "airtel"].includes(body.method)) return send(res, 400, { error: "invalid_method", message: "Choisissez MTN Mobile Money ou Airtel Money." });
+            if (!/^(242)?0[4-6]\d{7}$/.test(String(body.phone || "").replace(/\D/g, "")))
+              return send(res, 400, { error: "invalid_phone", message: "Numéro Mobile Money invalide." });
+            if (!paymentsLive)
+              return send(res, 503, {
+                error: "payments_unavailable",
+                message: "Le paiement en ligne ouvre bientôt : MTN Mobile Money et Airtel Money sont en cours d'activation. Votre demande reste enregistrée et rien n'a été débité.",
+              });
+            const r = requests.get(body.request);
+            if (!r || r.client_id !== uid) return send(res, 404, { error: "not_found", message: "Demande introuvable." });
+            if (r.status !== "draft") return send(res, 409, { error: "not_payable", message: "Cette demande n'attend plus de paiement." });
+            const live = [...collections.values()].find((c) => c.request_id === r.id && c.status !== "failed");
+            if (live) return send(res, 200, { collection: live.id, status: live.status });
+            const id = crypto.randomUUID();
+            collections.set(id, { id, request_id: r.id, client_id: uid, method: body.method, amount: r.amount, status: "pending" });
+            return send(res, 200, { collection: id, status: "pending" });
+          }
+          if (body.action === "status") {
+            const c = collections.get(body.collection);
+            if (!c || c.client_id !== uid) return send(res, 404, { error: "not_found", message: "Demande introuvable." });
+            const r = requests.get(c.request_id);
+            if (c.status === "pending") c.status = "successful";
+            if (r.status === "draft")
+              Object.assign(r, {
+                status: "sent",
+                payment_method: c.method,
+                payment_ref: `OP-${c.id.slice(0, 8)}`,
+                paid_at: now(),
+                payment_verified_at: now(),
+                payment_amount_confirmed: c.amount,
+                response_deadline: new Date(Date.now() + 24 * 3600e3).toISOString(),
+                updated_at: now(),
+              });
+            return send(res, 200, { status: c.status, requestStatus: r.status });
+          }
+          return send(res, 400, { error: "unknown", message: "Action inconnue." });
         }
         if (!path.startsWith("/rest/v1/")) return fail(res, 404, "not found");
         if (!uid) return fail(res, 401, "JWT expected");
@@ -287,6 +325,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
 
   return {
     revokedTokens: () => [...revoked],
+    /** Switch the operators off (no credentials) or on. */
+    setPaymentsLive: (on) => (paymentsLive = on),
+    collections,
     listen: () => new Promise((r) => server.listen(port, "127.0.0.1", r)),
     close: () => server.close(),
     /** What 242Konnect's reviewers would do from the dashboard. */

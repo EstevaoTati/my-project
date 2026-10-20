@@ -218,18 +218,40 @@ async function finishSignUp(page, h, email, password) {
     const [r] = [...fake.requests.values()];
     return !!r && r.status === "draft";
   });
-  await check("the client reviews and pays", async () => {
+  await check("only Mobile Money is offered: what the server can verify", async () => {
     await a.tap('[aria-label="Revoir et payer"]');
     await a.waitSeen('[aria-label="Revoir et payer la demande en ligne"]');
     await a.tap('[aria-label="Revoir et payer la demande en ligne"]');
     const recap = (await a.waitSeen("text=Total autorisé")) && (await a.seen("text=Avenue Tiboti 12, Mpaka"));
-    await a.tap('[aria-label="Carte bancaire"]');
+    return recap && (await a.seen('[aria-label="MTN Mobile Money"]')) && !(await a.seen('[aria-label="Carte bancaire"]'));
+  });
+  await check("with the operators not live, booking pauses and nothing is paid", async () => {
+    fake.setPaymentsLive(false);
+    await a.tap('[aria-label="MTN Mobile Money"]');
+    await a.fill('[aria-label="Numéro Mobile Money"]', "061234567");
     await a.tap("[aria-label=\"J'autorise le paiement\"]");
+    await a.tap('[aria-label="Confirmer le paiement en ligne"]');
+    const shown = await a.waitSeen("text=/Le paiement en ligne ouvre bientôt/");
+    const [r] = [...fake.requests.values()];
+    return shown && r.status === "draft" && fake.collections.size === 0;
+  });
+  await check("the client cannot declare the payment itself", async () => {
+    const [r] = [...fake.requests.values()];
+    // Straight at the server, as an attacker with the client's token would.
+    const res = await fetch("http://127.0.0.1:8990/rest/v1/rpc/request_action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer tok-${r.client_id}~99999` },
+      body: JSON.stringify({ p_request: r.id, p_action: "pay", p_payload: { method: "mtn", payment_ref: "I-promise" } }),
+    }).then((x) => x.status);
+    return res === 403 && r.status === "draft";
+  });
+  await check("the client pays by Mobile Money; the server confirms it", async () => {
+    fake.setPaymentsLive(true);
     await pa.screenshot({ path: path.join(os.tmpdir(), "242k-market-pay.png") });
     await a.tap('[aria-label="Confirmer le paiement en ligne"]');
-    await pa.waitForTimeout(1500);
+    await pa.waitForTimeout(4500);
     const [r] = [...fake.requests.values()];
-    return recap && r.status === "sent" && (await a.waitSeen("text=Envoyée · fonds bloqués"));
+    return r.status === "sent" && !!r.payment_verified_at && (await a.waitSeen("text=Envoyée · fonds bloqués"));
   });
 
   // ------------------------------------------------------------------ B

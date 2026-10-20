@@ -1288,4 +1288,9 @@ export const en: Record<string, string> = {
   'Métier non renseigné': 'Trade not set',
   'Prestataire vérifié': 'Verified provider',
   'Vérification en cours': 'Verification in progress',
+  'Paiement reçu. 242Konnect le vérifie avant de transmettre la demande ; en cas d’écart, vous êtes remboursé.':
+    'Payment received. 242Konnect is checking it before sending the request on; if anything is off, you are refunded.',
+  "Le paiement en ligne n'est pas encore disponible dans votre pays.": 'Online payment is not available in your country yet.',
+  'Confirmez le paiement sur votre téléphone en saisissant votre code Mobile Money.':
+    'Confirm the payment on your phone by entering your Mobile Money PIN.',
 };

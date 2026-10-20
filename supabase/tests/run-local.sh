@@ -19,15 +19,15 @@ for m in "$here"/../migrations/*.sql; do
   run "$m"
 done
 run "$here/local/seed.sql"
-if [ -n "${PROPOSED:-}" ]; then
-  # Also apply the changes awaiting a decision, and run their own tests.
-  for m in "$here"/../proposed/*.sql; do run "$m"; done
-  psql -X -d "$db" -A -F ' | ' -t -f "$here/proposed_verified_payments_tests.sql"
-fi
 out="$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/security_tests.sql")"
-echo "$out" | grep -E '^\s*[0-9]+ \|' || true
-fails="$(echo "$out" | grep -cE '^\s*[0-9]+ \| f \|' || true)"
-total="$(echo "$out" | grep -cE '^\s*[0-9]+ \|' || true)"
+# The payment tests number their rows from 1 again; prefixed so both lists read.
+out="$out
+$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/payment_tests.sql" 2>&1 | sed -E 's/^ *([0-9]+) \|/P\1 |/')"
+echo "$out" | grep -E '^\s*P?[0-9]+ \|' || true
+fails="$(echo "$out" | grep -cE '^\s*P?[0-9]+ \| f \|' || true)"
+# A payment test block that aborts prints no rows; count the error instead.
+fails=$((fails + $(echo "$out" | grep -c 'ERROR:' || true)))
+total="$(echo "$out" | grep -cE '^\s*P?[0-9]+ \|' || true)"
 echo
 echo "$((total - fails)) passed, $fails failed"
 [ "$total" -gt 0 ] && [ "$fails" -eq 0 ]

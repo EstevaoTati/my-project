@@ -95,6 +95,8 @@ const MESSAGES: [RegExp, string][] = [
   [/can no longer be accepted/, 'Cette demande ne peut plus être acceptée (délai dépassé ou déjà traitée).'],
   [/not approved yet/, "Votre profil n'est pas encore approuvé par 242Konnect."],
   [/can no longer be cancelled/, 'Cette demande ne peut plus être annulée.'],
+  [/confirmed by the payment service/, 'Le paiement passe par le service de paiement 242Konnect. Mettez l’application à jour.'],
+  [/payment not verified/, "Le paiement de cette demande n'est pas encore confirmé par l'opérateur."],
   [/not signed in|JWT|jwt/, 'Votre session a expiré. Reconnectez-vous.'],
 ];
 
@@ -331,7 +333,12 @@ export async function getAddress(session: SupabaseSession, requestId: string): P
   return rows[0]?.address ?? null;
 }
 
-export type RequestAction = 'pay' | 'cancel' | 'validate' | 'dispute' | 'accept' | 'decline' | 'advance';
+/**
+ * There is no 'pay' action: the app cannot mark a request paid (security
+ * finding F-01). Payment goes through `payRequest` below, and the server moves
+ * the request to 'sent' once the operator has confirmed the money.
+ */
+export type RequestAction = 'cancel' | 'validate' | 'dispute' | 'accept' | 'decline' | 'advance';
 
 export async function requestAction(
   session: SupabaseSession,
@@ -344,6 +351,90 @@ export async function requestAction(
     body: { p_request: requestId, p_action: action, p_payload: payload },
   });
   return requestFrom(row);
+}
+
+/* ------------------------------------------------------------------ */
+/* Payments                                                           */
+/* ------------------------------------------------------------------ */
+
+export type CollectionStatus = 'pending' | 'successful' | 'failed' | 'expired';
+
+export type PaymentOutcome = {
+  status: CollectionStatus;
+  /** Where the request stands once the server has seen the collection. */
+  requestStatus?: RequestStatus;
+  /** Why it did not go through, in French. */
+  reason?: string;
+};
+
+/** A refusal from the payment service; `code` is its error, e.g. `payments_unavailable`. */
+export class PaymentError extends MarketplaceError {
+  constructor(message: string, readonly code: string) {
+    super(message);
+  }
+}
+
+async function paymentCall<T>(session: SupabaseSession, body: Record<string, unknown>): Promise<T> {
+  if (!marketplaceEnabled) throw new MarketplaceError('Service indisponible sur cette version.');
+  let response: Response;
+  try {
+    response = await supabaseFetch('/functions/v1/payment', { method: 'POST', body }, session);
+  } catch {
+    throw new MarketplaceError('Connexion impossible. Vérifiez votre réseau et réessayez.');
+  }
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: string; message?: string };
+  if (!response.ok || payload.error) {
+    throw new PaymentError(
+      payload.message ?? "Le service de paiement n'a pas pu traiter la demande. Réessayez.",
+      payload.error ?? 'unknown'
+    );
+  }
+  return payload;
+}
+
+/** How long the operator leaves the PIN prompt up, plus slack for a slow network. */
+export const PAYMENT_TIMEOUT_MS = 120_000;
+const PAYMENT_POLL_MS = 3000;
+
+/**
+ * Pays a draft request by Mobile Money: the operator prompts `phone` for its
+ * PIN, and this waits until the collection settles or the prompt runs out.
+ *
+ * The amount is the request's, read by the server; nothing here can change it.
+ * Starting twice for the same request and number returns the same collection,
+ * so a double tap or a retry never prompts — or debits — twice.
+ */
+export async function payRequest(
+  session: SupabaseSession,
+  requestId: string,
+  method: 'mtn' | 'airtel',
+  phone: string,
+  options: { signal?: AbortSignal; onPending?: () => void; timeoutMs?: number; pollMs?: number } = {}
+): Promise<PaymentOutcome> {
+  const started = await paymentCall<{ collection: string; status: CollectionStatus }>(session, {
+    action: 'start',
+    request: requestId,
+    method,
+    phone,
+  });
+  options.onPending?.();
+  const deadline = Date.now() + (options.timeoutMs ?? PAYMENT_TIMEOUT_MS);
+  let last: PaymentOutcome = { status: started.status };
+  do {
+    if (options.signal?.aborted) break;
+    try {
+      last = await paymentCall<PaymentOutcome>(session, { action: 'status', collection: started.collection });
+      // Settled, and the server has applied it (or flagged it) on the request.
+      if (last.status !== 'pending' && (last.status !== 'successful' || last.requestStatus !== undefined)) return last;
+    } catch (e) {
+      // One failed read in the middle of a payment is not a failed payment.
+      if (e instanceof PaymentError && e.code === 'invalid_token') throw e;
+    }
+    await new Promise((r) => setTimeout(r, options.pollMs ?? PAYMENT_POLL_MS));
+  } while (Date.now() < deadline);
+  return last.status === 'pending'
+    ? { status: 'expired', reason: 'Aucune confirmation reçue. Si votre compte a été débité, relancez le paiement avec le même numéro : il sera retrouvé, sans second débit.' }
+    : last;
 }
 
 /* ------------------------------------------------------------------ */

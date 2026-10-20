@@ -47,10 +47,8 @@ jobs:
       PGPASSWORD: postgres
     steps:
       - uses: actions/checkout@v4
-      - name: Hardened schema — every attack refused
+      - name: Hardened schema and verified payments — every attack refused
         run: bash supabase/tests/run-local.sh
-      - name: Proposed changes awaiting a decision
-        run: PROPOSED=1 bash supabase/tests/run-local.sh
 
   api:
     name: API tests and dependency audit
@@ -77,10 +75,11 @@ jobs:
         run: npm ci
       - working-directory: 242konnect-app
         run: npx tsc --noEmit -p . && node tools/i18n-check.js
-      - name: PIN function — logic tests and type check
+      - name: Edge Functions — logic tests and type check
         run: |
           node --experimental-strip-types supabase/functions/pin/core.test.mjs
-          deno check supabase/functions/pin/index.ts
+          node --experimental-strip-types supabase/functions/payment/operators.test.mjs
+          deno check supabase/functions/pin/index.ts supabase/functions/payment/index.ts
       - name: npm audit — critical blocks
         working-directory: 242konnect-app
         run: npm audit --omit=dev --audit-level=critical
