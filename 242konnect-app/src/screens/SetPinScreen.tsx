@@ -87,12 +87,18 @@ export function SetPinScreen() {
         )}
 
         <Text style={styles.title}>
-          {replacing ? t('Changer votre code') : t('Votre code confidentiel')}
+          {pendingPinSetup.reset
+            ? t('Nouveau code confidentiel')
+            : replacing
+              ? t('Changer votre code')
+              : t('Votre code confidentiel')}
         </Text>
         <Text style={styles.lede}>
-          {t(
-            'Six chiffres pour vous reconnecter sans attendre un e-mail. Choisissez un code que vous seul connaissez, et ne le notez pas sur votre téléphone.'
-          )}
+          {pendingPinSetup.reset
+            ? t('Votre e-mail est confirmé. Choisissez un nouveau code : l’ancien ne fonctionnera plus.')
+            : t(
+                'Six chiffres pour vous reconnecter sans attendre un e-mail. Choisissez un code que vous seul connaissez, et ne le notez pas sur votre téléphone.'
+              )}
         </Text>
 
         {replacing && (
@@ -166,7 +172,9 @@ export function SetPinScreen() {
             style={styles.skip}
           >
             <Text style={styles.skipText}>
-              {t('Plus tard — je recevrai un code par e-mail à chaque connexion.')}
+              {pendingPinSetup.reset
+                ? t('Plus tard — « Code oublié ? » restera disponible à la prochaine connexion.')
+                : t('Plus tard — je recevrai un code par e-mail à chaque connexion.')}
             </Text>
           </Pressable>
         )}

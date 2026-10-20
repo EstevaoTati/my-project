@@ -32,6 +32,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   const messages = [];
   const consents = [];
   const revoked = new Set(); // access tokens ended by /auth/v1/logout
+  // Sessions opened by an e-mail code, and when: the JWT's `amr` claim, which
+  // the pin function's "reset" action checks (step-up, 10 minutes).
+  const emailCodeSessions = new Map();
   const collections = new Map(); // id -> payment collection
   // false: operator credentials not set, as in production until MoMo goes live.
   let paymentsLive = true;
@@ -138,7 +141,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           const user = users.get(String(body.email).toLowerCase());
           if (!user || user.code !== body.token) return fail(res, 403, "Token has expired or is invalid");
           user.code = null; // single use
-          return send(res, 200, session(user.id));
+          const s = session(user.id);
+          emailCodeSessions.set(s.access_token.slice(4), Date.now());
+          return send(res, 200, s);
         }
         if (path === "/auth/v1/token" && q.get("grant_type") === "password") {
           const user = users.get(String(body.email || "").toLowerCase());
@@ -168,6 +173,13 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           if (body.action === "status") return send(res, 200, { hasPin: pins.has(uid), lockedUntil: null });
           if (body.action === "set") {
             if (pins.has(uid) && pins.get(uid) !== body.current) return send(res, 400, { error: "current_pin_incorrect" });
+            pins.set(uid, body.pin);
+            return send(res, 200, {});
+          }
+          if (body.action === "reset") {
+            const sid = (/^Bearer tok-(.+)$/.exec(req.headers.authorization || "") || [])[1];
+            const at = emailCodeSessions.get(sid);
+            if (!at || Date.now() - at > 600e3) return send(res, 403, { error: "step_up_required" });
             pins.set(uid, body.pin);
             return send(res, 200, {});
           }
@@ -350,6 +362,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     consents,
     listings,
     requests,
+    users,
     outbox,
   };
 }

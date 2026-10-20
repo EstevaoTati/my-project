@@ -53,6 +53,7 @@ import {
   pinStatus,
   rememberHasPin,
   setPin as storePin,
+  resetPin,
   verifyPin as checkPin,
   PIN_LENGTH,
 } from './pin';
@@ -337,6 +338,11 @@ export type PendingSignIn = {
    * once the e-mail code proves the address. Held in memory only.
    */
   migratePassword?: string;
+  /**
+   * Set when the person chose "Code oublié ?": once the e-mail code is
+   * accepted, they are offered a new PIN without the old one.
+   */
+  forgotPin?: boolean;
 };
 
 /** Set when the app is asking for the PIN — offering it, or insisting. */
@@ -351,6 +357,11 @@ export type PendingPinSetup = {
    * the account screen is not required, so that path leaves it false.
    */
   required: boolean;
+  /**
+   * Replacing a forgotten PIN, right after an e-mail code: no current PIN is
+   * asked, and the server checks the code was entered in the last 10 minutes.
+   */
+  reset?: boolean;
 };
 
 type AuthState = {
@@ -1025,6 +1036,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { hasPin: established } = await pinStatus(session);
           setHasPin(established);
           if (!established) setPendingPinSetup({ replacing: false, required: true });
+          else if (pendingSignIn.forgotPin) setPendingPinSetup({ replacing: false, required: false, reset: true });
         } catch {
           // Unreachable: the next launch asks again.
         }
@@ -1039,7 +1051,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: pendingSignIn.account.name,
       phone: pendingSignIn.account.phone,
     });
-    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery, forgotPin: true } : prev));
   }, [pendingSignIn]);
 
   /**
@@ -1087,7 +1099,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       { name: pendingSignIn.account.name, phone: pendingSignIn.account.phone },
       { createUser: false }
     );
-    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery } : prev));
+    setPendingSignIn((prev) => (prev ? { ...prev, method: 'email', delivery, forgotPin: true } : prev));
   }, [pendingSignIn]);
 
   /**
@@ -1131,7 +1143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
       supabaseSession.current = live;
       try {
-        await storePin(live, pin, current);
+        if (pendingPinSetup?.reset) await resetPin(live, pin);
+        else await storePin(live, pin, current);
       } catch (e) {
         // A PIN already exists on the server that this device did not know
         // about: switch the screen to "change", which asks for the current one.
@@ -1148,7 +1161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Done: straight into the app.
       setPendingPinSetup(null);
     },
-    []
+    [pendingPinSetup]
   );
 
   const cancelSignIn = useCallback(() => {

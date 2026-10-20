@@ -238,6 +238,39 @@ const latestCode = async (email) => {
     return fake.serverPassword(EMAIL) === PASSWORD;
   });
 
+  section("A forgotten PIN: the e-mail code, then a new PIN");
+  await check("a session that did not just enter an e-mail code cannot reset the PIN", async () => {
+    const uid = fake.users.get(EMAIL).id;
+    const status = await fetch("http://127.0.0.1:8990/functions/v1/pin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer tok-${uid}~99999` },
+      body: JSON.stringify({ action: "reset", pin: "777123" }),
+    }).then((r) => r.status);
+    return status === 403 && fake.pinOf(EMAIL) === "593104";
+  });
+  await check("« Code oublié ? » leads to the e-mail code, then a new PIN", async () => {
+    await b.tap('[aria-label="Profil"]');
+    await b.tap('[aria-label="Se déconnecter"]');
+    if (!(await b.waitSeen('[aria-label="Numéro de téléphone ou e-mail"]', 3000))) await b.tap("text=J'ai déjà un compte");
+    await b.fill('[aria-label="Numéro de téléphone ou e-mail"]', EMAIL);
+    await b.fill('[aria-label="Mot de passe"]', PASSWORD);
+    await b.tap('[aria-label="Se connecter"]');
+    await b.waitSeen('[aria-label="Code confidentiel"]');
+    await b.tap('[aria-label="Recevoir un code par e-mail"]');
+    await b.waitSeen('[aria-label="Code de vérification"]');
+    await b.fill('[aria-label="Code de vérification"]', await latestCode(EMAIL));
+    const shown = await b.waitSeen("text=Nouveau code confidentiel");
+    await pb.screenshot({ path: path.join(os.tmpdir(), "242k-pin-reset.png") });
+    return shown;
+  });
+  await check("the new PIN replaces the forgotten one, no old PIN asked", async () => {
+    const asked = await b.seen('[aria-label="Code actuel"]');
+    await b.fill('[aria-label="Nouveau code"]', "640281");
+    await b.fill('[aria-label="Confirmer le code"]', "640281");
+    await b.tap('[aria-label="Définir mon code"]');
+    return !asked && (await b.waitSeen("text=Catégories")) && fake.pinOf(EMAIL) === "640281";
+  });
+
   await check("no page errors", async () => errors.length === 0);
 
   console.log(`\n${pass} passed, ${fails.length} failed`);

@@ -1293,4 +1293,9 @@ export const en: Record<string, string> = {
   "Le paiement en ligne n'est pas encore disponible dans votre pays.": 'Online payment is not available in your country yet.',
   'Confirmez le paiement sur votre téléphone en saisissant votre code Mobile Money.':
     'Confirm the payment on your phone by entering your Mobile Money PIN.',
+  'Nouveau code confidentiel': 'New PIN',
+  'Votre e-mail est confirmé. Choisissez un nouveau code : l’ancien ne fonctionnera plus.':
+    'Your e-mail is confirmed. Choose a new PIN: the old one will stop working.',
+  'Plus tard — « Code oublié ? » restera disponible à la prochaine connexion.':
+    'Later — “Forgot your PIN?” will still be there at your next sign-in.',
 };

@@ -37,7 +37,8 @@ export class PinError extends Error {
 type PinAction =
   | { action: 'status' }
   | { action: 'set'; pin: string; current?: string }
-  | { action: 'verify'; pin: string };
+  | { action: 'verify'; pin: string }
+  | { action: 'reset'; pin: string };
 
 /** Translations for the codes the function returns. It answers in codes, we render French. */
 function messageFor(code: string, payload: Record<string, unknown>): string {
@@ -63,6 +64,8 @@ function messageFor(code: string, payload: Record<string, unknown>): string {
         : 15;
       return `Trop de codes incorrects. Réessayez dans ${minutes} minutes.`;
     }
+    case 'step_up_required':
+      return 'Pour remplacer un code oublié, reconnectez-vous avec un code reçu par e-mail.';
     case 'no_pin':
       return "Aucun code n'est défini sur ce compte.";
     case 'invalid_token':
@@ -157,6 +160,16 @@ export async function setPin(
   current?: string
 ): Promise<void> {
   await callPin(session, { action: 'set', pin, ...(current ? { current } : {}) });
+  await rememberHasPin(session.userId, true);
+}
+
+/**
+ * Replaces a forgotten PIN without the old one. The server accepts it only
+ * from a session opened with an e-mail code in the last 10 minutes (step-up);
+ * any other session gets `step_up_required`.
+ */
+export async function resetPin(session: SupabaseSession, pin: string): Promise<void> {
+  await callPin(session, { action: 'reset', pin });
   await rememberHasPin(session.userId, true);
 }
 
