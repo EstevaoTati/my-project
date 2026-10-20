@@ -14,7 +14,7 @@
  *    public.pin_register_attempt(); a third lockout in 24 h locks for a day.
  *  - New hashes use 210,000 PBKDF2 rounds; v6 rows (120,000) still verify and
  *    are re-hashed on the next correct entry.
- *  - Security events (PIN set, changed, reset, wrong, locked, bad token) go to
+ *  - Security events (PIN set, changed, reset, wrong, locked) go to
  *    public.security_events — never the PIN, a hash or the token.
  *  - action "reset": a forgotten PIN can be replaced without the old one, but
  *    only with a session obtained from an e-mail code in the last 10 minutes
@@ -105,10 +105,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // not been revoked. The user id below comes from here, never from the body.
   const { data: auth, error: authError } = await db.auth.getUser(token);
   const user = auth?.user;
-  if (authError || !user) {
-    await logEvent('pin.invalid_token', 'low', null, {}, ip);
-    return err('invalid_token', 401);
-  }
+  // Not logged to security_events: that would let anyone, signed in or not,
+  // fill the table. The platform's function logs already record these.
+  if (authError || !user) return err('invalid_token', 401);
   const userId = user.id;
 
   const raw = await req.text();

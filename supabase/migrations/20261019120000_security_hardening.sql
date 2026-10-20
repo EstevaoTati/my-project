@@ -24,9 +24,11 @@
 --   F-10  profiles had no size or format limits (a 50 MB avatar would be
 --         accepted). → CHECK constraints.
 --
--- Not here, on purpose: F-01 (a client can declare its own payment). The fix
--- changes the live booking flow and waits for a decision — see
--- supabase/proposed/verified_payments.sql.
+-- Applied to production on 2026-10-20 in nine parts (supabase_migrations:
+-- security_hardening_0 … _8), so that a refusal would name its part. Part 6
+-- first failed on the 20 KB JSON limit: prestataires' supporting documents
+-- live inline in profiles.prestataire (up to 28 KB today, finding F-16), so
+-- the cap is 2 MB — a bound against abuse, not a storage design.
 
 -- ---------------------------------------------------------------------------
 -- F-08 · Function privileges: default deny
@@ -276,7 +278,7 @@ alter table public.profiles
     or (length(avatar_url) <= 400000
         and avatar_url ~ '^(data:image/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+|https://[^\s"''<>]+)$')),
   add constraint profiles_details_size  check (
-    pg_column_size(particulier) <= 20000 and pg_column_size(prestataire) <= 20000 and pg_column_size(business) <= 20000);
+    pg_column_size(particulier) <= 2000000 and pg_column_size(prestataire) <= 2000000 and pg_column_size(business) <= 2000000);
 
 -- ---------------------------------------------------------------------------
 -- F-05 · provider_listings: others see approved listings only
