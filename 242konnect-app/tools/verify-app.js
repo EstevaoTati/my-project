@@ -543,10 +543,15 @@ const mailedCode = () => {
   });
   await check("an unactivated operator is refused, not faked", async () => {
     await tap('[aria-label="Confirmer le paiement"]');
-    // Either the operator refuses it, or the gateway is unconfigured and the
-    // walkthrough runs; both must reach a real state, never a silent receipt.
+    // Either the operator refuses it, the API refuses a caller it cannot
+    // authenticate (this build has no Supabase session to send), or the
+    // gateway is unconfigured and the walkthrough runs — all real states,
+    // never a silent receipt.
     await page.waitForTimeout(2500);
-    const refused = await seen("text=n'est pas encore activé");
+    const refused =
+      (await seen("text=n'est pas encore activé")) ||
+      (await seen("text=Authentification non configurée")) ||
+      (await seen("text=Connexion requise"));
     const prompting = await seen("text=Confirmez sur votre téléphone");
     if (prompting) await tap('[aria-label="Annuler le paiement"]');
     return refused || prompting;

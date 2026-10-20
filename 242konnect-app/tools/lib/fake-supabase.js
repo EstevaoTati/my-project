@@ -29,6 +29,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   const addresses = new Map();
   const messages = [];
   const consents = [];
+  const revoked = new Set(); // access tokens ended by /auth/v1/logout
   let messageId = 0;
 
   const STAGES = ["accepted", "on_the_way", "arrived", "in_progress", "completed"];
@@ -44,16 +45,19 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     res.end(body === undefined ? "" : JSON.stringify(body));
   };
   const fail = (res, status, message) => send(res, status, { message, code: String(status) });
+  // Every session gets its own tokens, as with GoTrue: revoking one session
+  // (sign-out) must not end another session of the same user.
+  let sessionSeq = 0;
   const session = (id) => ({
-    access_token: `tok-${id}`,
-    refresh_token: `ref-${id}`,
+    access_token: `tok-${id}~${++sessionSeq}`,
+    refresh_token: `ref-${id}~${sessionSeq}`,
     expires_in: 3600,
     token_type: "bearer",
     user: { id },
   });
   const uidOf = (req) => {
-    const m = /^Bearer tok-(.+)$/.exec(req.headers.authorization || "");
-    return m ? m[1] : null;
+    const m = /^Bearer tok-(([^~]+)(?:~\d+)?)$/.exec(req.headers.authorization || "");
+    return m && !revoked.has(m[1]) ? m[2] : null;
   };
   const eq = (q, key) => {
     const v = q.get(key);
@@ -146,8 +150,14 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           return send(res, 200, session(user.id));
         }
         if (path === "/auth/v1/token") {
-          const m = /^ref-(.+)$/.exec(body.refresh_token || "");
-          return m ? send(res, 200, session(m[1])) : fail(res, 400, "invalid refresh token");
+          // A refresh token dies with its session.
+          const m = /^ref-(([^~]+)(?:~\d+)?)$/.exec(body.refresh_token || "");
+          return m && !revoked.has(m[1]) ? send(res, 200, session(m[2])) : fail(res, 400, "invalid refresh token");
+        }
+        if (path === "/auth/v1/logout" && req.method === "POST") {
+          const m = /^Bearer tok-(.+)$/.exec(req.headers.authorization || "");
+          if (m) revoked.add(m[1]); // "<user>~<session>": that session only
+          return send(res, 204);
         }
         if (path === "/auth/v1/user" && req.method === "PUT") {
           const user = [...users.values()].find((u) => u.id === uid);
@@ -276,6 +286,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   });
 
   return {
+    revokedTokens: () => [...revoked],
     listen: () => new Promise((r) => server.listen(port, "127.0.0.1", r)),
     close: () => server.close(),
     /** What 242Konnect's reviewers would do from the dashboard. */

@@ -87,13 +87,28 @@ export class MomoError extends Error {}
 
 const TIMEOUT_MS = 20000;
 
+/**
+ * Where the caller's Supabase access token comes from. The payment API only
+ * starts or reports a collection for an authenticated user, and only that
+ * user's own (security finding F-06); auth.tsx registers the source.
+ */
+let accessTokenSource: (() => Promise<string | null>) | null = null;
+export function setPaymentAuth(source: (() => Promise<string | null>) | null): void {
+  accessTokenSource = source;
+}
+
 async function call(path: string, init: RequestInit): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
+    const token = accessTokenSource ? await accessTokenSource().catch(() => null) : null;
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(init.headers ?? {}),
+      },
       signal: controller.signal,
     });
     const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;

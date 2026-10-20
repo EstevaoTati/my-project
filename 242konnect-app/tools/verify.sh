@@ -26,7 +26,12 @@ if [ ! -x "$API_DIR/.venv/bin/uvicorn" ]; then
 fi
 
 : > "$API_LOG"
-"$API_DIR/.venv/bin/uvicorn" app.main:app --port "$API_PORT" --app-dir "$API_DIR" \
+# The test builds call the API from another local origin, and the suites sign
+# up many accounts from one address. Both are refused by default (CORS is
+# closed, rate limits apply), so the test server opens CORS and scales the
+# limits up. Production sets neither — see 242konnect-api/README.md.
+CORS_ORIGINS='*' RATE_LIMIT_SCALE=100 \
+  "$API_DIR/.venv/bin/uvicorn" app.main:app --port "$API_PORT" --app-dir "$API_DIR" \
   > "$API_LOG" 2>&1 &
 API_PID=$!
 trap 'kill "$API_PID" 2>/dev/null || true' EXIT

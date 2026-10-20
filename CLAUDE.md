@@ -90,4 +90,10 @@ publish the other's files.
   doc: `242konnect-app/DEPLOY.md`.
 - `242konnect-app/tools/verify-csp.js` checks the separation; both package
   scripts refuse to include the other product's content.
+- **Security** — `docs/security/` (assessment, policies, risks, deployment
+  checklist, incident response). Database changes are tested on a local
+  replica (`bash supabase/tests/run-local.sh`), never trial-run against
+  production, even inside a rolled-back transaction: schema changes take table
+  locks. Production changes (migrations, Edge Functions, dashboard settings)
+  need the founder's approval. CI gate: `.github/workflows/security.yml`.
 - Verify changes by opening the affected page before committing.

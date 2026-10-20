@@ -77,6 +77,8 @@ class Collection:
     operator_reference: str | None = None
     reason: str | None = None
     created_at: float = field(default_factory=time.time)
+    #: The authenticated user who started it; only they may read it back.
+    owner: str | None = None
 
 
 #: In-process, like the OTP store. A second worker would not see these, so a
@@ -347,6 +349,7 @@ async def request_to_pay(
     amount: int,
     label: str,
     idempotency_key: str | None = None,
+    owner: str | None = None,
 ) -> Collection:
     """Asks the operator to prompt ``phone`` for its PIN. Debits nothing yet.
 
@@ -356,6 +359,9 @@ async def request_to_pay(
     silently answered with the other payment.
     """
     _prune()
+    # Keys are per user: another account's key never returns their payment.
+    if idempotency_key and owner:
+        idempotency_key = f"{owner}:{idempotency_key}"
     if idempotency_key and idempotency_key in _BY_KEY:
         existing = _STORE.get(_BY_KEY[idempotency_key])
         if existing is not None:
@@ -364,7 +370,7 @@ async def request_to_pay(
             if existing.status in ("pending", "successful"):
                 return existing
 
-    record = Collection(id=str(uuid.uuid4()), operator=operator, phone=phone, amount=amount)
+    record = Collection(id=str(uuid.uuid4()), operator=operator, phone=phone, amount=amount, owner=owner)
 
     if operator == "mtn":
         await _mtn_request_to_pay(record, label)
@@ -375,6 +381,11 @@ async def request_to_pay(
     if idempotency_key:
         _BY_KEY[idempotency_key] = record.id
     return record
+
+
+def owner_of(collection_id: str) -> str | None:
+    record = _STORE.get(collection_id)
+    return record.owner if record else None
 
 
 async def status(collection_id: str) -> Collection:

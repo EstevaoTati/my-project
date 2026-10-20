@@ -340,20 +340,34 @@ async def test_airtel_ts_is_success(monkeypatch, stub):
 # --------------------------------------------------------------------------- #
 
 
-def test_status_of_unknown_collection_is_404():
+@pytest.fixture
+def signed_in(monkeypatch):
+    """Any bearer token is user-1; the real check is in test_security.py."""
+    from app import security
+
+    async def fake(token):
+        return "user-1"
+
+    monkeypatch.setattr(security, "verify_token", fake)
+    return {"Authorization": "Bearer t"}
+
+
+def test_status_of_unknown_collection_is_404(signed_in):
     with TestClient(app) as client:
-        assert client.get("/payments/momo/nope").status_code == 404
+        assert client.get("/payments/momo/nope", headers=signed_in).status_code == 404
 
 
-def test_request_to_pay_rejects_bad_input():
+def test_request_to_pay_rejects_bad_input(signed_in):
     with TestClient(app) as client:
         assert client.post(
             "/payments/momo/request-to-pay",
             json={"operator": "orange", "phone": "061234567", "amount": 100},
+            headers=signed_in,
         ).status_code == 422
         assert client.post(
             "/payments/momo/request-to-pay",
             json={"operator": "mtn", "phone": "061234567", "amount": 0},
+            headers=signed_in,
         ).status_code == 422
 
 

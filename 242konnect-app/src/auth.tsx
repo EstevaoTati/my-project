@@ -35,7 +35,8 @@ import {
 } from './otpClient';
 import { ProfileConflictError, pullProfile, pushProfile, reconcileProfile } from './profileStore';
 import { PinError } from './pin';
-import { freshSession, supabaseConfigured, type SupabaseSession } from './supabase';
+import { freshSession, supabaseConfigured, supabaseFetch, type SupabaseSession } from './supabase';
+import { setPaymentAuth } from './momo';
 import { upsertListing } from './marketplace';
 import { InvalidCredentialsError, setServerPassword, signInWithPassword } from './serverAuth';
 import {
@@ -520,6 +521,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // read the token that exists now rather than the one captured when the
   // callback was created.
   const supabaseSession = useRef<SupabaseSession | null>(null);
+
+  // The payment API identifies the caller by this session's access token,
+  // refreshed when it is about to expire.
+  useEffect(() => {
+    setPaymentAuth(async () => {
+      const live = await freshSession(supabaseSession.current);
+      if (live) supabaseSession.current = live;
+      return live?.accessToken ?? null;
+    });
+    return () => setPaymentAuth(null);
+  }, []);
 
   const rememberSupabaseSession = useCallback(async (next: SupabaseSession | null) => {
     supabaseSession.current = next;
@@ -1210,21 +1222,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const cancelPasswordReset = useCallback(() => setResetting(null), []);
 
   const signOut = useCallback(async () => {
-    // The Supabase token deliberately stays behind.
+    // Signing out ends the Supabase session too, on the server and here.
     //
-    // It is not the app's session — that is the record `persistSession(null)`
-    // clears, and clearing it is what signs someone out. What remains is a
-    // device token: proof that this account has been verified on this phone
-    // before, which is exactly what the PIN path needs and cannot obtain any
-    // other way. On its own it signs nobody in and unlocks nothing; the PIN
-    // function still demands the PIN, and the app still demands the password.
-    //
-    // Someone who wants the device forgotten uninstalls, or clears the app's
-    // data — both drop it, and the next sign-in falls back to the mailed code.
+    // It used to stay behind as a "device token" for the PIN path. But a
+    // refresh token is a live session: anyone who can read this device's
+    // storage (on the web, any script that runs on the page) could call the
+    // database with it directly — the PIN is checked by the app's screens, not
+    // by the database. Since sign-in now goes through Supabase with e-mail and
+    // password, nothing after a sign-out needs the old token, so it is
+    // revoked (security finding F-11) and forgotten.
+    const previous = supabaseSession.current;
     await persistSession(null);
+    if (previous) {
+      supabaseFetch('/auth/v1/logout?scope=local', { method: 'POST' }, previous).catch(() => {});
+    }
+    await rememberSupabaseSession(null);
     setHasPin(false);
     setPendingPinSetup(null);
-  }, [persistSession]);
+  }, [persistSession, rememberSupabaseSession]);
 
   const markLaunched = useCallback(() => {
     setFirstLaunch(false);

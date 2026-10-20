@@ -180,6 +180,8 @@ const latestCode = async (email) => {
     await a.tap('[aria-label="Se connecter"]');
     return a.waitSeen('[aria-label="Code confidentiel"]');
   });
+  await check("signing out revoked the previous session on the server", async () =>
+    fake.revokedTokens().length >= 1);
   await check("the PIN completes it — no e-mail code needed", async () => {
     await a.fill('[aria-label="Code confidentiel"]', PIN);
     return a.waitSeen("text=Catégories");

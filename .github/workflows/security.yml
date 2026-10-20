@@ -1,0 +1,120 @@
+# 242Konnect — security gate. Runs on every push and pull request, and weekly
+# so new advisories against unchanged code are caught.
+#
+# Blocking (a red check): leaked secrets, any database security test, any API
+# security test, a known vulnerability in the API's dependencies, a critical
+# one in the app's, a type error in the app or the PIN function.
+# Reported, not blocking: high-severity npm advisories in Expo/Metro build
+# tooling that have no fixed version yet (risk R-07 in
+# docs/security/risk-register.md — revisit at each Expo SDK upgrade).
+name: security
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks git --config .gitleaks.toml --redact --exit-code 1 .
+
+  database:
+    name: Database security tests (RLS, grants, quotas, PIN lock)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hardened schema — every attack refused
+        run: bash supabase/tests/run-local.sh
+      - name: Proposed changes awaiting a decision
+        run: PROPOSED=1 bash supabase/tests/run-local.sh
+
+  api:
+    name: API tests and dependency audit
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: 242konnect-api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt pytest anyio pip-audit
+      - run: python -m pytest -q
+      - run: pip-audit -r requirements.txt --strict
+
+  app:
+    name: App type check, PIN logic, npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - working-directory: 242konnect-app
+        run: npm ci
+      - working-directory: 242konnect-app
+        run: npx tsc --noEmit -p . && node tools/i18n-check.js
+      - name: PIN function — logic tests and type check
+        run: |
+          node --experimental-strip-types supabase/functions/pin/core.test.mjs
+          deno check supabase/functions/pin/index.ts
+      - name: npm audit — critical blocks
+        working-directory: 242konnect-app
+        run: npm audit --omit=dev --audit-level=critical
+      - name: npm audit — full report (informational)
+        working-directory: 242konnect-app
+        run: npm audit --omit=dev || true
+
+  sast:
+    name: Static analysis (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep rules, pinned from the official repository
+        run: |
+          git clone -q --depth 1 https://github.com/semgrep/semgrep-rules.git /tmp/rules
+          pip install -q semgrep
+      # Excluded rule ids are false positives by design, reviewed 2026-10-20:
+      # the app's translation keys are the French sentences themselves
+      # (i18next-*, jsx-not-internationalized); prop spreading is how the form
+      # components forward accessibility props. See docs/security/assessment.md.
+      - name: Scan — ERROR severity blocks
+        run: >-
+          semgrep scan --metrics=off --error --severity ERROR
+          --config /tmp/rules/typescript --config /tmp/rules/javascript
+          --config /tmp/rules/python --config /tmp/rules/generic/secrets
+          --exclude-rule typescript.react.portability.i18next.i18next-key-format.i18next-key-format
+          --exclude-rule typescript.react.portability.i18next.jsx-not-internationalized.jsx-not-internationalized
+          --exclude '*.test.*' --exclude 'test_*'
+          242konnect-app/src 242konnect-api/app supabase
+
+  sbom:
+    name: Software bill of materials
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anchore/sbom-action@v0
+        with: { path: ., format: cyclonedx-json, artifact-name: sbom.cdx.json }

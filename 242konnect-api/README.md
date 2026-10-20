@@ -32,7 +32,11 @@ loudly in the console and in `GET /health` (`"sends_email": false`).
 | `RESEND_API_KEY` | Enables real sending. Absent → console transport. |
 | `OTP_MAIL_FROM` | Sender. **Must be a domain verified in Resend**, or delivery is refused. |
 | `OTP_PEPPER` | Salts the stored code hashes. Any long random string. Absent → a per-process random value, so codes stop working across a restart. |
-| `CORS_ORIGINS` | Comma-separated. `*` in development; narrow it in production. |
+| `CORS_ORIGINS` | Comma-separated list of web origins allowed to call the API. **Empty by default: no browser origin is allowed.** `*` is refused when `APP_ENV=production`. |
+| `APP_ENV` | `production` turns off `/docs` and `/openapi.json`, and refuses a wildcard CORS. |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Used to check callers' access tokens against Supabase Auth. Without them, the payment endpoints answer 503 (fail closed). |
+| `TRUST_PROXY` | `1` only behind a proxy that sets `X-Forwarded-For`. Otherwise the client could forge its address to dodge the rate limits. |
+| `RATE_LIMIT_SCALE` | **Tests only.** Multiplies the rate limits (never below 1). Unset in production. |
 
 Swapping Resend for SendGrid, Mailgun or SES means writing one more `Transport`
 in `app/mailer.py`. Nothing else in the codebase names a provider.
@@ -43,8 +47,8 @@ in `app/mailer.py`. Nothing else in the codebase names a provider.
 |---|---|
 | `POST /auth/otp/start` | `{key, email}` → mails a code. **Never returns the code.** |
 | `POST /auth/otp/verify` | `{key, code}` → `{verified: true}` or a 4xx. |
-| `POST /payments/momo/request-to-pay` | `{operator, phone, amount}` → starts a Mobile Money collection. |
-| `GET /payments/momo/{id}` | Where that collection has got to. |
+| `POST /payments/momo/request-to-pay` | **Bearer token required.** `{operator, phone, amount}` → starts a Mobile Money collection owned by the caller. |
+| `GET /payments/momo/{id}` | **Bearer token required.** Where the caller's own collection has got to; anyone else's answers 404. |
 | `GET /health` | Status, transport in use, whether mail sends, which operators are live. |
 
 `key` identifies the sign-up in progress — the phone number — so a resend
@@ -102,6 +106,20 @@ exercise the whole path.
 second worker will not see a collection the first one started, so the status
 poll would 404. Move both to Redis or Postgres before running more than one
 process — this is the one thing that will break under a real deployment.
+
+## Security controls (2026-10-20)
+
+See `docs/security/` at the repository root. In short:
+- Supabase-token authentication on payments; owner checks; per-user
+  idempotency keys.
+- Rate limits per address and per subject:
+  - OTP start: 10 per IP / 10 min, 5 per e-mail / hour;
+  - OTP verify: 30 per IP / 10 min;
+  - MoMo: 10 prompts per user / 10 min.
+- 16 KB body limit; unknown fields rejected; security headers on every
+  response; generic 500 without internals.
+- Dependencies pinned and checked by `pip-audit` in CI.
+- Tests: `tests/test_security.py`.
 
 ## What it protects against
 

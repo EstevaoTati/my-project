@@ -21,29 +21,57 @@ import os
 from typing import Literal
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr, Field
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from . import momo, otp
 from .mailer import MailError, build_transport, render_code_email
+from .security import (
+    LIMITS,
+    BodySizeLimit,
+    SecurityHeaders,
+    client_ip,
+    cors_origins,
+    limiter,
+    mask_email,
+    require_user,
+)
 
 log = logging.getLogger("242konnect.otp")
 
+PRODUCTION = os.environ.get("APP_ENV") == "production"
+
 app = FastAPI(
     title="242Konnect API",
-    version="0.1.0",
+    version="0.2.0",
     description="Codes de vérification par e-mail.",
+    # The schema is a map of the attack surface; not published in production.
+    docs_url=None if PRODUCTION else "/docs",
+    redoc_url=None,
+    openapi_url=None if PRODUCTION else "/openapi.json",
 )
 
-# The app runs from a device and, in development, from a web build on another
-# origin. Tighten this to the real origins before production.
+# Explicit origins only (CORS_ORIGINS). Native apps send no Origin and are not
+# affected; a browser build must be listed. No credentials: the bearer token
+# is explicit, so no cookie can be ridden.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
+    allow_origins=cors_origins(),
     allow_methods=["POST", "GET"],
-    allow_headers=["*"],
+    allow_headers=["authorization", "content-type"],
+    allow_credentials=False,
 )
+app.add_middleware(BodySizeLimit)
+app.add_middleware(SecurityHeaders)
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    # Never a stack trace, a path or a provider message to the client.
+    log.exception("unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Erreur interne. Réessayez."})
 
 transport = build_transport()
 
@@ -51,12 +79,17 @@ transport = build_transport()
 class StartRequest(BaseModel):
     """`key` identifies the sign-up in progress — the phone number, normally."""
 
-    key: str = Field(min_length=3, max_length=64)
+    # Unknown fields are refused rather than ignored (mass assignment).
+    model_config = ConfigDict(extra="forbid")
+
+    key: str = Field(min_length=3, max_length=64, pattern=r"^[0-9A-Za-z+@._-]+$")
     email: EmailStr
 
 
 class VerifyRequest(BaseModel):
-    key: str = Field(min_length=3, max_length=64)
+    model_config = ConfigDict(extra="forbid")
+
+    key: str = Field(min_length=3, max_length=64, pattern=r"^[0-9A-Za-z+@._-]+$")
     code: str = Field(min_length=otp.CODE_LENGTH, max_length=otp.CODE_LENGTH)
 
 
@@ -74,7 +107,9 @@ async def health() -> dict:
 
 
 @app.post("/auth/otp/start")
-async def start(body: StartRequest) -> dict:
+async def start(body: StartRequest, request: Request) -> dict:
+    limiter.check(f"otp_start_ip:{client_ip(request)}", LIMITS["otp_start_ip"])
+    limiter.check(f"otp_start_email:{body.email.lower()}", LIMITS["otp_start_email"])
     try:
         code = otp.issue(body.key, body.email)
     except otp.OtpError as exc:
@@ -86,7 +121,7 @@ async def start(body: StartRequest) -> dict:
     except MailError as exc:
         # The provider's reason is useful to us and meaningless (or leaky) to the
         # client, so it is logged and not returned.
-        log.error("otp delivery failed for %s: %s", body.email, exc)
+        log.error("otp delivery failed for %s: %s", mask_email(body.email), exc)
         raise HTTPException(
             status_code=502,
             detail="Impossible d'envoyer l'e-mail pour le moment. Réessayez dans un instant.",
@@ -98,7 +133,8 @@ async def start(body: StartRequest) -> dict:
 
 
 @app.post("/auth/otp/verify")
-async def verify(body: VerifyRequest) -> dict:
+async def verify(body: VerifyRequest, request: Request) -> dict:
+    limiter.check(f"otp_verify_ip:{client_ip(request)}", LIMITS["otp_verify_ip"])
     try:
         otp.verify(body.key, body.code)
     except otp.OtpError as exc:
@@ -112,15 +148,17 @@ async def verify(body: VerifyRequest) -> dict:
 
 
 class RequestToPayBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     operator: Literal["mtn", "airtel"]
     #: National or international Congolese number; normalised server-side.
-    phone: str = Field(min_length=9, max_length=15)
+    phone: str = Field(min_length=9, max_length=15, pattern=r"^[0-9 +]+$")
     #: Whole FCFA. XAF has no minor unit, so fractional amounts are meaningless.
     amount: int = Field(gt=0, le=5_000_000)
-    currency: str = Field(default="XAF", max_length=3)
-    label: str = Field(default="242Konnect", max_length=160)
+    currency: str = Field(default="XAF", pattern=r"^XAF$")
+    label: str = Field(default="242Konnect", max_length=160, pattern=r"^[^<>]*$")
     #: One per order: a replay of the same request returns the same collection.
-    idempotency_key: str | None = Field(default=None, min_length=8, max_length=64)
+    idempotency_key: str | None = Field(default=None, min_length=8, max_length=64, pattern=r"^[0-9A-Za-z_-]+$")
 
 
 def _collection_payload(record: momo.Collection) -> dict:
@@ -133,16 +171,17 @@ def _collection_payload(record: momo.Collection) -> dict:
 
 
 @app.post("/payments/momo/request-to-pay")
-async def request_to_pay(body: RequestToPayBody) -> dict:
+async def request_to_pay(body: RequestToPayBody, user: str = Depends(require_user)) -> dict:
     """Starts a collection. Returns as soon as the PIN prompt has been sent.
 
     This does not wait for the customer — they have up to a minute or so to
     enter their PIN, which is far longer than a request should be held open. The
     app polls the status endpoint instead.
     """
+    limiter.check(f"momo_start_user:{user}", LIMITS["momo_start_user"])
     try:
         record = await momo.request_to_pay(
-            body.operator, body.phone, body.amount, body.label, body.idempotency_key
+            body.operator, body.phone, body.amount, body.label, body.idempotency_key, owner=user
         )
     except momo.MomoError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -155,8 +194,12 @@ async def request_to_pay(body: RequestToPayBody) -> dict:
 
 
 @app.get("/payments/momo/{collection_id}")
-async def collection_status(collection_id: str) -> dict:
+async def collection_status(collection_id: str, user: str = Depends(require_user)) -> dict:
     """Where a collection has got to. Polled by the app until it settles."""
+    limiter.check(f"momo_status_user:{user}", LIMITS["momo_status_user"])
+    # Someone else's collection answers exactly like an unknown one (BOLA).
+    if momo.owner_of(collection_id) != user:
+        raise HTTPException(status_code=404, detail="Transaction inconnue ou expirée.")
     try:
         record = await momo.status(collection_id)
     except momo.MomoError as exc:

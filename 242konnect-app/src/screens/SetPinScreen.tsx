@@ -110,7 +110,7 @@ export function SetPinScreen() {
         )}
 
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>{replacing ? t('Nouveau code') : t('Nouveau code')}</Text>
+          <Text style={styles.fieldLabel}>{t('Nouveau code')}</Text>
           <CodeField
             value={pin}
             onChange={(next) => {
