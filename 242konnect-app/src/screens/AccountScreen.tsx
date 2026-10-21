@@ -10,7 +10,8 @@ import { UserAvatar } from '../components/Avatar';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { LANGUAGES, T, useI18n, useT } from '../i18n';
-import { pro, useProMode } from '../proTheme';
+import { useProMode } from '../proTheme';
+import { ProviderSettingsScreen } from './provider/ProviderSettingsScreen';
 
 /**
  * The Profil tab, once there's an account behind it.
@@ -33,14 +34,14 @@ export function AccountScreen({ navigation }: Props) {
     useAuth();
   const { favoriteCount, city, bookings, payments } = useStore();
 
-  // Mode Pro (proTheme.ts): the whole Profil screen turns anthracite while the
-  // Prestataire profile is active, so the active hat is never in doubt.
+  // Provider mode has its own "Profile & settings" (spec 14).
   const proMode = useProMode();
-  const s = proMode ? stylesPro : styles;
-  const iconColor = proMode ? pro.accent : colors.primary;
-  const mutedColor = proMode ? pro.muted : colors.mutedForeground;
+  const s = styles;
+  const iconColor = colors.primary;
+  const mutedColor = colors.mutedForeground;
 
   if (!account) return null;
+  if (proMode) return <ProviderSettingsScreen navigation={navigation} />;
 
   return (
     <ScrollView
@@ -55,11 +56,6 @@ export function AccountScreen({ navigation }: Props) {
         <View style={s.identity}>
           <View style={s.nameRow}>
             <Text style={s.name}>{account.name}</Text>
-            {proMode && (
-              <View style={s.proPill}>
-                <Text style={s.proPillLabel}>PRO</Text>
-              </View>
-            )}
           </View>
           <Text style={s.phone}>{formatStored(account.phone)}</Text>
           <Text style={s.email} numberOfLines={1}>
@@ -180,7 +176,7 @@ export function AccountScreen({ navigation }: Props) {
           server. Nothing is claimed while the answer is still unknown (null). */}
       {accountSynced === false && (
         <View style={s.syncWarning}>
-          <Icon name="solar:shield-check-bold" size={18} color={proMode ? pro.warning : colors.warning} />
+          <Icon name="solar:shield-check-bold" size={18} color={colors.warning} />
           <Text style={s.syncWarningText}>
             {t(
               "Ce compte n'a pas encore pu être enregistré sur nos serveurs : il n'existe que sur cet appareil. Reconnectez-vous une fois en ligne pour le sauvegarder."
@@ -303,8 +299,6 @@ const styles = StyleSheet.create({
   avatarText: { fontFamily: fonts.heading, fontSize: 18, color: colors.primaryForeground },
   identity: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm, backgroundColor: pro.accent },
-  proPillLabel: { fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1, color: pro.accentText },
   name: { fontFamily: fonts.heading, fontSize: 17, color: colors.foreground },
   phone: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground },
   bio: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground, marginTop: 4 },
@@ -428,40 +422,4 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Mode Pro overrides, layered over `styles` key by key. */
-const proOverrides: Partial<Record<keyof typeof styles, object>> = {
-  root: { backgroundColor: pro.ground },
-  title: { color: pro.text },
-  card: { backgroundColor: pro.surface, borderColor: pro.line },
-  name: { color: pro.text },
-  phone: { color: pro.muted },
-  email: { color: pro.muted },
-  bio: { color: pro.muted },
-  profiles: { backgroundColor: pro.surface, borderColor: pro.line },
-  profilesLabel: { color: pro.muted },
-  profileChip: { backgroundColor: pro.raised, borderColor: pro.line },
-  profileChipActive: { backgroundColor: pro.accent, borderColor: pro.accent },
-  profileChipLabel: { color: pro.text },
-  profileChipLabelActive: { color: pro.accentText },
-  profileChipAdd: { color: pro.muted },
-  profilesNote: { color: pro.muted },
-  stats: { backgroundColor: pro.surface, borderColor: pro.line },
-  statDivider: { backgroundColor: pro.line },
-  statValue: { color: pro.text },
-  statCity: { color: pro.text },
-  statLabel: { color: pro.muted },
-  list: { backgroundColor: pro.surface, borderColor: pro.line },
-  row: { borderBottomColor: pro.line },
-  rowLabel: { color: pro.text },
-  rowSoon: { color: pro.muted },
-  paymentsLine: { color: pro.muted },
-  syncWarning: { backgroundColor: pro.warningSurface, borderColor: 'rgba(251,191,36,0.3)' },
-  syncWarningText: { color: pro.warning },
-  signOut: { borderColor: pro.destructive },
-  signOutLabel: { color: pro.destructive },
-  disclaimer: { color: pro.muted },
-};
 
-const stylesPro = Object.fromEntries(
-  Object.entries(styles).map(([key, value]) => [key, [value, proOverrides[key as keyof typeof styles]]])
-) as unknown as typeof styles;

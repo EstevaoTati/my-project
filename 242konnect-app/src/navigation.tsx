@@ -26,6 +26,10 @@ import { CreatePasswordScreen } from './screens/CreatePasswordScreen';
 import { PinScreen } from './screens/PinScreen';
 import { SetPinScreen } from './screens/SetPinScreen';
 import { ResetPasswordScreen } from './screens/ResetPasswordScreen';
+import { ProviderHomeScreen } from './screens/provider/ProviderHomeScreen';
+import { JobsScreen } from './screens/provider/JobsScreen';
+import { ConversationsScreen } from './screens/provider/ConversationsScreen';
+import { useProMode } from './proTheme';
 import { useAuth } from './auth';
 import { needsReacceptance } from './consent';
 import { ConsentGateScreen } from './screens/ConsentGateScreen';
@@ -73,10 +77,28 @@ const Tab = createBottomTabNavigator();
 
 const hidden = { headerShown: false } as const;
 
+/*
+ * The three tabs that change with the hat being worn (provider plan, phase 1).
+ * In provider mode: the dashboard, Jobs and the real conversations; the
+ * competitors' marketplace is not browsable there (spec §14). Client mode,
+ * one switch away in Profil, keeps the marketplace on the same account.
+ */
+function AccueilTab(props: React.ComponentProps<typeof HomeScreen>) {
+  return useProMode() ? <ProviderHomeScreen /> : <HomeScreen {...props} />;
+}
+
+function MissionsTab() {
+  return useProMode() ? <JobsScreen /> : <MissionsScreen />;
+}
+
+function ConversationsTab(props: React.ComponentProps<typeof MessagesScreen>) {
+  return useProMode() ? <ConversationsScreen /> : <MessagesScreen {...props} />;
+}
+
 function HomeStackScreens() {
   return (
     <Home.Navigator screenOptions={hidden}>
-      <Home.Screen name="Accueil" component={HomeScreen} />
+      <Home.Screen name="Accueil" component={AccueilTab} />
       <Home.Screen name="Metiers" component={TradesScreen} />
       <Home.Screen name="Resultats" component={SearchResultsScreen} />
       <Home.Screen name="Profil" component={ProfessionalProfileScreen} />
@@ -88,7 +110,7 @@ function HomeStackScreens() {
 function MessagesStackScreens() {
   return (
     <Messages.Navigator screenOptions={hidden}>
-      <Messages.Screen name="Conversations" component={MessagesScreen} />
+      <Messages.Screen name="Conversations" component={ConversationsTab} />
       <Messages.Screen name="Discussion" component={ChatScreen} />
     </Messages.Navigator>
   );
@@ -117,7 +139,7 @@ function AppTabs() {
   return (
     <Tab.Navigator screenOptions={hidden} tabBar={(props) => <TabBar {...props} />}>
       <Tab.Screen name="Accueil" component={HomeStackScreens} />
-      <Tab.Screen name="Missions" component={MissionsScreen} />
+      <Tab.Screen name="Missions" component={MissionsTab} />
       <Tab.Screen name="Messages" component={MessagesStackScreens} />
       <Tab.Screen name="Profil" component={AccountStackScreens} />
     </Tab.Navigator>

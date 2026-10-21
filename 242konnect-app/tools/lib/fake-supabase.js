@@ -36,6 +36,29 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
   // the pin function's "reset" action checks (step-up, 10 minutes).
   const emailCodeSessions = new Map();
   const collections = new Map(); // id -> payment collection
+  const dismissals = []; // { request_id, provider_id, reason, trade_id, zone_hint, slot, amount, currency, at }
+  const reads = new Map(); // `${request}|${user}` -> ms
+  // provider_workspace.sql: who may see and claim an open request.
+  const canClaim = (uid, r) => {
+    const l = listings.get(uid);
+    return (
+      !!l && l.status === "approved" && l.available !== false && l.trade_id === r.trade_id &&
+      String(l.city || "").trim().toLowerCase() === String(r.city || "").trim().toLowerCase() && String(r.city || "").trim() !== ""
+    );
+  };
+  const dismiss = (uid, r, reason) => {
+    if (dismissals.some((d) => d.request_id === r.id && d.provider_id === uid)) return;
+    dismissals.push({ request_id: r.id, provider_id: uid, reason, trade_id: r.trade_id, zone_hint: r.zone_hint || "", slot: r.slot, amount: r.amount, currency: r.currency || "FCFA", at: now() });
+  };
+  const openVisible = (uid, r) =>
+    r.provider_id == null && r.status === "sent" && Date.parse(r.response_deadline) > Date.now() && r.client_id !== uid &&
+    canClaim(uid, r) && !dismissals.some((d) => d.request_id === r.id && d.provider_id === uid);
+  // Phone numbers, e-mails and links never cross the chat.
+  const mask = (text) =>
+    text
+      .replace(/\+?\d([ .()-]?\d){8,}/g, "•••")
+      .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "•••")
+      .replace(/(https?:\/\/|www\.)\S+/gi, "•••");
   // false: operator credentials not set, as in production until MoMo goes live.
   let paymentsLive = true;
   let messageId = 0;
@@ -251,6 +274,12 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
 
         // ---- directory
         if (table === "provider_listings") {
+          if (req.method === "PATCH") {
+            const l = listings.get(eq(q, "id"));
+            if (!l || l.id !== uid) return send(res, 204);
+            if (typeof body.available === "boolean") l.available = body.available;
+            return send(res, 204);
+          }
           if (req.method === "POST") {
             if (body.id !== uid) return fail(res, 403, "new row violates row-level security policy");
             const prev = listings.get(uid);
@@ -259,6 +288,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
               ...body,
               status: prev?.status ?? "pending",
               refusal_reason: prev?.refusal_reason ?? null,
+              available: prev?.available ?? true,
               updated_at: now(),
             });
             return send(res, 201);
@@ -272,9 +302,15 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
         // ---- requests
         if (table === "service_requests") {
           if (req.method === "POST") {
-            const listing = listings.get(body.provider_id);
-            if (body.provider_id === uid) return fail(res, 400, "a prestataire cannot book themselves");
-            if (!listing || listing.status !== "approved") return fail(res, 400, "this prestataire cannot be booked yet");
+            const open = body.provider_id == null;
+            const listing = open ? null : listings.get(body.provider_id);
+            if (open) {
+              if (!String(body.trade_id || "").trim()) return fail(res, 400, "an open request needs a trade");
+              if (!String(body.city || "").trim()) return fail(res, 400, "an open request needs a city");
+            } else {
+              if (body.provider_id === uid) return fail(res, 400, "a prestataire cannot book themselves");
+              if (!listing || listing.status !== "approved") return fail(res, 400, "this prestataire cannot be booked yet");
+            }
             if (["weeks", "months", "recurring"].includes(body.duration) && !body.contract_accepted_at)
               return fail(res, 400, "a long project needs the signed project contract");
             const row = {
@@ -282,7 +318,9 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
               id: crypto.randomUUID(),
               client_id: uid,
               client_name: profiles.get(uid)?.full_name ?? "",
-              trade_id: listing.trade_id,
+              provider_id: open ? null : body.provider_id,
+              trade_id: open ? body.trade_id : listing.trade_id,
+              city: open ? String(body.city).trim() : listing.city,
               status: "draft",
               stage: null,
               stage_at: {},
@@ -294,11 +332,17 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           }
           const client = eq(q, "client_id");
           const provider = eq(q, "provider_id");
+          const id = eq(q, "id");
+          const openOnly = q.get("provider_id") === "is.null";
+          const notClient = (q.get("client_id") || "").startsWith("neq.") ? decodeURIComponent(q.get("client_id").slice(4)) : null;
           const rows = [...requests.values()].filter(
             (r) =>
-              (r.client_id === uid || (r.provider_id === uid && r.status !== "draft")) &&
+              (r.client_id === uid || (r.provider_id === uid && r.status !== "draft") || openVisible(uid, r)) &&
               (!client || r.client_id === client) &&
-              (!provider || r.provider_id === provider)
+              (!notClient || r.client_id !== notClient) &&
+              (!provider || r.provider_id === provider) &&
+              (!openOnly || r.provider_id == null) &&
+              (!id || r.id === id)
           );
           return send(res, 200, rows.reverse());
         }
@@ -319,7 +363,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
             const r = requests.get(body.request_id);
             if (!r || ![r.client_id, r.provider_id].includes(uid) || !["sent", "accepted", "disputed"].includes(r.status))
               return fail(res, 403, "rls");
-            messages.push({ id: ++messageId, request_id: r.id, sender_id: uid, body: body.body, created_at: now() });
+            messages.push({ id: ++messageId, request_id: r.id, sender_id: uid, body: mask(body.body), created_at: now() });
             return send(res, 201);
           }
           const r = requests.get(eq(q, "request_id"));
@@ -327,6 +371,57 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           return send(res, 200, messages.filter((m) => m.request_id === r.id));
         }
         if (table === "rpc/request_action") return send(res, 200, action(uid, body));
+        if (table === "request_dismissals") return send(res, 200, dismissals.filter((d) => d.provider_id === uid).reverse());
+        if (table === "rpc/claim_request") {
+          const r = requests.get(body.p_request);
+          if (!r || r.client_id === uid || !canClaim(uid, r)) return send(res, 200, "not_found");
+          if (r.provider_id === uid) return send(res, 200, "claimed");
+          if (r.provider_id) {
+            dismiss(uid, r, "assigned");
+            return send(res, 200, "already_assigned");
+          }
+          if (r.status !== "sent" || Date.parse(r.response_deadline) < Date.now()) {
+            dismiss(uid, r, "expired");
+            return send(res, 200, "expired");
+          }
+          if (!r.payment_verified_at) return send(res, 200, "not_found");
+          Object.assign(r, { provider_id: uid, status: "accepted", stage: "accepted", accepted_at: now(), stage_at: { accepted: now() }, updated_at: now() });
+          return send(res, 200, "claimed");
+        }
+        if (table === "rpc/dismiss_request") {
+          const r = requests.get(body.p_request);
+          if (r && r.provider_id == null && r.client_id !== uid && canClaim(uid, r)) dismiss(uid, r, "declined");
+          return send(res, 204);
+        }
+        if (table === "rpc/mark_read") {
+          const r = requests.get(body.p_request);
+          if (r && [r.client_id, r.provider_id].includes(uid)) reads.set(`${r.id}|${uid}`, Date.now());
+          return send(res, 204);
+        }
+        if (table === "rpc/my_conversations") {
+          const rows = [...requests.values()]
+            .filter((r) => [r.client_id, r.provider_id].includes(uid) && r.provider_id && r.status !== "draft")
+            .map((r) => {
+              const thread = messages.filter((m) => m.request_id === r.id);
+              const last = thread[thread.length - 1];
+              const readAt = reads.get(`${r.id}|${uid}`) ?? 0;
+              return {
+                request_id: r.id,
+                trade_id: r.trade_id,
+                status: r.status,
+                stage: r.stage,
+                slot: r.slot,
+                counterpart: r.client_id === uid ? listings.get(r.provider_id)?.full_name ?? "" : r.client_name,
+                i_am: r.client_id === uid ? "client" : "prestataire",
+                last_body: last?.body ?? null,
+                last_at: last?.created_at ?? r.updated_at ?? r.created_at,
+                last_mine: last ? last.sender_id === uid : null,
+                unread: thread.filter((m) => m.sender_id !== uid && Date.parse(m.created_at) > readAt).length,
+              };
+            })
+            .sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at));
+          return send(res, 200, rows);
+        }
         return fail(res, 404, `unknown table ${table}`);
       } catch (e) {
         if (Array.isArray(e)) return fail(res, e[0], e[1]);
@@ -340,6 +435,7 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     /** Switch the operators off (no credentials) or on. */
     setPaymentsLive: (on) => (paymentsLive = on),
     collections,
+    dismissals,
     listen: () => new Promise((r) => server.listen(port, "127.0.0.1", r)),
     close: () => server.close(),
     /** What 242Konnect's reviewers would do from the dashboard. */

@@ -6,6 +6,7 @@ import { useAuth } from '../../auth';
 import {
   isExpired,
   listMessages,
+  markRead,
   sendMessage,
   type RemoteMessage,
   type RemoteRequest,
@@ -145,6 +146,8 @@ export function RequestChatSheet({
     setMe(session.userId);
     try {
       setMessages(await listMessages(session, requestId));
+      // What is on screen is read (Messages §3.1); the count follows on every device.
+      markRead(session, requestId).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : null);
     }
@@ -177,16 +180,32 @@ export function RequestChatSheet({
 
   return (
     <Sheet visible={!!request} title={title} onClose={onClose}>
+      {!!request && (
+        <View style={styles.banner}>
+          <View style={styles.bannerBody}>
+            <Text style={styles.bannerTitle}>{t(requestStatusLabel(request))}</Text>
+            <Text style={styles.bannerMeta}>
+              {t(request.slot)} · {t('Réf.')} {request.id.slice(0, 8).toUpperCase()}
+            </Text>
+          </View>
+        </View>
+      )}
       <Text style={styles.note}>{t("Les échanges restent dans 242Konnect : ils servent de preuve en cas de litige. Ne partagez ni numéro ni paiement hors de l'application.")}</Text>
       <ScrollView style={styles.thread} contentContainerStyle={styles.threadContent}>
         {messages.length === 0 && <Text style={styles.note}>{t('Aucun message pour le moment.')}</Text>}
         {messages.map((m) => (
           <View key={m.id} style={[styles.bubble, m.senderId === me ? styles.mine : styles.theirs]}>
             <Text style={[styles.bubbleText, m.senderId === me && styles.mineText]}>{m.body}</Text>
+            <Text style={[styles.bubbleTime, m.senderId === me && styles.mineTime]}>
+              {new Date(m.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
           </View>
         ))}
       </ScrollView>
       {!!error && <Text style={styles.error}>{error}</Text>}
+      {writable && (
+        <Text style={styles.warning}>{t('Les numéros de téléphone, adresses e-mail et liens de paiement sont masqués.')}</Text>
+      )}
       {writable ? (
         <View style={styles.composer}>
           <TextInput
@@ -279,6 +298,13 @@ const styles = StyleSheet.create({
   theirs: { alignSelf: 'flex-start', backgroundColor: colors.muted },
   bubbleText: { fontFamily: fonts.sans, fontSize: 14, color: colors.foreground },
   mineText: { color: colors.primaryForeground },
+  bubbleTime: { fontFamily: fonts.sans, fontSize: 10, color: colors.mutedForeground, marginTop: 2, alignSelf: 'flex-end' },
+  mineTime: { color: 'rgba(255,255,255,0.7)' },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, marginBottom: 8 },
+  bannerBody: { flex: 1 },
+  bannerTitle: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.foreground },
+  bannerMeta: { fontFamily: fonts.sans, fontSize: 12, color: colors.mutedForeground },
+  warning: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.warning, backgroundColor: colors.warningSurface, borderRadius: radius.lg, padding: 8, marginTop: 8 },
   error: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.destructive, marginTop: 6 },
   composer: { flexDirection: 'row', gap: 8, marginTop: 10 },
   input: {
@@ -306,24 +332,14 @@ const styles = StyleSheet.create({
 });
 
 /**
- * The same cards on the anthracite ground of Mode Pro (proTheme.ts), for the
- * prestataire's own space. Layered over `onlineStyles` key by key.
+ * The same cards in Mode Pro (proTheme.ts), for the prestataire's own space.
+ * Layered over `onlineStyles` key by key.
  */
 const onlinePro: Partial<Record<keyof typeof onlineStyles, object>> = {
   card: { backgroundColor: pro.surface, borderColor: pro.line },
-  name: { color: pro.text },
-  sub: { color: pro.muted },
-  chip: { backgroundColor: pro.raised },
-  chipText: { color: pro.text },
-  line: { color: pro.muted },
-  body: { color: pro.text },
-  amount: { color: pro.accent },
-  ghost: { borderColor: pro.line },
-  ghostLabel: { color: pro.text },
-  solid: { backgroundColor: pro.accent },
-  solidLabel: { color: pro.accentText },
-  error: { color: pro.destructive },
-  sectionTitle: { color: pro.muted },
+  chip: { backgroundColor: pro.accentSoft },
+  solid: { backgroundColor: pro.action },
+  solidLabel: { color: pro.actionText },
 };
 
 export const onlineStylesPro = Object.fromEntries(

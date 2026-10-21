@@ -1,23 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
-import { categories } from '../data';
+import { OpenRequestSheet } from './online/OpenRequestSheet';
+import { useAuth } from '../auth';
 import type { IconName } from '../icons';
+import { listConversations, marketplaceEnabled } from '../marketplace';
 import { colors, fonts, radius, shadow } from '../theme';
 import { T, useT } from '../i18n';
-import { pro, useProMode } from '../proTheme';
+import { useProMode } from '../proTheme';
 
 /**
  * Custom tab bar, because the design puts a raised circular action in the
  * middle of the row — that overhang can't be expressed with the default bar.
  *
- * The centre action is not a tab: it sits between Missions and Messages and
- * triggers "post a job", so it's rendered as a plain button rather than a
- * navigation destination.
+ * The centre action is not a tab. For a client it publishes an open request;
+ * for a prestataire it opens their publishing tools (spec "Bouton +").
+ * In provider mode the active tab and the centre button are yellow, as the
+ * mock-ups show; client mode keeps its black.
  */
 
 const TAB_ICONS: Record<string, { active: IconName; inactive: IconName; label: string }> = {
@@ -39,23 +42,43 @@ const TAB_ICONS: Record<string, { active: IconName; inactive: IconName; label: s
   },
 };
 
-/** Messages carries an unread dot in the design. */
-const BADGED = new Set(['Messages']);
-
 /** Screens that own the bottom of the viewport and must not share it. */
 const FULL_BLEED_ROUTES = new Set(['Profil']);
+
+/** Unread messages across this account's requests; polled, as there is no realtime yet. */
+function useUnreadCount(enabled: boolean): number {
+  const { marketSession } = useAuth();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!enabled || !marketplaceEnabled) return;
+    let alive = true;
+    const load = async () => {
+      const session = await marketSession();
+      if (!session) return;
+      try {
+        const list = await listConversations(session);
+        if (alive) setCount(list.reduce((n, c) => n + c.unread, 0));
+      } catch {
+        // A badge is not worth an error.
+      }
+    };
+    load();
+    const timer = setInterval(load, 20000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [enabled, marketSession]);
+  return count;
+}
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const [showPost, setShowPost] = useState(false);
-  const [posted, setPosted] = useState<string | null>(null);
-  // Mode Pro: anthracite bar, yellow for the active tab and for the centre
-  // action, which opens the provider's own space instead of posting a request
-  // — the central button follows the hat being worn.
+  const [showPro, setShowPro] = useState(false);
   const proMode = useProMode();
-  const activeColor = proMode ? pro.accent : colors.primary;
-  const idleColor = proMode ? pro.muted : colors.mutedForeground;
+  const unread = useUnreadCount(proMode);
 
   // The professional profile has its own "Réserver maintenant" action bar
   // pinned to the bottom. Leaving the tab bar up stacks two bars on top of each
@@ -70,6 +93,9 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
     const focused = state.index === index;
     const meta = TAB_ICONS[routeName];
     if (!meta) return null;
+    // Client mode: a red dot as in the design. Provider mode: only when
+    // something is actually unread (Messages §3.1).
+    const badge = routeName === 'Messages' && (proMode ? unread > 0 : true);
 
     return (
       <Pressable
@@ -108,19 +134,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           <Icon
             name={focused ? meta.active : meta.inactive}
             size={24}
-            color={focused ? activeColor : idleColor}
+            color={focused ? colors.primary : colors.mutedForeground}
           />
-          {BADGED.has(routeName) && <View style={[styles.badge, proMode && styles.badgePro]} />}
+          {badge && <View style={styles.badge} />}
         </View>
-        <Text
-          style={[
-            styles.label,
-            focused ? styles.labelActive : styles.labelInactive,
-            proMode && { color: focused ? activeColor : idleColor },
-          ]}
-        >
-          {t(meta.label)}
-        </Text>
+        <Text style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}>{t(meta.label)}</Text>
+        {proMode && <View style={[styles.indicator, focused && styles.indicatorOn]} />}
       </Pressable>
     );
   };
@@ -129,78 +148,68 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <>
-      <View style={[styles.bar, proMode && styles.barPro, { paddingBottom: Math.max(12, insets.bottom) }]}>
+      <View style={[styles.bar, { paddingBottom: Math.max(12, insets.bottom) }]}>
         {routes.slice(0, 2).map((r, i) => renderTab(r.key, r.name, i))}
 
         <View style={styles.fabSlot}>
-          {proMode ? (
-            <Pressable
-              onPress={() => navigation.navigate('Profil', { screen: 'EspacePrestataire', initial: false })}
-              accessibilityRole="button"
-              accessibilityLabel={t('Mon Espace Pro')}
-              style={({ pressed }) => [styles.fab, styles.fabPro, pressed && styles.fabPressed]}
-            >
-              <Icon name="mdi:wrench" size={26} color={pro.accentText} />
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={() => {
-                setPosted(null);
-                setShowPost(true);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('Publier une demande')}
-              style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-            >
-              <Icon name="solar:add-square-bold" size={28} color={colors.primaryForeground} />
-            </Pressable>
-          )}
+          <Pressable
+            onPress={() => (proMode ? setShowPro(true) : setShowPost(true))}
+            accessibilityRole="button"
+            accessibilityLabel={proMode ? t('Publier') : t('Publier une demande')}
+            style={({ pressed }) => [styles.fab, proMode && styles.fabPro, pressed && styles.fabPressed]}
+          >
+            <Icon name="solar:add-square-bold" size={28} color={proMode ? colors.accentForeground : colors.primaryForeground} />
+          </Pressable>
         </View>
 
         {routes.slice(2).map((r, i) => renderTab(r.key, r.name, i + 2))}
       </View>
 
-      <Sheet
+      <OpenRequestSheet
         visible={showPost}
-        title={posted ? 'Demande publiée' : 'Publier une demande'}
         onClose={() => setShowPost(false)}
-      >
-        {posted ? (
-          <View style={styles.posted}>
-            <View style={styles.postedIcon}>
-              <Icon name="solar:shield-check-bold" size={32} color={colors.primary} />
-            </View>
-            <Text style={styles.postedTitle}>{t('Votre demande est en ligne')}</Text>
-            <Text style={styles.postedBody}>
-              Les professionnels en {posted.toLowerCase()} près de chez vous vont recevoir votre
-              demande et vous répondre directement.
-            </Text>
-            <Pressable
-              onPress={() => setShowPost(false)}
-              accessibilityRole="button"
-              style={styles.postedButton}
-            >
-              <Text style={styles.postedButtonLabel}>{t('Terminé')}</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            <Text style={styles.postHint}>{t('De quel service avez-vous besoin ?')}</Text>
-            {categories.map((category) => (
-              <Pressable
-                key={category.id}
-                onPress={() => setPosted(category.label)}
-                accessibilityRole="button"
-                accessibilityLabel={`Publier une demande en ${category.label}`}
-                style={styles.postRow}
-              >
-                <Icon name={category.icon} size={24} color={colors.foreground} />
-                <Text style={styles.postLabel}>{category.label}</Text>
-                <Icon name="solar:arrow-right-bold" size={20} color={colors.mutedForeground} />
-              </Pressable>
-            ))}
-          </>
-        )}
+        onCreated={() => {
+          setShowPost(false);
+          navigation.navigate('Missions');
+        }}
+      />
+
+      {/* Spec "Bouton +": publishing work to the gallery needs photo storage
+          and moderation, which come in phase 2. Until then the button says so
+          and offers the two things a prestataire does most. */}
+      <Sheet visible={showPro} title={t('Publier')} onClose={() => setShowPro(false)}>
+        <View style={styles.proSoon}>
+          <Text style={styles.proSoonTitle}>{t('Partager une réalisation')}</Text>
+          <Text style={styles.proSoonBody}>
+            {t('Bientôt : photos et vidéo de vos travaux, avec l’accord du client, dans la galerie de votre profil.')}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => {
+            setShowPro(false);
+            navigation.navigate('Missions', { tab: 'available' });
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('Voir les demandes disponibles')}
+          style={styles.postRow}
+        >
+          <Icon name="solar:bell-bing-bold-duotone" size={22} color={colors.foreground} />
+          <Text style={styles.postLabel}>{t('Voir les demandes disponibles')}</Text>
+          <Icon name="solar:arrow-right-bold" size={18} color={colors.mutedForeground} />
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            setShowPro(false);
+            navigation.navigate('Profil', { screen: 'EspacePrestataire', initial: false });
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={t('Mon Espace Pro')}
+          style={styles.postRow}
+        >
+          <Icon name="mdi:wrench" size={22} color={colors.foreground} />
+          <Text style={styles.postLabel}>{t('Mon Espace Pro : services, documents, abonnement')}</Text>
+          <Icon name="solar:arrow-right-bold" size={18} color={colors.mutedForeground} />
+        </Pressable>
       </Sheet>
     </>
   );
@@ -215,13 +224,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingTop: 10,
   },
-  barPro: { backgroundColor: pro.surface, borderTopColor: pro.line },
   tab: { alignItems: 'center', gap: 4, width: 64 },
   label: { fontSize: 10 },
   labelActive: { fontFamily: fonts.sansBold, color: colors.primary },
   labelInactive: { fontFamily: fonts.sansMedium, color: colors.mutedForeground },
+  indicator: { width: 26, height: 3, borderRadius: 2, backgroundColor: 'transparent' },
+  indicatorOn: { backgroundColor: colors.accent },
   badge: {
     position: 'absolute',
     top: 0,
@@ -233,7 +243,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.card,
   },
-  badgePro: { borderColor: pro.surface },
   // Lifts the action above the bar the way the design does.
   fabSlot: { width: 64, alignItems: 'center' },
   fab: {
@@ -249,9 +258,8 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
     ...shadow.primaryGlow,
   },
-  fabPro: { backgroundColor: pro.accent, borderColor: pro.ground },
+  fabPro: { backgroundColor: colors.accent },
   fabPressed: { opacity: 0.9 },
-  postHint: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.mutedForeground, marginBottom: 12 },
   postRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,33 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   postLabel: { flex: 1, fontFamily: fonts.sansSemibold, fontSize: 14, color: colors.foreground },
-  posted: { alignItems: 'center', gap: 8, paddingVertical: 8 },
-  postedIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.full,
-    backgroundColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  postedTitle: { fontFamily: fonts.heading, fontSize: 20, color: colors.foreground },
-  postedBody: {
-    fontFamily: fonts.sans,
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.mutedForeground,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  postedButton: {
-    alignSelf: 'stretch',
-    height: 56,
-    borderRadius: radius['2xl'],
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  postedButtonLabel: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.primaryForeground },
+  proSoon: { backgroundColor: '#fff7d1', borderRadius: radius.xl, padding: 14, gap: 4, marginBottom: 12 },
+  proSoonTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.foreground },
+  proSoonBody: { fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: colors.mutedForeground },
 });

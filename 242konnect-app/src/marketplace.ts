@@ -40,6 +40,8 @@ export type Listing = {
   bio: string;
   status: ListingStatus;
   refusalReason?: string;
+  /** Off: keeps their missions, receives no new open requests (Jobs §1.1). */
+  available: boolean;
 };
 
 export type RequestStatus =
@@ -54,9 +56,12 @@ export type RequestStatus =
 export type RemoteRequest = {
   id: string;
   clientId: string;
-  providerId: string;
+  /** Null on an open request until a prestataire claims it. */
+  providerId: string | null;
   clientName: string;
   tradeId: string;
+  /** The city an open request is shown in. */
+  city: string;
   description: string;
   zoneHint: string;
   slot: string;
@@ -97,6 +102,8 @@ const MESSAGES: [RegExp, string][] = [
   [/can no longer be cancelled/, 'Cette demande ne peut plus être annulée.'],
   [/confirmed by the payment service/, 'Le paiement passe par le service de paiement 242Konnect. Mettez l’application à jour.'],
   [/payment not verified/, "Le paiement de cette demande n'est pas encore confirmé par l'opérateur."],
+  [/open request needs a city/, 'Indiquez votre ville pour que les prestataires de votre zone reçoivent la demande.'],
+  [/open request needs a trade/, 'Choisissez le métier recherché.'],
   [/not signed in|JWT|jwt/, 'Votre session a expiré. Reconnectez-vous.'],
 ];
 
@@ -144,6 +151,7 @@ type ListingRow = {
   bio: string;
   status: ListingStatus;
   refusal_reason: string | null;
+  available?: boolean;
 };
 
 const listingFrom = (row: ListingRow): Listing => ({
@@ -159,14 +167,16 @@ const listingFrom = (row: ListingRow): Listing => ({
   bio: row.bio,
   status: row.status,
   ...(row.refusal_reason ? { refusalReason: row.refusal_reason } : {}),
+  available: row.available !== false,
 });
 
 type RequestRow = {
   id: string;
   client_id: string;
-  provider_id: string;
+  provider_id: string | null;
   client_name: string;
   trade_id: string;
+  city?: string;
   description: string;
   zone_hint: string;
   slot: string;
@@ -193,6 +203,7 @@ const requestFrom = (row: RequestRow): RemoteRequest => ({
   providerId: row.provider_id,
   clientName: row.client_name,
   tradeId: row.trade_id,
+  city: row.city ?? '',
   description: row.description,
   zoneHint: row.zone_hint,
   slot: row.slot,
@@ -217,7 +228,7 @@ const requestFrom = (row: RequestRow): RemoteRequest => ({
 /* Directory                                                          */
 /* ------------------------------------------------------------------ */
 
-const LISTING_COLUMNS = 'id,full_name,trade_id,zone,city,country,pricing,durations,bio,status,refusal_reason';
+const LISTING_COLUMNS = 'id,full_name,trade_id,zone,city,country,pricing,durations,bio,status,refusal_reason,available';
 
 /** Every listing, approved first. Pending ones are shown with their badge. */
 export async function listListings(session: SupabaseSession): Promise<Listing[]> {
@@ -265,10 +276,18 @@ export async function upsertListing(session: SupabaseSession, account: Account):
 /* Requests                                                           */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Creates a draft: addressed to one prestataire, or — with `providerId: null`
+ * — open to every approved, available prestataire of `tradeId` in `city`. In
+ * both cases nothing is sent until the payment service confirms the payment.
+ */
 export async function createRequest(
   session: SupabaseSession,
   input: {
-    providerId: string;
+    providerId: string | null;
+    /** Open requests only: who may see it. A directed one takes the prestataire's. */
+    tradeId?: string;
+    city?: string;
     description: string;
     zoneHint: string;
     address: string;
@@ -284,6 +303,7 @@ export async function createRequest(
     method: 'POST',
     body: {
       provider_id: input.providerId,
+      ...(input.providerId === null ? { trade_id: input.tradeId ?? '', city: input.city ?? '' } : {}),
       description: input.description,
       zone_hint: input.zoneHint,
       slot: input.slot,
@@ -351,6 +371,138 @@ export async function requestAction(
     body: { p_request: requestId, p_action: action, p_payload: payload },
   });
   return requestFrom(row);
+}
+
+/* ------------------------------------------------------------------ */
+/* Prestataire workspace (open requests, availability, History)       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Open requests this prestataire may take: same trade and city, paid, not
+ * expired, not declined. The database decides who sees what; this only asks.
+ */
+export async function listOpenRequests(session: SupabaseSession): Promise<RemoteRequest[]> {
+  const rows = await call<RequestRow[]>(
+    session,
+    `/rest/v1/service_requests?provider_id=is.null&status=eq.sent&client_id=neq.${encodeURIComponent(session.userId)}&select=*&order=created_at.desc&limit=100`
+  );
+  return rows.map(requestFrom);
+}
+
+export type ClaimResult = 'claimed' | 'already_assigned' | 'expired' | 'not_found';
+
+/** Accepts an open request. Atomic on the server: the first prestataire wins. */
+export async function claimRequest(session: SupabaseSession, requestId: string): Promise<ClaimResult> {
+  const result = await call<string>(session, '/rest/v1/rpc/claim_request', {
+    method: 'POST',
+    body: { p_request: requestId },
+  });
+  return (['claimed', 'already_assigned', 'expired'].includes(result) ? result : 'not_found') as ClaimResult;
+}
+
+/** "Pas pour moi": hides an open request from this prestataire only. */
+export async function dismissRequest(session: SupabaseSession, requestId: string): Promise<void> {
+  await call<void>(session, '/rest/v1/rpc/dismiss_request', { method: 'POST', body: { p_request: requestId } });
+}
+
+export type Dismissal = {
+  requestId: string;
+  reason: 'declined' | 'assigned' | 'expired';
+  tradeId: string;
+  zoneHint: string;
+  slot: string;
+  amount: number;
+  currency: 'FCFA' | 'USD';
+  at: string;
+};
+
+/** Open requests this prestataire declined or lost, for History. */
+export async function listDismissals(session: SupabaseSession): Promise<Dismissal[]> {
+  const rows = await call<
+    { request_id: string; reason: Dismissal['reason']; trade_id: string; zone_hint: string; slot: string; amount: number; currency: string; at: string }[]
+  >(session, '/rest/v1/request_dismissals?select=*&order=at.desc&limit=100');
+  return rows.map((d) => ({
+    requestId: d.request_id,
+    reason: d.reason,
+    tradeId: d.trade_id,
+    zoneHint: d.zone_hint,
+    slot: d.slot,
+    amount: d.amount,
+    currency: d.currency === 'USD' ? 'USD' : 'FCFA',
+    at: d.at,
+  }));
+}
+
+export async function setAvailable(session: SupabaseSession, available: boolean): Promise<void> {
+  await call<void>(session, `/rest/v1/provider_listings?id=eq.${encodeURIComponent(session.userId)}`, {
+    method: 'PATCH',
+    body: { available },
+    headers: { Prefer: 'return=minimal' },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Conversations                                                      */
+/* ------------------------------------------------------------------ */
+
+export type Conversation = {
+  requestId: string;
+  tradeId: string;
+  status: RequestStatus;
+  stage?: MissionStage;
+  slot: string;
+  /** The other party: the client's name, or the prestataire's. */
+  counterpart: string;
+  iAm: 'client' | 'prestataire';
+  lastBody?: string;
+  lastAt: string;
+  lastMine: boolean;
+  unread: number;
+};
+
+/** Every conversation of this account with unread counts, newest first. */
+export async function listConversations(session: SupabaseSession): Promise<Conversation[]> {
+  const rows = await call<
+    {
+      request_id: string;
+      trade_id: string;
+      status: RequestStatus;
+      stage: MissionStage | null;
+      slot: string;
+      counterpart: string;
+      i_am: 'client' | 'prestataire';
+      last_body: string | null;
+      last_at: string;
+      last_mine: boolean | null;
+      unread: number;
+    }[]
+  >(session, '/rest/v1/rpc/my_conversations', { method: 'POST', body: {} });
+  return rows.map((c) => ({
+    requestId: c.request_id,
+    tradeId: c.trade_id,
+    status: c.status,
+    ...(c.stage ? { stage: c.stage } : {}),
+    slot: c.slot,
+    counterpart: c.counterpart,
+    iAm: c.i_am,
+    ...(c.last_body ? { lastBody: c.last_body } : {}),
+    lastAt: c.last_at,
+    lastMine: c.last_mine === true,
+    unread: c.unread,
+  }));
+}
+
+export async function markRead(session: SupabaseSession, requestId: string): Promise<void> {
+  await call<void>(session, '/rest/v1/rpc/mark_read', { method: 'POST', body: { p_request: requestId } });
+}
+
+/** One request by id, if this account may read it. */
+export async function getRequest(session: SupabaseSession, requestId: string): Promise<RemoteRequest | null> {
+  const rows = await call<RequestRow[]>(
+    session,
+    `/rest/v1/service_requests?id=eq.${encodeURIComponent(requestId)}&select=*&limit=1`
+  );
+  return rows[0] ? requestFrom(rows[0]) : null;
 }
 
 /* ------------------------------------------------------------------ */

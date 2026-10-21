@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     backgroundColor: pro.raised,
   },
-  gridValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.accent },
+  gridValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.text },
   gridUnit: { fontFamily: fonts.sans, fontSize: 11, color: pro.muted },
   gridLabel: { fontFamily: fonts.sansMedium, fontSize: 11, color: pro.muted, marginTop: 2 },
   row: {
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   scoreRow: { flexDirection: 'row', alignItems: 'center' },
   scoreBlock: { flex: 1, alignItems: 'center' },
   scoreDivider: { width: 1, height: 32, backgroundColor: pro.line },
-  scoreValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.accent },
+  scoreValue: { fontFamily: fonts.headingBold, fontSize: 22, color: pro.text },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   infoLabel: { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: pro.muted },
   infoValue: { fontFamily: fonts.sansSemibold, fontSize: 13, color: pro.text },
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   planLabel: { fontFamily: fonts.sansBold, fontSize: 14, color: pro.text },
   planPrice: { fontFamily: fonts.sansMedium, fontSize: 13, color: pro.muted },
   planPerk: { fontFamily: fonts.sans, fontSize: 12, color: pro.muted },
-  planCurrent: { fontFamily: fonts.sansBold, fontSize: 11, color: pro.accent, marginTop: 6 },
+  planCurrent: { fontFamily: fonts.sansBold, fontSize: 11, color: pro.text, marginTop: 6 },
   footer: { paddingTop: 4 },
   footerText: { fontFamily: fonts.sans, fontSize: 12, lineHeight: 18, color: pro.muted },
 });

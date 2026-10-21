@@ -15,14 +15,13 @@ import { Icon } from '../components/Icon';
 import { CategoryChip } from '../components/CategoryChip';
 import { ProCard } from '../components/ProCard';
 import { Sheet } from '../components/Sheet';
-import { categories, getTrade, promo, topProfessionals } from '../data';
+import { categories, promo, topProfessionals } from '../data';
 import { useAuth } from '../auth';
 import { DirectorySection } from '../components/online/DirectorySection';
 import { CITIES, useStore, type City } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { T, useT } from '../i18n';
-import { pro, useProMode } from '../proTheme';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Accueil'>;
 
@@ -63,11 +62,6 @@ export function HomeScreen({ navigation }: Props) {
   const [showCities, setShowCities] = useState(false);
   const { city, setCity, notices, markNoticesRead } = useStore();
   const { account } = useAuth();
-  // Mode Pro: the same marketplace under an anthracite header that says which
-  // profile is active and leads to the provider's dashboard.
-  const proMode = useProMode();
-  const proTrade = account?.prestataire?.tradeId ? getTrade(account.prestataire.tradeId) : undefined;
-  const proVerified = !!account?.prestataire?.verified;
   const [readIds, setReadIds] = useState<string[]>([]);
   const initials = (account?.name ?? '')
     .split(/\s+/)
@@ -91,26 +85,21 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      <View style={[styles.header, proMode && styles.headerPro, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <View style={styles.identity}>
             <View>
-              <View style={[styles.avatar, proMode && styles.avatarPro]}>
-                <Text style={[styles.avatarText, proMode && styles.avatarTextPro]}>{initials}</Text>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initials}</Text>
               </View>
-              <View style={[styles.presenceDot, proMode && styles.presenceDotPro]} />
+              <View style={styles.presenceDot} />
             </View>
             <View>
-              <Text style={[styles.greeting, proMode && styles.greetingPro]}>
-                {proMode ? t('Espace Pro') : t('Bienvenue,')}
+              <Text style={styles.greeting}>
+                {t('Bienvenue,')}
               </Text>
               <View style={styles.nameRow}>
-                <Text style={[styles.name, proMode && styles.namePro]}>{account?.name ?? ''}</Text>
-                {proMode && (
-                  <View style={styles.proPill}>
-                    <Text style={styles.proPillLabel}>PRO</Text>
-                  </View>
-                )}
+                <Text style={styles.name}>{account?.name ?? ''}</Text>
               </View>
             </View>
           </View>
@@ -120,9 +109,9 @@ export function HomeScreen({ navigation }: Props) {
             accessibilityLabel={
               unreadCount > 0 ? `Notifications, ${unreadCount} non lues` : 'Notifications'
             }
-            style={[styles.bell, proMode && styles.bellPro]}
+            style={styles.bell}
           >
-            <Icon name="solar:bell-bing-bold-duotone" size={24} color={proMode ? pro.text : colors.foreground} />
+            <Icon name="solar:bell-bing-bold-duotone" size={24} color={colors.foreground} />
             {unreadCount > 0 && <View style={styles.bellDot} />}
           </Pressable>
         </View>
@@ -133,8 +122,8 @@ export function HomeScreen({ navigation }: Props) {
           accessibilityLabel={`Localisation : ${city}. Changer de ville`}
           style={styles.locationRow}
         >
-          <Icon name="solar:map-point-bold" size={20} color={proMode ? pro.accent : colors.primary} />
-          <Text style={[styles.locationText, proMode && styles.locationTextPro]}>{city}</Text>
+          <Icon name="solar:map-point-bold" size={20} color={colors.primary} />
+          <Text style={styles.locationText}>{city}</Text>
           <Icon name="solar:alt-arrow-down-linear" size={16} color={colors.mutedForeground} />
         </Pressable>
 
@@ -148,48 +137,24 @@ export function HomeScreen({ navigation }: Props) {
             onSubmitEditing={submitSearch}
             returnKeyType="search"
             placeholder={t('Quel service recherchez-vous ?')}
-            placeholderTextColor={proMode ? pro.muted : colors.mutedForeground}
+            placeholderTextColor={colors.mutedForeground}
             accessibilityLabel={t('Quel service recherchez-vous ?')}
-            style={[styles.searchInput, proMode && styles.searchInputPro]}
+            style={styles.searchInput}
           />
           <Pressable
             onPress={submitSearch}
             accessibilityRole="button"
             accessibilityLabel={t('Rechercher')}
-            style={[styles.searchButton, proMode && styles.searchButtonPro]}
+            style={styles.searchButton}
           >
             <Icon
               name="solar:tuning-square-2-bold"
               size={20}
-              color={proMode ? pro.accentText : colors.primaryForeground}
+              color={colors.primaryForeground}
             />
           </Pressable>
         </View>
 
-        {proMode && (
-          <Pressable
-            onPress={() => navigation.getParent()?.navigate('Profil', { screen: 'EspacePrestataire', initial: false })}
-            accessibilityRole="button"
-            accessibilityLabel={t('Ouvrir mon tableau de bord')}
-            style={({ pressed }) => [styles.proStrip, pressed && { opacity: 0.85 }]}
-          >
-            <View style={styles.proStripBody}>
-              <Text style={styles.proStripTrade} numberOfLines={1}>
-                {proTrade ? t(proTrade.label) : t('Métier non renseigné')}
-              </Text>
-              <View style={[styles.proStatus, proVerified ? styles.proStatusOn : styles.proStatusOff]}>
-                <View style={[styles.proStatusDot, { backgroundColor: proVerified ? pro.success : pro.warning }]} />
-                <Text style={[styles.proStatusLabel, { color: proVerified ? pro.success : pro.warning }]}>
-                  {proVerified ? t('Prestataire vérifié') : t('Vérification en cours')}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.proStripCta}>
-              <Text style={styles.proStripCtaLabel}>{t('Tableau de bord')}</Text>
-              <Icon name="solar:arrow-right-bold" size={16} color={pro.accentText} />
-            </View>
-          </Pressable>
-        )}
       </View>
 
       <ScrollView
@@ -397,62 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     ...shadow.sm,
   },
-  // Mode Pro — see proTheme.ts.
-  headerPro: {
-    backgroundColor: pro.ground,
-    borderBottomLeftRadius: radius['3xl'],
-    borderBottomRightRadius: radius['3xl'],
-    paddingBottom: 20,
-    marginBottom: 12,
-  },
-  avatarPro: { backgroundColor: pro.accent, borderColor: pro.accent },
-  avatarTextPro: { color: pro.accentText },
-  presenceDotPro: { backgroundColor: pro.success, borderColor: pro.ground },
-  greetingPro: { color: pro.accent, fontFamily: fonts.sansBold },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  namePro: { color: pro.text },
-  proPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.sm, backgroundColor: pro.accent },
-  proPillLabel: { fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1, color: pro.accentText },
-  bellPro: { backgroundColor: pro.surface, borderColor: pro.line },
-  locationTextPro: { color: pro.muted },
-  searchInputPro: { backgroundColor: pro.raised, borderColor: pro.line, color: pro.text },
-  searchButtonPro: { backgroundColor: pro.accent },
-  proStrip: {
-    marginTop: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: radius['2xl'],
-    backgroundColor: pro.surface,
-    borderWidth: 1,
-    borderColor: pro.line,
-  },
-  proStripBody: { flex: 1, gap: 6 },
-  proStripTrade: { fontFamily: fonts.heading, fontSize: 15, color: pro.text },
-  proStatus: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.full,
-  },
-  proStatusOn: { backgroundColor: pro.successSurface },
-  proStatusOff: { backgroundColor: pro.warningSurface },
-  proStatusDot: { width: 6, height: 6, borderRadius: 3 },
-  proStatusLabel: { fontFamily: fonts.sansBold, fontSize: 11 },
-  proStripCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: radius.xl,
-    backgroundColor: pro.accent,
-  },
-  proStripCtaLabel: { fontFamily: fonts.sansBold, fontSize: 13, color: pro.accentText },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 32 },
   promo: {

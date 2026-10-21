@@ -203,6 +203,6 @@ const styles = StyleSheet.create({
   root: { gap: 10 },
   counts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   count: { flexGrow: 1, flexBasis: '18%', padding: 10, borderRadius: 12, backgroundColor: pro.surface, borderWidth: 1, borderColor: pro.line, alignItems: 'center' },
-  countValue: { fontFamily: fonts.headingBold, fontSize: 18, color: pro.accent },
+  countValue: { fontFamily: fonts.headingBold, fontSize: 18, color: pro.text },
   countLabel: { fontFamily: fonts.sansMedium, fontSize: 10, color: pro.muted },
 });

@@ -302,15 +302,30 @@ const section = (n) => console.log(`\n── ${n} ──`);
     await fill('[aria-label="Mot de passe"]', ACCOUNT.password);
     await fill('[aria-label="Confirmer le mot de passe"]', ACCOUNT.password);
     await tap('[aria-label="Créer mon compte"]');
-    await page.waitForSelector("text=Catégories", { timeout: 25000 });
+    await page.waitForSelector("text=Tableau de bord", { timeout: 25000 });
     return true;
   });
 
-  section("Parity: a prestataire is a customer too");
-  // The regression this guards: activating Prestataire used to replace Accueil
-  // with the dashboard, taking search, catalogue and booking away entirely.
-  await check("Accueil is the marketplace, not a dashboard", async () =>
-    (await seen("text=Catégories")) && !(await seen("text=Score 242K")));
+  section("Provider mode, and Client mode on the same account");
+  // Spec "Parcours Prestataire" §14: provider mode does not browse
+  // competitors; Client mode, one switch away, orders services with the same
+  // account. The earlier regression — a prestataire locked out of booking —
+  // is guarded by the Client mode checks below.
+  await check("provider mode opens on the dashboard, without the marketplace", async () =>
+    (await seen("text=Tableau de bord")) && !(await seen('[aria-label="Quel service recherchez-vous ?"]')));
+  await check("Missions lists jobs, not bookings", async () => {
+    await tap('[aria-label="Missions"]');
+    const ok = (await seen('[aria-label="Disponibles"]')) && (await seen('[aria-label="Historique"]'));
+    await tap('[aria-label="Accueil"]');
+    return ok;
+  });
+  await check("Client mode is one switch away in Profil", async () => {
+    await tap('[aria-label="Profil"]');
+    await page.waitForSelector("text=Profil et paramètres", { timeout: 10000 });
+    await tap('[aria-label="Mode client"]');
+    await tap('[aria-label="Accueil"]');
+    return seen("text=Catégories");
+  });
   await check("a prestataire can search and see professionals", async () => {
     await fill('[aria-label="Quel service recherchez-vous ?"]', "fuite");
     await tap('[aria-label="Rechercher"]');
@@ -328,15 +343,17 @@ const section = (n) => console.log(`\n── ${n} ──`);
   });
 
   section("Espace Prestataire");
-  await check("the Prestataire profile is the active one", async () => {
+  await check("switching back to the Prestataire profile restores provider mode", async () => {
     await tap('[aria-label="Profil"]');
     await page.waitForTimeout(700);
-    return seen('[aria-label="Profil Prestataire"]');
+    await tap('[aria-label="Profil Prestataire"]');
+    await page.waitForTimeout(700);
+    return seen("text=Profil et paramètres");
   });
-  await check("the Espace Prestataire is offered from Profil", async () =>
-    seen('[aria-label="Espace Prestataire"]'));
+  await check("the verification file is offered from Profil", async () =>
+    seen('[aria-label="Documents, contrat et vérification"]'));
   await check("it shows the trade, zone and rate that were entered", async () => {
-    await tap('[aria-label="Espace Prestataire"]');
+    await tap('[aria-label="Documents, contrat et vérification"]');
     await page.waitForTimeout(900);
     return (
       (await seen("text=Espace Prestataire")) &&
@@ -372,17 +389,16 @@ const section = (n) => console.log(`\n── ${n} ──`);
   await check("there is a way back out", async () => {
     await tap('[aria-label="Retour"]');
     await page.waitForTimeout(700);
-    return seen("text=Se déconnecter");
+    return seen("text=Profil et paramètres");
   });
 
   section("The session survives")
   await check("a reload keeps the prestataire signed in", async () => {
     await page.reload({ waitUntil: "networkidle" });
-    await page.waitForSelector("text=Catégories", { timeout: 30000 });
+    await page.waitForSelector("text=Tableau de bord", { timeout: 30000 });
     await tap('[aria-label="Profil"]');
     await page.waitForTimeout(700);
-    return (await seen('[aria-label="Profil Prestataire"]')) &&
-           (await seen('[aria-label="Espace Prestataire"]'));
+    return seen('[aria-label="Documents, contrat et vérification"]');
   });
 
   await check("no page errors", () => errs.length === 0);

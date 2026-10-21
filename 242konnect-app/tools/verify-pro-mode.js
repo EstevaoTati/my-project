@@ -1,17 +1,15 @@
 /**
- * Mode Pro — the Prestataire profile has its own look (src/proTheme.ts).
+ * Provider mode — what the Prestataire profile looks like and does
+ * (docs/242konnect-prestataire-v1-plan.md; mock-ups "Provider dashboard",
+ * "Jobs", "Messages", "Profile & settings").
  *
- * One account, two profiles, two looks: the Client keeps the light interface
- * with black actions; the Prestataire gets the anthracite one with yellow
- * actions, a PRO badge and a dashboard shortcut. Checked here:
- *
- *  1. A prestataire lands in Mode Pro: dark tab bar, "Espace Pro" header,
- *     PRO badge, and the centre button opens their space.
- *  2. The marketplace is still all there (search, categories) — Mode Pro
- *     changes the look, never what a prestataire can do.
- *  3. The dashboard shortcut on Accueil opens the Espace Prestataire.
- *  4. Switching to Particulier brings back the Client look and its
- *     "Publier une demande" button; switching back restores Mode Pro.
+ *  1. A prestataire lands on the dashboard: light interface, yellow for the
+ *     active tab and the centre button, no competitor marketplace (spec §14).
+ *  2. Missions is Jobs (Available / My jobs / History); Messages lists the
+ *     request conversations; the centre button opens the provider's tools.
+ *  3. Profil is "Profile & settings"; Client mode gives the marketplace and
+ *     the black "Publier une demande" button back; switching back restores
+ *     provider mode.
  *
  * Runs against tools/lib/fake-supabase.js with the dist-market build:
  *
@@ -25,8 +23,8 @@ const ROOT = process.env.APP_DIST || path.resolve(__dirname, "..", "dist-market"
 const PORT = 8995;
 const OUTBOX = path.join(os.tmpdir(), "242k-fake-supabase-pro.log");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".png": "image/png", ".ttf": "font/ttf", ".ico": "image/x-icon", ".jpeg": "image/jpeg" };
-const ANTHRACITE = "rgb(22, 24, 29)";
-const WHITE = "rgb(255, 255, 255)";
+const YELLOW = "rgb(251, 210, 24)";
+const BLACK = "rgb(17, 17, 17)";
 
 const site = http.createServer((req, res) => {
   const p = decodeURIComponent(req.url.split("?")[0]); const file = path.join(ROOT, p === "/" ? "/index.html" : p);
@@ -61,14 +59,14 @@ const check = async (label, fn) => {
   const fill = async (sel, v) => { const el = await visible(sel); if (!el) throw new Error("not visible: " + sel); await el.fill(v); await page.waitForTimeout(250); };
   const wait = async (sel, ms = 20000) => { const end = Date.now() + ms; while (Date.now() < end) { if (await visible(sel)) return; await page.waitForTimeout(300); } throw new Error("never saw " + sel); };
   const code = async () => { const end = Date.now() + 15000; while (Date.now() < end) { const m = [...fs.readFileSync(OUTBOX, "utf8").matchAll(/est : (\d{6})/g)]; if (m.length) return m[m.length - 1][1]; await new Promise((r) => setTimeout(r, 250)); } throw new Error("no code"); };
-  // Background of the tab bar: the element holding the Accueil tab's parent row.
-  const barColour = () => page.evaluate(() => {
-    const tab = [...document.querySelectorAll('[role="tab"]')].find((n) => n.getAttribute("aria-label") === "Accueil");
-    return tab ? getComputedStyle(tab.parentElement).backgroundColor : null;
-  });
+  // Background of the centre button, by its label.
+  const fabColour = (label) => page.evaluate((l) => {
+    const b = [...document.querySelectorAll('[role="button"]')].find((n) => n.getAttribute("aria-label") === l);
+    return b ? getComputedStyle(b).backgroundColor : null;
+  }, label);
   const seen = async (sel) => !!(await visible(sel));
 
-  console.log("\n── A prestataire lands in Mode Pro ──");
+  console.log("\n── A prestataire lands in provider mode ──");
   await check("sign-up as prestataire reaches the app", async () => {
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: "networkidle" });
     await wait("text=Chaque problème est un besoin");
@@ -88,42 +86,50 @@ const check = async (label, fn) => {
     await fill('[aria-label="Code de vérification"]', await code()); await wait('[aria-label="Confirmer le mot de passe"]');
     await fill('[aria-label="Mot de passe"]', "Konnect2026"); await fill('[aria-label="Confirmer le mot de passe"]', "Konnect2026"); await tap('[aria-label="Créer mon compte"]');
     await wait('[aria-label="Nouveau code"]'); await fill('[aria-label="Nouveau code"]', "428317"); await fill('[aria-label="Confirmer le code"]', "428317"); await tap('[aria-label="Définir mon code"]');
-    await wait("text=Catégories");
+    await wait("text=Tableau de bord");
     return true;
   });
-  await check("the tab bar is anthracite", async () => (await barColour()) === ANTHRACITE);
-  await check("the header says Espace Pro, with the PRO badge", async () => (await seen("text=Espace Pro")) && (await seen("text=PRO")));
-  await check("the centre button opens the provider's space, not a client request", async () =>
-    (await seen('[aria-label="Mon Espace Pro"]')) && !(await seen('[aria-label="Publier une demande"]')));
-  await check("the marketplace is all still there", async () =>
-    (await seen('[aria-label="Quel service recherchez-vous ?"]')) && (await seen("text=Top Professionnels")));
-  await check("the dashboard shortcut opens the Espace Prestataire", async () => {
-    await tap('[aria-label="Ouvrir mon tableau de bord"]');
-    await wait("text=Suivi de la vérification");
-    return seen("text=Plombier");
+  await check("the home is the dashboard, with real counters", async () =>
+    (await seen("text=Nouvelles demandes")) && (await seen("text=Missions actives")) && (await seen('[aria-label="Disponible"]')));
+  await check("no competitor marketplace in provider mode", async () =>
+    !(await seen('[aria-label="Quel service recherchez-vous ?"]')) && !(await seen("text=Top Professionnels")));
+  await check("the centre button is yellow and opens the provider's tools", async () => {
+    const yellow = (await fabColour("Publier")) === YELLOW;
+    await tap('[aria-label="Publier"]');
+    const tools = (await seen("text=Partager une réalisation")) && (await seen('[aria-label="Voir les demandes disponibles"]'));
+    await tap('[aria-label="Voir les demandes disponibles"]');
+    return yellow && tools;
   });
-  await check("its back button leads to the Profil page", async () => {
+  await check("Missions is Jobs: available, my jobs, history", async () =>
+    (await seen('[aria-label="Disponibles"]')) && (await seen('[aria-label="Mes missions"]')) && (await seen('[aria-label="Historique"]')));
+  await check("Messages lists the request conversations", async () => {
+    await tap('[aria-label="Messages"]');
+    return (await seen('[aria-label="Rechercher une conversation"]')) && (await seen("text=Aucune conversation pour le moment."));
+  });
+  await check("Profil is Profile & settings, with the verification file", async () => {
+    await tap('[aria-label="Profil"]');
+    await wait("text=Profil et paramètres");
+    await tap('[aria-label="Documents, contrat et vérification"]');
+    await wait("text=Suivi de la vérification");
+    const ok = await seen("text=Plombier");
     await tap('[aria-label="Retour"]');
-    await wait('[aria-label="Modifier le profil"]', 5000);
-    await tap('[aria-label="Mon Espace Pro"]');
-    await wait("text=Suivi de la vérification");
-    return true;
+    return ok;
   });
 
-  console.log("\n── Switching profile switches the look ──");
-  await check("as Particulier: light tab bar and the request button", async () => {
-    // Opened from Accueil, the dashboard must still have the Profil page under
-    // it: tapping the Profil tab returns there.
-    await tap('[aria-label="Profil"]');
-    await tap('[aria-label="Activer le profil Particulier"]');
+  console.log("\n── Client mode, same account ──");
+  await check("Client mode: the marketplace and the black request button", async () => {
+    await wait("text=Profil et paramètres", 5000);
+    await tap('[aria-label="Mode client"]');
     await tap('[aria-label="Accueil"]');
-    return (await barColour()) === WHITE && (await seen('[aria-label="Publier une demande"]')) && (await seen("text=Bienvenue,"));
+    await wait("text=Catégories");
+    return (await fabColour("Publier une demande")) === BLACK && (await seen('[aria-label="Quel service recherchez-vous ?"]'));
   });
-  await check("back to Prestataire: Mode Pro again", async () => {
+  await check("back to Prestataire: provider mode again", async () => {
     await tap('[aria-label="Profil"]');
     await tap('[aria-label="Profil Prestataire"]');
     await tap('[aria-label="Accueil"]');
-    return (await barColour()) === ANTHRACITE && (await seen("text=Espace Pro"));
+    await wait("text=Tableau de bord");
+    return (await fabColour("Publier")) === YELLOW;
   });
   await check("no page errors", async () => errors.length === 0);
 

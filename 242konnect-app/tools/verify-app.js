@@ -676,24 +676,22 @@ const mailedCode = () => {
     (await seen('[aria-label="Espace Prestataire"]')) &&
     (await visible('[aria-label="Profil Particulier"][aria-selected="true"]')) !== null);
 
-  // A prestataire is a customer too: switching must keep the marketplace.
-  await check("switching to Prestataire keeps the marketplace", async () => {
+  // Spec "Parcours Prestataire" §14: provider mode is the dashboard, without
+  // the competitors' marketplace; Client mode gives it back, same account.
+  await check("switching to Prestataire opens the provider dashboard", async () => {
     await tap('[aria-label="Profil Prestataire"]');
     await page.waitForTimeout(700);
     await tap('[aria-label="Accueil"]');
     await page.waitForTimeout(800);
-    return (await seen("text=Catégories")) && !(await seen("text=Score 242K"));
+    return (await seen("text=Tableau de bord")) && !(await seen('[aria-label="Quel service recherchez-vous ?"]'));
   });
-  await check("a prestataire can still browse and search", async () =>
-    (await seen('[aria-label="Quel service recherchez-vous ?"]')) &&
-    (await seen('[aria-label="Rechercher"]')) &&
-    (await seen('[aria-label="Voir tous les métiers"]')) &&
-    (await seen('[aria-label="Catégorie Plomberie"]')) &&
-    (await seen('[aria-label*="Changer de ville"]')));
-  await check("switching back to Particulier keeps the home feed", async () => {
+  await check("Client mode is one tap away in Profil", async () => {
     await tap('[aria-label="Profil"]');
     await page.waitForTimeout(600);
-    await tap('[aria-label="Profil Particulier"]');
+    return seen('[aria-label="Mode client"]');
+  });
+  await check("switching back to Particulier keeps the home feed", async () => {
+    await tap('[aria-label="Mode client"]');
     await page.waitForTimeout(700);
     await tap('[aria-label="Accueil"]');
     await page.waitForTimeout(800);
@@ -778,13 +776,13 @@ const mailedCode = () => {
   await check("'+' opens post-a-job", async () => {
     await tap('[aria-label="Accueil"]');
     await tap('[aria-label="Publier une demande"]');
-    return seen("text=De quel service avez-vous besoin ?");
+    return seen("text=Publier une demande");
   });
-  await check("choosing a trade confirms", async () => {
-    await tap('[aria-label="Publier une demande en Plomberie"]');
-    return seen("text=Votre demande est en ligne");
-  });
-  await check("post-a-job closes", async () => { await tap("text=Terminé"); return true; });
+  // This build has no server: the sheet says so instead of pretending the
+  // request went out (it used to print "Votre demande est en ligne").
+  await check("without the server, it says posting is unavailable", async () =>
+    (await seen("text=/La publication de demandes n’est pas disponible/")) && !(await seen("text=Votre demande est en ligne")));
+  await check("post-a-job closes", async () => { await tap('[aria-label="Fermer"]'); return true; });
 
   section("Session");
   await check("survives a reload (through the splash)", async () => {

@@ -163,6 +163,9 @@ export function ClientRequests() {
 
             {r.status === 'sent' && !expired && (
               <>
+                {r.providerId === null && (
+                  <Text style={o.line}>{t('Demande ouverte : envoyée aux prestataires vérifiés de votre ville. Le premier qui accepte obtient la mission.')}</Text>
+                )}
                 <Text style={o.line}>
                   {t('Réponse attendue avant')}{' '}
                   {r.responseDeadline ? new Date(r.responseDeadline).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : ''}.

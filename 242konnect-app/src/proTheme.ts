@@ -1,50 +1,44 @@
 /**
  * Mode Pro — how the app looks while the Prestataire profile is active.
  *
- * One account carries two profiles (§9.10), and until now both looked the
- * same: switching to Prestataire changed a chip on the Profil screen and
- * nothing else, so a provider could not tell at a glance which hat they were
- * wearing. Two-sided marketplaces solve this the same way — the driver and the
- * rider, the host and the guest each get their own look — and so does this.
+ * Since 2026-10-20 it follows the founder's mock-ups ("App V1 Parcours
+ * Prestataire", "Boutons Jobs, Publier et Messages"): the same light ground as
+ * the client side, with yellow carrying the active tab, the centre button and
+ * the key highlights, and black for the primary buttons. The dark anthracite
+ * palette of 2026-10-19 is retired.
  *
- *   Particulier  light ground, white cards, black actions, yellow as accent
- *   Prestataire  anthracite ground, raised dark cards, yellow actions
+ * What tells the two hats apart is now the content, as the specs ask: in
+ * provider mode the home is a dashboard, Missions lists jobs, and the
+ * marketplace of competitors is not browsable (spec §14). Switching to Client
+ * mode from Profil gives the full marketplace back, with the same account.
  *
- * Nothing here leaves the charte: it is the same black, grey and yellow, with
- * the anthracite and metal grey the founder named for the opening screen. The
- * inversion is the point — in Mode Pro yellow carries the action instead of
- * black, which is the one change anyone notices immediately.
- *
- * The marketplace itself stays the same for both profiles: a prestataire is a
- * customer too, and taking search and booking away from them was a bug that
- * has already been fixed once. Mode Pro changes the chrome — tab bar, header,
- * Profil — and the provider's own space, not what they can do.
+ * Token names are unchanged, so the screens that read them follow.
  */
 
 import { useAuth } from './auth';
 import { colors } from './theme';
 
 export const pro = {
-  /** Page ground. A touch darker than the anthracite cards on it. */
-  ground: '#0e1014',
-  /** Cards, the tab bar, headers. */
-  surface: colors.anthracite,
-  /** Inputs and cells inside a card. */
-  raised: '#232730',
-  line: 'rgba(233,236,239,0.10)',
-  text: '#f4f5f7',
-  muted: '#9ba3ae',
-  /** Yellow is the action colour in Mode Pro, with black type on it. */
+  ground: colors.background,
+  surface: colors.card,
+  /** Inputs, segmented controls and cells inside a card. */
+  raised: colors.muted,
+  line: colors.border,
+  text: colors.foreground,
+  muted: colors.mutedForeground,
+  /** Yellow: active tab, centre button, selected segment, highlights. */
   accent: colors.accent,
   accentText: colors.black,
-  accentSoft: 'rgba(251,210,24,0.14)',
+  accentSoft: '#fff7d1',
+  /** Primary buttons stay black, as in the mock-ups. */
+  action: colors.primary,
+  actionText: colors.primaryForeground,
 
-  /** State colours lifted for a dark ground; same meaning as in theme.ts. */
-  success: '#4ade80',
-  successSurface: 'rgba(74,222,128,0.12)',
-  warning: '#fbbf24',
-  warningSurface: 'rgba(251,191,36,0.12)',
-  destructive: '#f87171',
+  success: colors.success,
+  successSurface: colors.successSurface,
+  warning: colors.warning,
+  warningSurface: colors.warningSurface,
+  destructive: colors.destructive,
 } as const;
 
 /** True while the account is acting as a prestataire. */
