@@ -71,6 +71,22 @@ parts (`security_hardening_0` … `_8`).
       answers 503. If Dify gets 503, set a new key:
       `openssl rand -base64 32`, in Supabase and in Dify.
 
+## Step 3c — Prestataire workspace — **in progress 2026-10-21**
+
+`supabase/migrations/20261021000000_provider_workspace.sql` (replica 87/87).
+
+- [x] Parts 1–2 applied through the MCP (`provider_workspace_1`, `_2`):
+      availability, open-request columns, `can_claim()`, request trigger.
+      Additive; the current app is unaffected.
+- [ ] Parts 3–5 (History, read receipts, conversations, message masking):
+      the MCP no longer lets table creation through (the call times out and
+      nothing reaches Postgres). **Founder:** Supabase dashboard → SQL
+      Editor → paste `supabase/apply/2026-10-21_provider_workspace_parts_3-5.sql`
+      → Run. The last line must read `true, true, 6, 1`.
+- [ ] Then: production tests (rolled back), then the new Netlify packages.
+      **Do not publish the new app before this step**: its Jobs and
+      Messages need parts 3–5.
+
 ## Step 4 — Supabase dashboard settings
 
 These can't be set from the repository.
