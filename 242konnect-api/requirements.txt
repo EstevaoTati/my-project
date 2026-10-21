@@ -1,0 +1,9 @@
+# Pinned exactly; scanned by pip-audit in CI (.github/workflows/security.yml).
+# 2026-10-20: fastapi 0.115.6 -> 0.150.0 to move starlette 0.41.3 -> 1.9.0,
+# which carried 7 published advisories (PYSEC-2026-161, -248, -249, -1941,
+# -1942, -2280, -2281).
+fastapi==0.150.0
+starlette==1.9.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic[email]==2.14.1

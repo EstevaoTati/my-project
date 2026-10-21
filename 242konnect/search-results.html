@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Plombiers verifies disponibles a Pointe-Noire, avec tarifs, notes et distance." />
+    <meta name="theme-color" content="#00a651" />
+    <title>242Konnect — Plomberie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --color-chart-1: var(--chart-1);
+        --color-chart-2: var(--chart-2);
+        --color-chart-3: var(--chart-3);
+        --color-chart-4: var(--chart-4);
+        --color-chart-5: var(--chart-5);
+
+        --font-font-sans: var(--font-sans);
+        --font-font-heading: var(--font-heading);
+        --font-font-serif: var(--font-serif);
+        --font-font-mono: var(--font-mono);
+      }
+
+      @theme {
+        --radius-xs: calc(var(--radius) - 8px);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --radius-xl: calc(var(--radius) + 4px);
+        --radius-2xl: calc(var(--radius) + 8px);
+        --radius-3xl: calc(var(--radius) + 16px);
+        --radius-4xl: calc(var(--radius) + 24px);
+      }
+
+      * {
+        corner-shape: var(--shape, round);
+      }
+
+      .rounded-full, .rounded-none,
+      .rounded-t-full, .rounded-t-none,
+      .rounded-r-full, .rounded-r-none,
+      .rounded-b-full, .rounded-b-none,
+      .rounded-l-full, .rounded-l-none,
+      .rounded-s-full, .rounded-s-none,
+      .rounded-e-full, .rounded-e-none,
+      .rounded-tl-full, .rounded-tl-none,
+      .rounded-tr-full, .rounded-tr-none,
+      .rounded-bl-full, .rounded-bl-none,
+      .rounded-br-full, .rounded-br-none,
+      .rounded-ss-full, .rounded-ss-none,
+      .rounded-se-full, .rounded-se-none,
+      .rounded-es-full, .rounded-es-none,
+      .rounded-ee-full, .rounded-ee-none {
+        corner-shape: round;
+      }
+
+      @utility rounded-* {
+        border-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-t-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-r-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-b-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-l-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tl-* {
+        border-top-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-tr-* {
+        border-top-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-bl-* {
+        border-bottom-left-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-br-* {
+        border-bottom-right-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-s-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-e-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ss-* {
+        border-start-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-se-* {
+        border-start-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-es-* {
+        border-end-start-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+      @utility rounded-ee-* {
+        border-end-end-radius: calc(--value(--radius-*, [length], [percentage]) * var(--shape-multiplier, 1));
+      }
+
+      :root {
+        --shape: squircle;
+        --shape-multiplier: 1;
+
+          --background: #f8fafc;
+        --foreground: #0f172a;
+        --primary: #00a651;
+        --primary-foreground: #ffffff;
+        --secondary: #1e293b;
+        --secondary-foreground: #ffffff;
+        --muted: #f1f5f9;
+        --muted-foreground: #64748b;
+        --accent: #ffcb05;
+        --accent-foreground: #000000;
+        --destructive: #ed1c24;
+        --card: #ffffff;
+        --card-foreground: #0f172a;
+        --popover: #ffffff;
+        --popover-foreground: #0f172a;
+        --border: #e2e8f0;
+        --input: #f1f5f9;
+        --ring: #00a651;
+        --chart-1: #00a651;
+        --chart-2: #ffcb05;
+        --chart-3: #ed1c24;
+        --chart-4: #3b82f6;
+        --chart-5: #8b5cf6;
+
+        --font-sans: "Plus Jakarta Sans";
+        --font-heading: "Outfit";
+        --font-serif: "Playfair Display";
+        --font-mono: "JetBrains Mono";
+
+        --radius: 0.75rem;
+      }
+
+      @supports (corner-shape: squircle) {
+        :root {
+          --shape-multiplier: 2.5;
+        }
+      }
+
+      /* Hide scrollbars */
+      *,
+      *::before,
+      *::after {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* The export references these two utilities but never defines them. */
+      .hide-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .pb-safe {
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="flex flex-col min-h-screen bg-background pb-20 font-sans">
+      <header
+        class="sticky top-0 z-50 bg-background/80 backdrop-blur-md px-5 pt-12 pb-4 border-b border-border/50"
+      >
+        <div class="flex items-center gap-4">
+          <a
+            href="index.html"
+            aria-label="Retour à l'accueil"
+            class="p-2 rounded-xl bg-card border border-border shadow-sm text-foreground"
+          >
+            <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m15 5l-6 7l6 7"/></svg>
+          </a>
+          <div>
+            <h1 id="category-title" class="text-xl font-heading font-bold text-foreground">
+              Plomberie
+            </h1>
+            <p class="text-xs text-muted-foreground font-medium">42 professionnels disponibles</p>
+          </div>
+        </div>
+        <div class="mt-5 flex gap-2 overflow-x-auto hide-scrollbar">
+          <button
+            class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold whitespace-nowrap"
+          >
+            <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M17 3.25a.75.75 0 0 1 .75.75v13.75l1.65-2.2a.75.75 0 1 1 1.2.9l-3 4a.75.75 0 0 1-1.35-.45V4a.75.75 0 0 1 .75-.75M7.25 6A.75.75 0 0 1 8 5.25h5a.75.75 0 0 1 0 1.5H8A.75.75 0 0 1 7.25 6m-2 5a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75m-2 5a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5H4a.75.75 0 0 1-.75-.75" clip-rule="evenodd"/></svg>Pertinence</button
+          ><button
+            class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground rounded-full text-sm font-semibold whitespace-nowrap"
+          >
+            Prix</button
+          ><button
+            class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground rounded-full text-sm font-semibold whitespace-nowrap"
+          >
+            Note (4+)</button
+          ><button
+            class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground rounded-full text-sm font-semibold whitespace-nowrap"
+          >
+            Vérifié
+          </button>
+        </div>
+      </header>
+      <main class="flex-1 p-5 overflow-y-auto">
+        <div class="flex flex-col gap-6">
+          <a href="professional-profile.html" class="flex flex-col gap-3 group">
+            <div
+              class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-border shadow-sm"
+            >
+              <img
+                alt="Plumbing"
+                src="images/lIUj5S4tFtC.jpeg"
+                class="w-full h-full object-cover"
+              />
+              <div
+                class="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-destructive shadow-sm"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 9.137C2 14 6.02 16.591 8.962 18.911C10 19.729 11 20.5 12 20.5s2-.77 3.038-1.59C17.981 16.592 22 14 22 9.138S16.5.825 12 5.501C7.5.825 2 4.274 2 9.137"/></svg>
+              </div>
+              <div
+                class="absolute bottom-3 left-3 px-3 py-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-lg uppercase tracking-wider"
+              >
+                Vérifié par 242K
+              </div>
+            </div>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-lg font-heading font-bold text-foreground">Jean-Paul K.</h3>
+                  <div class="flex items-center gap-1 text-accent">
+                    <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9.153 5.408C10.42 3.136 11.053 2 12 2s1.58 1.136 2.847 3.408l.328.588c.36.646.54.969.82 1.182s.63.292 1.33.45l.636.144c2.46.557 3.689.835 3.982 1.776c.292.94-.546 1.921-2.223 3.882l-.434.507c-.476.557-.715.836-.822 1.18c-.107.345-.071.717.001 1.46l.066.677c.253 2.617.38 3.925-.386 4.506s-1.918.051-4.22-1.009l-.597-.274c-.654-.302-.981-.452-1.328-.452s-.674.15-1.328.452l-.596.274c-2.303 1.06-3.455 1.59-4.22 1.01c-.767-.582-.64-1.89-.387-4.507l.066-.676c.072-.744.108-1.116 0-1.46c-.106-.345-.345-.624-.821-1.18l-.434-.508c-1.677-1.96-2.515-2.941-2.223-3.882S3.58 8.328 6.04 7.772l.636-.144c.699-.158 1.048-.237 1.329-.45s.46-.536.82-1.182z"/></svg><span class="text-sm font-bold">4.9</span>
+                  </div>
+                </div>
+                <p class="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                  <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.143C4 5.646 7.582 2 12 2s8 3.646 8 8.143c0 4.462-2.553 9.67-6.537 11.531a3.45 3.45 0 0 1-2.926 0C6.553 19.812 4 14.606 4 10.144Z"/><circle cx="12" cy="10" r="3"/></g></svg>Pointe-Noire • 2.4 km
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    class="px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-md"
+                    >Installation</span
+                  ><span
+                    class="px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-md"
+                    >Réparation</span
+                  ><span
+                    class="px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-md"
+                    >Urgence 24h</span
+                  >
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-foreground">
+                  18k <span class="text-xs text-muted-foreground font-normal">FCFA/h</span>
+                </p>
+                <p class="text-[10px] text-primary font-bold">Disponible aujourd'hui</p>
+              </div>
+            </div>
+          </a>
+          <a href="professional-profile.html" class="flex flex-col gap-3 group">
+            <div
+              class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-border shadow-sm"
+            >
+              <img
+                alt="Plumbing"
+                src="images/OPHXsqIvD4F.jpeg"
+                class="w-full h-full object-cover grayscale-[0.2]"
+              />
+              <div
+                class="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-muted-foreground shadow-sm"
+              >
+                <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="m8.962 18.91l.464-.588zM12 5.5l-.54.52a.75.75 0 0 0 1.08 0zm3.038 13.41l.465.59zm-5.612-.588C7.91 17.127 6.253 15.96 4.938 14.48C3.65 13.028 2.75 11.335 2.75 9.137h-1.5c0 2.666 1.11 4.7 2.567 6.339c1.43 1.61 3.254 2.9 4.68 4.024zM2.75 9.137c0-2.15 1.215-3.954 2.874-4.713c1.612-.737 3.778-.541 5.836 1.597l1.08-1.04C10.1 2.444 7.264 2.025 5 3.06C2.786 4.073 1.25 6.425 1.25 9.137zM8.497 19.5c.513.404 1.063.834 1.62 1.16s1.193.59 1.883.59v-1.5c-.31 0-.674-.12-1.126-.385c-.453-.264-.922-.628-1.448-1.043zm7.006 0c1.426-1.125 3.25-2.413 4.68-4.024c1.457-1.64 2.567-3.673 2.567-6.339h-1.5c0 2.198-.9 3.891-2.188 5.343c-1.315 1.48-2.972 2.647-4.488 3.842zM22.75 9.137c0-2.712-1.535-5.064-3.75-6.077c-2.264-1.035-5.098-.616-7.54 1.92l1.08 1.04c2.058-2.137 4.224-2.333 5.836-1.596c1.659.759 2.874 2.562 2.874 4.713zm-8.176 9.185c-.526.415-.995.779-1.448 1.043s-.816.385-1.126.385v1.5c.69 0 1.326-.265 1.883-.59c.558-.326 1.107-.756 1.62-1.16z"/></svg>
+              </div>
+            </div>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-lg font-heading font-bold text-foreground">David L.</h3>
+                  <div class="flex items-center gap-1 text-accent">
+                    <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9.153 5.408C10.42 3.136 11.053 2 12 2s1.58 1.136 2.847 3.408l.328.588c.36.646.54.969.82 1.182s.63.292 1.33.45l.636.144c2.46.557 3.689.835 3.982 1.776c.292.94-.546 1.921-2.223 3.882l-.434.507c-.476.557-.715.836-.822 1.18c-.107.345-.071.717.001 1.46l.066.677c.253 2.617.38 3.925-.386 4.506s-1.918.051-4.22-1.009l-.597-.274c-.654-.302-.981-.452-1.328-.452s-.674.15-1.328.452l-.596.274c-2.303 1.06-3.455 1.59-4.22 1.01c-.767-.582-.64-1.89-.387-4.507l.066-.676c.072-.744.108-1.116 0-1.46c-.106-.345-.345-.624-.821-1.18l-.434-.508c-1.677-1.96-2.515-2.941-2.223-3.882S3.58 8.328 6.04 7.772l.636-.144c.699-.158 1.048-.237 1.329-.45s.46-.536.82-1.182z"/></svg><span class="text-sm font-bold">4.7</span>
+                  </div>
+                </div>
+                <p class="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                  <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.143C4 5.646 7.582 2 12 2s8 3.646 8 8.143c0 4.462-2.553 9.67-6.537 11.531a3.45 3.45 0 0 1-2.926 0C6.553 19.812 4 14.606 4 10.144Z"/><circle cx="12" cy="10" r="3"/></g></svg>Pointe-Noire • 5.1 km
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    class="px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-md"
+                    >Sanitaire</span
+                  ><span
+                    class="px-2 py-0.5 bg-secondary text-secondary-foreground text-[10px] font-bold rounded-md"
+                    >Tuyauterie</span
+                  >
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-foreground">
+                  12k <span class="text-xs text-muted-foreground font-normal">FCFA/h</span>
+                </p>
+                <p class="text-[10px] text-muted-foreground font-bold">Délai: 24h</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      </main>
+    </div>
+    <script>
+      // The result list itself is static prototype data, but echoing the
+      // requested category keeps the home -> search hand-off believable.
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var label = params.get("cat") || params.get("q");
+        if (!label) return;
+        document.getElementById("category-title").textContent = label;
+        document.title = "242Konnect — " + label;
+      })();
+    </script>
+  </body>
+</html>

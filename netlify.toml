@@ -1,14 +1,26 @@
-# Landing page — AI Consultant & Agentic Operating Systems.
-# Site statique, aucun build.
+# Estevao Tati — AI Consultant & Agentic Operating Systems (landing page).
+#
+# This file configures ONE site: the landing page, published from
+# `estevao-tati-site/` and nothing else. Static, no build.
+#
+# 242Konnect is a separate product with its own Netlify site. It is NOT served
+# from here: its app is published from `242konnect-web/` (base directory
+# `242konnect-web`, which carries its own netlify.toml), and its drag-and-drop
+# package is `242konnect-netlify-package.zip`. See 242konnect-app/DEPLOY.md.
+#
+# Publishing the repository root used to put every 242Konnect folder — the app
+# build, the prototype, the API source, the database migrations, even the zip —
+# under this domain. Keep `publish` pointed at the site folder.
+
 [build]
-  publish = "."
+  publish = "estevao-tati-site"
   command = ""
 
 # ---------------------------------------------------------------------------
 # VIDÉO DE FOND — servie depuis VOTRE domaine.
 # Netlify va chercher le clip 3D généré sur Higgsfield et le renvoie en
 # même origine : le navigateur ne contacte aucun serveur externe.
-# force = false → si vous déposez assets/clips/bg-tech.mp4 dans le dossier,
+# force = false → si vous déposez estevao-tati-site/assets/clips/bg-tech.mp4,
 # c'est ce fichier local qui est servi (voir fetch-video.sh).
 # ---------------------------------------------------------------------------
 [[redirects]]

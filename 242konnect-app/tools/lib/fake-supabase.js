@@ -1,0 +1,466 @@
+/**
+ * A local stand-in for the Supabase endpoints 242Konnect calls, for browser
+ * tests that need two real users talking through the server.
+ *
+ * Why it exists: the build environment cannot reach supabase.co, so the
+ * marketplace journey — a client paying, a prestataire accepting, the address
+ * released, the mission validated — could otherwise only be checked one half
+ * at a time. This speaks the same HTTP (GoTrue `/auth/v1`, PostgREST
+ * `/rest/v1`, the `pin` and `payment` functions, `rpc/request_action`) and
+ * mirrors the rules of `supabase/migrations/20261001010000_marketplace.sql` and
+ * `20261020000000_verified_payments.sql`: the client cannot declare a payment;
+ * the payment function confirms it, as if the operator had reported success.
+ *
+ * It is NOT the proof of those rules — `tools/verify-marketplace.sql` is, run
+ * against the real database as three users. This proves the app drives them.
+ *
+ * Codes are written to OUTBOX the way the API's console mailer does
+ * ("… est : 123456"), so the same mailedCode() reader works.
+ */
+const http = require("http");
+const fs = require("fs");
+const crypto = require("crypto");
+
+function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supabase.log" } = {}) {
+  fs.writeFileSync(outbox, "");
+  const users = new Map(); // email -> { id, code }
+  const pins = new Map(); // uid -> pin
+  const profiles = new Map();
+  const listings = new Map();
+  const requests = new Map();
+  const addresses = new Map();
+  const messages = [];
+  const consents = [];
+  const revoked = new Set(); // access tokens ended by /auth/v1/logout
+  // Sessions opened by an e-mail code, and when: the JWT's `amr` claim, which
+  // the pin function's "reset" action checks (step-up, 10 minutes).
+  const emailCodeSessions = new Map();
+  const collections = new Map(); // id -> payment collection
+  const dismissals = []; // { request_id, provider_id, reason, trade_id, zone_hint, slot, amount, currency, at }
+  const reads = new Map(); // `${request}|${user}` -> ms
+  // provider_workspace.sql: who may see and claim an open request.
+  const canClaim = (uid, r) => {
+    const l = listings.get(uid);
+    return (
+      !!l && l.status === "approved" && l.available !== false && l.trade_id === r.trade_id &&
+      String(l.city || "").trim().toLowerCase() === String(r.city || "").trim().toLowerCase() && String(r.city || "").trim() !== ""
+    );
+  };
+  const dismiss = (uid, r, reason) => {
+    if (dismissals.some((d) => d.request_id === r.id && d.provider_id === uid)) return;
+    dismissals.push({ request_id: r.id, provider_id: uid, reason, trade_id: r.trade_id, zone_hint: r.zone_hint || "", slot: r.slot, amount: r.amount, currency: r.currency || "FCFA", at: now() });
+  };
+  const openVisible = (uid, r) =>
+    r.provider_id == null && r.status === "sent" && Date.parse(r.response_deadline) > Date.now() && r.client_id !== uid &&
+    canClaim(uid, r) && !dismissals.some((d) => d.request_id === r.id && d.provider_id === uid);
+  // Phone numbers, e-mails and links never cross the chat.
+  const mask = (text) =>
+    text
+      .replace(/\+?\d([ .()-]?\d){8,}/g, "•••")
+      .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "•••")
+      .replace(/(https?:\/\/|www\.)\S+/gi, "•••");
+  // false: operator credentials not set, as in production until MoMo goes live.
+  let paymentsLive = true;
+  let messageId = 0;
+
+  const STAGES = ["accepted", "on_the_way", "arrived", "in_progress", "completed"];
+  const now = () => new Date().toISOString();
+
+  const send = (res, status, body) => {
+    res.writeHead(status, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, apikey, content-type, prefer, x-client-info",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS",
+    });
+    res.end(body === undefined ? "" : JSON.stringify(body));
+  };
+  const fail = (res, status, message) => send(res, status, { message, code: String(status) });
+  // Every session gets its own tokens, as with GoTrue: revoking one session
+  // (sign-out) must not end another session of the same user.
+  let sessionSeq = 0;
+  const session = (id) => ({
+    access_token: `tok-${id}~${++sessionSeq}`,
+    refresh_token: `ref-${id}~${sessionSeq}`,
+    expires_in: 3600,
+    token_type: "bearer",
+    user: { id },
+  });
+  const uidOf = (req) => {
+    const m = /^Bearer tok-(([^~]+)(?:~\d+)?)$/.exec(req.headers.authorization || "");
+    return m && !revoked.has(m[1]) ? m[2] : null;
+  };
+  const eq = (q, key) => {
+    const v = q.get(key);
+    return v && v.startsWith("eq.") ? decodeURIComponent(v.slice(3)) : null;
+  };
+
+  function action(uid, p) {
+    const r = requests.get(p.p_request);
+    if (!r) throw [404, "request not found"];
+    const isClient = r.client_id === uid;
+    const isProvider = r.provider_id === uid && r.status !== "draft";
+    if (!isClient && !isProvider) throw [404, "request not found"];
+    const expired = r.status === "sent" && Date.parse(r.response_deadline) < Date.now();
+    const a = p.p_action;
+    const pl = p.p_payload || {};
+    const set = (patch) => Object.assign(r, patch, { updated_at: now() });
+
+    if (isClient && a === "pay") {
+      throw [403, "payments are confirmed by the payment service, not by the app"];
+    } else if (isClient && a === "cancel") {
+      if (r.status === "draft") set({ status: "cancelled", refund_status: "none" });
+      else if (["sent", "refused"].includes(r.status)) set({ status: "cancelled", refund_status: "full" });
+      else if (r.status === "accepted") set({ status: "cancelled", refund_status: "under_review" });
+      else throw [400, "this request can no longer be cancelled"];
+    } else if (isClient && a === "validate") {
+      if (r.status !== "accepted" || r.stage !== "completed") throw [400, "only a completed mission can be approved"];
+      set({ status: "validated", validated_at: now() });
+    } else if (isClient && a === "dispute") {
+      if (r.status !== "accepted") throw [400, "only an accepted mission can be disputed"];
+      set({ status: "disputed", dispute: { reason: pl.reason, outcome: pl.outcome, details: pl.details || "" } });
+    } else if (isProvider && a === "accept") {
+      if (r.status !== "sent" || expired) throw [400, "this request can no longer be accepted"];
+      if (!r.payment_verified_at) throw [400, "payment not verified"];
+      if (listings.get(uid)?.status !== "approved") throw [400, "your profile is not approved yet"];
+      set({ status: "accepted", stage: "accepted", accepted_at: now(), stage_at: { accepted: now() } });
+    } else if (isProvider && a === "decline") {
+      if (r.status !== "sent") throw [400, "this request can no longer be declined"];
+      set({ status: "refused" });
+    } else if (isProvider && a === "advance") {
+      if (r.status !== "accepted" || r.stage === "completed") throw [400, "nothing to advance"];
+      const next = STAGES[STAGES.indexOf(r.stage) + 1];
+      set({ stage: next, stage_at: { ...r.stage_at, [next]: now() } });
+    } else {
+      throw [403, "action not allowed"];
+    }
+    return r;
+  }
+
+  const server = http.createServer((req, res) => {
+    if (req.method === "OPTIONS") return send(res, 204);
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      const url = new URL(req.url, `http://127.0.0.1:${port}`);
+      const q = url.searchParams;
+      const body = raw ? JSON.parse(raw) : {};
+      const uid = uidOf(req);
+      const path = url.pathname;
+      try {
+        // ---- GoTrue
+        if (path === "/auth/v1/otp" && req.method === "POST") {
+          const email = String(body.email).toLowerCase();
+          // GoTrue refuses to create a user when asked not to.
+          if (body.create_user === false && !users.has(email))
+            return send(res, 422, { error_code: "otp_disabled", msg: "Signups not allowed for otp" });
+          const user = users.get(email) || { id: crypto.randomUUID() };
+          user.code = String(crypto.randomInt(0, 1e6)).padStart(6, "0");
+          users.set(email, user);
+          fs.appendFileSync(outbox, `Votre code 242Konnect pour ${email} est : ${user.code}\n`);
+          return send(res, 200, {});
+        }
+        if (path === "/auth/v1/verify" && req.method === "POST") {
+          const user = users.get(String(body.email).toLowerCase());
+          if (!user || user.code !== body.token) return fail(res, 403, "Token has expired or is invalid");
+          user.code = null; // single use
+          const s = session(user.id);
+          emailCodeSessions.set(s.access_token.slice(4), Date.now());
+          return send(res, 200, s);
+        }
+        if (path === "/auth/v1/token" && q.get("grant_type") === "password") {
+          const user = users.get(String(body.email || "").toLowerCase());
+          if (!user || !user.password || user.password !== body.password)
+            return send(res, 400, { error_code: "invalid_credentials", msg: "Invalid login credentials" });
+          return send(res, 200, session(user.id));
+        }
+        if (path === "/auth/v1/token") {
+          // A refresh token dies with its session.
+          const m = /^ref-(([^~]+)(?:~\d+)?)$/.exec(body.refresh_token || "");
+          return m && !revoked.has(m[1]) ? send(res, 200, session(m[2])) : fail(res, 400, "invalid refresh token");
+        }
+        if (path === "/auth/v1/logout" && req.method === "POST") {
+          const m = /^Bearer tok-(.+)$/.exec(req.headers.authorization || "");
+          if (m) revoked.add(m[1]); // "<user>~<session>": that session only
+          return send(res, 204);
+        }
+        if (path === "/auth/v1/user" && req.method === "PUT") {
+          const user = [...users.values()].find((u) => u.id === uid);
+          if (!user) return send(res, 401, { msg: "JWT expected" });
+          if (typeof body.password === "string") user.password = body.password;
+          return send(res, 200, { id: uid });
+        }
+        // ---- pin function
+        if (path === "/functions/v1/pin") {
+          if (!uid) return send(res, 401, { error: "missing_token" });
+          if (body.action === "status") return send(res, 200, { hasPin: pins.has(uid), lockedUntil: null });
+          if (body.action === "set") {
+            if (pins.has(uid) && pins.get(uid) !== body.current) return send(res, 400, { error: "current_pin_incorrect" });
+            pins.set(uid, body.pin);
+            return send(res, 200, {});
+          }
+          if (body.action === "reset") {
+            const sid = (/^Bearer tok-(.+)$/.exec(req.headers.authorization || "") || [])[1];
+            const at = emailCodeSessions.get(sid);
+            if (!at || Date.now() - at > 600e3) return send(res, 403, { error: "step_up_required" });
+            pins.set(uid, body.pin);
+            return send(res, 200, {});
+          }
+          if (body.action === "verify")
+            return pins.get(uid) === body.pin ? send(res, 200, {}) : send(res, 401, { error: "pin_incorrect", attemptsLeft: 4 });
+        }
+        // ---- payment function: the operator "confirms" on the first status read
+        if (path === "/functions/v1/payment") {
+          if (!uid) return send(res, 401, { error: "missing_token", message: "Votre session a expiré. Reconnectez-vous." });
+          if (body.action === "start") {
+            if (!["mtn", "airtel"].includes(body.method)) return send(res, 400, { error: "invalid_method", message: "Choisissez MTN Mobile Money ou Airtel Money." });
+            if (!/^(242)?0[4-6]\d{7}$/.test(String(body.phone || "").replace(/\D/g, "")))
+              return send(res, 400, { error: "invalid_phone", message: "Numéro Mobile Money invalide." });
+            if (!paymentsLive)
+              return send(res, 503, {
+                error: "payments_unavailable",
+                message: "Le paiement en ligne ouvre bientôt : MTN Mobile Money et Airtel Money sont en cours d'activation. Votre demande reste enregistrée et rien n'a été débité.",
+              });
+            const r = requests.get(body.request);
+            if (!r || r.client_id !== uid) return send(res, 404, { error: "not_found", message: "Demande introuvable." });
+            if (r.status !== "draft") return send(res, 409, { error: "not_payable", message: "Cette demande n'attend plus de paiement." });
+            const live = [...collections.values()].find((c) => c.request_id === r.id && c.status !== "failed");
+            if (live) return send(res, 200, { collection: live.id, status: live.status });
+            const id = crypto.randomUUID();
+            collections.set(id, { id, request_id: r.id, client_id: uid, method: body.method, amount: r.amount, status: "pending" });
+            return send(res, 200, { collection: id, status: "pending" });
+          }
+          if (body.action === "status") {
+            const c = collections.get(body.collection);
+            if (!c || c.client_id !== uid) return send(res, 404, { error: "not_found", message: "Demande introuvable." });
+            const r = requests.get(c.request_id);
+            if (c.status === "pending") c.status = "successful";
+            if (r.status === "draft")
+              Object.assign(r, {
+                status: "sent",
+                payment_method: c.method,
+                payment_ref: `OP-${c.id.slice(0, 8)}`,
+                paid_at: now(),
+                payment_verified_at: now(),
+                payment_amount_confirmed: c.amount,
+                response_deadline: new Date(Date.now() + 24 * 3600e3).toISOString(),
+                updated_at: now(),
+              });
+            return send(res, 200, { status: c.status, requestStatus: r.status });
+          }
+          return send(res, 400, { error: "unknown", message: "Action inconnue." });
+        }
+        if (!path.startsWith("/rest/v1/")) return fail(res, 404, "not found");
+        if (!uid) return fail(res, 401, "JWT expected");
+        const table = path.slice("/rest/v1/".length);
+
+        // ---- profiles / consents
+        if (table === "profiles") {
+          if (req.method === "POST") {
+            profiles.set(uid, { ...body, id: uid, created_at: profiles.get(uid)?.created_at ?? now() });
+            return send(res, 201);
+          }
+          const row = profiles.get(eq(q, "id"));
+          return send(res, 200, row && row.id === uid ? [row] : []);
+        }
+        if (table === "consent_records") {
+          if (req.method === "POST") {
+            for (const c of [].concat(body)) consents.push({ ...c, user_id: uid, accepted_at: now() });
+            return send(res, 201);
+          }
+          return send(res, 200, consents.filter((c) => c.user_id === uid));
+        }
+        if (table === "data_requests") return send(res, 201);
+
+        // ---- directory
+        if (table === "provider_listings") {
+          if (req.method === "PATCH") {
+            const l = listings.get(eq(q, "id"));
+            if (!l || l.id !== uid) return send(res, 204);
+            if (typeof body.available === "boolean") l.available = body.available;
+            return send(res, 204);
+          }
+          if (req.method === "POST") {
+            if (body.id !== uid) return fail(res, 403, "new row violates row-level security policy");
+            const prev = listings.get(uid);
+            listings.set(uid, {
+              ...prev,
+              ...body,
+              status: prev?.status ?? "pending",
+              refusal_reason: prev?.refusal_reason ?? null,
+              available: prev?.available ?? true,
+              updated_at: now(),
+            });
+            return send(res, 201);
+          }
+          const id = eq(q, "id");
+          const rows = [...listings.values()].filter((l) => !id || l.id === id);
+          rows.sort((a, b) => (a.status < b.status ? -1 : 1));
+          return send(res, 200, rows);
+        }
+
+        // ---- requests
+        if (table === "service_requests") {
+          if (req.method === "POST") {
+            const open = body.provider_id == null;
+            const listing = open ? null : listings.get(body.provider_id);
+            if (open) {
+              if (!String(body.trade_id || "").trim()) return fail(res, 400, "an open request needs a trade");
+              if (!String(body.city || "").trim()) return fail(res, 400, "an open request needs a city");
+            } else {
+              if (body.provider_id === uid) return fail(res, 400, "a prestataire cannot book themselves");
+              if (!listing || listing.status !== "approved") return fail(res, 400, "this prestataire cannot be booked yet");
+            }
+            if (["weeks", "months", "recurring"].includes(body.duration) && !body.contract_accepted_at)
+              return fail(res, 400, "a long project needs the signed project contract");
+            const row = {
+              ...body,
+              id: crypto.randomUUID(),
+              client_id: uid,
+              client_name: profiles.get(uid)?.full_name ?? "",
+              provider_id: open ? null : body.provider_id,
+              trade_id: open ? body.trade_id : listing.trade_id,
+              city: open ? String(body.city).trim() : listing.city,
+              status: "draft",
+              stage: null,
+              stage_at: {},
+              refund_status: "none",
+              created_at: now(),
+            };
+            requests.set(row.id, row);
+            return send(res, 201, [row]);
+          }
+          const client = eq(q, "client_id");
+          const provider = eq(q, "provider_id");
+          const id = eq(q, "id");
+          const openOnly = q.get("provider_id") === "is.null";
+          const notClient = (q.get("client_id") || "").startsWith("neq.") ? decodeURIComponent(q.get("client_id").slice(4)) : null;
+          const rows = [...requests.values()].filter(
+            (r) =>
+              (r.client_id === uid || (r.provider_id === uid && r.status !== "draft") || openVisible(uid, r)) &&
+              (!client || r.client_id === client) &&
+              (!notClient || r.client_id !== notClient) &&
+              (!provider || r.provider_id === provider) &&
+              (!openOnly || r.provider_id == null) &&
+              (!id || r.id === id)
+          );
+          return send(res, 200, rows.reverse());
+        }
+        if (table === "service_request_private") {
+          if (req.method === "POST") {
+            const r = requests.get(body.request_id);
+            if (!r || r.client_id !== uid || r.status !== "draft") return fail(res, 403, "rls");
+            addresses.set(body.request_id, body.address);
+            return send(res, 201);
+          }
+          const r = requests.get(eq(q, "request_id"));
+          const visible =
+            r && (r.client_id === uid || (r.provider_id === uid && ["accepted", "validated", "disputed"].includes(r.status)));
+          return send(res, 200, visible ? [{ address: addresses.get(r.id) }] : []);
+        }
+        if (table === "request_messages") {
+          if (req.method === "POST") {
+            const r = requests.get(body.request_id);
+            if (!r || ![r.client_id, r.provider_id].includes(uid) || !["sent", "accepted", "disputed"].includes(r.status))
+              return fail(res, 403, "rls");
+            messages.push({ id: ++messageId, request_id: r.id, sender_id: uid, body: mask(body.body), created_at: now() });
+            return send(res, 201);
+          }
+          const r = requests.get(eq(q, "request_id"));
+          if (!r || r.status === "draft" || ![r.client_id, r.provider_id].includes(uid)) return send(res, 200, []);
+          return send(res, 200, messages.filter((m) => m.request_id === r.id));
+        }
+        if (table === "rpc/request_action") return send(res, 200, action(uid, body));
+        if (table === "request_dismissals") return send(res, 200, dismissals.filter((d) => d.provider_id === uid).reverse());
+        if (table === "rpc/claim_request") {
+          const r = requests.get(body.p_request);
+          if (!r || r.client_id === uid || !canClaim(uid, r)) return send(res, 200, "not_found");
+          if (r.provider_id === uid) return send(res, 200, "claimed");
+          if (r.provider_id) {
+            dismiss(uid, r, "assigned");
+            return send(res, 200, "already_assigned");
+          }
+          if (r.status !== "sent" || Date.parse(r.response_deadline) < Date.now()) {
+            dismiss(uid, r, "expired");
+            return send(res, 200, "expired");
+          }
+          if (!r.payment_verified_at) return send(res, 200, "not_found");
+          Object.assign(r, { provider_id: uid, status: "accepted", stage: "accepted", accepted_at: now(), stage_at: { accepted: now() }, updated_at: now() });
+          return send(res, 200, "claimed");
+        }
+        if (table === "rpc/dismiss_request") {
+          const r = requests.get(body.p_request);
+          if (r && r.provider_id == null && r.client_id !== uid && canClaim(uid, r)) dismiss(uid, r, "declined");
+          return send(res, 204);
+        }
+        if (table === "rpc/mark_read") {
+          const r = requests.get(body.p_request);
+          if (r && [r.client_id, r.provider_id].includes(uid)) reads.set(`${r.id}|${uid}`, Date.now());
+          return send(res, 204);
+        }
+        if (table === "rpc/my_conversations") {
+          const rows = [...requests.values()]
+            .filter((r) => [r.client_id, r.provider_id].includes(uid) && r.provider_id && r.status !== "draft")
+            .map((r) => {
+              const thread = messages.filter((m) => m.request_id === r.id);
+              const last = thread[thread.length - 1];
+              const readAt = reads.get(`${r.id}|${uid}`) ?? 0;
+              return {
+                request_id: r.id,
+                trade_id: r.trade_id,
+                status: r.status,
+                stage: r.stage,
+                slot: r.slot,
+                counterpart: r.client_id === uid ? listings.get(r.provider_id)?.full_name ?? "" : r.client_name,
+                i_am: r.client_id === uid ? "client" : "prestataire",
+                last_body: last?.body ?? null,
+                last_at: last?.created_at ?? r.updated_at ?? r.created_at,
+                last_mine: last ? last.sender_id === uid : null,
+                unread: thread.filter((m) => m.sender_id !== uid && Date.parse(m.created_at) > readAt).length,
+              };
+            })
+            .sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at));
+          return send(res, 200, rows);
+        }
+        return fail(res, 404, `unknown table ${table}`);
+      } catch (e) {
+        if (Array.isArray(e)) return fail(res, e[0], e[1]);
+        return fail(res, 500, String(e));
+      }
+    });
+  });
+
+  return {
+    revokedTokens: () => [...revoked],
+    /** Switch the operators off (no credentials) or on. */
+    setPaymentsLive: (on) => (paymentsLive = on),
+    collections,
+    dismissals,
+    listen: () => new Promise((r) => server.listen(port, "127.0.0.1", r)),
+    close: () => server.close(),
+    /** What 242Konnect's reviewers would do from the dashboard. */
+    approveAll: () => listings.forEach((l) => (l.status = "approved")),
+    /** An account from before the password moved to Supabase. */
+    forgetServerPassword: (email) => {
+      const u = users.get(email);
+      if (u) delete u.password;
+    },
+    serverPassword: (email) => users.get(email)?.password,
+    pinOf: (email) => {
+      const u = users.get(email);
+      return u ? pins.get(u.id) : undefined;
+    },
+    hasPin: (email) => {
+      const u = users.get(email);
+      return !!u && pins.has(u.id);
+    },
+    profiles,
+    consents,
+    listings,
+    requests,
+    users,
+    outbox,
+  };
+}
+
+module.exports = { createFakeSupabase };
