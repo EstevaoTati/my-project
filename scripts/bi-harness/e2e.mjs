@@ -180,6 +180,25 @@ await scenario("rail-dossier-fresh", async () => {
   return "rail shows the current dossier";
 });
 
+await scenario("editable-after-reload", async () => {
+  // Fields rendered while their step is hidden must be readable once shown.
+  ctl({});
+  const { ctx, page } = await fresh();
+  await analyze(page);
+  await page.locator('.step.active [data-all]').click();
+  await waitStep(page, "dossier", 120000);
+  for (const reload of [false, true]) {
+    if (reload) await page.reload({ waitUntil: "domcontentloaded" });
+    await page.click("#rail button:has-text('Business plan')");
+    await waitStep(page, "plan");
+    await page.waitForTimeout(200);
+    const hs = await page.$$eval("#planOut textarea", (t) => t.map((x) => x.getBoundingClientRect().height));
+    assert.ok(hs.length === 17 && Math.min(...hs) > 40, (reload ? "after reload" : "after one-click") + ": collapsed fields " + hs.map(Math.round));
+  }
+  await ctx.close();
+  return "plan fields readable after one-click and after reload";
+});
+
 await browser.close();
 ctl({});
 console.log(results.join("\n"));

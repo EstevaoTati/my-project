@@ -333,6 +333,8 @@
     // rail used to show the copy built at page load — often empty.
     if (id === 'dossier') renderDossier();
     document.querySelectorAll('.step').forEach((s) => s.classList.toggle('active', s.id === 'step-' + id));
+    const shown = document.getElementById('step-' + id);
+    if (shown) requestAnimationFrame(() => shown.querySelectorAll('textarea.editable').forEach(fitArea));
     renderRail();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -581,14 +583,22 @@
   }
 
   // ------------------------------------------------------- stage renderers --
+  /** Grow a textarea to its content. Measured only when it is on screen: a
+   *  hidden step reports scrollHeight 0, and fitting then collapsed the field
+   *  to a sliver — every plan section rendered on load, or by "generate the
+   *  complete dossier" while another step was showing, was unreadable. */
+  const fitArea = (ta) => {
+    if (!ta.offsetParent) return;          // hidden: go() fits it when shown
+    ta.style.height = 'auto';
+    ta.style.height = (ta.scrollHeight + 2) + 'px';
+  };
+
   function editable(value, onInput, rows) {
     const ta = h('textarea', { class: 'editable', rows: rows || 3 });
     ta.value = value || '';
     ta.addEventListener('input', () => { onInput(ta.value); save(); });
-    // grow to fit content
-    const fit = () => { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
-    ta.addEventListener('input', fit);
-    setTimeout(fit, 0);
+    ta.addEventListener('input', () => fitArea(ta));
+    setTimeout(() => fitArea(ta), 0);
     return ta;
   }
 
