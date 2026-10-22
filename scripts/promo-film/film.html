@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<!-- Fonts: Google Fonts when online; fonts.css (optional, local @font-face) for offline renders. -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=block" rel="stylesheet" />
+<link rel="stylesheet" href="fonts.css" />
+<style>
+  :root {
+    --bg: #050507; --gold: #FFD700; --gold2: #D4AF37; --gold-l: #FFE680;
+    --blue: #3aa8ff; --blue-l: #8fdcff; --blue-d: #1466d6; --text: #f6f1e1; --mute: #a39c8b;
+    --f-d: 'Orbitron', sans-serif; --f-b: 'Exo 2', sans-serif; --f-m: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  body { font-family: var(--f-b); color: var(--text); -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; inset: 0; overflow: hidden; perspective: 2200px; }
+  .layer { position: absolute; inset: 0; }
+  .a { position: absolute; will-change: transform, opacity; }
+
+  /* ---------- background ---------- */
+  #grid { background:
+      linear-gradient(rgba(90,180,255,.07) 1px, transparent 1px) 0 0 / 64px 64px,
+      linear-gradient(90deg, rgba(90,180,255,.07) 1px, transparent 1px) 0 0 / 64px 64px; }
+  #glowG { width: 1400px; height: 1400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,200,60,.16) 0%, rgba(255,170,40,.06) 35%, transparent 65%); }
+  #glowB { width: 1500px; height: 1500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(58,168,255,.14) 0%, rgba(20,102,214,.06) 35%, transparent 65%); }
+  #scan { background: repeating-linear-gradient(to bottom, rgba(255,255,255,.025) 0 1px, transparent 1px 4px); }
+  #vig { background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(0,0,0,.75) 100%); }
+  .p { width: 4px; height: 4px; border-radius: 50%; background: var(--gold-l); box-shadow: 0 0 10px rgba(255,215,0,.8); }
+  .p.b { background: var(--blue-l); box-shadow: 0 0 10px rgba(58,168,255,.9); }
+  #sweep { width: 900px; height: 1600px; top: -260px; left: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,226,140,.0) 20%, rgba(255,226,140,.22) 50%, rgba(255,226,140,0) 80%, transparent);
+    transform-origin: center; filter: blur(30px); }
+
+  /* ---------- type ---------- */
+  .scene { position: absolute; inset: 0; }
+  .h-xl { font-family: var(--f-d); font-weight: 800; font-size: 92px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
+  .h-l { font-family: var(--f-d); font-weight: 800; font-size: 64px; letter-spacing: .03em; text-transform: uppercase; line-height: 1.1; }
+  .h-m { font-family: var(--f-d); font-weight: 700; font-size: 44px; letter-spacing: .04em; text-transform: uppercase; line-height: 1.15; }
+  .lead { font-family: var(--f-b); font-weight: 500; font-size: 32px; line-height: 1.45; color: #e9e3d2; }
+  .mono { font-family: var(--f-m); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; font-size: 18px; color: var(--blue-l); }
+  .mono::before { content: '// '; color: var(--blue); }
+  .gold { color: var(--gold); text-shadow: 0 0 40px rgba(255,200,40,.35); }
+  .blue { color: var(--blue-l); }
+  .w { display: inline-block; white-space: pre; }
+  .center { left: 0; right: 0; text-align: center; }
+
+  /* ---------- device ---------- */
+  .device { width: 1280px; border-radius: 14px; overflow: hidden; background: #0b0b10;
+    border: 1px solid rgba(212,175,55,.35);
+    box-shadow: 0 40px 120px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03), 0 0 80px rgba(58,168,255,.12); }
+  .device .bar { height: 40px; display: flex; align-items: center; gap: 9px; padding: 0 16px;
+    background: linear-gradient(#15151c, #0e0e14); border-bottom: 1px solid rgba(255,255,255,.06); }
+  .device .bar i { width: 12px; height: 12px; border-radius: 50%; background: #2a2a33; display: block; }
+  .device .bar i:nth-child(1) { background: #e0605a; } .device .bar i:nth-child(2) { background: #e6b84a; } .device .bar i:nth-child(3) { background: #5ec26a; }
+  .device .url { margin-left: 18px; flex: 0 1 520px; height: 24px; border-radius: 12px; background: #1b1b24;
+    font-family: var(--f-m); font-size: 13px; color: #9ba3b5; display: flex; align-items: center; padding: 0 14px; letter-spacing: .02em; }
+  .device .view { position: relative; width: 1280px; height: 800px; overflow: hidden; }
+  .device .view img { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; }
+  .hud::before, .hud::after { content: ''; position: absolute; width: 34px; height: 34px; pointer-events: none; }
+  .hud::before { left: -10px; top: -10px; border-left: 3px solid var(--gold); border-top: 3px solid var(--gold); }
+  .hud::after { right: -10px; bottom: -10px; border-right: 3px solid var(--blue); border-bottom: 3px solid var(--blue); }
+
+  /* ---------- pieces ---------- */
+  .chip { font-family: var(--f-m); font-size: 20px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 14px 22px; border: 1px solid rgba(212,175,55,.5); background: rgba(10,10,14,.85); color: var(--gold-l);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); white-space: nowrap; }
+  .chip.blue { border-color: rgba(58,168,255,.6); color: var(--blue-l); background: rgba(6,16,30,.9); }
+  .chip.solid { background: linear-gradient(135deg, #D4AF37, #FFD700); color: #000; border: none; font-weight: 600; }
+  .callout { font-family: var(--f-b); font-weight: 600; font-size: 26px; color: #fff; padding: 16px 24px;
+    background: rgba(8,12,22,.92); border: 1px solid rgba(58,168,255,.55); border-left: 4px solid var(--gold);
+    box-shadow: 0 20px 50px rgba(0,0,0,.6); white-space: nowrap; }
+  .step-n { font-family: var(--f-d); font-weight: 900; font-size: 150px; line-height: 1; color: transparent;
+    -webkit-text-stroke: 2px rgba(255,215,0,.75); }
+  .step-l { font-family: var(--f-m); font-size: 20px; letter-spacing: .3em; color: var(--blue-l); text-transform: uppercase; }
+  .tip { display: flex; gap: 18px; align-items: flex-start; font-size: 28px; line-height: 1.35; color: #ece6d4; width: 560px; }
+  .tip b { flex: 0 0 auto; width: 34px; height: 34px; margin-top: 2px; border: 2px solid var(--gold); color: var(--gold);
+    font-family: var(--f-m); font-size: 18px; display: grid; place-items: center; }
+  .card { width: 300px; height: 290px; padding: 28px 26px; background: linear-gradient(160deg, rgba(20,20,28,.95), rgba(8,8,12,.95));
+    border: 1px solid rgba(212,175,55,.3); }
+  .card svg { width: 54px; height: 54px; stroke: var(--gold); fill: none; stroke-width: 2.2; }
+  .card .n { font-family: var(--f-m); font-size: 15px; color: var(--blue-l); letter-spacing: .2em; float: right; }
+  .card h4 { font-family: var(--f-d); font-size: 23px; line-height: 1.25; margin: 22px 0 12px; text-transform: uppercase; letter-spacing: .03em; color: #fff; }
+  .card p { font-size: 21px; line-height: 1.35; color: var(--mute); }
+  .flow { display: flex; align-items: center; gap: 0; }
+  .node { font-family: var(--f-m); font-size: 19px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold-l);
+    padding: 14px 18px; border: 1px solid rgba(212,175,55,.55); background: rgba(10,10,14,.9); white-space: nowrap; }
+  .node.pdf { color: #000; background: linear-gradient(135deg, #D4AF37, #FFD700); border: none; font-weight: 700; }
+  .link { width: 34px; height: 2px; background: linear-gradient(90deg, var(--gold2), var(--blue)); }
+  .run { width: 760px; padding: 26px 30px; background: rgba(8,10,16,.96); border: 1px solid rgba(58,168,255,.5);
+    box-shadow: 0 30px 90px rgba(0,0,0,.7), 0 0 60px rgba(58,168,255,.15); }
+  .run .row { display: flex; align-items: center; gap: 18px; padding: 15px 0; font-family: var(--f-m); font-size: 22px; }
+  .run .row + .row { border-top: 1px solid rgba(212,175,55,.18); }
+  .run .ic { width: 30px; height: 30px; flex: 0 0 auto; position: relative; }
+  .run .ic .sp { position: absolute; inset: 3px; border-radius: 50%; border: 3px solid rgba(212,175,55,.25); border-top-color: var(--gold); }
+  .run .ic .ok { position: absolute; inset: 0; color: #7dc98f; font-size: 28px; line-height: 30px; text-align: center; font-family: var(--f-b); font-weight: 700; }
+  .run .nm { color: #fff; flex: 1; }
+  .run .st { color: var(--mute); font-size: 18px; }
+  .page { width: 420px; height: 594px; background: #fff; box-shadow: 0 30px 80px rgba(0,0,0,.7); overflow: hidden; }
+  .page img { width: 100%; height: 100%; display: block; }
+  .ring { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--gold); margin: -35px 0 0 -35px; }
+  #cursor { width: 44px; height: 44px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); z-index: 50; }
+  /* The logo files sit on a near-black plate; screen-blended it still reads as
+     a faint rectangle. Feather the edges away and crush the plate to black. */
+  .logo-img { mix-blend-mode: screen; filter: brightness(1.05) contrast(1.18);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .url-chip { font-family: var(--f-m); font-size: 26px; color: var(--blue-l); letter-spacing: .04em;
+    padding: 16px 30px; border: 1px solid rgba(58,168,255,.6); background: rgba(6,16,30,.9); }
+  .cap { font-family: var(--f-b); font-weight: 600; font-size: 30px; color: #fff; text-align: center; left: 0; right: 0; }
+  .timer { font-family: var(--f-d); font-weight: 800; font-size: 54px; color: var(--gold); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="bg">
+    <div class="layer a" id="grid"></div>
+    <div class="a" id="glowG"></div>
+    <div class="a" id="glowB"></div>
+    <div class="layer" id="particles"></div>
+    <div class="a" id="sweep"></div>
+  </div>
+  <div class="layer" id="scenes"></div>
+  <div class="a" id="cursor"><svg viewBox="0 0 24 24"><path d="M4 2 L4 19 L8.5 15 L11.6 22 L14.4 20.8 L11.4 14 L17.5 14 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
+  <div class="layer" id="scan" style="pointer-events:none"></div>
+  <div class="layer" id="vig" style="pointer-events:none"></div>
+  <div class="layer a" id="fade" style="background:#000"></div>
+</div>
+<script>
+'use strict';
+const LANG = new URLSearchParams(location.search).get('lang') || 'fr';
+const URL_CTA = new URLSearchParams(location.search).get('url') || 'polite-cendol-dbf4d6.netlify.app/bi';
+const T = {
+  fr: {
+    hook1: 'Vous avez une idée.', hook2a: 'MWINDA la transforme en ', hook2b: 'entreprise.',
+    logoSub: 'Écosystème digital & intelligence artificielle',
+    siteCap: 'Agents IA, automatisation, formation, incubation — de l’idée à la production.',
+    platTitleA: 'Cinq expertises, ', platTitleB: 'une seule lumière',
+    div: [['Systèmes IA agentiques', 'Des agents qui travaillent pour vous, 24h/24'], ['Automatisation', 'Vos processus, exécutés sans erreur'],
+      ['Formation IA', 'Vos équipes deviennent praticiennes de l’IA'], ['Incubation digitale', 'De l’idée au lancement du produit'],
+      ['Intelligence artificielle', 'Stratégie, RAG, déploiement maîtrisé']],
+    products: 'Deux produits en ligne',
+    biEyebrow: 'Produit · en ligne', biTitle: 'AI Business Intelligence', biSub: 'De l’idée au dossier d’entreprise — en quelques minutes.',
+    flow: ['Idée', 'Analyse', 'Business model', 'Business plan', 'Finances', 'Conformité', 'Roadmap', 'PDF'],
+    step: 'Étape',
+    s1t: 'Décrivez votre projet', s1a: 'Pays, secteur, type d’activité : la juridiction change tout.', s1b: 'Soyez concret : qui paie, et pour quoi ?', s1c: 'Écrivez en français ou en anglais.',
+    s2t: 'Lisez l’analyse', s2c: ['Résumé · problème · solution', 'Risques et premières parades', 'Répondez aux questions : tout devient plus précis'],
+    s3t: 'Générez le dossier complet', s3s: 'Un clic : le business model, puis le plan, les finances, la conformité et la roadmap — en parallèle.',
+    rows: ['Business model', 'Business plan · 17 sections', 'Projections financières', 'Checklist réglementaire', 'Roadmap d’exécution'],
+    rowRun: 'génération…', rowWait: 'en attente du business model', rowDone: 'terminé', timer: '≈ 2 min',
+    s4t: 'Ajustez tout',
+    s4c: ['Business Model Canvas · 9 blocs modifiables', 'Business plan · 17 sections prêtes pour la banque', 'Finances · changez un chiffre, tout se recalcule', 'Conformité · par pays, avec niveau de confiance', 'Roadmap · 4 phases, des tâches à cocher'],
+    s5t: 'Téléchargez votre dossier PDF', s5s: 'Prêt pour une banque, un investisseur ou un partenaire.',
+    tipsT: 'Pour aller plus vite',
+    tips: ['Répondez aux questions de l’analyse', 'Modifiez librement : tout est sauvegardé', 'Rechargez sans crainte : la génération reprend', 'Remplacez les hypothèses par vos chiffres'],
+    osSub: 'Le système d’exploitation agentique de Mwinda Digital', osB: ['Agents spécialisés', 'Routines automatisées', 'Mémoire persistante'], osTalk: 'Parlez à l’OS — en français ou en anglais.',
+    ctaA: 'Transformez votre idée', ctaB: 'en entreprise.', ctaNote: 'Gratuit · Français & anglais · Sans inscription',
+  },
+  en: {
+    hook1: 'You have an idea.', hook2a: 'MWINDA turns it into a ', hook2b: 'business.',
+    logoSub: 'Digital & artificial intelligence ecosystem',
+    siteCap: 'AI agents, automation, training, incubation — from idea to production.',
+    platTitleA: 'Five expertises, ', platTitleB: 'one light',
+    div: [['Agentic AI systems', 'Agents that work for you, 24/7'], ['Automation', 'Your processes, run without errors'],
+      ['AI training', 'Your teams become AI practitioners'], ['Digital incubation', 'From idea to product launch'],
+      ['Artificial intelligence', 'Strategy, RAG, controlled deployment']],
+    products: 'Two products, live',
+    biEyebrow: 'Product · live', biTitle: 'AI Business Intelligence', biSub: 'From idea to business dossier — in minutes.',
+    flow: ['Idea', 'Analysis', 'Business model', 'Business plan', 'Financials', 'Compliance', 'Roadmap', 'PDF'],
+    step: 'Step',
+    s1t: 'Describe your project', s1a: 'Country, sector, business type: jurisdiction changes everything.', s1b: 'Be concrete: who pays, and for what?', s1c: 'Write in French or English.',
+    s2t: 'Read the analysis', s2c: ['Summary · problem · solution', 'Risks and first mitigations', 'Answer the questions: everything gets sharper'],
+    s3t: 'Generate the complete dossier', s3s: 'One click: the business model, then the plan, financials, compliance and roadmap — in parallel.',
+    rows: ['Business model', 'Business plan · 17 sections', 'Financial projections', 'Regulatory checklist', 'Execution roadmap'],
+    rowRun: 'generating…', rowWait: 'waiting for the business model', rowDone: 'done', timer: '≈ 2 min',
+    s4t: 'Fine-tune everything',
+    s4c: ['Business Model Canvas · 9 editable blocks', 'Business plan · 17 bank-ready sections', 'Financials · change one number, everything recalculates', 'Compliance · by country, with a confidence level', 'Roadmap · 4 phases, tasks to tick off'],
+    s5t: 'Download your PDF dossier', s5s: 'Ready for a bank, an investor or a partner.',
+    tipsT: 'Work faster',
+    tips: ['Answer the analysis questions', 'Edit freely: everything is saved', 'Reload without fear: generation resumes', 'Replace the assumptions with your numbers'],
+    osSub: 'The agentic operating system of Mwinda Digital', osB: ['Specialised agents', 'Automated routines', 'Persistent memory'], osTalk: 'Talk to the OS — in French or English.',
+    ctaA: 'Turn your idea', ctaB: 'into a business.', ctaNote: 'Free · French & English · No sign-up',
+  },
+}[LANG];
+
+/* ================= timeline engine =================
+   Every animated value is a pure function of t: tweens are [t0, t1, from, to,
+   ease] per property. Before its first tween a property holds the first
+   `from`; between tweens it holds the last `to`. Seek to any t, any order. */
+const ease = {
+  lin: (p) => p,
+  out: (p) => 1 - Math.pow(1 - p, 3),
+  inout: (p) => (p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+  in: (p) => p * p * p,
+  back: (p) => { const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+};
+const ITEMS = [];      // { el, props: { name: [tween…] }, base }
+const SCENES = [];     // { el, t0, t1, fin, fout }
+const CUES = [];       // sound cues: { t, kind }
+const DEF = { x: 0, y: 0, s: 1, rx: 0, ry: 0, rz: 0, o: 1, blur: 0, clipR: 0, clipB: 0 };
+
+function item(el) {
+  let it = el.__it;
+  if (!it) { it = { el, props: {} }; el.__it = it; ITEMS.push(it); }
+  return it;
+}
+/** tw(el, t0, dur, {prop:[from,to]}, ease) */
+function tw(el, t0, dur, map, e = 'out') {
+  const it = item(el);
+  for (const [k, [a, b]] of Object.entries(map)) {
+    (it.props[k] = it.props[k] || []).push({ t0, t1: t0 + dur, a, b, e: ease[e] || e });
+    it.props[k].sort((m, n) => m.t0 - n.t0);
+  }
+  return el;
+}
+function val(list, t, def) {
+  if (!list) return def;
+  let v = list[0].a;
+  for (const k of list) {
+    if (t < k.t0) break;
+    if (t >= k.t1) { v = k.b; continue; }
+    const p = k.e((t - k.t0) / (k.t1 - k.t0));
+    return typeof k.a === 'number' ? k.a + (k.b - k.a) * p : (p < 1 ? k.a : k.b);
+  }
+  return v;
+}
+function apply(it, t) {
+  const g = (k) => val(it.props[k], t, DEF[k]);
+  const st = it.el.style;
+  st.opacity = g('o');
+  st.transform = `translate3d(${g('x')}px,${g('y')}px,0) rotateX(${g('rx')}deg) rotateY(${g('ry')}deg) rotateZ(${g('rz')}deg) scale(${g('s')})`;
+  const b = g('blur'); st.filter = b > .05 ? `blur(${b}px)` : '';
+  const cr = g('clipR'), cb = g('clipB');
+  st.clipPath = cr > 0.01 || cb > 0.01 ? `inset(0 ${cr}% ${cb}% 0)` : '';
+  if (it.props.img) {           // image swap / scroll inside a device
+    const y = val(it.props.img, t, 0);
+    st.transform = `translate3d(0,${y}px,0) scale(${g('s')})`;
+  }
+}
+
+/* ================= building blocks ================= */
+const $ = (sel, root = document) => root.querySelector(sel);
+function el(tag, cls, parent, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  (parent || document.body).appendChild(e);
+  return e;
+}
+function pos(e, x, y, w) { e.style.left = x + 'px'; e.style.top = y + 'px'; if (w) e.style.width = w + 'px'; return e; }
+function scene(t0, t1, fin = .5, fout = .5) {
+  const s = el('div', 'scene', $('#scenes'));
+  SCENES.push({ el: s, t0, t1, fin, fout });
+  return s;
+}
+/** Words rise in one after another. */
+function words(parent, text, cls, t0, gap = .07, opts = {}) {
+  const box = el('div', cls, parent);
+  text.split(/(\s+)/).forEach((w, i) => {
+    if (!w.trim()) { box.appendChild(document.createTextNode(w)); return; }
+    const s = el('span', 'w' + (opts.wcls ? ' ' + opts.wcls : ''), box, w);
+    tw(s, t0 + (i / 2) * gap, .7, { o: [0, 1], y: [opts.dy ?? 46, 0], blur: [10, 0] });
+  });
+  return box;
+}
+function rise(e, t0, d = .8, dy = 40) { return tw(e, t0, d, { o: [0, 1], y: [dy, 0], blur: [8, 0] }); }
+function device(parent, x, y, src, url, scale = 1, origin = '50% 50%') {
+  const d = el('div', 'a device hud', parent);
+  pos(d, x, y);
+  d.style.transformOrigin = origin;
+  if (scale !== 1) tw(d, -10, .001, { s: [scale, scale] }, 'lin');
+  el('div', 'bar', d, '<i></i><i></i><i></i><div class="url">' + (url || 'mwinda · /bi') + '</div>');
+  const v = el('div', 'view', d);
+  const imgs = [].concat(src).map((s) => { const im = el('img', 'a', v); im.src = 'shots/' + s + '.png'; im.style.opacity = 0; return im; });
+  return { d, v, imgs };
+}
+/* Step screens: 80% size, right edge pinned at x=1860, top at y=150. A point
+   (px, py) in the 1440x900 screenshot maps to the frame like this. */
+const SD = { left: 580, top: 150, scale: .8, vis: 1860 - 1280 * .8 };
+const sdev = (s, src) => device(s, SD.left, SD.top, src, null, SD.scale, '100% 0');
+const at = (px, py) => [SD.vis + px * (1280 / 1440) * SD.scale, SD.top + (40 + py * (800 / 900)) * SD.scale];
+const tip = ([x, y]) => [x - 7, y - 4];   // the arrow's tip sits 7,4 into its box
+function showImg(im, t0, t1, f = .35) {
+  tw(im, t0, f, { o: [0, 1] }, 'lin');
+  if (t1) tw(im, t1 - f, f, { o: [1, 0] }, 'lin');
+}
+const cursor = $('#cursor');
+let curOn = [];
+/** Move the cursor along waypoints [t, x, y]; clicks at t with a ripple. */
+function cursorPath(points, clicks = []) {
+  for (let i = 0; i < points.length - 1; i++) {
+    const [t0, x0, y0] = points[i], [t1, x1, y1] = points[i + 1];
+    tw(cursor, t0, t1 - t0, { x: [x0, x1], y: [y0, y1] }, 'inout');
+  }
+  curOn.push([points[0][0] - .3, points[points.length - 1][0] + .6]);
+  clicks.forEach(([t, x, y]) => {
+    tw(cursor, t, .12, { s: [1, .82] }, 'out'); tw(cursor, t + .12, .2, { s: [.82, 1] }, 'out');
+    const r = pos(el('div', 'a ring', $('#scenes')), x, y);
+    tw(r, -10, .01, { o: [0, 0] }, 'lin');            // hidden until its click
+    tw(r, t, .7, { s: [.3, 2.2], o: [1, 0] }, 'out');
+    CUES.push({ t, kind: 'click' });
+  });
+}
+function icon(i) {
+  return [
+    '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="7"/><circle cx="8" cy="10" r="4"/><circle cx="40" cy="10" r="4"/><circle cx="8" cy="38" r="4"/><circle cx="40" cy="38" r="4"/><path d="M11 13l8 6M37 13l-8 6M11 35l8-6M37 35l-8-6"/></svg>',
+    '<svg viewBox="0 0 48 48"><path d="M38 20a15 15 0 0 0-27-6M10 28a15 15 0 0 0 27 6"/><path d="M11 6v8h8M37 42v-8h-8"/></svg>',
+    '<svg viewBox="0 0 48 48"><path d="M4 18l20-9 20 9-20 9z"/><path d="M12 22v10c4 4 20 4 24 0V22M44 18v12"/></svg>',
+    '<svg viewBox="0 0 48 48"><path d="M24 4c8 6 11 16 8 26H16C13 20 16 10 24 4z"/><circle cx="24" cy="17" r="4"/><path d="M16 30l-6 8h8M32 30l6 8h-8M20 38l4 6 4-6"/></svg>',
+    '<svg viewBox="0 0 48 48"><rect x="12" y="12" width="24" height="24" rx="3"/><rect x="19" y="19" width="10" height="10"/><path d="M18 6v6M24 6v6M30 6v6M18 36v6M24 36v6M30 36v6M6 18h6M6 24h6M6 30h6M36 18h6M36 24h6M36 30h6"/></svg>',
+  ][i];
+}
+
+/* ================= the film ================= */
+const DUR = 80;
+
+// 1 · Hook ------------------------------------------------------------- 0–6
+{ const s = scene(0, 6.2, .01, .6);
+  words(pos(el('div', 'a center', s), 0, 360), T.hook1, 'h-xl', .35, .14);
+  const l2 = el('div', 'a center', s); pos(l2, 0, 520);
+  const box = el('div', 'h-l', l2);
+  T.hook2a.trim().split(' ').forEach((w, i) => { const sp = el('span', 'w', box, w + ' '); tw(sp, 2.1 + i * .09, .7, { o: [0, 1], y: [40, 0], blur: [10, 0] }); });
+  const g = el('span', 'w gold', box, T.hook2b); tw(g, 2.75, .9, { o: [0, 1], s: [1.4, 1], blur: [16, 0] }, 'out');
+  CUES.push({ t: .35, kind: 'hit' }, { t: 2.75, kind: 'shimmer' });
+  tw($('#sweep'), 3.6, 1.8, { x: [-1100, 2200], o: [1, 1], rz: [18, 18] }, 'inout');
+  CUES.push({ t: 3.6, kind: 'whoosh' });
+}
+
+// 2 · Logo -------------------------------------------------------------- 6–11
+{ const s = scene(6, 11.2, .4, .5);
+  const logo = el('img', 'a', s); logo.src = '../../assets/brand/logo-lockup.png'; logo.classList.add('logo-img');
+  pos(logo, 510, 250, 900);
+  tw(logo, 6.2, 1.6, { o: [0, 1], s: [.82, 1], blur: [24, 0] }, 'out');
+  tw(logo, 7.8, 3.2, { s: [1, 1.05] }, 'lin');
+  const ring = pos(el('div', 'a ring', s), 960, 450); ring.style.width = ring.style.height = '160px'; ring.style.margin = '-80px 0 0 -80px';
+  tw(ring, -10, .01, { o: [0, 0] }, 'lin');
+  tw(ring, 6.5, 1.4, { s: [.4, 6], o: [.9, 0] }, 'out');
+  rise(pos(el('div', 'a center mono', s, T.logoSub), 0, 700), 7.6);
+  CUES.push({ t: 6.3, kind: 'boom' });
+}
+
+// 3 · Platform ---------------------------------------------------------- 11–20.5
+{ const s = scene(11, 20.6, .5, .5);
+  const dv = device(s, 320, 120, 'site-hero', 'mwinda-digital');
+  dv.d.style.transformOrigin = '50% 50%';
+  tw(dv.d, 11.0, 1.2, { o: [0, 1], ry: [-28, -12], rx: [8, 4], x: [-200, -60], s: [.86, .9] }, 'out');
+  tw(dv.d, 12.2, 2.4, { ry: [-12, -8], x: [-60, -40] }, 'lin');
+  tw(dv.d, 14.4, .7, { o: [1, 0], s: [.9, .8], blur: [0, 10] }, 'in');
+  showImg(dv.imgs[0], 11.0);
+  const cap = pos(el('div', 'a callout', s, T.siteCap), 980, 900); cap.style.whiteSpace = 'normal'; cap.style.width = '800px';
+  tw(cap, 11.8, .7, { o: [0, 1], x: [60, 0] }, 'out'); tw(cap, 14.2, .5, { o: [1, 0] }, 'in');
+  const title = el('div', 'a center h-m', s, T.platTitleA + '<span class="gold">' + T.platTitleB + '</span>'); pos(title, 0, 120);
+  rise(title, 14.7);
+  T.div.forEach(([n, d], i) => {
+    const c = el('div', 'a card hud', s, icon(i) + '<span class="n">0' + (i + 1) + '</span><h4>' + n + '</h4><p>' + d + '</p>');
+    pos(c, 105 + i * 350, 300);
+    tw(c, 15.1 + i * .16, .8, { o: [0, 1], y: [120, 0], rx: [-35, 0], blur: [10, 0] }, 'out');
+    CUES.push({ t: 15.1 + i * .16, kind: 'tick' });
+  });
+  const prod = el('div', 'a center', s, '<div class="mono" style="margin-bottom:26px">' + T.products + '</div>' +
+    '<span class="chip solid" style="margin-right:22px">AI Business Intelligence</span><span class="chip blue">MWINDA OS</span>');
+  pos(prod, 0, 700); rise(prod, 17.4, .9);
+  CUES.push({ t: 17.4, kind: 'shimmer' });
+}
+
+// 4 · BI intro --------------------------------------------------------- 20.5–26
+{ const s = scene(20.5, 26.2, .5, .5);
+  rise(pos(el('div', 'a center mono', s, T.biEyebrow), 0, 250), 20.7);
+  const t = el('div', 'a center h-xl', s, 'MWINDA <span class="gold">' + T.biTitle + '</span>'); t.style.fontSize = '76px';
+  pos(t, 0, 310); tw(t, 20.9, 1.1, { o: [0, 1], s: [1.12, 1], blur: [20, 0] }, 'out');
+  rise(pos(el('div', 'a center lead', s, T.biSub), 0, 430), 21.6);
+  const flow = el('div', 'a flow', s); pos(flow, 0, 620); flow.style.left = '50%';
+  const fw = [];
+  T.flow.forEach((f, i) => {
+    if (i) { const l = el('div', 'link', flow); fw.push(l); tw(l, 22.4 + i * .28 - .14, .2, { clipR: [100, 0] }, 'lin'); }
+    const n = el('div', 'node' + (f === 'PDF' ? ' pdf' : ''), flow, f); fw.push(n);
+    tw(n, 22.4 + i * .28, .5, { o: [0, 1], y: [24, 0], s: [.8, 1] }, 'back');
+    CUES.push({ t: 22.4 + i * .28, kind: 'tick' });
+  });
+  flow.__center = true;
+  CUES.push({ t: 20.9, kind: 'boom' });
+}
+
+// steps helper
+function stepHead(s, n, title, t0, x = 110, y = 150) {
+  const sn = pos(el('div', 'a step-n', s, '0' + n), x, y); tw(sn, t0, .8, { o: [0, 1], x: [-60, 0] }, 'out');
+  const sl = pos(el('div', 'a step-l', s, T.step + ' 0' + n), x + 8, y + 170); rise(sl, t0 + .15, .6, 20);
+  const st = pos(el('div', 'a h-m', s, title), x, y + 210, 560); rise(st, t0 + .25);
+  CUES.push({ t: t0, kind: 'whoosh' });
+  return y + 210;
+}
+
+// 5 · Step 1: describe -------------------------------------------------- 26–33
+{ const s = scene(26, 33.2, .5, .5);
+  const top = stepHead(s, 1, T.s1t, 26.2);
+  [T.s1a, T.s1b, T.s1c].forEach((tx, i) => rise(pos(el('div', 'a tip', s, '<b>' + (i + 1) + '</b><span>' + tx + '</span>'), 112, top + 150 + i * 120), 27.2 + i * .45));
+  const dv = sdev(s, ['bi-start', 'bi-idea']);
+  tw(dv.d, 26.2, 1.0, { o: [0, 1], x: [160, 0], ry: [-16, 0] }, 'out');
+  showImg(dv.imgs[0], 26.2, 29.2); showImg(dv.imgs[1], 28.9);
+  const b = at(327, 593);   // "Analyse my idea", measured in the capture
+  cursorPath([[29.6, 1560, 980], [31.0, ...tip(b)], [32.6, ...tip([b[0] + 30, b[1] + 26])]], [[31.1, ...b]]);
+}
+
+// 6 · Step 2: analysis -------------------------------------------------- 33–40
+{ const s = scene(33, 40.2, .5, .5);
+  stepHead(s, 2, T.s2t, 33.2);
+  const dv = sdev(s, ['bi-analysis', 'bi-risks', 'bi-questions']);
+  tw(dv.d, 33.2, 1.0, { o: [0, 1], x: [160, 0], ry: [-16, 0] }, 'out');
+  showImg(dv.imgs[0], 33.2, 35.6); showImg(dv.imgs[1], 35.3, 37.8); showImg(dv.imgs[2], 37.5);
+  tw(dv.imgs[0], 33.4, 2.4, { s: [1, 1.04] }, 'lin');
+  const c = T.s2c.map((tx, i) => { const e = pos(el('div', 'a callout', s, tx), 112, 560 + i * 130, 620); e.style.whiteSpace = 'normal'; return e; });
+  tw(c[0], 33.9, .6, { o: [0, 1], x: [-40, 0] }); tw(c[0], 35.4, .4, { o: [1, .25] });
+  tw(c[1], 35.7, .6, { o: [0, 1], x: [-40, 0] }); tw(c[1], 37.6, .4, { o: [1, .25] });
+  tw(c[2], 37.9, .6, { o: [0, 1], x: [-40, 0] });
+  [33.9, 35.7, 37.9].forEach((t) => CUES.push({ t, kind: 'tick' }));
+}
+
+// 7 · Step 3: one click ------------------------------------------------- 40–48
+{ const s = scene(40, 48.2, .5, .5);
+  const top = stepHead(s, 3, T.s3t, 40.2);
+  const sub = pos(el('div', 'a lead', s, T.s3s), 112, top + 150, 560); sub.style.fontSize = '27px'; rise(sub, 40.9);
+  const dv = sdev(s, ['bi-questions']);
+  tw(dv.d, 40.2, 1.0, { o: [0, 1], x: [160, 0], ry: [-16, 0] }, 'out');
+  showImg(dv.imgs[0], 40.2);
+  tw(dv.d, 42.4, .8, { o: [1, .22], blur: [0, 5] }, 'inout');
+  const b = at(687, 669);   // "Generate the complete dossier", measured
+  cursorPath([[40.8, 1640, 1000], [41.8, ...tip(b)], [42.6, ...tip([b[0] + 40, b[1] + 40])]], [[41.9, ...b]]);
+  const run = el('div', 'a run hud', s); pos(run, 990, 290);
+  const rows = T.rows.map((r, i) => {
+    const row = el('div', 'row', run, '<div class="ic"><div class="sp"></div><div class="ok">✓</div></div><div class="nm">' + r + '</div><div class="st"></div>');
+    return row;
+  });
+  tw(run, 42.4, .8, { o: [0, 1], y: [80, 0], s: [.92, 1] }, 'back');
+  const done = [43.9, 46.0, 44.7, 45.4, 46.6];
+  rows.forEach((row, i) => {
+    const sp = $('.sp', row), ok = $('.ok', row), st = $('.st', row);
+    st.dataset.seq = JSON.stringify(i === 0 ? [[42.4, T.rowRun], [done[i], T.rowDone]] : [[42.4, T.rowWait], [done[0], T.rowRun], [done[i], T.rowDone]]);
+    tw(sp, 42.4, 5.5, { rz: [0, 1980] }, 'lin');
+    tw(sp, done[i], .15, { o: [1, 0] }, 'lin');
+    tw(ok, done[i], .5, { o: [0, 1], s: [2, 1] }, 'back');
+    CUES.push({ t: done[i], kind: 'ding' });
+  });
+  const tm = pos(el('div', 'a timer', s, T.timer), 1540, 750); rise(tm, 43.2);
+  CUES.push({ t: 42.4, kind: 'riser' });
+}
+
+// 8 · Step 4: fine-tune ------------------------------------------------- 48–57
+{ const s = scene(48, 57.2, .5, .5);
+  const sn = pos(el('div', 'a step-n', s, '04'), 110, 60); tw(sn, 48.2, .8, { o: [0, 1], x: [-60, 0] });
+  const sl = pos(el('div', 'a step-l', s, T.step + ' 04'), 118, 230); rise(sl, 48.3, .6, 20);
+  const st = pos(el('div', 'a h-m', s, T.s4t), 380, 110, 900); rise(st, 48.4);
+  CUES.push({ t: 48.2, kind: 'whoosh' });
+  const shots = ['bi-model', 'bi-plan', 'bi-fin-scenarios', 'bi-compliance', 'bi-roadmap'];
+  shots.forEach((sh, i) => {
+    const t0 = 48.9 + i * 1.65, t1 = t0 + 1.75;
+    const dv = device(s, 320, 200, sh);
+    dv.d.style.transform = 'scale(.82)';
+    showImg(dv.imgs[0], t0);
+    tw(dv.d, t0, .55, { o: [0, 1], x: [i % 2 ? -300 : 300, 0], ry: [i % 2 ? 22 : -22, 0], s: [.74, .78] }, 'out');
+    tw(dv.d, t0 + .55, 1.0, { s: [.78, .8] }, 'lin');
+    if (i < shots.length - 1) tw(dv.d, t1 - .3, .35, { o: [1, 0], x: [0, i % 2 ? 300 : -300], ry: [0, i % 2 ? -22 : 22] }, 'in');
+    const cap = el('div', 'a cap', s, T.s4c[i]); pos(cap, 0, 975);
+    tw(cap, t0 + .15, .4, { o: [0, 1], y: [20, 0] }); if (i < shots.length - 1) tw(cap, t1 - .3, .3, { o: [1, 0] });
+    CUES.push({ t: t0, kind: 'swish' });
+  });
+}
+
+// 9 · Step 5: PDF ------------------------------------------------------- 57–64
+{ const s = scene(57, 64.2, .5, .5);
+  const top = stepHead(s, 5, T.s5t, 57.2);
+  rise(pos(el('div', 'a lead', s, T.s5s), 112, top + 150, 560), 57.9);
+  const dv = sdev(s, ['bi-dossier', 'bi-dossier-pdf']);
+  tw(dv.d, 57.2, 1.0, { o: [0, 1], x: [160, 0], ry: [-16, 0] }, 'out');
+  showImg(dv.imgs[0], 57.2, 59.4); showImg(dv.imgs[1], 59.2);
+  const b = at(377, 101);   // "Download the full dossier (PDF)", measured
+  cursorPath([[58.0, 1640, 1000], [59.0, ...tip(b)], [59.8, ...tip([b[0] + 40, b[1] + 40])]], [[59.1, ...b]]);
+  tw(dv.d, 60.0, .8, { o: [1, .22], blur: [0, 6] }, 'inout');
+  [['pdf-1', -12, 1040], ['pdf-2', 0, 1340], ['pdf-4', 12, 1640]].forEach(([p, rz, x], i) => {
+    const pg = el('div', 'a page', s, '<img src="shots/' + p + '.png">'); pos(pg, x - 210, 250);
+    tw(pg, 60.1 + i * .22, 1.0, { o: [0, 1], y: [420, 0], rz: [0, rz], s: [.6, 1] }, 'back');
+    CUES.push({ t: 60.1 + i * .22, kind: 'swish' });
+  });
+}
+
+// 10 · Tips ------------------------------------------------------------- 64–69
+{ const s = scene(64, 69.2, .5, .5);
+  const t = el('div', 'a center h-l', s, '<span class="gold">⚡</span> ' + T.tipsT); pos(t, 0, 190); rise(t, 64.2);
+  CUES.push({ t: 64.2, kind: 'whoosh' });
+  T.tips.forEach((tx, i) => {
+    const tip = el('div', 'a tip', s, '<b>' + (i + 1) + '</b><span>' + tx + '</span>');
+    tip.style.width = '760px'; tip.style.fontSize = '34px';
+    pos(tip, 580, 360 + i * 120);
+    tw(tip, 64.8 + i * .45, .7, { o: [0, 1], x: [-80, 0], blur: [8, 0] }, 'out');
+    CUES.push({ t: 64.8 + i * .45, kind: 'tick' });
+  });
+}
+
+// 11 · MWINDA OS -------------------------------------------------------- 69–74.5
+{ const s = scene(69, 74.7, .5, .5);
+  const dv = device(s, 120, 150, 'os-hero', 'mwinda · /os');
+  tw(dv.d, 69.2, 1.0, { o: [0, 1], x: [-160, 0], ry: [18, 8], s: [.8, .8] }, 'out');
+  dv.d.style.transformOrigin = '0 50%';
+  showImg(dv.imgs[0], 69.2);
+  const t = el('div', 'a h-l', s, 'MWINDA <span class="blue">OS</span>'); pos(t, 1220, 250); rise(t, 69.5);
+  const sub = pos(el('div', 'a lead', s, T.osSub), 1222, 350, 600); rise(sub, 69.9);
+  T.osB.forEach((b, i) => { const c = pos(el('div', 'a chip blue', s, b), 1222, 500 + i * 86); rise(c, 70.4 + i * .3, .6, 24); CUES.push({ t: 70.4 + i * .3, kind: 'tick' }); });
+  const tk = pos(el('div', 'a lead', s, T.osTalk), 1222, 790, 600); tk.style.fontSize = '27px'; tk.style.color = '#8fdcff'; rise(tk, 71.6);
+  CUES.push({ t: 69.2, kind: 'whoosh' });
+}
+
+// 12 · CTA -------------------------------------------------------------- 74.5–80
+{ const s = scene(74.5, 80.01, .5, .01);
+  const logo = el('img', 'a', s); logo.src = '../../assets/brand/logo-wordmark.png'; logo.classList.add('logo-img');
+  pos(logo, 760, 160, 400); tw(logo, 74.6, 1.2, { o: [0, 1], s: [.85, 1], blur: [16, 0] });
+  const a = el('div', 'a center h-l', s, T.ctaA + '<br><span class="gold">' + T.ctaB + '</span>'); pos(a, 0, 360); rise(a, 75.1, 1);
+  rise(pos(el('div', 'a center mono', s, T.ctaNote), 0, 590), 75.9);
+  const u = el('div', 'a center', s, '<span class="url-chip">' + URL_CTA + '</span>'); pos(u, 0, 690); rise(u, 76.4);
+  tw($('#fade'), 78.8, 1.2, { o: [0, 1] }, 'in');
+  CUES.push({ t: 74.6, kind: 'boom' });
+}
+tw($('#fade'), 0, .9, { o: [1, 0] }, 'lin');
+
+/* ================= background + per-frame ================= */
+const parts = [];
+{ let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 46; i++) {
+    const p = el('div', 'a p' + (i % 3 === 0 ? ' b' : ''), $('#particles'));
+    parts.push({ p, x: rnd() * 1920, y: rnd() * 1080, sp: 8 + rnd() * 26, ph: rnd() * 6.28, sz: .5 + rnd() * 1.2 });
+  }
+}
+function background(t) {
+  $('#grid').style.transform = `translate3d(0, ${(t * 18) % 64}px, 0)`;
+  const g = $('#glowG'), b = $('#glowB');
+  g.style.transform = `translate3d(${200 + Math.sin(t * .21) * 260}px, ${-300 + Math.cos(t * .17) * 140}px, 0)`;
+  b.style.transform = `translate3d(${900 + Math.cos(t * .19) * 300}px, ${100 + Math.sin(t * .23) * 160}px, 0)`;
+  parts.forEach((q) => {
+    const y = (q.y - t * q.sp) % 1120; const yy = y < -40 ? y + 1120 : y;
+    q.p.style.transform = `translate3d(${q.x + Math.sin(t * .6 + q.ph) * 30}px, ${yy}px, 0) scale(${q.sz})`;
+    q.p.style.opacity = .25 + .55 * (0.5 + 0.5 * Math.sin(t * 1.3 + q.ph));
+  });
+}
+/* Step 04 shows five screens with a caption each; at authored speed a caption
+   was gone before it could be read. Real time is stretched over that section
+   only: the composition keeps its authored times, the film gets longer. */
+const WA = 48.9, WL = 8.3, WK = 1.35;
+const warp = (r) => (r < WA ? r : r < WA + WL * WK ? WA + (r - WA) / WK : r - WL * (WK - 1));
+const unwarp = (f) => (f < WA ? f : f < WA + WL ? WA + (f - WA) * WK : f + WL * (WK - 1));
+function seek(real) {
+  background(real);
+  const t = warp(real);
+  SCENES.forEach((sc) => {
+    let o = 0;
+    if (t >= sc.t0 && t <= sc.t1) {
+      o = Math.min(1, (t - sc.t0) / sc.fin, (sc.t1 - t) / sc.fout);
+      o = Math.max(0, o);
+    }
+    sc.el.style.opacity = o;
+    sc.el.style.visibility = o > 0.001 ? 'visible' : 'hidden';
+  });
+  ITEMS.forEach((it) => apply(it, t));
+  document.querySelectorAll('[data-seq]').forEach((e) => {
+    let txt = ''; for (const [at, s] of JSON.parse(e.dataset.seq)) if (t >= at) txt = s; e.textContent = txt;
+  });
+  const flow = document.querySelector('.flow'); if (flow) flow.style.marginLeft = -flow.offsetWidth / 2 + 'px';
+  cursor.style.visibility = curOn.some(([a, b]) => t >= a && t <= b) ? 'visible' : 'hidden';
+  if (!curOn.some(([a, b]) => t >= a && t <= b)) cursor.style.opacity = 0;
+}
+window.FILM = { seek, DUR: unwarp(DUR), CUES: CUES.map((c) => ({ t: +unwarp(c.t).toFixed(3), kind: c.kind })).sort((a, b) => a.t - b.t) };
+window.ready = Promise.all([document.fonts.ready, ...[...document.images].map((im) => im.decode().catch(() => {}))]);
+seek(0);
+</script>
+</body>
+</html>

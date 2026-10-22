@@ -170,6 +170,8 @@ suite is the BI harness in `scripts/bi-harness/`. The default branch is `main`; 
   the complete dossier" run plan, financials, compliance and roadmap at once.
   **Test the whole flow with `scripts/bi-harness/`** (real functions, fake
   model and Blobs, Playwright) after any change to it — see its README.
+  Editable fields are sized only when visible (`fitArea`, re-run by `go()`):
+  sizing a textarea inside a hidden step collapses it to a sliver.
 - `netlify/functions/_reference.mjs` + `data/reference/*.json` — the grounding
   layer for the BI engine. **Facts and portals are never blurred:** World Bank
   (WDI / WGI / B-READY) and UNDP HDR figures are ingested on a schedule and
@@ -215,6 +217,12 @@ suite is the BI harness in `scripts/bi-harness/`. The default branch is `main`; 
   `logo-lockup` (loader), `logo-full` (og:image), `favicon-{32,180,512}.png`
   (the gold "A"), `scene-{office,devices,ai-desk,globe}` (web-sized). Originals
   live in `docs/brand-source/`, which is not served.
+- **Promo film** — `scripts/promo-film/`: the ~83 s FR/EN motion-design
+  film (platform, divisions, step-by-step AI Business Intelligence, MWINDA OS,
+  CTA). Plain HTML/CSS timeline rendered frame by frame with Playwright +
+  ffmpeg, real product screenshots from the BI harness with a demo project,
+  synthesized soundtrack. Re-render after UI changes or to change the CTA
+  URL (`URLCTA=`). Outputs are not committed. See its README.
 - `i18n.js` — FR/EN translation engine and dictionary (see below).
 - `mwinda-netlify.zip` — packaged snapshot of the site for Netlify Drop.
   Regenerate it after changing site files if it is still being used.
