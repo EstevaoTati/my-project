@@ -217,9 +217,12 @@ suite is the BI harness in `scripts/bi-harness/`. The default branch is `main`; 
   `logo-lockup` (loader), `logo-full` (og:image), `favicon-{32,180,512}.png`
   (the gold "A"), `scene-{office,devices,ai-desk,globe}` (web-sized). Originals
   live in `docs/brand-source/`, which is not served.
-- **Promo film** — `scripts/promo-film/`: the ~83 s FR/EN motion-design
-  film (platform, divisions, step-by-step AI Business Intelligence, MWINDA OS,
-  CTA). Plain HTML/CSS timeline rendered frame by frame with Playwright +
+- **Promo film + investor pitch film** — `scripts/promo-film/`: the ~83 s
+  FR/EN motion-design film (platform, divisions, step-by-step AI Business
+  Intelligence, MWINDA OS, CTA) and the ~104 s FR investor pitch film
+  (`pitch.html`, `FILM=pitch`). Statistics on screen are sourced (HBS/Ghosh
+  3 in 4, CB Insights causes) — never put an unsourced figure in front of
+  investors. Plain HTML/CSS timeline rendered frame by frame with Playwright +
   ffmpeg, real product screenshots from the BI harness with a demo project,
   synthesized soundtrack. Re-render after UI changes or to change the CTA
   URL (`URLCTA=`). Outputs are not committed. See its README.

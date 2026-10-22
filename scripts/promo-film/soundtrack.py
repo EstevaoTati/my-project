@@ -14,6 +14,11 @@ N = int(DUR * SR)
 t = np.arange(N) / SR
 rng = np.random.default_rng(7)
 
+import os
+BASS_IN = float(os.environ.get('BASS_IN', 6.3))
+ARP_IN = float(os.environ.get('ARP_IN', 26.0))
+DRUMS_IN = float(os.environ.get('DRUMS_IN', 20.9))
+HATS_IN = float(os.environ.get('HATS_IN', 26.0))
 BPM = 100
 BEAT = 60 / BPM
 BAR = 4 * BEAT
@@ -98,7 +103,7 @@ while tcur < DUR:
     f = midi(ROOTS[ci % 4] - 12)
     for b in range(8):
         st = tcur + b * BEAT
-        if st < 6.3 or st > 79.5: continue
+        if st < BASS_IN or st > DUR - 2.0: continue
         n = int(BEAT * SR); tt = np.arange(n) / SR
         e = (1 - np.exp(-tt * 40)) * np.exp(-tt * 2.2)
         sig = (np.sin(2 * np.pi * f * tt) + .3 * np.sin(4 * np.pi * f * tt)) * e
@@ -110,9 +115,9 @@ while tcur < DUR:
 arp = np.zeros(N)
 step = BEAT / 2
 k = 0
-tt0 = 26.0 - (26.0 % step)
+tt0 = ARP_IN - (ARP_IN % step)
 tc = tt0
-while tc < 79.0:
+while tc < DUR - 4.5:
     ci = int(tc // CH_LEN) % 4
     tones = CHORDS[ci] + [CHORDS[ci][1] + 12]
     f = midi(tones[k % len(tones)] + 12)
@@ -133,12 +138,12 @@ def hat():
     n = int(.06 * SR); tt = np.arange(n) / SR
     return highpass(rng.standard_normal(n), 6000) * np.exp(-tt * 70)
 KICK, HAT = kick(), hat()
-tc = 20.9
-while tc < 79.0:
+tc = DRUMS_IN
+while tc < DUR - 4.5:
     i = int(tc * SR)
     seg = KICK[: max(0, N - i)]; drums[i:i + len(seg)] += seg * .20
     j = int((tc + BEAT / 2) * SR)
-    if tc > 26:
+    if tc > HATS_IN:
         seg = HAT[: max(0, N - j)]; drums[j:j + len(seg)] += seg * .05
     tc += BEAT
 
