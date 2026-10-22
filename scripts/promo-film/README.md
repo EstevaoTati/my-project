@@ -1,4 +1,4 @@
-# MWINDA promo film — platform + AI Business Intelligence walkthrough
+# MWINDA films — promo film and investor pitch film
 
 ~83 s, 1920×1080, 30 fps, French and English. Motion design in plain
 HTML/CSS (`film.html`), rendered frame by frame — every frame is a pure
@@ -10,7 +10,16 @@ samples, no licences to clear.
 Why not an AI video model: it cannot render readable text or an exact
 wordmark, and this film is mostly text and real UI.
 
-## Scenes
+## The two films
+
+- `film.html` — promo film (~83 s, FR/EN): platform + AI Business Intelligence walkthrough.
+- `pitch.html` — investor pitch film (~104 s, FR): the 3/4 failure statistic and its causes
+  (sourced on screen), MWINDA, the five divisions, the solution, the deliverable, each cause
+  answered, differentiators, footprint, business model, MWINDA OS, call to action.
+  Render with `FILM=pitch`; soundtrack with
+  `BASS_IN=5.6 ARP_IN=13 DRUMS_IN=13 HATS_IN=22 python3 soundtrack.py pitch-cues.json pitch-soundtrack.wav`.
+
+## Scenes (promo film)
 Hook → logo → five divisions + two products → AI Business Intelligence flow →
 steps 01-05 (describe, read the analysis, ⚡ complete dossier, fine-tune,
 download the PDF) → tips → MWINDA OS → call to action.
