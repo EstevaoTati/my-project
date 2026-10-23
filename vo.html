@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>VO Nail Artist — L'art au bout des doigts</title>
+<meta name="description" data-i18n-attr="content" data-i18n="meta.desc"
+      content="VO Nail Artist à Issaquah, WA — pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous. Réservation directe par WhatsApp." />
+<meta name="theme-color" content="#1b1210" />
+<meta name="robots" content="index, follow" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="VO Nail Artist — L'art au bout des doigts" />
+<meta property="og:description" content="Pose gel, Gel-X, acrylique et nail art sur mesure. Issaquah, WA — sur rendez-vous." />
+<meta property="og:image" content="assets/vo/hero-poster.jpg" />
+
+<link rel="icon" href="assets/vo/vo-logo.jpg" />
+<link rel="apple-touch-icon" href="assets/vo/vo-logo.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="vo.css?v=1" />
+
+<!-- Local search: a nail studio lives or dies on "near me" queries, and this
+     is what lets Google show the address, phone and price band directly.
+     Not executed, so it costs nothing at runtime; scripts/update-csp.mjs
+     still hashes it, which is why the generated policy carries an extra
+     sha256 after this file changes. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NailSalon",
+  "name": "VO Nail Artist",
+  "description": "Pose gel, Gel-X, acrylique et nail art sur mesure. Studio privé, sur rendez-vous.",
+  "image": "assets/vo/hero-poster.jpg",
+  "logo": "assets/vo/vo-logo.jpg",
+  "telephone": "+1-425-864-1421",
+  "priceRange": "$40-$65",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "1000 10th Ave NE",
+    "addressLocality": "Issaquah",
+    "addressRegion": "WA",
+    "addressCountry": "US"
+  },
+  "areaServed": "Issaquah, WA and nearby",
+  "sameAs": ["https://www.instagram.com/omos_nails/"],
+  "availableLanguage": ["fr", "en"]
+}
+</script>
+</head>
+<body>
+
+<a class="skip" href="#main" data-i18n="a11y.skip">Aller au contenu</a>
+
+<!-- ============================================================
+     Cinematic background. The poster is never removed: video-bg.js
+     reveals the clip only once it is actually playing, so every failure
+     path (Low Power Mode, data saver, a dropped decoder) still shows the
+     artwork instead of a black rectangle. See docs/hero-video.md.
+
+     Two codecs, WebM first. H.264 is not universal — Chromium builds
+     compiled without proprietary codecs, and some Linux Firefox builds,
+     cannot decode the MP4 at all and would sit on the poster forever. VP9
+     also happens to come out less than half the size here, so the browsers
+     that take it also download less. The MP4 stays as the fallback for
+     Safari and anything older.
+
+     The landscape cut is the one in the markup, so the background still
+     plays with JavaScript off. vo.js swaps in the portrait cut on tall
+     viewports: the `media` attribute on a <source> does nothing inside a
+     <video> (browsers honour it for <picture> only), which is why the
+     selection is scripted rather than declarative.
+     ============================================================ -->
+<div class="site-bg" aria-hidden="true">
+  <video autoplay muted loop playsinline preload="metadata" poster="assets/vo/hero-poster.jpg"
+         data-portrait-webm="assets/vo/hero-portrait.webm"
+         data-portrait-mp4="assets/vo/hero-portrait.mp4"
+         data-portrait-poster="assets/vo/hero-poster-portrait.jpg">
+    <source src="assets/vo/hero.webm" type="video/webm" />
+    <source src="assets/vo/hero.mp4" type="video/mp4" />
+  </video>
+  <img class="site-bg-img" src="assets/vo/hero-poster.jpg" alt="" decoding="async" fetchpriority="high" />
+  <div class="site-bg-veil"></div>
+  <div class="site-bg-grain"></div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="VO Nail Artist">
+      <img src="assets/vo/vo-logo.jpg" alt="" width="44" height="44" decoding="async" />
+      <span class="brand-txt">VO<em>Nail Artist</em></span>
+    </a>
+
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#signature" data-i18n="nav.signature">Signatures</a>
+      <a href="#services" data-i18n="nav.services">Prestations</a>
+      <a href="#rituel" data-i18n="nav.ritual">Le rituel</a>
+      <a href="#galerie" data-i18n="nav.gallery">Galerie</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+
+    <div class="nav-act">
+      <div class="lang" role="group" aria-label="Langue">
+        <button type="button" class="lang-btn is-on" data-lang="fr">FR</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <a class="btn btn-wa nav-cta" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+        <span class="wa-i" aria-hidden="true"></span><span data-i18n="cta.book">Réserver</span>
+      </a>
+      <button type="button" class="burger" aria-expanded="false" aria-controls="nav" aria-label="Menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<span id="top"></span>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-emblem reveal">
+      <img src="assets/vo/vo-logo.jpg" alt="VO Nail Artist" width="190" height="190" decoding="async" />
+    </div>
+
+    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Issaquah, WA · Sur rendez-vous</p>
+
+    <h1 class="reveal" data-i18n-html data-i18n="hero.title">
+      L'art au bout <em>des doigts</em>
+    </h1>
+
+    <p class="lede reveal" data-i18n="hero.lede">
+      Des mains qu'on remarque avant même que vous parliez. Pose gel, Gel-X,
+      acrylique et nail art dessiné à la main — pensé pour votre morphologie,
+      tenu pour durer trois semaines sans faiblir.
+    </p>
+
+    <div class="hero-cta reveal">
+      <a class="btn btn-wa btn-lg" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+        <span class="wa-i" aria-hidden="true"></span>
+        <span data-i18n="cta.bookWa">Réserver sur WhatsApp</span>
+      </a>
+      <a class="btn btn-ghost btn-lg" href="#signature" data-i18n="cta.see">Voir les créations</a>
+    </div>
+
+    <ul class="trust reveal">
+      <li><strong data-i18n="trust.1.k">Stérilisation</strong><span data-i18n="trust.1.v">Instruments en autoclave, limes à usage unique</span></li>
+      <li><strong data-i18n="trust.2.k">3 semaines</strong><span data-i18n="trust.2.v">De tenue, sans décollement ni éclat</span></li>
+      <li><strong data-i18n="trust.3.k">Sur mesure</strong><span data-i18n="trust.3.v">Forme, longueur et motif dessinés pour vous</span></li>
+    </ul>
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true"><span></span></div>
+</section>
+
+<!-- ===================== MARQUEE ===================== -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>De beaux ongles. Une confiance sans limite. · Tout modèle · Tout nail art · À domicile ·</span>
+    <span>De beaux ongles. Une confiance sans limite. · Tout modèle · Tout nail art · À domicile ·</span>
+  </div>
+</div>
+
+<!-- ===================== SIGNATURES ===================== -->
+<section class="sec" id="signature">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <p class="eyebrow" data-i18n="sig.eyebrow">Les signatures</p>
+      <h2 data-i18n-html data-i18n="sig.title">Trois univers, <em>une même exigence</em></h2>
+      <p class="sec-sub" data-i18n="sig.sub">
+        Chaque collection part d'une conversation : votre peau, vos mains, votre
+        semaine. Le motif vient après.
+      </p>
+    </header>
+
+    <div class="sig-grid">
+      <article class="sig reveal">
+        <div class="sig-img"><img src="assets/vo/nails-brown.jpg" alt="Nail art botanique sur base espresso et blanc laiteux" loading="lazy" decoding="async" /></div>
+        <div class="sig-txt">
+          <p class="sig-no">01</p>
+          <h3 data-i18n="sig.1.t">Botanique Espresso</h3>
+          <p data-i18n="sig.1.d">Feuillage peint à main levée sur base laiteuse, french chocolat en finition miroir. Discret de loin, minutieux de près.</p>
+          <p class="sig-tag" data-i18n="sig.1.g">Gel · Ballerine · Nail art main levée</p>
+        </div>
+      </article>
+
+      <article class="sig reveal">
+        <div class="sig-img"><img src="assets/vo/nails-blue.jpg" alt="Nail art floral bleu saphir avec cristaux" loading="lazy" decoding="async" /></div>
+        <div class="sig-txt">
+          <p class="sig-no">02</p>
+          <h3 data-i18n="sig.2.t">Saphir en Fleur</h3>
+          <p data-i18n="sig.2.d">Bleu profond, fleurs blanches en dégradé et cristaux posés un par un. La pièce qu'on garde pour les grands soirs.</p>
+          <p class="sig-tag" data-i18n="sig.2.g">Gel-X · Carré long · Cristaux · Chrome</p>
+        </div>
+      </article>
+
+      <article class="sig reveal">
+        <div class="sig-img"><img src="assets/vo/nails-burgundy.jpg" alt="Nail art bordeaux et or avec feuillage doré" loading="lazy" decoding="async" /></div>
+        <div class="sig-txt">
+          <p class="sig-no">03</p>
+          <h3 data-i18n="sig.3.t">Velours Bordeaux</h3>
+          <p data-i18n="sig.3.d">Prune profond, paillettes cuivrées et feuillage doré. Une palette d'automne qui tient toute l'année.</p>
+          <p class="sig-tag" data-i18n="sig.3.g">Acrylique · Ballerine · Or · Perles</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SERVICES =====================
+     Real pricing, taken from the studio's own service card. The headline
+     point is that nail art is not an extra: price follows length only, so
+     an elaborate design costs the same as a bare colour. That is unusual
+     enough to be the section's argument rather than a footnote.
+     ==================================================== -->
+<section class="sec sec-dark" id="services">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <p class="eyebrow" data-i18n="srv.eyebrow">Prestations &amp; tarifs</p>
+      <h2 data-i18n-html data-i18n="srv.title">Le dessin est <em>compris</em> dans le prix</h2>
+      <p class="sec-sub" data-i18n="srv.sub">
+        Tout modèle, tout nail art. Le tarif suit la longueur, jamais la
+        complexité du motif — une fresque coûte le prix d'une couleur nue.
+      </p>
+    </header>
+
+    <div class="tariffs">
+      <article class="tariff reveal">
+        <h3 class="tariff-h" data-i18n="srv.hands">Mains</h3>
+
+        <ul class="tariff-rows">
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:34%"></i></span>
+            <span class="tariff-n" data-i18n="srv.short">Court</span>
+            <span class="tariff-p">$40</span>
+          </li>
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:58%"></i></span>
+            <span class="tariff-n" data-i18n="srv.medium">Moyen</span>
+            <span class="tariff-p">$50</span>
+          </li>
+          <li>
+            <span class="nail-i" aria-hidden="true"><i style="--n:86%"></i></span>
+            <span class="tariff-n" data-i18n="srv.long">Long</span>
+            <span class="tariff-p">$65</span>
+          </li>
+        </ul>
+
+        <p class="tariff-inc" data-i18n="srv.included">Tout modèle · Tout nail art compris</p>
+      </article>
+
+      <article class="tariff reveal">
+        <h3 class="tariff-h" data-i18n="srv.feet">Pieds</h3>
+
+        <p class="tariff-solo">
+          <span class="tariff-p tariff-p-lg">$40</span>
+          <span class="tariff-n" data-i18n="srv.feetAll">Toutes longueurs</span>
+        </p>
+
+        <p class="tariff-inc" data-i18n="srv.included">Tout modèle · Tout nail art compris</p>
+      </article>
+    </div>
+
+    <div class="addon reveal">
+      <div class="addon-txt">
+        <h3 data-i18n="srv.home.t">À domicile · +$15</h3>
+        <p data-i18n="srv.home.d">
+          Je me déplace chez vous avec tout le matériel. Vous ne bougez pas,
+          vous ne cherchez pas de place de parking. Sur demande, selon le
+          secteur.
+        </p>
+      </div>
+      <a class="btn btn-wa" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+        <span class="wa-i" aria-hidden="true"></span><span data-i18n="srv.home.cta">Demander à domicile</span>
+      </a>
+    </div>
+
+    <p class="srv-note reveal" data-i18n="srv.note">
+      Issaquah et alentours. Le créneau et le tarif exact sont confirmés sur
+      WhatsApp avant le rendez-vous. Paiement sur place.
+    </p>
+  </div>
+</section>
+
+<!-- ===================== LE RITUEL ===================== -->
+<section class="sec" id="rituel">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <p class="eyebrow" data-i18n="rit.eyebrow">Le rituel</p>
+      <h2 data-i18n-html data-i18n="rit.title">Quatre temps, <em>zéro improvisation</em></h2>
+    </header>
+
+    <ol class="steps">
+      <li class="reveal"><span class="step-n">01</span>
+        <h3 data-i18n="rit.1.t">On parle d'abord</h3>
+        <p data-i18n="rit.1.d">Photos, inspirations, contraintes de métier. On fixe forme, longueur et budget avant de toucher une lime.</p>
+      </li>
+      <li class="reveal"><span class="step-n">02</span>
+        <h3 data-i18n="rit.2.t">Préparation clinique</h3>
+        <p data-i18n="rit.2.d">Instruments sortis d'autoclave devant vous, limes neuves, plan de travail désinfecté. C'est non négociable.</p>
+      </li>
+      <li class="reveal"><span class="step-n">03</span>
+        <h3 data-i18n="rit.3.t">La pose</h3>
+        <p data-i18n="rit.3.d">Structure d'abord, couleur ensuite, motif en dernier. Chaque couche est contrôlée à la lumière avant la suivante.</p>
+      </li>
+      <li class="reveal"><span class="step-n">04</span>
+        <h3 data-i18n="rit.4.t">Vous repartez avec</h3>
+        <p data-i18n="rit.4.d">Huile à cuticules, les gestes qui font tenir la pose, et la date du remplissage déjà posée.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===================== STANDARDS ===================== -->
+<section class="sec sec-dark" id="standards">
+  <div class="wrap std-wrap">
+    <div class="std-txt reveal">
+      <p class="eyebrow" data-i18n="std.eyebrow">L'exigence</p>
+      <h2 data-i18n-html data-i18n="std.title">Ce qui ne se négocie <em>jamais</em></h2>
+      <p class="sec-sub" data-i18n="std.sub">
+        Une belle pose se voit le premier jour. Une bonne pose se voit le
+        vingtième.
+      </p>
+      <a class="btn btn-wa" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+        <span class="wa-i" aria-hidden="true"></span><span data-i18n="cta.ask">Poser une question</span>
+      </a>
+    </div>
+
+    <ul class="std-list">
+      <li class="reveal"><h3 data-i18n="std.1.t">Hygiène d'abord</h3><p data-i18n="std.1.d">Autoclave, usage unique, gants. L'ongle qui vous est rendu est plus sain qu'à l'arrivée.</p></li>
+      <li class="reveal"><h3 data-i18n="std.2.t">L'ongle naturel protégé</h3><p data-i18n="std.2.d">Pas de ponçage à l'os pour gagner dix minutes. La tenue vient de la préparation, pas de l'agression.</p></li>
+      <li class="reveal"><h3 data-i18n="std.3.t">L'heure est l'heure</h3><p data-i18n="std.3.d">Un seul rendez-vous à la fois. Vous n'attendez pas, et on ne vous presse pas.</p></li>
+      <li class="reveal"><h3 data-i18n="std.4.t">Retouche offerte</h3><p data-i18n="std.4.d">Un ongle cède dans les sept jours ? Il est repris sans discussion et sans frais.</p></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== GALERIE ===================== -->
+<section class="sec" id="galerie">
+  <div class="wrap">
+    <header class="sec-head reveal">
+      <p class="eyebrow" data-i18n="gal.eyebrow">Galerie</p>
+      <h2 data-i18n-html data-i18n="gal.title">Le travail, <em>sans filtre</em></h2>
+      <p class="sec-sub" data-i18n="gal.sub">Cliquez pour agrandir.</p>
+    </header>
+
+    <div class="gal">
+      <button type="button" class="gal-i reveal" data-full="assets/vo/nails-blue.jpg">
+        <img src="assets/vo/nails-blue.jpg" alt="Nail art floral bleu saphir" loading="lazy" decoding="async" /></button>
+      <button type="button" class="gal-i reveal" data-full="assets/vo/nails-brown.jpg">
+        <img src="assets/vo/nails-brown.jpg" alt="Nail art botanique espresso" loading="lazy" decoding="async" /></button>
+      <button type="button" class="gal-i reveal" data-full="assets/vo/nails-burgundy.jpg">
+        <img src="assets/vo/nails-burgundy.jpg" alt="Nail art bordeaux et or" loading="lazy" decoding="async" /></button>
+      <button type="button" class="gal-i reveal" data-full="assets/vo/vo-logo.jpg">
+        <img src="assets/vo/vo-logo.jpg" alt="Monogramme VO Nail Artist" loading="lazy" decoding="async" /></button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="sec sec-dark" id="faq">
+  <div class="wrap wrap-narrow">
+    <header class="sec-head reveal">
+      <p class="eyebrow" data-i18n="faq.eyebrow">Questions</p>
+      <h2 data-i18n-html data-i18n="faq.title">Ce qu'on me demande <em>le plus</em></h2>
+    </header>
+
+    <div class="faq">
+      <details class="reveal"><summary data-i18n="faq.1.q">Combien de temps ça tient ?</summary>
+        <p data-i18n="faq.1.a">Trois semaines en moyenne, souvent quatre. La repousse se voit avant que la pose ne bouge — c'est elle qui fixe la date du remplissage.</p></details>
+      <details class="reveal"><summary data-i18n="faq.2.q">Est-ce que ça abîme mes ongles ?</summary>
+        <p data-i18n="faq.2.a">Non, quand la préparation et la dépose sont faites correctement. Ce qui abîme, c'est le limage excessif et l'arrachage à la maison.</p></details>
+      <details class="reveal"><summary data-i18n="faq.3.q">Vous travaillez sur ongles rongés ?</summary>
+        <p data-i18n="faq.3.a">Oui, c'est même l'un des cas les plus fréquents. On reconstruit progressivement et la peau autour se calme en deux à trois poses.</p></details>
+      <details class="reveal"><summary data-i18n="faq.4.q">Je viens avec une photo, c'est possible ?</summary>
+        <p data-i18n="faq.4.a">C'est encouragé. Envoyez-la sur WhatsApp avant : je vous dis honnêtement ce qui est reproductible, ce qui est adaptable, et ce qui ne tiendra pas sur vos mains.</p></details>
+      <details class="reveal"><summary data-i18n="faq.5.q">Comment réserver ?</summary>
+        <p data-i18n="faq.5.a">Uniquement par WhatsApp, au +1 (425) 864-1421. Vous recevez la confirmation, l'adresse exacte et le tarif dans le même message.</p></details>
+      <details class="reveal"><summary data-i18n="faq.7.q">Vous vous déplacez à domicile ?</summary>
+        <p data-i18n="faq.7.a">Oui, pour 15 $ de plus. J'arrive avec tout le matériel, y compris la lampe et la table. Sur demande et selon le secteur autour d'Issaquah — demandez sur WhatsApp avec votre adresse et je vous dis tout de suite.</p></details>
+      <details class="reveal"><summary data-i18n="faq.6.q">Et si je dois annuler ?</summary>
+        <p data-i18n="faq.6.a">Prévenez au moins 24 h à l'avance et le créneau est simplement déplacé. C'est tout ce qui est demandé.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BOOKING ===================== -->
+<section class="book" id="reserver">
+  <div class="wrap book-in reveal">
+    <img class="book-mark" src="assets/vo/vo-logo.jpg" alt="" width="120" height="120" loading="lazy" decoding="async" />
+    <p class="eyebrow" data-i18n="book.eyebrow">Réservation</p>
+    <h2 data-i18n-html data-i18n="book.title">Un message suffit. <em>Vraiment.</em></h2>
+    <p class="lede" data-i18n="book.sub">
+      Dites-moi la date qui vous arrange et ce que vous avez en tête. Vous
+      recevez le créneau, le tarif et l'adresse dans la réponse.
+    </p>
+
+    <a class="btn btn-wa btn-xl" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+      <span class="wa-i" aria-hidden="true"></span>
+      <span data-i18n="book.cta">Écrire sur WhatsApp</span>
+    </a>
+
+    <p class="book-num"><a href="tel:+14258641421">+1 (425) 864-1421</a></p>
+
+    <address class="book-addr">
+      <a href="https://maps.google.com/?q=1000+10th+Ave+NE,+Issaquah,+WA" target="_blank" rel="noopener">
+        1000 10th Ave NE, Issaquah, WA
+      </a>
+    </address>
+    <p class="book-hours" data-i18n="book.hours">Réponse sous quelques heures · Sur rendez-vous uniquement</p>
+
+    <p class="book-script" data-i18n="brand.script">Vos ongles, votre art</p>
+
+    <!-- Instagram handle taken from the studio's service card, where it reads
+         "OMo's nails". Confirm the exact handle before launch — it is this
+         href and the sameAs entry in the JSON-LD above. -->
+    <a class="ig-link" href="https://www.instagram.com/omos_nails/" target="_blank" rel="noopener">
+      <span class="ig-i" aria-hidden="true"></span>
+      <span data-i18n="social.ig">Suivez le travail sur Instagram</span>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div>
+      <p class="foot-brand">VO <em data-i18n="foot.role">Nail Artist</em></p>
+      <p class="foot-tagline" data-i18n="brand.tagline">De beaux ongles. Une confiance sans limite.</p>
+    </div>
+    <p class="foot-links">
+      <a href="#signature" data-i18n="nav.signature">Signatures</a>
+      <a href="#services" data-i18n="nav.services">Prestations</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="https://www.instagram.com/omos_nails/" target="_blank" rel="noopener">Instagram</a>
+    </p>
+    <p class="foot-fine">
+      1000 10th Ave NE, Issaquah, WA ·
+      © <span data-year>2026</span> VO Nail Artist ·
+      <span data-i18n="foot.by">Site par Mwinda Digital</span>
+    </p>
+  </div>
+</footer>
+
+<!-- Sticky mobile booking bar: on a phone the CTA must never be a scroll away. -->
+<a class="wa-dock" data-wa href="https://wa.me/14258641421" target="_blank" rel="noopener">
+  <span class="wa-i" aria-hidden="true"></span><span data-i18n="cta.bookWa">Réserver sur WhatsApp</span>
+</a>
+
+<!-- Lightbox -->
+<div class="lb" hidden>
+  <button type="button" class="lb-x" aria-label="Fermer">&times;</button>
+  <img class="lb-img" src="" alt="" />
+</div>
+
+<script src="vo.js?v=1"></script>
+<script src="video-bg.js?v=1"></script>
+</body>
+</html>

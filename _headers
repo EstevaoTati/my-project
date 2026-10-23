@@ -7,15 +7,15 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'self'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:default
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-eZ/ceg7XVuFv8aVFEhFxHANpejE3VAK7kfEPAnBBqRc=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'self'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:default
 
 /os
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-eZ/ceg7XVuFv8aVFEhFxHANpejE3VAK7kfEPAnBBqRc=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
 
 /os.html
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' 'sha256-eZ/ceg7XVuFv8aVFEhFxHANpejE3VAK7kfEPAnBBqRc=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests; # csp:strict
 
 /.netlify/functions/*
   Cache-Control: no-store
