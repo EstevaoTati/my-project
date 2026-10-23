@@ -19,6 +19,7 @@
 /package-lock.json  /index.html   404!
 /DEPLOY-NETLIFY.md  /index.html   404!
 /mwinda-netlify.zip /index.html   404!
+/holy-mountain-netlify.zip /index.html   404!
 
 # A missing asset must 404, not fall through to the SPA catch-all below.
 # Without this, a mistyped or not-yet-committed file — assets/mwinda-loop-landscape.mp4,
