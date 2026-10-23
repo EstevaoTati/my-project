@@ -14,6 +14,7 @@
 /supabase/*         /index.html   404!
 /netlify/*          /index.html   404!
 /.claude/*          /index.html   404!
+/weddings/*         /index.html   404!
 /CLAUDE.md          /index.html   404!
 /package.json       /index.html   404!
 /package-lock.json  /index.html   404!

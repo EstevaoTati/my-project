@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Wedding Dashboard — Stephane &amp; Syntiche</title>
+  <link rel="icon" href="assets/monogram.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Manrope:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="admin.css?v=1">
+</head>
+<body>
+  <!-- Sign in -->
+  <main class="login" id="login">
+    <form class="login-card" id="loginForm">
+      <p class="mono">S<em>&amp;</em>S</p>
+      <h1>Wedding dashboard</h1>
+      <p class="muted">For Stephane, Syntiche and the organisers they trust.</p>
+      <label class="field"><span>Admin key</span><input type="password" name="key" autocomplete="current-password" required></label>
+      <button class="btn btn--navy" type="submit">Sign in</button>
+      <p class="error" role="alert" hidden></p>
+      <p class="hint">The key lives in the site's environment settings (<code>ADMIN_KEY</code>). It stays in this tab only and is forgotten when the tab closes.</p>
+    </form>
+  </main>
+
+  <!-- App -->
+  <div class="app" id="app" hidden>
+    <header class="top">
+      <p class="mono">S<em>&amp;</em>S <span>Dashboard</span></p>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+        <button role="tab" data-tab="guests">Guests</button>
+        <button role="tab" data-tab="content">Content</button>
+        <button role="tab" data-tab="guestbook">Guestbook <b class="badge" id="gbBadge" hidden></b></button>
+        <button role="tab" data-tab="seating">Seating</button>
+      </nav>
+      <div class="top-actions">
+        <a class="link" href="" target="_blank" rel="noopener">View site ↗</a>
+        <a class="link" href="checkin" target="_blank" rel="noopener">Door check-in ↗</a>
+        <button class="link" id="logout" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- OVERVIEW -->
+    <section class="panel" data-panel="overview">
+      <div class="hero-stat">
+        <div><p class="eyebrow">Until March 13, 2027</p><p class="big" id="daysLeft">—</p><p class="muted">days</p></div>
+        <div class="bar-wrap">
+          <p class="eyebrow">Responses</p>
+          <div class="bar" id="rsvpBar" aria-hidden="true"><i class="b-yes"></i><i class="b-no"></i><i class="b-wait"></i></div>
+          <ul class="legend" id="rsvpLegend"></ul>
+        </div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+      <h2>Setup</h2>
+      <ul class="checks" id="checks"></ul>
+    </section>
+
+    <!-- GUESTS -->
+    <section class="panel" data-panel="guests" hidden>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Search name, group, email…" aria-label="Search guests">
+        <select id="fStatus" aria-label="Filter by response">
+          <option value="">All responses</option><option value="pending">Pending</option><option value="attending">Attending</option><option value="declined">Declined</option>
+        </select>
+        <select id="fGroup" aria-label="Filter by group"><option value="">All groups</option></select>
+        <span class="grow"></span>
+        <button class="btn btn--ghost" id="exportCsv" type="button">Export CSV</button>
+        <label class="btn btn--ghost">Import CSV<input type="file" id="importCsv" accept=".csv,text/csv" hidden></label>
+        <button class="btn btn--ghost" id="emailSel" type="button" disabled>Email selected</button>
+        <button class="btn btn--navy" id="addGuest" type="button">+ Add invitation</button>
+      </div>
+      <p class="muted small" id="guestCount"></p>
+      <div class="table-wrap">
+        <table class="grid" id="guestTable">
+          <thead><tr>
+            <th><input type="checkbox" id="selAll" aria-label="Select all"></th>
+            <th>Invitation</th><th>Seats</th><th>Response</th><th>Shared</th><th>Opened</th><th>Table</th><th class="r">Actions</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <details class="help">
+        <summary>CSV format</summary>
+        <p>Header row with any of: <code>label, greeting, kind, party, max_guests, lang, group, email, phone, personal_message, notes</code>. <code>label</code> is required. <code>party</code> lists names separated by <code>;</code>. <code>kind</code> is individual, couple or household. <code>lang</code> is fr or en.</p>
+      </details>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="panel" data-panel="content" hidden>
+      <div class="toolbar sticky">
+        <p class="muted small" id="contentSaved">Loading…</p>
+        <span class="grow"></span>
+        <button class="btn btn--navy" id="saveContent" type="button">Save &amp; publish</button>
+      </div>
+      <div id="contentForm" class="content-form"></div>
+    </section>
+
+    <!-- GUESTBOOK -->
+    <section class="panel" data-panel="guestbook" hidden>
+      <p class="muted">Nothing appears on the site until you approve it.</p>
+      <ul class="gb-admin" id="gbAdmin"></ul>
+    </section>
+
+    <!-- SEATING -->
+    <section class="panel" data-panel="seating" hidden>
+      <div class="toolbar">
+        <form id="tableForm" class="inline-form">
+          <input name="name" placeholder="Table name (e.g. Table 1 — Family)" required aria-label="Table name">
+          <input name="capacity" type="number" min="1" max="60" value="8" aria-label="Capacity">
+          <button class="btn btn--navy" type="submit">+ Add table</button>
+        </form>
+        <span class="grow"></span>
+        <button class="btn btn--ghost" id="exportSeating" type="button">Export seating CSV</button>
+      </div>
+      <div class="seating" id="seating"></div>
+    </section>
+  </div>
+
+  <!-- Guest editor -->
+  <dialog class="modal" id="guestModal">
+    <form method="dialog" id="guestForm" class="modal-body">
+      <h2 id="guestModalTitle">Invitation</h2>
+      <div class="cols">
+        <label class="field"><span>Name on the invitation *</span><input name="label" required maxlength="160" placeholder="Marie & Paul Dupont"></label>
+        <label class="field"><span>Greeting (WELCOME, …)</span><input name="greeting" maxlength="80" placeholder="Marie"></label>
+        <label class="field"><span>Type</span><select name="kind"><option value="individual">Individual</option><option value="couple">Couple</option><option value="household">Household</option></select></label>
+        <label class="field"><span>Maximum guests</span><input name="max_guests" type="number" min="1" max="20" value="1"></label>
+        <label class="field"><span>Language</span><select name="lang"><option value="fr">Français</option><option value="en">English</option></select></label>
+        <label class="field"><span>Group</span><input name="group_name" maxlength="80" list="groups" placeholder="Family — Syntiche"><datalist id="groups"></datalist></label>
+        <label class="field"><span>Email</span><input name="email" type="email" maxlength="160"></label>
+        <label class="field"><span>Phone (with country code)</span><input name="phone" maxlength="40" placeholder="+1 253 555 0100"></label>
+        <label class="field"><span>Table</span><select name="table_id"><option value="">—</option></select></label>
+      </div>
+      <label class="field"><span>Names in the party (one per line — prefilled in their RSVP)</span><textarea name="party" rows="3"></textarea></label>
+      <label class="field"><span>Personal message on their card</span><textarea name="personal_message" rows="2" maxlength="600"></textarea></label>
+      <label class="field"><span>Private notes (never shown to the guest)</span><textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+      <fieldset class="override">
+        <legend>Record a response received by phone or on paper</legend>
+        <label class="field"><span>Response</span><select name="rsvp_status"><option value="">— leave as is —</option><option value="pending">Pending</option><option value="attending">Attending</option><option value="declined">Declined</option></select></label>
+        <label class="field"><span>Seats</span><input name="rsvp_seats" type="number" min="0" max="20"></label>
+      </fieldset>
+      <div class="modal-actions">
+        <button class="btn btn--ghost" value="cancel" formnovalidate type="submit">Cancel</button>
+        <button class="btn btn--navy" value="save" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- QR / share -->
+  <dialog class="modal" id="qrModal">
+    <div class="modal-body qr-body">
+      <h2 id="qrTitle">Invitation</h2>
+      <div class="qr" id="qrBox"></div>
+      <p class="code" id="qrCode"></p>
+      <p class="muted small">Print this on the card. At the door, staff scan it to check the party in.</p>
+      <div class="modal-actions">
+        <a class="btn btn--ghost" id="qrDownload" download="invitation-qr.png">Download PNG</a>
+        <button class="btn btn--navy" type="button" id="qrClose">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="assets/vendor/qrcode.js" defer></script>
+  <script src="admin.js?v=1" defer></script>
+</body>
+</html>

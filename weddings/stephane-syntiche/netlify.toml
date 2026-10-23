@@ -1,0 +1,85 @@
+# STEPHANE & SYNTICHE — wedding site.
+#
+# Deployed as its OWN Netlify site from this repository:
+#   Base directory:    weddings/stephane-syntiche
+#   Build command:     (empty)
+#   Publish directory: weddings/stephane-syntiche   (i.e. "." relative to base)
+# See docs/SETUP.md for env vars and the Supabase migration.
+
+[build]
+  publish = "."
+  command = ""
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# ---- never serve source, schema or docs -------------------------------------
+[[redirects]]
+  from = "/netlify/*"
+  to = "/index.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/supabase/*"
+  to = "/index.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/docs/*"
+  to = "/index.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/scripts/*"
+  to = "/index.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/index.html"
+  status = 404
+  force = true
+
+# ---- pretty URLs ------------------------------------------------------------
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+[[redirects]]
+  from = "/checkin"
+  to = "/checkin.html"
+  status = 200
+
+# ---- security headers -------------------------------------------------------
+# Every script is self-hosted (assets/vendor) and none is inline, so
+# script-src is 'self' alone: no CDN and no hash list to keep in sync.
+# img-src allows *.supabase.co for photos uploaded from the dashboard.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' https://*.supabase.co; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=()"
+    X-Robots-Tag = "noindex, nofollow"
+
+# Dashboard and door app: never cached, never indexed.
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    Cache-Control = "no-store"
+[[headers]]
+  for = "/checkin*"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

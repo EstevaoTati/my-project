@@ -68,6 +68,15 @@
   status = 404
   force = true
 
+# Client sites built in this repo (weddings/*) deploy as their OWN Netlify
+# sites. The company site publishes the repo root, so without this rule it
+# would serve their pages, content and function source under /weddings/.
+[[redirects]]
+  from = "/weddings/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
 [[redirects]]
   from = "/CLAUDE.md"
   to = "/index.html"
