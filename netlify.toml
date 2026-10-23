@@ -28,6 +28,15 @@
 #   to = "/preview.html"
 #   status = 200
 
+# PRECIOUS — the voice console. Declared here as well as in _redirects so
+# the pretty URL resolves whichever file Netlify reads first: the assistant
+# registers a service worker scoped to /precious, and a page served from the
+# wrong path would put that worker out of scope.
+[[redirects]]
+  from = "/precious"
+  to = "/precious.html"
+  status = 200
+
 # ----- Block internal repository files (defence in depth) -----
 # netlify.toml redirects are evaluated before _redirects, so these forced
 # rules win over the static files sitting in the published root. The same
@@ -150,6 +159,38 @@
   [headers.values]
     X-Frame-Options = "DENY"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests;" # csp:strict
+
+# PRECIOUS — voice console. The site-wide policy switches the microphone
+# off entirely; this is the single page allowed to open it, and only for
+# itself (`self`, never a third-party frame). Nothing may frame this page.
+[[headers]]
+  for = "/precious"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(self), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests;" # csp:strict
+
+[[headers]]
+  for = "/precious.html"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(self), midi=(), payment=(), usb=(), xr-spatial-tracking=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'sha256-3JWlDrSLLWaFP3TthVS5eS/5g1nZy86Rd6n+aEWhw08=' 'sha256-DfLRmeeChCRCzVFzMDspgPfHkMNFhRArA1IkSpeOOPI=' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; form-action 'self' https://wa.me; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests;" # csp:strict
+
+# The service worker must never be frozen by the one-year immutable rule
+# that covers /*.js — a stale worker would pin an old app forever.
+[[headers]]
+  for = "/precious-sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/precious"
+
+[[headers]]
+  for = "/precious.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 # Never cache the key-gated endpoints or their responses.
 [[headers]]

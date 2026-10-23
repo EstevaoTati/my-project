@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PRECIOUS">
+  <defs>
+    <radialGradient id="heart" cx="45%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="38%" stop-color="#FFE680"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#FFD700" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#050507"/>
+  <circle cx="256" cy="256" r="230" fill="url(#halo)"/>
+  <circle cx="256" cy="256" r="216" fill="none" stroke="#D4AF37" stroke-width="3"
+          stroke-dasharray="6 9" opacity=".75"/>
+  <g stroke="#FFD700" stroke-width="13" stroke-linecap="round">
+    <g id="crown">
+      <path d="M256 96V58" opacity=".95"/><path d="M301 101l9-36" opacity=".7"/>
+      <path d="M345 119l18-33" opacity=".95"/><path d="M382 148l26-27" opacity=".6"/>
+      <path d="M409 186l33-18" opacity=".9"/><path d="M424 230l36-9" opacity=".65"/>
+      <path d="M424 282l36 9" opacity=".9"/><path d="M409 326l33 18" opacity=".6"/>
+      <path d="M382 364l26 27" opacity=".95"/><path d="M345 393l18 33" opacity=".7"/>
+      <path d="M301 411l9 36" opacity=".9"/><path d="M256 416v38" opacity=".95"/>
+      <path d="M211 411l-9 36" opacity=".7"/><path d="M167 393l-18 33" opacity=".9"/>
+      <path d="M130 364l-26 27" opacity=".6"/><path d="M103 326l-33 18" opacity=".95"/>
+      <path d="M88 282l-36 9" opacity=".65"/><path d="M88 230l-36-9" opacity=".9"/>
+      <path d="M103 186L70 168" opacity=".6"/><path d="M130 148l-26-27" opacity=".95"/>
+      <path d="M167 119l-18-33" opacity=".7"/><path d="M211 101l-9-36" opacity=".9"/>
+    </g>
+  </g>
+  <circle cx="256" cy="256" r="122" fill="none" stroke="#8d7528" stroke-width="4"/>
+  <circle cx="256" cy="256" r="98" fill="url(#heart)"/>
+</svg>

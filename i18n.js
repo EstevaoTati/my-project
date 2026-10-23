@@ -22,6 +22,7 @@
       'nav.impact': "Impact",
       'nav.contact': "Contact",
       'nav.os': "MWINDA OS",
+      'nav.precious': "PRECIOUS",
       'nav.bi': "AI Business Intelligence",
       'nav.cta': "Démarrer un projet",
 
@@ -146,6 +147,7 @@
       'nav.impact': "Impact",
       'nav.contact': "Contact",
       'nav.os': "MWINDA OS",
+      'nav.precious': "PRECIOUS",
       'nav.bi': "AI Business Intelligence",
       'nav.cta': "Start a project",
 
