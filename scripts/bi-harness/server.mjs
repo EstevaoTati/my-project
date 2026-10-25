@@ -8,6 +8,9 @@ import { extname, join, normalize } from "node:path";
 
 const ROOT = process.env.ROOT || new URL("../../", import.meta.url).pathname.replace(/\/$/, "");
 const PORT = Number(process.env.PORT || 4700);
+// The real hourly token budget (400k) is a cost guard for production; the fake
+// model costs nothing, and a full device matrix writes ~15 dossiers.
+process.env.BI_TOKEN_BUDGET_HOURLY ||= "100000000";
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript",
   ".json": "application/json", ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".mp4": "video/mp4" };
 const stats = { requests: {} };

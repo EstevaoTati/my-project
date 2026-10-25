@@ -11,6 +11,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 const results = [];
 
 let clients = 0;
+const run = 1 + Math.floor(Math.random() * 250);   // a fresh client range per run
 async function fresh(size = "1280x900") {
   let opts;
   if (typeof size === "object") opts = size;
@@ -21,7 +22,11 @@ async function fresh(size = "1280x900") {
   }
   // Each context is its own client for the dispatcher's rate limit (40/hour),
   // so a full run no longer needs a server restart between suites.
-  const ctx = await browser.newContext({ ...opts, acceptDownloads: true, extraHTTPHeaders: { "x-nf-client-connection-ip": "10.0.0." + ++clients } });
+  const ctx = await browser.newContext({ ...opts, acceptDownloads: true });
+  const ip = `10.${run}.0.${++clients}`;
+  // Same-origin only: on a cross-origin font request the extra header forces a
+  // CORS preflight that Google Fonts refuses.
+  await ctx.route(BASE + "/**", (r) => r.continue({ headers: { ...r.request().headers(), "x-nf-client-connection-ip": ip } }));
   const page = await ctx.newPage();
   if (LOCAL_FONTS) await page.route("https://fonts.googleapis.com/**", (r) => r.fulfill({ contentType: "text/css", body: LOCAL_FONTS }));
   page.problems = [];
@@ -86,7 +91,7 @@ await scenario("step-by-step", async () => {
   assert.ok(await page.isVisible("#linkNote"), "link note not visible");
   const maxKb = Math.max(...page.posts.map((p) => p.kb));
   assert.ok(maxKb < 40, "request too big: " + maxKb + " KB");
-  assert.deepEqual(page.problems, []);
+  assert.deepEqual(page.problems, [], page.problems.join(" | "));
   await page.screenshot({ path: "suite-dossier.png" });
   await ctx.close();
   return `${heads.length} sections, ${fname}, largest request ${maxKb} KB, all six stages in ${genSecs}s`;
@@ -108,7 +113,7 @@ await scenario("one-click", async () => {
   assert.match(await page.textContent("#pdfNote"), /ready/);
   await downloadPdf(page, "suite-oneclick.pdf");
   await page.screenshot({ path: "suite-oneclick-done.png" });
-  assert.deepEqual(page.problems, []);
+  assert.deepEqual(page.problems, [], page.problems.join(" | "));
   await ctx.close();
   return `model then 4 in parallel: ${secs}s`;
 });
@@ -273,7 +278,7 @@ for (const name of DEVICES) {
     for (const must of ["Business model canvas", "Execution roadmap"]) assert.ok(text.includes(must), "PDF is missing " + must);
     await page.screenshot({ path: "suite-device-" + name.replace(/\W+/g, "-").toLowerCase() + ".png" });
     assert.deepEqual(where, [], where.join(" | "));
-    assert.deepEqual(page.problems, []);
+    assert.deepEqual(page.problems, [], page.problems.join(" | "));
     await ctx.close();
     return `${p.viewport.width}x${p.viewport.height}${touch ? " touch" : ""}, PDF ${doc.numPages} pages`;
   });
@@ -319,7 +324,7 @@ await scenario("dropped-start-request", async () => {
   ctl({});
   const { ctx, page } = await fresh("390x844");
   let dropped = 0;
-  await page.route("**/.netlify/functions/bi", (route) => (route.request().method() === "POST" && !dropped++ ? route.abort("connectionreset") : route.continue()));
+  await page.route("**/.netlify/functions/bi", (route) => (route.request().method() === "POST" && !dropped++ ? route.abort("connectionreset") : route.fallback()));
   await analyze(page);
   assert.equal(dropped, 2, "expected one dropped start and one retry");
   await ctx.close();
