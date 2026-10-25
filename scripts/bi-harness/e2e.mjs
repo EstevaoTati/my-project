@@ -1,5 +1,5 @@
 // Full BI suite in a real browser against the real functions (fake model).
-import { chromium } from "playwright-core";
+import { chromium, devices } from "playwright-core";
 import { readFileSync, writeFileSync } from "node:fs";
 import assert from "node:assert/strict";
 const BASE = "http://127.0.0.1:4700";
@@ -10,10 +10,18 @@ const only = process.env.ONLY ? process.env.ONLY.split(",") : null;
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined, args: ["--no-sandbox"] });
 const results = [];
 
+let clients = 0;
 async function fresh(size = "1280x900") {
-  const [w, h] = size.split("x").map(Number);
-  const mobile = w < 600;
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile, acceptDownloads: true });
+  let opts;
+  if (typeof size === "object") opts = size;
+  else {
+    const [w, h] = size.split("x").map(Number);
+    const mobile = w < 600;
+    opts = { viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile };
+  }
+  // Each context is its own client for the dispatcher's rate limit (40/hour),
+  // so a full run no longer needs a server restart between suites.
+  const ctx = await browser.newContext({ ...opts, acceptDownloads: true, extraHTTPHeaders: { "x-nf-client-connection-ip": "10.0.0." + ++clients } });
   const page = await ctx.newPage();
   if (LOCAL_FONTS) await page.route("https://fonts.googleapis.com/**", (r) => r.fulfill({ contentType: "text/css", body: LOCAL_FONTS }));
   page.problems = [];
@@ -51,6 +59,7 @@ async function scenario(name, fn) {
   const t0 = Date.now();
   try { const note = await fn(); results.push(`PASS ${name} (${((Date.now() - t0) / 1000).toFixed(1)}s)${note ? " — " + note : ""}`); }
   catch (e) { results.push(`FAIL ${name}: ${e.message.split("\n")[0]}`); }
+  if (process.env.STREAM) console.log(results[results.length - 1]);
 }
 
 await scenario("step-by-step", async () => {
@@ -197,6 +206,124 @@ await scenario("editable-after-reload", async () => {
   }
   await ctx.close();
   return "plan fields readable after one-click and after reload";
+});
+
+// ------------------------------------------------ phones, tablets, computers --
+const DEVICES = (process.env.DEVICES || "iPhone SE,iPhone 13,Pixel 7,iPad (gen 7),iPad Pro 11 landscape,Laptop 1366,Desktop 1920").split(",");
+const profile = (name) => {
+  if (/^(Laptop|Desktop) (\d+)$/.test(name)) { const w = +name.split(" ")[1]; return { viewport: { width: w, height: w > 1600 ? 1080 : 768 } }; }
+  const { defaultBrowserType, ...p } = devices[name];   // eslint-disable-line no-unused-vars
+  return p;
+};
+/** Anything wider than the screen: a page a phone has to pan sideways. */
+const sideways = (page) => page.evaluate(() => {
+  const vw = document.documentElement.clientWidth;
+  if (document.documentElement.scrollWidth <= vw + 1) return null;
+  const wide = [...document.querySelectorAll(".step.active *, header *, .rail *")].filter((e) => {
+    const r = e.getBoundingClientRect();
+    if (!r.width || r.right <= vw + 1) return false;
+    for (let a = e.parentElement; a; a = a.parentElement) if (/auto|scroll|hidden/.test(getComputedStyle(a).overflowX) && a !== document.body && a !== document.documentElement) return false;
+    return true;
+  });
+  return `page ${document.documentElement.scrollWidth}px on a ${vw}px screen: ` + wide.slice(0, 3).map((e) => e.tagName.toLowerCase() + "." + e.className).join(", ");
+});
+for (const name of DEVICES) {
+  await scenario("device: " + name, async () => {
+    ctl({ charsPerSec: Number(process.env.CPS || 3000) });
+    const p = profile(name);
+    const touch = !!p.hasTouch;
+    const press = (sel) => (touch ? page.tap(sel) : page.click(sel));
+    const { ctx, page } = await fresh(p);
+    const where = [];
+    const check = async (label) => { const w = await sideways(page); if (w) where.push(label + ": " + w); };
+    await fillStart(page);
+    await check("start");
+    if (touch) {
+      // Under 16px, iOS Safari zooms the page into the field on tap.
+      const small = await page.$$eval(".field input, .field select, .field textarea", (els) => els.map((e) => parseFloat(getComputedStyle(e).fontSize)).filter((f) => f < 16));
+      assert.deepEqual(small, [], "fields under 16px zoom the page on iPhone");
+    }
+    const h = await page.$eval("#btnAnalyze", (b) => b.getBoundingClientRect().height);
+    assert.ok(h >= 40, "Analyse button too small to tap: " + h + "px");
+    await press("#btnAnalyze");
+    await waitStep(page, "analyze", 600000);
+    await check("analysis");
+    await page.locator(".step.active [data-all]").scrollIntoViewIfNeeded();
+    await (touch ? page.locator(".step.active [data-all]").tap() : page.locator(".step.active [data-all]").click());
+    await page.waitForSelector(".status-all");
+    await check("one-click progress");
+    await waitStep(page, "dossier", 600000);
+    await check("dossier");
+    for (const step of ["Business plan", "Financials", "Roadmap"]) {
+      const btn = page.locator(`#rail button:has-text('${step}')`);
+      if (!(await btn.isVisible())) continue;
+      await (touch ? btn.tap() : btn.click());
+      await page.waitForTimeout(250);
+      await check(step);
+    }
+    await page.locator("#rail button:has-text('Dossier')").click();
+    await waitStep(page, "dossier");
+    const file = "suite-device-" + name.replace(/\W+/g, "-").toLowerCase() + ".pdf";
+    const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 20000 }), press("#btnPrint")]);
+    await dl.saveAs(file);
+    const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const doc = await getDocument({ data: new Uint8Array(readFileSync(file)), verbosity: 0 }).promise;
+    let text = "";
+    for (let i = 1; i <= doc.numPages; i++) text += (await (await doc.getPage(i)).getTextContent()).items.map((x) => x.str).join(" ");
+    for (const must of ["Business model canvas", "Execution roadmap"]) assert.ok(text.includes(must), "PDF is missing " + must);
+    await page.screenshot({ path: "suite-device-" + name.replace(/\W+/g, "-").toLowerCase() + ".png" });
+    assert.deepEqual(where, [], where.join(" | "));
+    assert.deepEqual(page.problems, []);
+    await ctx.close();
+    return `${p.viewport.width}x${p.viewport.height}${touch ? " touch" : ""}, PDF ${doc.numPages} pages`;
+  });
+}
+
+// ----------------------------------------------------------- bad networks --
+await scenario("offline-mid-generation", async () => {
+  // A phone in a lift: 40 s with no network while the business model is written.
+  ctl({ charsPerSec: 2500 });
+  const { ctx, page } = await fresh("390x844");
+  await analyze(page);
+  await page.locator('.step.active [data-next="model"]').click();
+  await page.waitForTimeout(800);
+  await ctx.setOffline(true);
+  await page.waitForTimeout(40000);
+  const shown = await page.textContent(".step.active .status");
+  assert.ok(!(await page.$(".step.active .status.err")), "gave up while offline: " + await errs(page));
+  await ctx.setOffline(false);
+  await waitStep(page, "model", 60000);
+  await ctx.close();
+  return "waited out 40 s offline (\"" + shown.trim().slice(0, 50) + "…\"), then landed";
+});
+
+await scenario("phone-slept-past-deadline", async () => {
+  // The screen locked during the analysis and came back 12 minutes later: the
+  // result is still on the server and must be collected, not silently dropped.
+  ctl({});
+  const { ctx, page } = await fresh("390x844");
+  await fillStart(page);
+  await page.click("#btnAnalyze");
+  await page.waitForFunction(() => { const p = JSON.parse(localStorage.getItem("mwinda.bi.project") || "{}"); return p.pending && p.pending.analyze; });
+  await page.waitForTimeout(2500);  // finished on the server meanwhile
+  await page.evaluate(() => { const p = JSON.parse(localStorage.getItem("mwinda.bi.project")); p.pending.analyze.at = Date.now() - 12 * 60 * 1000; localStorage.setItem("mwinda.bi.project", JSON.stringify(p)); });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !!JSON.parse(localStorage.getItem("mwinda.bi.project")).stages.analyze, null, { timeout: 30000 });
+  assert.equal(page.posts.filter((p) => p.stage === "analyze").length, 1, "analysis was generated twice");
+  await ctx.close();
+  return "collected the finished analysis after a 12-minute gap";
+});
+
+await scenario("dropped-start-request", async () => {
+  // The request that starts a stage is lost on the way: retried, not an error.
+  ctl({});
+  const { ctx, page } = await fresh("390x844");
+  let dropped = 0;
+  await page.route("**/.netlify/functions/bi", (route) => (route.request().method() === "POST" && !dropped++ ? route.abort("connectionreset") : route.continue()));
+  await analyze(page);
+  assert.equal(dropped, 2, "expected one dropped start and one retry");
+  await ctx.close();
+  return "start request lost once, retried, analysis landed";
 });
 
 await browser.close();

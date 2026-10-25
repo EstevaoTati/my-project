@@ -19,6 +19,9 @@
   // The worker's own ceiling is 15 minutes. Give up before that, because a
   // stage that has not finished in eight is not going to.
   const MAX_WAIT_MS = 8 * 60 * 1000;
+  // The server keeps a finished result this long (JOB_TTL_MS in _jobs.mjs). A
+  // phone that slept through a generation must still ask for it on waking.
+  const RESUME_MS = 20 * 60 * 1000;
   const STAGE_TITLES = {
     analyze: 'idea analysis', model: 'business model', plan: 'business plan',
     financials: 'financial assumptions', compliance: 'regulatory checklist',
@@ -41,7 +44,47 @@
     analyze: 'usually under a minute', model: 'usually 30-60 s', plan: 'usually 1-2 min',
     financials: 'usually under 30 s', compliance: 'usually under a minute', roadmap: 'usually 30-60 s',
   };
-  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+  /**
+   * A wait that ends early when the page comes back: a phone unlocked, a tab
+   * reopened, the network restored. Mobile browsers freeze timers in the
+   * background, and the founder should not stare at a stale spinner for the
+   * rest of a 3.5 s poll interval after they return.
+   */
+  const wakers = new Set();
+  const pause = (ms) => new Promise((r) => {
+    const done = () => { clearTimeout(t); wakers.delete(done); r(); };
+    const t = setTimeout(done, ms);
+    wakers.add(done);
+  });
+  const wakeAll = () => { if (!document.hidden) [...wakers].forEach((w) => w()); };
+  document.addEventListener('visibilitychange', wakeAll);
+  window.addEventListener('online', wakeAll);
+  window.addEventListener('pageshow', wakeAll);
+  // While a phone sleeps, nothing is lost (the server keeps the job), but those
+  // checks are not network failures and must not count toward giving up.
+  const away = () => document.hidden || navigator.onLine === false;
+
+  /**
+   * Keep the screen on while something is being generated: a phone that locks
+   * itself mid-dossier suspends the page. Best-effort — unsupported browsers
+   * and refused requests change nothing.
+   */
+  const awake = {
+    lock: null,
+    async hold() {
+      if (this.lock || document.hidden || !navigator.wakeLock || !Object.keys(inflight).length) return;
+      try {
+        this.lock = await navigator.wakeLock.request('screen');
+        this.lock.addEventListener('release', () => { this.lock = null; });
+        this.release();                      // finished while the request was pending
+      } catch { this.lock = null; }
+    },
+    release() {
+      if (this.lock && !Object.keys(inflight).length) { this.lock.release().catch(() => {}); this.lock = null; }
+    },
+  };
+  // The browser drops the lock when the page is hidden; take it back on return.
+  document.addEventListener('visibilitychange', () => { awake.hold(); });
   const PROJECT_API = '/.netlify/functions/project';
   const STORE = 'mwinda.bi.project';
   const LIST = 'mwinda.bi.projects';
@@ -387,21 +430,37 @@
       let started = (pend && pend.at) || Date.now();
       if (!jobId) {
         tell('Contacting the engine…');
-        const res = await fetch(ENDPOINT, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            stage,
-            project: {
-              intent: project.intent, country: project.country, region: project.region,
-              city: project.city, sector: project.sector, businessType: project.businessType,
-              budget: project.budget, idea: project.idea, answers: project.answers,
-            },
-            prior: priorFor(stage),
-          }),
+        const body = JSON.stringify({
+          stage,
+          project: {
+            intent: project.intent, country: project.country, region: project.region,
+            city: project.city, sector: project.sector, businessType: project.businessType,
+            budget: project.budget, idea: project.idea, answers: project.answers,
+          },
+          prior: priorFor(stage),
         });
-        const out = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(out.error || ('HTTP ' + res.status));
+        // A mobile connection drops a request now and then (a tower handover,
+        // a lift). Starting a stage is retried a few times before the founder
+        // sees an error; a refusal from the server (4xx) is not.
+        let out = null;
+        for (let attempt = 1; ; attempt++) {
+          let res = null;
+          try {
+            res = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json' }, body });
+          } catch { /* network: retried below */ }
+          if (res && res.status < 500) {
+            out = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(out.error || ('HTTP ' + res.status));
+            break;
+          }
+          if (attempt >= 4) {
+            throw new Error(res ? ('the engine is unavailable (HTTP ' + res.status + ') — please retry')
+              : 'no connection — check your network and press Retry');
+          }
+          tell(navigator.onLine === false ? 'Offline — waiting for the network…' : 'Reconnecting to the engine…');
+          await pause(1500 * attempt);
+          while (navigator.onLine === false) await pause(3000);
+        }
         if (!out.jobId) throw new Error('the engine did not start the work — please retry');
         jobId = out.jobId;
         started = Date.now();
@@ -410,8 +469,9 @@
         save();
       }
       return pollJob(stage, jobId, started, tell);
-    })().finally(() => { delete inflight[stage]; });
+    })().finally(() => { delete inflight[stage]; awake.release(); });
     inflight[stage] = { promise, listeners };
+    awake.hold();
     return promise;
   }
 
@@ -419,12 +479,11 @@
     const secs = () => Math.round((Date.now() - started) / 1000);
     const forget = () => { if (project.pending) delete project.pending[stage]; save(); };
     let misses = 0;
-    for (;;) {
-      await pause(pollDelay(Date.now() - started));
-      if (Date.now() - started > MAX_WAIT_MS) {
-        forget();
-        throw new Error('this is taking much longer than usual — please retry');
-      }
+    for (let first = true; ; first = false) {
+      // A job picked up after a reload or a sleep may already be finished:
+      // ask at once, and check the clock only after the server has answered —
+      // a result that is ready is never thrown away for being late.
+      if (!first || Date.now() - started < 3000) await pause(pollDelay(Date.now() - started));
       let status = null;
       try {
         const r = await fetch(STATUS_ENDPOINT + '?job=' + encodeURIComponent(jobId), { cache: 'no-store' });
@@ -443,6 +502,13 @@
       }
 
       if (!status) {
+        if (away()) {
+          // Offline or in the background: wait, don't count it. The job stays
+          // pending, so Retry or a reload picks the same one up.
+          tell(navigator.onLine === false ? 'Offline — the engine keeps working; this resumes when you are back online' : 'Waiting for the connection…');
+          if (Date.now() - started > RESUME_MS) throw new Error('lost contact with the engine for too long — please retry');
+          continue;
+        }
         if (++misses > 12) throw new Error('lost contact with the engine — check your connection and press Retry; the work is not lost');
         tell('Waiting for the connection… (' + secs() + 's)');
         continue;
@@ -458,6 +524,10 @@
         return status.data;
       }
       if (status.status === 'error') { forget(); throw new Error(status.error || 'generation failed'); }
+      if (Date.now() - started > MAX_WAIT_MS) {
+        forget();
+        throw new Error('this is taking much longer than usual — please retry');
+      }
 
       tell((status.chars
         ? 'Writing the ' + (STAGE_TITLES[stage] || stage) + '… ' + (Math.round(status.chars / 100) * 100).toLocaleString('en-US') + ' characters'
@@ -514,7 +584,7 @@
   function resumePending() {
     const pend = project.pending || {};
     Object.keys(pend).forEach((stage) => {
-      if (!STAGE_TITLES[stage] || !pend[stage] || !pend[stage].jobId || Date.now() - pend[stage].at > MAX_WAIT_MS) {
+      if (!STAGE_TITLES[stage] || !pend[stage] || !pend[stage].jobId || Date.now() - pend[stage].at > RESUME_MS) {
         delete pend[stage];
         return;
       }
@@ -762,7 +832,7 @@
     const grid = h('div', { class: 'grid-3' });
     FIELDS.forEach(([key, label]) => {
       const field = h('div', { class: 'field' }, h('label', { text: label }));
-      const input = h('input', { type: 'number', step: 'any', min: '0' });
+      const input = h('input', { type: 'number', step: 'any', min: '0', inputmode: 'decimal' });
       input.value = num(d.assumptions[key]);
       input.addEventListener('input', () => {
         d.assumptions[key] = num(input.value);
@@ -831,7 +901,7 @@
       );
       results.appendChild(h('div', { class: 'panel' },
         h('h3', { text: 'Realistic scenario — month by month' }),
-        h('div', { style: 'overflow-x:auto' }, table),
+        h('div', { class: 'table-scroll' }, table),
         h('p', { class: 'footnote', text: 'Cash includes the initial investment of ' + money(num(d.assumptions.initialInvestment)) + ' as a month-0 outflow. Figures are projections derived from the assumptions above, not forecasts or guarantees.' }),
       ));
 
@@ -1061,12 +1131,12 @@
       const trough = Math.min(...real.rows.map((r) => r.cash));
       out.appendChild(sec('Financial projection — year 1',
         h('p', { text: 'Starting assumptions (' + cur + '). Proposed by the engine as plausible for this country, sector and stage, and editable by the founder.' }),
-        inputs,
+        h('div', { class: 'table-scroll' }, inputs),
         arr(d.assumptionNotes).length ? bullets(d.assumptionNotes) : null,
         h('p', {}, h('b', { text: 'Scenarios' })),
-        scen,
+        h('div', { class: 'table-scroll' }, scen),
         h('p', {}, h('b', { text: 'Realistic scenario, month by month' })),
-        monthly,
+        h('div', { class: 'table-scroll' }, monthly),
         h('p', {}, h('b', { text: 'Capital needed to survive year 1 (realistic): ' }), money(Math.max(0, -trough)) +
           ' — lowest cash point ' + money(trough) + ', including the initial investment as a month-0 outflow.'),
         h('p', { class: 'footnote', text: 'Projections computed from the stated assumptions. They are not forecasts, and no outcome is guaranteed.' })));
