@@ -138,6 +138,11 @@ h3 {
 .field textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--line-strong); }
 .field .hint { font-size: 12.5px; color: var(--dim); margin-top: 6px; }
+/* iOS Safari zooms the whole page into any field under 16px when it is tapped,
+   and leaves it zoomed. Touch screens get 16px fields. */
+@media (pointer: coarse) {
+  .field input, .field select, .field textarea, .editable { font-size: 16px; }
+}
 .field select {
   appearance: none; cursor: pointer; padding-right: 32px;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
@@ -248,6 +253,12 @@ ul.clean li::before {
 
 /* ---------- financial table ---------- */
 table.fin { width: 100%; border-collapse: collapse; font-size: 14px; }
+/* Six or seven money columns do not fit a phone: the table scrolls inside its
+   box instead of pushing the whole page sideways. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table.fin { min-width: 100%; }
+table.fin td:not(:first-child), table.fin th:not(:first-child) { white-space: nowrap; }
+@media print { .table-scroll { overflow: visible; } }
 table.fin th, table.fin td {
   text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--line);
   font-variant-numeric: tabular-nums;
