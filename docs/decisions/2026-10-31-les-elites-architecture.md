@@ -49,3 +49,13 @@ MWINDA domain.
 - The house sells direct (add Stripe Checkout: hosted, no card data on our side).
 - Editors outside the founder's team need to change content weekly (custom admin).
 - The domain moves here (update `site.origin` and canonical/hreflang links).
+
+## Update — videos play continuously (founder, 2026-10-31)
+
+The founder asked for the scenes to be « animés without stopping ». Scroll no
+longer scrubs video time; the visible scene **plays continuously** and scroll
+moves the visitor between rooms (cross-fades, reveals, `--p` objects are
+unchanged). To avoid the camera snapping back at each loop, every clip is a
+**boomerang** (forward + reversed, 14 s, seamless). Hidden scenes pause;
+reduced-motion / calm mode / Save-Data still get posters only. Easing became
+time-based so slow devices busy decoding video do not lag behind the scroll.

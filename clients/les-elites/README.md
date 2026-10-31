@@ -17,7 +17,7 @@ one Netlify function, Supabase for submissions. **No build step on the host.**
 | `manuscrit.html`, `confidentialite.html` | Manuscript portal, privacy notice |
 | `netlify/functions/submit.mjs` | `/api/submit` — validation, rate limit, signed upload, notification |
 | `supabase/migrations/0001_init.sql` | Tables (RLS on, no policies), private bucket, status audit trigger |
-| `scripts/prepare-media.sh` | Downloads the Higgsfield clips and encodes them for scrubbing |
+| `scripts/prepare-media.sh` | Downloads the Higgsfield clips and encodes them as seamless boomerang loops |
 | `scripts/smoke-test.mjs` | Playwright test of the whole experience (run before every deploy) |
 | `docs/higgsfield-production.md` | Shot list, prompts, job ids, continuity rules |
 

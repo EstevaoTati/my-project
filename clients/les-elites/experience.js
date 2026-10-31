@@ -8,7 +8,10 @@
  *   chapter progress p ∈ [0,1]  (one per <section.chapter>)
  *     → --p on the chapter         (CSS-driven objects: shelf, manuscript)
  *     → .reveal[data-at] .on       (reversible: toggles both ways)
- *     → scene video currentTime    (scrubbed, smoothed, seek-guarded)
+ *     → scene video                (plays continuously on a seamless
+ *                                     boomerang loop while visible, pauses
+ *                                     when off-stage — founder: "animated
+ *                                     without stopping")
  *     → scene poster scale         (dolly-in when no video)
  *     → cross-fade to next scene   (last 14% of a chapter = the threshold)
  *
@@ -44,7 +47,7 @@
     }
     if (s.vid) {
       s.vid.addEventListener('error', () => { s.vid.remove(); s.vid = null; }, { once: true });
-      s.vid.addEventListener('loadeddata', () => { s.ok = true; s.vid.classList.add('ready'); s.vid.pause(); root.classList.add('vid-' + s.el.dataset.scene); }, { once: true });
+      s.vid.addEventListener('loadeddata', () => { s.ok = true; s.vid.classList.add('ready'); root.classList.add('vid-' + s.el.dataset.scene); request(); }, { once: true });
     }
   });
   function loadPoster(i) {
@@ -78,12 +81,17 @@
 
   /* ---------- the frame ---------- */
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-  let target = scrollY, smooth = scrollY, raf = 0, lastActive = -1, mx = 0, my = 0, pmx = 0, pmy = 0;
+  let target = scrollY, smooth = scrollY, raf = 0, lastActive = -1, mx = 0, my = 0, pmx = 0, pmy = 0, lastT = 0;
 
-  function frame() {
+  function frame(now) {
     raf = 0;
     const calm = !motion();
-    smooth = calm ? target : smooth + (target - smooth) * 0.14;
+    // Time-based easing: the same feel at 120, 60 or 15 fps. A per-frame
+    // factor lags far behind on slow devices busy decoding video.
+    const dt = Math.min(100, lastT ? now - lastT : 16.7);
+    lastT = now;
+    const k = 1 - Math.pow(1 - 0.14, dt / 16.7);
+    smooth = calm ? target : smooth + (target - smooth) * k;
     if (Math.abs(target - smooth) < 0.4) smooth = target;
     const y = smooth;
 
@@ -118,8 +126,9 @@
       const dolly = s.ok && !calm ? 1 : 1 + (calm ? 0 : p * 0.12);
       const par = calm ? '' : ` translate3d(${(pmx * -10).toFixed(2)}px, ${(pmy * -6).toFixed(2)}px, 0)`;
       s.el.style.transform = `scale(${(push * dolly).toFixed(4)})${par}`;
-      if (s.vid && s.ok && !calm) scrub(s, p);
     });
+    // Visible scenes play continuously; hidden ones pause (battery, CPU).
+    state.forEach((s, i) => play(s, !calm && (i === sceneOf || (i === sceneOf + 1 && fadeIn > 0))));
 
     if (active !== lastActive) {
       lastActive = active;
@@ -132,27 +141,32 @@
     if (railFill) railFill.style.setProperty('--g', clamp((y - tops[0]) / total).toFixed(4));
 
     // Pointer parallax eases too.
-    pmx += (mx - pmx) * 0.06; pmy += (my - pmy) * 0.06;
+    const kp = 1 - Math.pow(1 - 0.06, dt / 16.7);
+    pmx += (mx - pmx) * kp; pmy += (my - pmy) * kp;
     if (Math.abs(target - smooth) > 0.4 || Math.abs(mx - pmx) > 0.002 || Math.abs(my - pmy) > 0.002) request();
+    else lastT = 0;
   }
 
-  // Seek only when the decoder is free, so a fast scroll never queues dozens
-  // of seeks (the cause of "laggy" scrub). The last request always wins.
-  function scrub(s, p) {
-    const d = s.vid.duration;
-    if (!d || !isFinite(d)) return;
-    const want = Math.min(d - 0.05, p * d);
-    if (s.vid.seeking || Math.abs(s.vid.currentTime - want) < 1 / 30) return;
-    s.vid.currentTime = want;
+  // Continuous playback. The clips are boomerang-encoded (forward then
+  // reversed), so `loop` never jumps the camera back to its start.
+  // If the browser refuses autoplay (iOS Low Power Mode), the poster stays and
+  // the first tap/scroll gesture retries — the stage is never black.
+  let blocked = false;
+  function play(s, on) {
+    if (!s.vid || !s.ok) return;
+    if (on && s.vid.paused) {
+      const pr = s.vid.play();
+      if (pr && pr.catch) pr.catch(() => { blocked = true; });
+    } else if (!on && !s.vid.paused) s.vid.pause();
   }
+  const retry = () => { if (blocked) { blocked = false; lastActive = -2; request(); } };
+  ['pointerdown', 'touchstart', 'keydown'].forEach((t) => addEventListener(t, retry, { passive: true }));
 
-  function request() { if (!raf) raf = requestAnimationFrame(frame); }
+  function request() { if (!raf) { if (!lastT) lastT = 0; raf = requestAnimationFrame(frame); } }
 
   addEventListener('scroll', () => { target = scrollY; request(); }, { passive: true });
   addEventListener('resize', () => { measure(); target = scrollY; request(); });
   document.addEventListener('le:mode', () => { measure(); smooth = target = scrollY; request(); });
-  // A seek that finished may not match the latest scroll yet: re-frame.
-  state.forEach((s) => s.vid && s.vid.addEventListener('seeked', request));
 
   // Desktop-only, secondary, and off whenever motion is reduced.
   if (matchMedia('(pointer: fine)').matches) {

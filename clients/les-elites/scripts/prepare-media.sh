@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Downloads the Higgsfield scene clips and encodes them for scroll-scrubbing.
+# Downloads the Higgsfield scene clips and encodes them as seamless loops.
 #
 #   bash scripts/prepare-media.sh            # download + encode
 #   bash scripts/prepare-media.sh --local    # encode raw/scene-0N.mp4 you already have
 #
-# Why re-encode: a browser can only seek to a keyframe and decode forward.
-# Higgsfield exports have a keyframe every ~2 s, so scrubbing stutters. Here
-# every 6th frame is a keyframe (no B-frames): smooth seeks for a file size
-# that stays near 3-5 MB per 7 s clip. Audio is stripped (never autoplay sound).
+# Why re-encode: the scenes play continuously on a loop (founder: "animated
+# without stopping"). A forward camera move that loops would snap back to its
+# first frame, so each clip becomes a boomerang — forward, then reversed —
+# and the motion breathes back and forth with no visible cut. 14 s per scene,
+# keyframe every 2 s, ~3-6 MB. Audio is stripped (never autoplay sound).
 #
 # Outputs, all read by index.html:
 #   media/scene-0N.mp4    1280w desktop
@@ -40,8 +41,13 @@ for i in 1 2 3 4 5; do
   n=$(printf '%02d' "$i"); src="raw/scene-$n.mp4"
   fetch "${URLS[$((i-1))]}" "$src" || true
   [[ -s "$src" ]] || { echo "missing $src — skipped (the site falls back to the poster/painted scene)"; continue; }
-  enc "$src" 1280 24 6 "media/scene-$n.mp4"     # keyframe every 6 frames: smooth scroll-scrub
-  enc "$src" 960  27 6 "media/scene-$n-m.mp4"
+  # Boomerang: forward + reversed (minus the duplicated turn frames), so the
+  # looping camera move eases back and forth instead of snapping to frame 0.
+  ffmpeg -loglevel error -y -i "$src" -an -filter_complex \
+    "[0:v]split[f][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[f][r]concat=n=2:v=1,trim=end_frame=$(( $(ffprobe -v error -count_frames -select_streams v -show_entries stream=nb_read_frames -of csv=p=0 "$src") * 2 - 2 )),setpts=PTS-STARTPTS[v]" \
+    -map "[v]" -c:v libx264 -preset slow -crf 16 "raw/loop-$n.mp4"
+  enc "raw/loop-$n.mp4" 1280 24 48 "media/scene-$n.mp4"
+  enc "raw/loop-$n.mp4" 960  27 48 "media/scene-$n-m.mp4"
   ffmpeg -loglevel error -y -i "media/scene-$n.mp4" -frames:v 1 -q:v 3 "media/scene-$n.jpg"
   printf '✓ scene %s  %s  %s\n' "$n" "$(du -h "media/scene-$n.mp4" | cut -f1)" "$(du -h "media/scene-$n-m.mp4" | cut -f1)"
 done
@@ -49,7 +55,10 @@ done
 # Catalogue header: plays as a loop, never scrubbed → normal GOP, smaller file.
 fetch "$LOOP" raw/catalogue-loop.mp4 || true
 if [[ -s raw/catalogue-loop.mp4 ]]; then
-  enc raw/catalogue-loop.mp4 720 27 48 media/catalogue-loop.mp4
+  ffmpeg -loglevel error -y -i raw/catalogue-loop.mp4 -an -filter_complex \
+    "[0:v]split[f][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[f][r]concat=n=2:v=1[v]" \
+    -map "[v]" -c:v libx264 -preset slow -crf 16 raw/catalogue-boomerang.mp4
+  enc raw/catalogue-boomerang.mp4 720 27 48 media/catalogue-loop.mp4
   ffmpeg -loglevel error -y -i media/catalogue-loop.mp4 -frames:v 1 -q:v 3 media/catalogue-loop.jpg
   echo "✓ catalogue loop $(du -h media/catalogue-loop.mp4 | cut -f1)"
 fi

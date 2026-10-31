@@ -1,5 +1,5 @@
 # Les Élites — fetch the Higgsfield clips and commit them, encoded for
-# scroll-scrubbing. Runs on GitHub's runners because Higgsfield's CDN is not
+# seamless continuous loops. Runs on GitHub's runners because Higgsfield's CDN is not
 # reachable from the Claude Code sandbox. Commits made with GITHUB_TOKEN do
 # not trigger workflows, so this cannot loop.
 name: les-elites-media

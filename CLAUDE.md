@@ -302,7 +302,7 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   Netlify site** (base directory = that folder). `/clients/*` is forced 404 on
   the MWINDA domain in both `_redirects` and `netlify.toml`.
 - `clients/les-elites/` — LES ÉLITES PUBLISHING HOUSE, "The House of
-  Knowledge": scroll-scrubbed Higgsfield scenes + CSS-3D shelf, generated
+  Knowledge": Higgsfield scenes playing continuously (boomerang loops), scroll moves between rooms + CSS-3D shelf, generated
   catalogue/book/author pages from `data/catalog.js`, manuscript portal
   (signed upload to a private Supabase bucket). **Nothing invented:** unknown
   facts stay `null` and are hidden. Run `node scripts/build-pages.mjs --check`

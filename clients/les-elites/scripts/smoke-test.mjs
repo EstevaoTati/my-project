@@ -4,7 +4,8 @@
 //   MEDIA_DIR=/path/to/media node scripts/...    # serve these files as media/*
 //   SHOTS=/tmp/shots node scripts/...            # also write screenshots
 // Asserts behaviour, not pixels: no console errors, every scene reachable,
-// video time follows scroll forwards AND backwards, reveals reverse, dialogs
+// visible scene videos play continuously (no scrolling needed) and hidden
+// ones pause, reveals reverse, dialogs
 // trap focus and return it, classic mode shows everything without the stage,
 // forms report "not configured" honestly when the API answers 501.
 import http from "node:http";
@@ -103,9 +104,17 @@ console.log("desktop experience" + (MEDIA ? " (with media)" : " (no media → pa
     await scrollToChapter(p, "arrivee", 0.1);
     await p.waitForFunction(() => document.querySelector(".s1 video.ready"), null, { timeout: 8000 }).catch(() => {});
     ok(await p.evaluate(() => !!document.querySelector(".s1 video.ready")), "scene 1 video loaded");
-    const tAt = async (frac) => { await scrollToChapter(p, "arrivee", frac); await settle(p, 700); return p.evaluate(() => document.querySelector(".s1 video").currentTime); };
-    const a = await tAt(0.2), b = await tAt(0.8), c = await tAt(0.3);
-    ok(b > a + 2 && c < b - 2, `video time follows scroll forward and back (${a.toFixed(2)}s → ${b.toFixed(2)}s → ${c.toFixed(2)}s)`);
+    // Continuous playback: time advances while the page does not move.
+    await scrollToChapter(p, "arrivee", 0.3);
+    const t0 = await p.evaluate(() => document.querySelector(".s1 video").currentTime);
+    await settle(p, 1500);
+    const t1 = await p.evaluate(() => document.querySelector(".s1 video").currentTime);
+    const st = await p.evaluate(() => { const v = document.querySelector(".s1 video"); return { paused: v.paused, loop: v.loop }; });
+    ok(!st.paused && st.loop && t1 !== t0, `scene 1 plays continuously without scrolling (${t0.toFixed(2)}s → ${t1.toFixed(2)}s, loop=${st.loop})`);
+    await scrollToChapter(p, "maison", 0.5);
+    await settle(p, 800);
+    const ps = await p.evaluate(() => [...document.querySelectorAll(".scene video")].map((v) => (v.getAttribute("src") ? (v.paused ? "p" : "▶") : "-")).join(""));
+    ok(ps[0] === "p" && ps[1] === "▶", `scene 2 plays, scene 1 paused once out of view (${ps})`);
   }
 
   // library: book dialog, focus trap + return
