@@ -16,7 +16,8 @@
  *     → cross-fade to next scene   (last 14% of a chapter = the threshold)
  *
  * Videos load lazily (active + next scene only) and are skipped entirely in
- * classic mode, calm mode, prefers-reduced-motion and Save-Data.
+ * classic mode, calm mode (the in-page button) and Save-Data. The OS
+ * reduced-motion setting keeps the footage but drops parallax and smoothing.
  */
 (function () {
   const root = document.documentElement;
@@ -36,6 +37,7 @@
 
   const motion = () => !root.classList.contains('calm') && !root.classList.contains('classic');
   const videosAllowed = () => motion() && !lowData;
+  const osReduce = () => root.classList.contains('os-reduce');
 
   /* ---------- media loading (posters always, videos when allowed) ---------- */
   const state = scenes.map((el) => ({ el, img: el.querySelector('.poster'), vid: el.querySelector('video'), t: 0, loaded: false, ok: false }));
@@ -91,7 +93,7 @@
     const dt = Math.min(100, lastT ? now - lastT : 16.7);
     lastT = now;
     const k = 1 - Math.pow(1 - 0.14, dt / 16.7);
-    smooth = calm ? target : smooth + (target - smooth) * k;
+    smooth = calm || osReduce() ? target : smooth + (target - smooth) * k;
     if (Math.abs(target - smooth) < 0.4) smooth = target;
     const y = smooth;
 
@@ -171,7 +173,7 @@
   // Desktop-only, secondary, and off whenever motion is reduced.
   if (matchMedia('(pointer: fine)').matches) {
     addEventListener('pointermove', (e) => {
-      if (!motion()) return;
+      if (!motion() || osReduce()) return;
       mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; request();
     }, { passive: true });
   }

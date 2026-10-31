@@ -313,6 +313,9 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   `docs/decisions/2026-10-31-les-elites-warm-classic-direction.md`. The
   founder's reference images beat the written brief when they conflict;
   flag the conflict first.
+  **Immersive by default, every visit**: the classic / reduce-motion
+  opt-outs last for the tab only, and the OS reduced-motion setting keeps
+  the footage (only parallax/smoothing drop). Founder preference.
 
 ### MWINDA OS infrastructure in this repo
 

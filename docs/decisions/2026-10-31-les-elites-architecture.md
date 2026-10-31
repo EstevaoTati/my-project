@@ -59,3 +59,17 @@ unchanged). To avoid the camera snapping back at each loop, every clip is a
 **boomerang** (forward + reversed, 14 s, seamless). Hidden scenes pause;
 reduced-motion / calm mode / Save-Data still get posters only. Easing became
 time-based so slow devices busy decoding video do not lag behind the scroll.
+
+## Update — immersive by default (founder, 2026-10-31)
+
+« Remets-le en mode immersif. » Visitors ended up stuck outside the
+experience: "Passer l'expérience" and "Réduire les animations" were stored in
+`localStorage`, so one click lasted forever, and the OS reduced-motion setting
+silently switched the site to posters. Now:
+- **Every visit starts immersive.** Both opt-outs are `sessionStorage` (this
+  tab only); old stored keys are cleared; `?mode=immersive` resets the tab.
+- **OS reduced-motion keeps the footage** (slow camera moves, pausable) and
+  only drops parallax, scroll smoothing and reveal travel. The in-page
+  "Réduire les animations" button remains the full stop (WCAG 2.2.2 pause
+  control). Trade-off accepted by founder preference: immersion first, with
+  a one-click way out on every page.

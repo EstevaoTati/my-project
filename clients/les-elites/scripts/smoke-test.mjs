@@ -173,20 +173,27 @@ console.log("classic mode");
   ok(h < 1.6, `chapters are normal height (${h.toFixed(2)} vh)`);
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/classic-full.png`, fullPage: true });
   await p.reload(); await settle(p, 300);
-  ok(await p.evaluate(() => document.documentElement.classList.contains("classic")), "choice persists across reloads");
+  ok(await p.evaluate(() => document.documentElement.classList.contains("classic")), "choice holds for this tab (reload)");
+  const fresh = await p.context().newPage();
+  await fresh.goto(BASE + "/index.html"); await settle(fresh, 300);
+  ok(!(await fresh.evaluate(() => document.documentElement.classList.contains("classic"))), "a new visit starts immersive again");
+  await fresh.close();
   ok(p.errors.length === 0, "no JS errors");
   await p.context().close();
 }
 
 // ---------- reduced motion ----------
-console.log("prefers-reduced-motion");
+console.log("prefers-reduced-motion (OS setting)");
 {
   const p = await page({ width: 1280, height: 800 }, { reduced: true });
   await p.goto(BASE + "/index.html"); await settle(p, 400);
-  ok(await p.evaluate(() => document.documentElement.classList.contains("calm")), "calm mode on");
+  const cls = await p.evaluate(() => document.documentElement.className);
+  ok(/os-reduce/.test(cls) && !/calm|classic/.test(cls), `stays immersive, secondary motion off (${cls})`);
   await scrollToChapter(p, "maison", 0.02);
-  ok(await p.locator("#maison .axes li").last().isVisible() && +(await p.locator("#maison .axes li").last().evaluate((e) => getComputedStyle(e).opacity)) === 1, "content fully shown, no progressive reveal");
-  ok(await p.evaluate(() => [...document.querySelectorAll(".scene video")].every((v) => !v.getAttribute("src"))), "no video downloaded");
+  ok(await p.locator("#maison .axes li").first().isVisible(), "content reachable");
+  if (MEDIA) ok(await p.evaluate(() => !!document.querySelector(".scene video[src]")), "footage still loads");
+  await p.click("#motionBtn"); await settle(p, 300);
+  ok(await p.evaluate(() => document.documentElement.classList.contains("calm") && [...document.querySelectorAll(".scene video")].every((v) => v.paused)), "in-page button pauses all footage");
   await p.context().close();
 }
 

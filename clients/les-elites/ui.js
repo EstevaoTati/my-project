@@ -15,7 +15,11 @@
   const BASE = document.body.dataset.base || '';
   const A = (p) => (p && !/^https?:/.test(p) ? BASE + p : p);
 
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('calm');
+  // The OS "reduce motion" setting keeps the immersive footage (slow camera
+  // moves, pausable with the button below) but drops the secondary motion:
+  // parallax, scroll smoothing, reveal travel. The founder wants the
+  // experience immersive by default; the in-page button is the full opt-out.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('os-reduce');
 
   /* ---------- menu ---------- */
   const menuBtn = $('#menuBtn'), links = $('#navLinks');
@@ -27,7 +31,8 @@
   }
 
   /* ---------- experience toggles ---------- */
-  const store = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+  // Opt-outs last for this tab only: every new visit starts immersive.
+  const store = (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} };
   const classicBtn = $('#classicBtn'), motionBtn = $('#motionBtn');
   function syncToggles() {
     if (classicBtn) classicBtn.dataset.i18n = root.classList.contains('classic') ? 'ui.resumeExp' : 'ui.skipExp';
