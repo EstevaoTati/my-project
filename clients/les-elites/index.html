@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title data-i18n="meta.title">LES ÉLITES PUBLISHING HOUSE — La Maison du Savoir</title>
+  <meta name="description" data-i18n="meta.desc" data-i18n-attr="content" content="Maison d’édition dédiée à l’excellence intellectuelle et à la transmission du savoir. Publications, auteurs, soumission de manuscrits.">
+  <meta name="theme-color" content="#101114">
+  <link rel="canonical" href="https://leselitespublishinghouse.com/">
+  <link rel="alternate" hreflang="fr" href="https://leselitespublishinghouse.com/?lang=fr">
+  <link rel="alternate" hreflang="en" href="https://leselitespublishinghouse.com/?lang=en">
+  <link rel="alternate" hreflang="x-default" href="https://leselitespublishinghouse.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="LES ÉLITES PUBLISHING HOUSE">
+  <meta property="og:description" content="SHAPE. ENLIGHTEN. TRANSFORM. — House of Editorial Excellence">
+  <meta property="og:image" content="https://leselitespublishinghouse.com/assets/brand/og-banner.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/brand/favicon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('le.classic')==='1')document.documentElement.classList.add('classic');if(localStorage.getItem('le.motion')==='off')document.documentElement.classList.add('calm')}catch(e){}</script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Organization","name":"LES ÉLITES PUBLISHING HOUSE","alternateName":"Edition Les Élites","url":"https://leselitespublishinghouse.com/","logo":"https://leselitespublishinghouse.com/assets/brand/logo-full.png","slogan":"SHAPE. ENLIGHTEN. TRANSFORM."}
+  </script>
+</head>
+<body class="page-home">
+  <a class="skip" href="#contenu" data-i18n="skip">Aller au contenu</a>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="#arrivee" aria-label="LES ÉLITES — accueil">
+      <img src="assets/brand/emblem-gold.png" alt="" width="44" height="28">
+      <span class="brand-word">LES ÉLITES<small>PUBLISHING HOUSE</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Navigation principale">
+      <a href="#arrivee" data-i18n="nav.home">Accueil</a>
+      <a href="#maison" data-i18n="nav.house">Notre Maison</a>
+      <a href="catalogue.html" data-i18n="nav.books">Publications</a>
+      <a href="catalogue.html#auteurs" data-i18n="nav.authors">Auteurs</a>
+      <a href="#atelier" data-i18n="nav.services">Services</a>
+      <a href="manuscrit.html" data-i18n="nav.submit">Soumettre un manuscrit</a>
+      <a href="#contact" data-i18n="nav.contact">Contact</a>
+    </nav>
+    <div class="nav-tools">
+      <div class="langs" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang-btn="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="btn btn-gold btn-sm nav-cta" href="manuscrit.html" data-i18n="nav.publish">Publier mon livre</a>
+      <button type="button" class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks"><span class="sr" data-i18n="nav.menu">Menu</span><i></i><i></i></button>
+    </div>
+  </header>
+
+  <!-- Experience controls: always reachable, never required. -->
+  <div class="exp-tools">
+    <button type="button" class="chip" id="classicBtn" data-i18n="ui.skipExp">Passer l’expérience</button>
+    <button type="button" class="chip" id="motionBtn" data-i18n="ui.motionOff">Réduire les animations</button>
+  </div>
+
+  <nav class="rail" id="rail" data-i18n="ui.progress" data-i18n-attr="aria-label" aria-label="Progression dans la Maison">
+    <a href="#arrivee"><span data-i18n="sc1">Le Parvis des Idées</span></a>
+    <a href="#maison"><span data-i18n="sc2">Le Hall de l’Excellence</span></a>
+    <a href="#bibliotheque"><span data-i18n="sc3">La Grande Bibliothèque</span></a>
+    <a href="#atelier"><span data-i18n="sc4">L’Atelier des Auteurs</span></a>
+    <a href="#observatoire"><span data-i18n="sc5">L’Observatoire des Générations</span></a>
+    <i class="rail-fill" id="railFill"></i>
+  </nav>
+
+  <!--
+    THE STAGE. One fixed layer per scene, cross-faded by scroll.
+    Each scene degrades in three steps, so nothing is ever a black screen:
+      1. <video> — Higgsfield clip, all-intra encoded, scrubbed by scroll
+      2. <img>   — poster (frame 0), slow "dolly" scale driven by scroll
+      3. .paint  — CSS-painted architecture, always present underneath
+    Media files are expected at media/scene-0N[.mp4|.jpg|-m.mp4] — see
+    docs/higgsfield-production.md. Missing files remove themselves.
+  -->
+  <div class="stage" id="stage" aria-hidden="true">
+    <div class="scene s1" data-scene="1"><div class="paint"></div><img class="poster" data-src="media/scene-01.jpg" alt=""><video muted loop playsinline preload="none" data-src="media/scene-01.mp4" data-src-m="media/scene-01-m.mp4"></video></div>
+    <div class="scene s2" data-scene="2"><div class="paint"></div><img class="poster" data-src="media/scene-02.jpg" alt=""><video muted loop playsinline preload="none" data-src="media/scene-02.mp4" data-src-m="media/scene-02-m.mp4"></video></div>
+    <div class="scene s3" data-scene="3"><div class="paint"></div><img class="poster" data-src="media/scene-03.jpg" alt=""><video muted loop playsinline preload="none" data-src="media/scene-03.mp4" data-src-m="media/scene-03-m.mp4"></video></div>
+    <div class="scene s4" data-scene="4"><div class="paint"></div><img class="poster" data-src="media/scene-04.jpg" alt=""><video muted loop playsinline preload="none" data-src="media/scene-04.mp4" data-src-m="media/scene-04-m.mp4"></video></div>
+    <div class="scene s5" data-scene="5"><div class="paint"></div><img class="poster" data-src="media/scene-05.jpg" alt=""><video muted loop playsinline preload="none" data-src="media/scene-05.mp4" data-src-m="media/scene-05-m.mp4"></video></div>
+    <div class="vignette"></div>
+  </div>
+
+  <main id="contenu">
+
+    <!-- SCENE 01 — THE ARRIVAL -->
+    <section class="chapter" id="arrivee" data-len="2">
+      <div class="pin">
+        <div class="panel panel-hero">
+          <img class="hero-emblem" src="assets/brand/emblem-gold.png" alt="" width="180" height="114">
+          <p class="kicker" data-i18n="hero.kicker">House of Editorial Excellence</p>
+          <h1 class="display">LES ÉLITES<span>PUBLISHING HOUSE</span></h1>
+          <p class="motto">SHAPE. ENLIGHTEN. TRANSFORM.</p>
+          <p class="lead" data-i18n="hero.lead">Une maison d’édition dédiée à l’excellence intellectuelle et à la transmission du savoir.</p>
+          <div class="ctas">
+            <a class="btn btn-gold" href="#maison" data-i18n="hero.cta1">Découvrir notre univers</a>
+            <a class="btn btn-ghost" href="catalogue.html" data-i18n="hero.cta2">Explorer nos livres</a>
+          </div>
+          <p class="scroll-hint reveal" data-out="0.25"><span data-i18n="hero.scroll">Faites défiler pour entrer</span><i></i></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 02 — THE HALL OF EXCELLENCE -->
+    <section class="chapter" id="maison" data-len="2.6">
+      <div class="pin">
+        <div class="hall-words" aria-hidden="true">
+          <span class="reveal" data-at="0.08">FAITH</span>
+          <span class="reveal" data-at="0.18">INTELLIGENCE</span>
+          <span class="reveal" data-at="0.28">TECHNOLOGY</span>
+          <span class="reveal" data-at="0.38">LEADERSHIP</span>
+          <span class="reveal" data-at="0.48">WISDOM</span>
+        </div>
+        <div class="panel panel-side">
+          <p class="kicker" data-i18n="hall.kicker">Le Hall de l’Excellence</p>
+          <h2 class="title reveal" data-at="0.04" data-i18n="hall.title" data-i18n-html>Ici, les idées <em>prennent forme</em>.</h2>
+          <p class="body reveal" data-at="0.14" data-i18n="hall.body">LES ÉLITES n’est pas seulement une maison d’édition. C’est un espace où les idées prennent forme, où les livres transmettent le savoir et où les générations rencontrent la connaissance.</p>
+          <h3 class="sub reveal" data-at="0.3" data-i18n="hall.axes">Nos axes éditoriaux</h3>
+          <ul class="axes">
+            <li class="reveal" data-at="0.34"><b>01</b><span data-i18n="ax.faith">Foi et réflexion contemporaine</span></li>
+            <li class="reveal" data-at="0.42"><b>02</b><span data-i18n="ax.intel">Excellence intellectuelle</span></li>
+            <li class="reveal" data-at="0.5"><b>03</b><span data-i18n="ax.tech">Science, éducation et technologie</span></li>
+            <li class="reveal" data-at="0.58"><b>04</b><span data-i18n="ax.lead">Leadership et entrepreneuriat</span></li>
+            <li class="reveal" data-at="0.66"><b>05</b><span data-i18n="ax.wisdom">Sagesse et transformation</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 03 — THE GRAND LIBRARY -->
+    <section class="chapter" id="bibliotheque" data-len="3">
+      <div class="pin">
+        <div class="panel panel-top">
+          <p class="kicker" data-i18n="lib.kicker">La Grande Bibliothèque</p>
+          <h2 class="title reveal" data-at="0.02" data-i18n="lib.title" data-i18n-html>Chaque livre est une <em>découverte</em>.</h2>
+          <p class="body reveal" data-at="0.08" data-i18n="lib.body">Sélectionnez un ouvrage sur les rayonnages, ou ouvrez l’une des trois galeries.</p>
+        </div>
+        <!-- Real 3D objects (CSS 3D): each book is a <button>, so the shelf
+             works with keyboard, touch and screen readers. -->
+        <div class="shelf-wrap reveal" data-at="0.12">
+          <div class="shelf" id="shelf"></div>
+        </div>
+        <div class="pois reveal" data-at="0.2">
+          <button type="button" class="poi" data-open="books"><b>01</b><span data-i18n="lib.poi1">Nos publications</span></button>
+          <button type="button" class="poi" data-open="authors"><b>02</b><span data-i18n="lib.poi2">Nos auteurs</span></button>
+          <button type="button" class="poi" data-open="collections"><b>03</b><span data-i18n="lib.poi3">Nos collections</span></button>
+          <a class="poi poi-link" href="catalogue.html"><span data-i18n="lib.all">Voir tout le catalogue</span> →</a>
+        </div>
+        <!-- Plain list for no-JS and for crawlers; replaced visually by the shelf. -->
+        <ul class="nojs-list" id="bookList"><!--books--><li><a href="livres/called-to-stand-beside-him.html">Called to Stand Beside Him</a> — Lessa Annette Kuedituka</li><li><a href="livres/chretiente-ere-intelligence-artificielle.html">La Chrétienté à l’ère de l’Intelligence Artificielle</a> — Stephane Taty</li><li><a href="livres/biblical-business-entrepreneurship-model.html">Biblical Business and Entrepreneurship Model</a> — Stephane Taty</li><li><a href="livres/biblical-politics-leadership-principles.html">Biblical Politics and Leadership Principles</a> — Stephane Taty</li><li><a href="livres/les-types-des-personnes-qu-on-rencontre.html">Les Types des personnes qu’on rencontre</a> — Syntiche Ndeo Okamba</li><!--/books--></ul>
+      </div>
+    </section>
+
+    <!-- SCENE 04 — THE EDITORIAL LABORATORY -->
+    <section class="chapter" id="atelier" data-len="3">
+      <div class="pin">
+        <div class="panel panel-side">
+          <p class="kicker" data-i18n="lab.kicker">L’Atelier des Auteurs</p>
+          <h2 class="title reveal" data-at="0.02" data-i18n="lab.title" data-i18n-html>De l’idée à l’œuvre <em>publiée</em>.</h2>
+          <ol class="steps">
+            <li class="reveal" data-at="0.1"><b>I</b><span data-i18n="lab.s1">Une idée</span></li>
+            <li class="reveal" data-at="0.25"><b>II</b><span data-i18n="lab.s2">Un manuscrit</span></li>
+            <li class="reveal" data-at="0.4"><b>III</b><span data-i18n="lab.s3">Une œuvre</span></li>
+            <li class="reveal" data-at="0.55"><b>IV</b><span data-i18n="lab.s4">Une publication</span></li>
+          </ol>
+          <div class="reveal" data-at="0.62">
+            <h3 class="sub" data-i18n="lab.services">Ce que nous faisons</h3>
+            <ul class="services" id="services"></ul>
+            <p class="fine" data-i18n="lab.servicesMore">Le détail de nos prestations éditoriales est communiqué sur demande.</p>
+          </div>
+        </div>
+        <!-- Manuscript → bound book, driven by --p. Clicking it opens the CTA. -->
+        <button type="button" class="desk reveal" data-at="0.05" id="desk" aria-haspopup="dialog">
+          <span class="sr" data-i18n="lab.desk">Ouvrir le manuscrit</span>
+          <span class="ms" aria-hidden="true">
+            <i class="pg"></i><i class="pg"></i><i class="pg"></i><i class="pg"></i><i class="pg"></i>
+            <i class="bk"><i class="bk-front"><img src="assets/brand/emblem-gold.png" alt=""></i><i class="bk-spine"></i></i>
+          </span>
+        </button>
+        <div class="panel panel-cta reveal" data-at="0.72">
+          <p class="ask" data-i18n="lab.ask">Vous avez écrit un livre ?</p>
+          <p class="body" data-i18n="lab.askBody">Donnons à votre manuscrit les moyens de devenir une publication.</p>
+          <div class="ctas">
+            <a class="btn btn-gold" href="manuscrit.html" data-i18n="lab.submit">Soumettre mon manuscrit</a>
+            <a class="btn btn-ghost" href="#contact" data-i18n="lab.discover">Nous écrire</a>
+          </div>
+          <p class="fine" data-i18n="lab.note">Séquence illustrative du processus éditorial — pas une réalisation client.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 05 — THE FUTURE OF KNOWLEDGE -->
+    <section class="chapter" id="observatoire" data-len="2">
+      <div class="pin">
+        <div class="panel panel-final">
+          <p class="kicker" data-i18n="obs.kicker">L’Observatoire des Générations</p>
+          <p class="final-mark reveal" data-at="0.05">LES ÉLITES</p>
+          <p class="motto reveal" data-at="0.1">SHAPE. ENLIGHTEN. TRANSFORM.</p>
+          <p class="line reveal" data-at="0.2" data-i18n="obs.l1">Les grandes idées méritent d’être transmises.</p>
+          <p class="line reveal" data-at="0.3" data-i18n="obs.l2">Les manuscrits méritent d’être accompagnés.</p>
+          <p class="line reveal" data-at="0.4" data-i18n="obs.l3">Les générations méritent d’accéder à des œuvres qui nourrissent la pensée.</p>
+          <div class="ctas reveal" data-at="0.5">
+            <a class="btn btn-gold" href="manuscrit.html" data-i18n="obs.cta1">Publier mon livre</a>
+            <a class="btn btn-ghost" href="catalogue.html" data-i18n="obs.cta2">Découvrir le catalogue</a>
+            <a class="btn btn-ghost" href="#contact" data-i18n="obs.cta3">Contacter notre équipe</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact: outside the scroll stage, so the background is still while typing. -->
+    <section class="plain" id="contact">
+      <div class="wrap narrow">
+        <h2 class="title" data-i18n="contact.title">Contacter notre équipe</h2>
+        <form class="form" id="contactForm" data-kind="contact" novalidate>
+          <div class="grid2">
+            <label><span data-i18n="f.name">Nom complet</span><input name="name" required maxlength="120" autocomplete="name"></label>
+            <label><span data-i18n="f.email">Adresse email</span><input name="email" type="email" required maxlength="200" autocomplete="email"></label>
+          </div>
+          <div class="grid2">
+            <label><span data-i18n="f.country">Pays</span><input name="country" maxlength="80" autocomplete="country-name"></label>
+            <label><span data-i18n="f.subject">Objet</span><input name="subject" id="contactSubject" maxlength="200"></label>
+          </div>
+          <label><span data-i18n="f.message">Message</span><textarea name="message" required maxlength="4000" rows="5"></textarea></label>
+          <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+          <label class="check"><input type="checkbox" name="consent" required><span data-i18n="f.consent">J’accepte que mes données soient utilisées pour traiter ma demande, conformément à la politique de confidentialité.</span></label>
+          <button class="btn btn-gold" type="submit" data-i18n="f.send">Envoyer</button>
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <img src="assets/brand/emblem-gold.png" alt="" width="64" height="40">
+      <p class="foot-name">LES ÉLITES PUBLISHING HOUSE</p>
+      <p class="foot-pillars">FAITH · INTELLIGENCE · TECHNOLOGY · IMPACT</p>
+      <p class="foot-links"><a href="catalogue.html" data-i18n="nav.books">Publications</a> · <a href="manuscrit.html" data-i18n="nav.submit">Soumettre un manuscrit</a> · <a href="confidentialite.html" data-i18n="foot.privacy">Confidentialité</a></p>
+      <p class="fine">© <span id="year">2026</span> LES ÉLITES PUBLISHING HOUSE. <span data-i18n="foot.rights">Tous droits réservés.</span></p>
+    </div>
+  </footer>
+
+  <dialog class="dlg" id="dlg" aria-labelledby="dlgTitle">
+    <button type="button" class="dlg-x" data-close><span class="sr" data-i18n="dlg.close">Fermer</span>×</button>
+    <div class="dlg-body" id="dlgBody"></div>
+  </dialog>
+
+  <script src="data/catalog.js?v=1"></script>
+  <script src="i18n.js?v=1"></script>
+  <script src="ui.js?v=1"></script>
+  <script src="experience.js?v=3"></script>
+  <script src="forms.js?v=1"></script>
+</body>
+</html>

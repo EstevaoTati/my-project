@@ -296,6 +296,24 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   keeping four dead script hashes and an origin no page used. Run
   `node scripts/update-csp.mjs --check` before committing.
 
+### Client sites — `clients/<name>/`
+
+- Each client site is a **self-contained folder that deploys as its own
+  Netlify site** (base directory = that folder). `/clients/*` is forced 404 on
+  the MWINDA domain in both `_redirects` and `netlify.toml`.
+- `clients/les-elites/` — LES ÉLITES PUBLISHING HOUSE, "The House of
+  Knowledge": Higgsfield scenes playing continuously (boomerang loops), scroll moves between rooms + CSS-3D shelf, generated
+  catalogue/book/author pages from `data/catalog.js`, manuscript portal
+  (signed upload to a private Supabase bucket). **Nothing invented:** unknown
+  facts stay `null` and are hidden. Run `node scripts/build-pages.mjs --check`
+  and `node scripts/smoke-test.mjs` from that folder before committing. See its
+  README and `docs/decisions/2026-10-31-les-elites-architecture.md`.
+  **Art direction is warm classic library** (walnut, chandelier, Persian
+  rugs, neoclassical façade) by founder decision — see
+  `docs/decisions/2026-10-31-les-elites-warm-classic-direction.md`. The
+  founder's reference images beat the written brief when they conflict;
+  flag the conflict first.
+
 ### MWINDA OS infrastructure in this repo
 
 - `.claude/agents/{architect,researcher,strategist}.md` — specialized
