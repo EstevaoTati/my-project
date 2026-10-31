@@ -27,6 +27,7 @@ one Netlify function, Supabase for submissions. **No build step on the host.**
 node scripts/build-pages.mjs          # after editing data/catalog.js
 node scripts/build-pages.mjs --check  # fails if generated pages are stale
 bash scripts/prepare-media.sh         # fetch + encode the 5 scene clips → media/
+bash scripts/package-netlify.sh       # → ../les-elites-netlify.zip for Netlify Drop
 node scripts/smoke-test.mjs           # browser test (SHOTS=dir for screenshots,
                                       #   MEDIA_DIR=dir to test with real clips)
 python3 -m http.server 8080           # local preview (forms answer 501 locally)

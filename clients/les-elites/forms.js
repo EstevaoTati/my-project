@@ -75,7 +75,7 @@
         if (form.dataset.kind === 'contact') {
           const r = await post(data);
           if (r.ok) { form.reset(); say(form, 'f.ok', { ref: r.ref }, 'ok'); }
-          else if (r.status === 501) say(form, 'f.off', null, 'bad');
+          else if ((r.status === 501 || r.status === 404)) say(form, 'f.off', null, 'bad');
           else if (r.fields) { mark(form, r.fields); say(form, 'f.err', null, 'bad'); }
           else say(form, 'f.err', null, 'bad');
           return;
@@ -85,7 +85,7 @@
         delete data.file;
         data.file = { name: file.name, size: file.size, type: file.type };
         const r = await post(data);
-        if (r.status === 501) return say(form, 'f.off', null, 'bad');
+        if ((r.status === 501 || r.status === 404)) return say(form, 'f.off', null, 'bad');
         if (!r.ok) { if (r.fields) mark(form, r.fields); return say(form, 'f.err', null, 'bad'); }
         const up = await fetch(r.upload.url, { method: 'PUT', headers: { 'content-type': r.upload.type, 'x-upsert': 'false' }, body: file });
         if (!up.ok) return say(form, 'f.err', null, 'bad');
