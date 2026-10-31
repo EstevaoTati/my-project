@@ -44,7 +44,7 @@
     }
     if (s.vid) {
       s.vid.addEventListener('error', () => { s.vid.remove(); s.vid = null; }, { once: true });
-      s.vid.addEventListener('loadeddata', () => { s.ok = true; s.vid.classList.add('ready'); s.vid.pause(); }, { once: true });
+      s.vid.addEventListener('loadeddata', () => { s.ok = true; s.vid.classList.add('ready'); s.vid.pause(); root.classList.add('vid-' + s.el.dataset.scene); }, { once: true });
     }
   });
   function loadPoster(i) {
