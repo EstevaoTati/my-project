@@ -308,6 +308,11 @@ written in the markup; both `fr` and `en` live in the `dict` object in
   facts stay `null` and are hidden. Run `node scripts/build-pages.mjs --check`
   and `node scripts/smoke-test.mjs` from that folder before committing. See its
   README and `docs/decisions/2026-10-31-les-elites-architecture.md`.
+  **Art direction is warm classic library** (walnut, chandelier, Persian
+  rugs, neoclassical façade) by founder decision — see
+  `docs/decisions/2026-10-31-les-elites-warm-classic-direction.md`. The
+  founder's reference images beat the written brief when they conflict;
+  flag the conflict first.
 
 ### MWINDA OS infrastructure in this repo
 

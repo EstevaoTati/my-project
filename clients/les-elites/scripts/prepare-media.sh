@@ -17,28 +17,40 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p raw media
 
-# Higgsfield job → scene. Re-generate a scene? Replace its URL here.
+# Higgsfield job → scene (warm classic direction, 2026-10-31).
+# Re-generate a scene? Replace its URL here.
+H=https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW
 URLS=(
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20261031_164013_d8fda6dd-27a1-45a3-a2d0-50a0dbe5dafe.mp4"   # 01 arrival
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20261031_164014_2aee7991-6d50-4eb2-9719-dcbf6b87360f.mp4"   # 02 hall
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20261031_164013_84666f8e-e0ab-4eb0-80d8-80b6d1ca924f.mp4"   # 03 library
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20261031_164013_f189fc6f-a8ba-4f85-80a9-d94e0558f894.mp4"   # 04 manuscript → book
-  "https://d8j0ntlcm91z4.cloudfront.net/user_3G9osobYr0aAENArzSDrqEFJFgW/hf_20261031_164013_05c6526f-f677-465e-9f1d-83572ea3e3eb.mp4"   # 05 observatory
+  "$H/hf_20261031_170319_24cd0c43-fd9b-4cfa-871a-05552e890a4d.mp4"   # 01 façade → doors
+  "$H/hf_20261031_170454_fa0e5267-a2d5-4c5a-8634-1005ba8995af.mp4"  # 02 grand hall
+  "$H/hf_20261031_170454_0c7c155b-7762-4fe9-b4b6-a060880a8fbc.mp4"  # 03 reading room, ladder
+  "$H/hf_20261031_170750_792b09d4-ce5a-4bc2-bb33-9481483b900f.mp4"  # 04 manuscript → book
+  "$H/hf_20261031_170319_4d77447b-47c5-42d6-acd4-5c3442042a75.mp4"   # 05 arched windows, sunrise
 )
+LOOP="$H/hf_20261031_170750_754c3a5b-d49a-434b-8a21-d1354f9032dc.mp4" # catalogue header (9:16)
+
+enc() { # src width crf gop out
+  ffmpeg -loglevel error -y -i "$1" -an -vf "scale=$2:-2:flags=lanczos,format=yuv420p" \
+    -c:v libx264 -preset slow -crf "$3" -g "$4" -keyint_min "$4" -sc_threshold 0 -bf 0 \
+    -profile:v high -movflags +faststart "$5"; }
+fetch() { [[ "${LOCAL:-}" == 1 || -s "$2" ]] || { echo "↓ $2"; curl -fsSL -o "$2" "$1"; }; }
+[[ "${1:-}" == "--local" ]] && LOCAL=1
 
 for i in 1 2 3 4 5; do
-  n=$(printf '%02d' "$i")
-  src="raw/scene-$n.mp4"
-  if [[ "${1:-}" != "--local" && ! -s "$src" ]]; then
-    echo "↓ scene $n"; curl -fsSL -o "$src" "${URLS[$((i-1))]}"
-  fi
+  n=$(printf '%02d' "$i"); src="raw/scene-$n.mp4"
+  fetch "${URLS[$((i-1))]}" "$src" || true
   [[ -s "$src" ]] || { echo "missing $src — skipped (the site falls back to the poster/painted scene)"; continue; }
-  enc() { ffmpeg -loglevel error -y -i "$src" -an -vf "scale=$1:-2:flags=lanczos,format=yuv420p" \
-          -c:v libx264 -preset slow -crf "$2" -g 6 -keyint_min 6 -sc_threshold 0 -bf 0 \
-          -profile:v high -movflags +faststart "$3"; }
-  enc 1280 24 "media/scene-$n.mp4"
-  enc 960  27 "media/scene-$n-m.mp4"
+  enc "$src" 1280 24 6 "media/scene-$n.mp4"     # keyframe every 6 frames: smooth scroll-scrub
+  enc "$src" 960  27 6 "media/scene-$n-m.mp4"
   ffmpeg -loglevel error -y -i "media/scene-$n.mp4" -frames:v 1 -q:v 3 "media/scene-$n.jpg"
   printf '✓ scene %s  %s  %s\n' "$n" "$(du -h "media/scene-$n.mp4" | cut -f1)" "$(du -h "media/scene-$n-m.mp4" | cut -f1)"
 done
+
+# Catalogue header: plays as a loop, never scrubbed → normal GOP, smaller file.
+fetch "$LOOP" raw/catalogue-loop.mp4 || true
+if [[ -s raw/catalogue-loop.mp4 ]]; then
+  enc raw/catalogue-loop.mp4 720 27 48 media/catalogue-loop.mp4
+  ffmpeg -loglevel error -y -i media/catalogue-loop.mp4 -frames:v 1 -q:v 3 media/catalogue-loop.jpg
+  echo "✓ catalogue loop $(du -h media/catalogue-loop.mp4 | cut -f1)"
+fi
 echo "Done. Commit media/ (raw/ is ignored)."

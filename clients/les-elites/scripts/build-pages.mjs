@@ -160,9 +160,17 @@ for (const a of D.authors) {
 {
   const s = D.series[0];
   const langs = [...new Set(D.books.map((b) => b.lang))];
-  const body = `    <div class="wrap">
-      <h1 class="title" data-i18n="cat.title">Catalogue</h1>
-      <p class="lead left" data-i18n="cat.lead">Toutes les publications de la maison.</p>
+  // Header: a slow Higgsfield loop along the shelves. Poster first; the video
+  // is attached only when motion is welcome (not reduced-motion / Save-Data).
+  const body = `    <header class="cat-hero">
+      <img src="media/catalogue-loop.jpg" alt="" onerror="this.remove()">
+      <video muted loop playsinline preload="none" data-src="media/catalogue-loop.mp4" aria-hidden="true"></video>
+      <div class="wrap">
+        <h1 class="title" data-i18n="cat.title">Catalogue</h1>
+        <p class="lead left" data-i18n="cat.lead">Toutes les publications de la maison.</p>
+      </div>
+    </header>
+    <div class="wrap">
       <div class="filters" role="search">
         <label class="sr" for="q" data-i18n="cat.search">Rechercher un titre ou un auteur</label>
         <input id="q" type="search" data-i18n="cat.search" data-i18n-attr="placeholder" placeholder="Rechercher un titre ou un auteur" autocomplete="off">
@@ -181,6 +189,9 @@ for (const a of D.authors) {
       <div>${D.authors.map((a) => `<div class="person">${a.photo ? `<img class="ph" src="${a.photo}" alt="${esc(a.name)}" loading="lazy">` : `<span class="ph" aria-hidden="true">${esc(a.name.split(" ").map((w) => w[0]).slice(0, 2).join(""))}</span>`}<div><h3><a href="auteurs/${a.id}.html">${esc(a.name)}</a></h3><div class="thumbs">${D.booksBy(a.id).map((b) => `<a href="livres/${b.id}.html" aria-label="${esc(b.title)}"><img src="${b.cover}" alt=""></a>`).join("")}</div></div></div>`).join("")}</div>
     </div>`;
   const scripts = `
+  <script>
+  (function(){var v=document.querySelector('.cat-hero video'),c=navigator.connection||{};if(!v||matchMedia('(prefers-reduced-motion: reduce)').matches||c.saveData)return;v.addEventListener('playing',function(){v.classList.add('ready')},{once:true});v.addEventListener('error',function(){v.remove()},{once:true});v.src=v.dataset.src;var p=v.play();p&&p.catch(function(){})})();
+  </script>
   <script>
   (function(){var q=document.getElementById('q'),fc=document.getElementById('fc'),fl=document.getElementById('fl'),cards=[].slice.call(document.querySelectorAll('#grid .card')),cnt=document.getElementById('count'),none=document.getElementById('none');
   function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'')}
