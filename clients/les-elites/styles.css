@@ -396,3 +396,8 @@ html.vid-4:not(.calm):not(.classic) .desk { visibility: hidden; }
 .panel-hero .lead, .panel-hero .motto, .panel-hero .kicker,
 .panel-final .line, .panel-final .motto, .panel-final .kicker { text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 2px 22px rgba(0,0,0,.75); }
 .panel-final { padding: 26px clamp(16px, 3vw, 40px); background: radial-gradient(ellipse at center, rgba(16,17,20,.55), rgba(16,17,20,0) 70%); }
+
+/* Depth: panels drift against the scroll, so they float in front of the
+ * footage (uses `translate`, independent of the reveal transforms). */
+html.js:not(.classic):not(.calm):not(.os-reduce) .chapter .panel { translate: 0 calc((0.5 - var(--p, .5)) * 70px); }
+.scene { transform-origin: 50% 46%; }

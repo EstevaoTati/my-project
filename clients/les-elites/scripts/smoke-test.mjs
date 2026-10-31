@@ -111,6 +111,20 @@ console.log("desktop experience" + (MEDIA ? " (with media)" : " (no media → pa
     const t1 = await p.evaluate(() => document.querySelector(".s1 video").currentTime);
     const st = await p.evaluate(() => { const v = document.querySelector(".s1 video"); return { paused: v.paused, loop: v.loop }; });
     ok(!st.paused && st.loop && t1 !== t0, `scene 1 plays continuously without scrolling (${t0.toFixed(2)}s → ${t1.toFixed(2)}s, loop=${st.loop})`);
+    // Scrolling must be felt: playback rushes while the wheel turns, then eases back.
+    await scrollToChapter(p, "arrivee", 0.1);
+    await settle(p, 1500);
+    let peak = 1;
+    const playing = () => p.evaluate(() => { const v = [...document.querySelectorAll(".scene video")].find((x) => !x.paused); return v ? v.playbackRate : 1; });
+    for (let k = 0; k < 8; k++) {
+      await p.mouse.wheel(0, 70); await p.waitForTimeout(40);
+      peak = Math.max(peak, await playing());
+    }
+    await settle(p, 2500);
+    const rest = await playing();
+    const zoom = await p.evaluate(() => getComputedStyle(document.querySelector(".scene.s1")).transform);
+    ok(peak > 1.8 && rest < 1.15, `scroll speed drives the camera (rate peak ${peak.toFixed(2)}× → rest ${rest.toFixed(2)}×)`);
+    ok(zoom !== "none" && zoom !== "matrix(1, 0, 0, 1, 0, 0)", `scroll progress dollies the camera in (${zoom.slice(0, 28)}…)`);
     await scrollToChapter(p, "maison", 0.5);
     await settle(p, 800);
     const ps = await p.evaluate(() => [...document.querySelectorAll(".scene video")].map((v) => (v.getAttribute("src") ? (v.paused ? "p" : "▶") : "-")).join(""));

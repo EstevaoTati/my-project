@@ -73,3 +73,16 @@ silently switched the site to posters. Now:
   "Réduire les animations" button remains the full stop (WCAG 2.2.2 pause
   control). Trade-off accepted by founder preference: immersion first, with
   a one-click way out on every page.
+
+## Update — scrolling must be felt (founder, 2026-10-31)
+
+« Qu'en scrollant l'immersion des vidéos soit notoire. » Continuous playback
+alone made scroll feel like a slideshow. Scroll now drives the camera on top
+of the loop:
+- **Speed → playbackRate** 1× idle … 4× fast scroll, eased back in ~1 s, plus
+  a light motion blur at high speed.
+- **Progress → dolly-in** +22% and a slight tilt across each room.
+- **Doorway**: the outgoing room surges past (+30%, blur 5 px) while the next
+  fades in.
+- **Depth**: text panels drift against the scroll (CSS `translate`).
+OS reduced-motion and the calm button skip all of it (footage only / posters).

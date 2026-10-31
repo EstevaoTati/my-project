@@ -12,7 +12,9 @@
  *                                     boomerang loop while visible, pauses
  *                                     when off-stage — founder: "animated
  *                                     without stopping")
- *     → scene poster scale         (dolly-in when no video)
+ *     → scroll SPEED → playbackRate (1× idle … 4× fast scroll) + blur
+ *     → scroll PROGRESS → camera dolly-in (+22%) and tilt per room,
+ *       outgoing room surging past (+30%, blur) at each doorway
  *     → cross-fade to next scene   (last 14% of a chapter = the threshold)
  *
  * Videos load lazily (active + next scene only) and are skipped entirely in
@@ -84,6 +86,7 @@
   /* ---------- the frame ---------- */
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   let target = scrollY, smooth = scrollY, raf = 0, lastActive = -1, mx = 0, my = 0, pmx = 0, pmy = 0, lastT = 0;
+  let prevY = scrollY, speed = 0; // scroll speed, px/ms, eased
 
   function frame(now) {
     raf = 0;
@@ -96,6 +99,15 @@
     smooth = calm || osReduce() ? target : smooth + (target - smooth) * k;
     if (Math.abs(target - smooth) < 0.4) smooth = target;
     const y = smooth;
+    // Scroll speed drives the camera: scrolling makes the footage rush
+    // forward (playbackRate), idle lets it ease back to cruising pace.
+    const strong = !calm && !osReduce();
+    const inst = Math.abs(y - prevY) / Math.max(1, dt);
+    prevY = y;
+    speed += (inst - speed) * (1 - Math.pow(inst > speed ? 0.6 : 0.92, dt / 16.7));
+    if (speed < 0.005) speed = 0;
+    const rate = strong ? 1 + Math.min(3, speed * 1.6) : 1;
+    const blur = strong ? Math.min(2.5, Math.max(0, speed - 0.9) * 2) : 0;
 
     // Which chapter owns the viewport?
     let active = 0;
@@ -120,15 +132,21 @@
       if (i === sceneOf + 1) o = fadeIn;
       s.el.style.opacity = o;
       s.el.style.visibility = o > 0 ? 'visible' : 'hidden';
-      if (o <= 0) return;
-      // Local time in this scene: the incoming scene starts at its first frame.
+      if (o <= 0) { if (s.vid && s.vid.playbackRate !== 1) s.vid.playbackRate = 1; return; }
+      // Camera push driven by scroll: across a room the view dollies in
+      // (+22%) and tilts up a little; at the doorway the outgoing room surges
+      // past the viewer (+30%, motion blur) while the next one fades in.
       const p = i === sceneOf ? ps[i] : 0;
-      // Threshold push: the outgoing scene scales up as we "walk through" it.
-      const push = i === sceneOf ? 1 + fadeIn * 0.08 : 1.04 - fadeIn * 0.04;
-      const dolly = s.ok && !calm ? 1 : 1 + (calm ? 0 : p * 0.12);
-      const par = calm ? '' : ` translate3d(${(pmx * -10).toFixed(2)}px, ${(pmy * -6).toFixed(2)}px, 0)`;
-      s.el.style.transform = `scale(${(push * dolly).toFixed(4)})${par}`;
+      const out = i === sceneOf ? fadeIn : 0;
+      const dolly = calm || osReduce() ? 1 : 1 + p * 0.22 + out * 0.3;
+      const lift = calm || osReduce() ? 0 : -p * 2.2;
+      const par = strong ? ` translate3d(${(pmx * -12).toFixed(2)}px, ${(pmy * -7).toFixed(2)}px, 0)` : '';
+      s.el.style.transform = `translateY(${lift.toFixed(3)}%) scale(${dolly.toFixed(4)})${par}`;
+      const b = (i === sceneOf ? blur : 0) + out * 5 * (strong ? 1 : 0);
+      s.el.style.filter = b > 0.15 ? `blur(${b.toFixed(2)}px)` : '';
+      if (s.vid && s.ok && Math.abs(s.vid.playbackRate - rate) > 0.04) s.vid.playbackRate = rate;
     });
+    root.style.setProperty('--scroll-speed', Math.min(1, speed / 2).toFixed(3));
     // Visible scenes play continuously; hidden ones pause (battery, CPU).
     state.forEach((s, i) => play(s, !calm && (i === sceneOf || (i === sceneOf + 1 && fadeIn > 0))));
 
@@ -145,7 +163,7 @@
     // Pointer parallax eases too.
     const kp = 1 - Math.pow(1 - 0.06, dt / 16.7);
     pmx += (mx - pmx) * kp; pmy += (my - pmy) * kp;
-    if (Math.abs(target - smooth) > 0.4 || Math.abs(mx - pmx) > 0.002 || Math.abs(my - pmy) > 0.002) request();
+    if (Math.abs(target - smooth) > 0.4 || speed > 0 || Math.abs(mx - pmx) > 0.002 || Math.abs(my - pmy) > 0.002) request();
     else lastT = 0;
   }
 
