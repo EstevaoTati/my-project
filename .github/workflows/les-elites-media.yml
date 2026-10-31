@@ -1,0 +1,52 @@
+# Les Élites — fetch the Higgsfield clips and commit them, encoded for
+# scroll-scrubbing. Runs on GitHub's runners because Higgsfield's CDN is not
+# reachable from the Claude Code sandbox. Commits made with GITHUB_TOKEN do
+# not trigger workflows, so this cannot loop.
+name: les-elites-media
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/les-elites-house-of-knowledge]
+    paths:
+      - clients/les-elites/scripts/prepare-media.sh
+      - .github/workflows/les-elites-media.yml
+permissions:
+  contents: write
+concurrency:
+  group: les-elites-media-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg zip >/dev/null && ffmpeg -version | head -1
+      - name: Fetch + encode clips
+        working-directory: clients/les-elites
+        run: bash scripts/prepare-media.sh
+      - name: Verify encodes
+        working-directory: clients/les-elites
+        run: |
+          for f in media/*.mp4; do
+            d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")
+            a=$(ffprobe -v error -select_streams a -show_entries stream=index -of csv=p=0 "$f" | wc -l)
+            echo "$f  ${d}s  audio-streams=$a  $(du -h "$f" | cut -f1)"
+            test "$a" -eq 0
+          done
+          ls media/*.jpg
+      - name: Rebuild Netlify Drop package
+        working-directory: clients/les-elites
+        run: bash scripts/package-netlify.sh
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add clients/les-elites/media clients/les-elites-netlify.zip
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -m "Les Élites: encoded Higgsfield scene clips + posters (media/)"
+          git push
