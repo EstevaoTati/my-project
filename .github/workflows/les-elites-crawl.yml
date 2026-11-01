@@ -1,0 +1,34 @@
+# Les Élites — crawl the current public site (text, structure, images) into
+# clients/les-elites/docs/source-site/ so the rebuild uses the house's own
+# words. Runs on GitHub's runners: the Claude sandbox cannot reach the domain.
+name: les-elites-crawl
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/les-elites-house-of-knowledge]
+    paths:
+      - clients/les-elites/scripts/crawl-source-site.py
+      - .github/workflows/les-elites-crawl.yml
+permissions:
+  contents: write
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests beautifulsoup4
+      - name: Crawl
+        run: python clients/les-elites/scripts/crawl-source-site.py clients/les-elites/docs/source-site
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" || true
+          git add clients/les-elites/docs/source-site
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -m "Les Élites: crawl of the current public site (text, structure, images)"
+          git push
