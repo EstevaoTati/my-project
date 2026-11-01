@@ -25,7 +25,9 @@ jobs:
       - name: Render-crawl
         run: |
           rm -rf clients/les-elites/docs/source-site
-          NODE_PATH=/tmp/pw/node_modules node clients/les-elites/scripts/crawl-source-site.mjs clients/les-elites/docs/source-site
+          # ESM ignores NODE_PATH: run the script from where playwright is installed.
+          cp clients/les-elites/scripts/crawl-source-site.mjs /tmp/pw/crawl.mjs
+          node /tmp/pw/crawl.mjs "$GITHUB_WORKSPACE/clients/les-elites/docs/source-site"
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
