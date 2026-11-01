@@ -123,12 +123,14 @@ async function notify(subject, text) {
 
 // ---------- handlers ----------
 async function contact(body, ip) {
-  const { out, errors } = validate(body, { name: [120, true], email: [200, true], country: [80], subject: [200], message: [4000, true] });
+  const { out, errors } = validate(body, { name: [120, true], email: [200, true], phone: [40], country: [80], subject: [200], message: [4000, true] });
+  const TYPES = ["manuscript", "services", "partnership", "order", "other"];
+  out.request_type = TYPES.includes(body.type) ? body.type : "other";
   if (Object.keys(errors).length) return json(422, { error: "invalid", fields: errors });
   if (await rateLimited("contact_messages", ip)) return json(429, { error: "rate_limited" });
   const ref = makeRef("MSG");
   await supa("/rest/v1/contact_messages", { method: "POST", prefer: "return=minimal", body: { ref, ...out, ip_hash: ip } });
-  await notify(`[Les Élites] Message ${ref} — ${out.subject || out.name}`, `${out.name} <${out.email}> (${out.country || "—"})\n\n${out.message}`);
+  await notify(`[Les Élites] ${out.request_type} ${ref} — ${out.subject || out.name}`, `${out.name} <${out.email}> (${out.country || "—"})\n\n${out.message}`);
   return json(200, { ok: true, ref });
 }
 

@@ -1,7 +1,9 @@
 /*
  * Contact + manuscript forms. Client-side checks are for the visitor's
  * comfort only — netlify/functions/submit.mjs re-validates everything.
- * A 501 from the server means "not configured yet" and is said plainly.
+ * When the server endpoint is absent (static host: 501/404), the form never
+ * dead-ends: it opens the visitor's email app pre-filled to the house's real
+ * address, so every button does something real on any host.
  */
 (function () {
   const t = (k, v) => window.i18n.t(k, v);
@@ -60,6 +62,26 @@
     s.className = 'form-status ' + (cls || '');
     s.textContent = t(key, vars);
   }
+  // Static host fallback: hand the message to the visitor's mail client.
+  function mailFallback(form, data) {
+    const C = (window.LE_DATA && window.LE_DATA.site.contact) || {};
+    if (!C.email) return say(form, 'f.off', null, 'bad');
+    const typeSel = form.querySelector('[name=type]');
+    const typeLabel = typeSel ? typeSel.options[typeSel.selectedIndex].text : '';
+    const subject = data.kind === 'manuscript' ? `[Manuscrit] ${data.title || ''}` : `[${typeLabel || 'Contact'}] ${data.subject || ''}`;
+    const lines = [
+      `${t('f.name')}: ${data.name || ''}`, `${t('f.email')}: ${data.email || ''}`,
+      data.phone ? `${t('f.phone')}: ${data.phone}` : '', data.country ? `${t('f.country')}: ${data.country}` : '',
+      data.kind === 'manuscript' ? `${t('m.genre')}: ${data.genre || ''} — ${t('m.lang')}: ${data.language || ''} — ${t('m.length')}: ${data.length || ''}` : '',
+      '', data.summary || '', data.message || '',
+      data.kind === 'manuscript' ? `\n(${t('m.attach')})` : '',
+    ].filter((x, i) => x !== '' || i === 6);
+    const href = `mailto:${C.email}?subject=${encodeURIComponent(subject.trim())}&body=${encodeURIComponent(lines.join('\n'))}`;
+    const st = form.querySelector('.form-status');
+    st.className = 'form-status ok';
+    st.innerHTML = `${t('f.mailOpen')} <a href="${href}">${C.email}</a>`;
+    location.href = href;
+  }
   function busy(form, on) {
     const b = form.querySelector('[type=submit]');
     b.disabled = on; b.setAttribute('aria-busy', String(on));
@@ -75,7 +97,7 @@
         if (form.dataset.kind === 'contact') {
           const r = await post(data);
           if (r.ok) { form.reset(); say(form, 'f.ok', { ref: r.ref }, 'ok'); }
-          else if ((r.status === 501 || r.status === 404)) say(form, 'f.off', null, 'bad');
+          else if ((r.status === 501 || r.status === 404)) mailFallback(form, data);
           else if (r.fields) { mark(form, r.fields); say(form, 'f.err', null, 'bad'); }
           else say(form, 'f.err', null, 'bad');
           return;
@@ -85,7 +107,7 @@
         delete data.file;
         data.file = { name: file.name, size: file.size, type: file.type };
         const r = await post(data);
-        if ((r.status === 501 || r.status === 404)) return say(form, 'f.off', null, 'bad');
+        if ((r.status === 501 || r.status === 404)) return mailFallback(form, data);
         if (!r.ok) { if (r.fields) mark(form, r.fields); return say(form, 'f.err', null, 'bad'); }
         const up = await fetch(r.upload.url, { method: 'PUT', headers: { 'content-type': r.upload.type, 'x-upsert': 'false' }, body: file });
         if (!up.ok) return say(form, 'f.err', null, 'bad');

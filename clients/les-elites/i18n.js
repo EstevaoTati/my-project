@@ -62,7 +62,7 @@
       'f.sending': 'Envoi en cours…', 'f.ok': 'Merci. Votre message a bien été reçu. Référence : {ref}',
       'f.err': 'L’envoi a échoué. Merci de réessayer dans un instant.',
       'f.off': 'Le formulaire n’est pas encore activé sur ce site. Il le sera très bientôt.',
-      'f.req': 'Champ requis',
+      'f.req': 'Champ requis', 'f.mailOpen': 'Votre messagerie s’ouvre avec le message prêt à envoyer. Sinon, écrivez-nous à', 'm.attach': 'Merci de joindre votre manuscrit à cet email', 'b.new': 'Nouveauté',
 
       'm.title': 'Soumettre un manuscrit',
       'm.lead': 'Présentez-nous votre projet. Votre fichier est stocké de façon privée et n’est consulté que par l’équipe éditoriale.',
@@ -143,7 +143,7 @@
       'f.sending': 'Sending…', 'f.ok': 'Thank you. Your message was received. Reference: {ref}',
       'f.err': 'Sending failed. Please try again in a moment.',
       'f.off': 'This form is not switched on yet. It will be very soon.',
-      'f.req': 'Required',
+      'f.req': 'Required', 'f.mailOpen': 'Your email app opens with the message ready to send. Otherwise, write to us at', 'm.attach': 'Please attach your manuscript to this email', 'b.new': 'New release',
 
       'm.title': 'Submit a manuscript',
       'm.lead': 'Tell us about your project. Your file is stored privately and read only by the editorial team.',
@@ -204,7 +204,9 @@
     document.dispatchEvent(new CustomEvent('le:lang', { detail: { lang } }));
   }
 
-  window.i18n = { t, apply, current: () => lang };
+  // content.js (the house's own copy) extends the dictionary.
+  function extend(more) { for (const l in more) dict[l] = Object.assign(dict[l] || {}, more[l]); }
+  window.i18n = { t, apply, extend, current: () => lang };
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-lang-btn]');
     if (b) apply(b.dataset.langBtn);

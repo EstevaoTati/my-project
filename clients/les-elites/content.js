@@ -13,6 +13,7 @@
 (function (root) {
   const C = {
     fr: {
+      'nav.home': 'Accueil', 'nav.authors': 'Auteurs',
       'nav.about': 'À Propos', 'nav.mission': 'Notre Mission', 'nav.services': 'Services', 'nav.books': 'Publications', 'nav.contact': 'Contact', 'nav.submit': 'Soumettre un Manuscrit',
       'hero.badge': 'Maison d’Édition d’Excellence',
       'hero.l1': 'Former.', 'hero.l2': 'Éveiller.', 'hero.l3': 'Transformer.',
@@ -56,9 +57,10 @@
       'ct.mail': 'Écrire par email',
       'foot.tagline': 'Une maison d’édition d’excellence intellectuelle, de profondeur spirituelle et d’impact générationnel. Former, éveiller et transformer par le livre.',
       'foot.house': 'La Maison', 'foot.pubs': 'Publications', 'foot.svc': 'Services', 'foot.legal': 'Légal', 'foot.founded': 'Fondée en 2025 · Seattle, WA, USA',
-      'foot.copy': 'LES ÉLITES Publishing House. Tous droits réservés.',
+      'foot.copy': 'LES ÉLITES Publishing House. Tous droits réservés.', 'foot.privacy': 'Confidentialité',
     },
     en: {
+      'nav.home': 'Home', 'nav.authors': 'Authors',
       'nav.about': 'About', 'nav.mission': 'Our Mission', 'nav.services': 'Services', 'nav.books': 'Publications', 'nav.contact': 'Contact', 'nav.submit': 'Submit a Manuscript',
       'hero.badge': 'House of Editorial Excellence',
       'hero.l1': 'Shape.', 'hero.l2': 'Enlighten.', 'hero.l3': 'Transform.',
@@ -102,7 +104,7 @@
       'ct.mail': 'Write by email',
       'foot.tagline': 'A publishing house of intellectual excellence, spiritual depth, and generational impact. Shape, enlighten and transform through the book.',
       'foot.house': 'Company', 'foot.pubs': 'Publications', 'foot.svc': 'Services', 'foot.legal': 'Legal', 'foot.founded': 'Founded in 2025 · Seattle, WA, USA',
-      'foot.copy': 'LES ÉLITES Publishing House. All rights reserved.',
+      'foot.copy': 'LES ÉLITES Publishing House. All rights reserved.', 'foot.privacy': 'Privacy',
     },
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = C;

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://leselitespublishinghouse.com/</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/maison</loc></url>
   <url><loc>https://leselitespublishinghouse.com/catalogue</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/services</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/contact</loc></url>
   <url><loc>https://leselitespublishinghouse.com/manuscrit</loc></url>
   <url><loc>https://leselitespublishinghouse.com/confidentialite</loc></url>
   <url><loc>https://leselitespublishinghouse.com/livres/called-to-stand-beside-him</loc></url>
@@ -9,7 +12,11 @@
   <url><loc>https://leselitespublishinghouse.com/livres/biblical-business-entrepreneurship-model</loc></url>
   <url><loc>https://leselitespublishinghouse.com/livres/biblical-politics-leadership-principles</loc></url>
   <url><loc>https://leselitespublishinghouse.com/livres/les-types-des-personnes-qu-on-rencontre</loc></url>
-  <url><loc>https://leselitespublishinghouse.com/auteurs/stephane-taty</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/livres/livres-de-sciences-en-langues-africaines</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/livres/apprendre-les-sciences-dans-votre-langue</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/livres/decouvrir-la-science-en-langues-africaines</loc></url>
   <url><loc>https://leselitespublishinghouse.com/auteurs/lessa-annette-kuedituka</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/auteurs/stephane-taty</loc></url>
   <url><loc>https://leselitespublishinghouse.com/auteurs/syntiche-ndeo-okamba</loc></url>
+  <url><loc>https://leselitespublishinghouse.com/auteurs/les-elites</loc></url>
 </urlset>

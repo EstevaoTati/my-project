@@ -9,7 +9,7 @@
 // trap focus and return it, classic mode shows everything without the stage,
 // forms report "not configured" honestly when the API answers 501.
 import http from "node:http";
-import { readFileSync, existsSync, statSync, mkdirSync } from "node:fs";
+import { readFileSync, existsSync, statSync, mkdirSync, readdirSync } from "node:fs";
 import { join, extname, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -98,7 +98,7 @@ console.log("desktop experience" + (MEDIA ? " (with media)" : " (no media → pa
   const onFwd = await p.locator("#maison .axes li.on").count();
   await scrollToChapter(p, "maison", 0.05);
   const onBack = await p.locator("#maison .axes li.on").count();
-  ok(onFwd === 5 && onBack === 0, `reveals reverse on scroll back (${onFwd} → ${onBack})`);
+  ok(onFwd === 4 && onBack === 0, `reveals reverse on scroll back (${onFwd} → ${onBack})`);
 
   if (MEDIA) {
     await scrollToChapter(p, "arrivee", 0.1);
@@ -138,9 +138,9 @@ console.log("desktop experience" + (MEDIA ? " (with media)" : " (no media → pa
   await p.keyboard.press("Enter");
   await settle(p, 400);
   ok(await p.locator("#dlg[open]").isVisible(), "book opens from the shelf with the keyboard");
-  ok(/Called to Stand/.test(await p.locator("#dlgTitle").textContent()), "book panel shows the real title");
+  ok(/Appel|Called/.test(await p.locator("#dlgTitle").textContent()), "book panel shows the real title");
   ok(await p.locator("#dlg a[href*='livres/called-to-stand-beside-him.html']").count() === 1, "panel links to the permanent book URL");
-  ok(await p.locator("#dlg .btn", { hasText: /Acheter/ }).count() === 0, "no Buy button without a confirmed sales link");
+  ok(await p.locator('#dlg a[href="https://a.co/d/0h9yuEtI"]').count() === 1, "Amazon button carries the real purchase link");
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/desktop-book-dialog.png` });
   await p.keyboard.press("Escape");
   await settle(p, 300);
@@ -154,22 +154,23 @@ console.log("desktop experience" + (MEDIA ? " (with media)" : " (no media → pa
   }
 
   await scrollToChapter(p, "atelier", 0.85);
-  ok(await p.locator("#services li").count() === 1, "only confirmed services rendered (1)");
+  ok(await p.locator("#services li").count() === 9, "the house's 9 services are listed");
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/desktop-atelier-book.png` });
 
   // language switch
   await p.click('[data-lang-btn="en"]'); await settle(p, 200);
-  ok((await p.locator(".hero-emblem + .kicker + h1 + .motto + .lead").textContent()).startsWith("A publishing house"), "EN switch translates content");
+  ok(/Shape\./.test(await p.locator(".hero-lines").textContent()) && /Publishing works/.test(await p.locator(".panel-hero .lead").textContent()), "EN switch translates content");
   await p.click('[data-lang-btn="fr"]');
 
   // contact form: honest when backend is not configured
-  await p.locator("#contact").scrollIntoViewIfNeeded();
+  ok(await p.locator('#contact a[href="mailto:estevaomacumba@gmail.com"]').count() === 1, "home contact strip carries the real email");
+  await p.goto(BASE + "/contact.html"); await settle(p, 400);
   await p.click("#contactForm [type=submit]");
   ok(await p.locator("#contactForm [aria-invalid=true]").count() >= 3, "empty contact form flags required fields");
   await p.fill("#contactForm [name=name]", "Test"); await p.fill("#contactForm [name=email]", "t@example.com");
-  await p.fill("#contactForm [name=message]", "Bonjour"); await p.check("#contactForm [name=consent]");
+  await p.fill("#contactForm [name=message]", "Bonjour"); await p.fill("#contactForm [name=subject]", "Test"); await p.check("#contactForm [name=consent]");
   await p.click("#contactForm [type=submit]"); await settle(p, 500);
-  ok(/pas encore activé/.test(await p.locator("#contactForm .form-status").textContent()), "501 → says the form is not switched on (no fake success)");
+  ok(/messagerie|estevaomacumba/.test(await p.locator("#contactForm .form-status").textContent()), "no backend → hands the message to the mail app (real address)");
 
   ok(p.errors.length === 0, "no JS errors" + (p.errors.length ? ": " + p.errors.join(" | ") : ""));
   await p.context().close();
@@ -237,18 +238,21 @@ console.log("sub-pages");
 {
   const p = await page({ width: 1280, height: 800 });
   await p.goto(BASE + "/catalogue.html"); await settle(p, 300);
-  ok(await p.locator("#grid .card:visible").count() === 5, "catalogue lists 5 books");
+  ok(await p.locator("#grid .bcard:visible").count() === 8, "catalogue lists 8 books");
   await p.fill("#q", "biblical"); await settle(p, 100);
-  ok(await p.locator("#grid .card:visible").count() === 2, "search filters (biblical → 2)");
-  await p.fill("#q", ""); await p.selectOption("#fl", "fr"); await settle(p, 100);
-  ok(await p.locator("#grid .card:visible").count() === 2, "language filter (fr → 2)");
+  ok(await p.locator("#grid .bcard:visible").count() === 2, "search filters (biblical → 2)");
+  await p.fill("#q", ""); await p.selectOption("#fl", "french"); await settle(p, 100);
+  ok(await p.locator("#grid .bcard:visible").count() === 4, "language filter (French → 4)");
+  await p.selectOption("#fl", ""); await p.click('.fchip[data-f="science"]'); await settle(p, 100);
+  ok(await p.locator("#grid .bcard:visible").count() === 3, "collection chip filters (science → 3)");
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/catalogue.png`, fullPage: true });
   await p.goto(BASE + "/livres/called-to-stand-beside-him.html"); await settle(p, 300);
-  ok(await p.locator("h1").textContent() === "Called to Stand Beside Him", "book page renders");
+  ok(/Appelée à Rester/.test(await p.locator("h1").textContent()), "book page renders the French title");
+  ok(await p.locator("[data-book3d] .b3").count() === 1, "book page has the 3D book");
   ok(await p.locator('script[type="application/ld+json"]').count() === 1, "book page has structured data");
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/book-page.png`, fullPage: true });
   await p.goto(BASE + "/auteurs/stephane-taty.html"); await settle(p, 200);
-  ok(await p.locator(".cards .card").count() === 3, "author page lists 3 books");
+  ok(await p.locator(".bgrid .bcard").count() === 3, "author page lists 3 books");
   await p.goto(BASE + "/manuscrit.html"); await settle(p, 200);
   await p.setInputFiles("#msForm [name=file]", { name: "x.exe", mimeType: "application/octet-stream", buffer: Buffer.from("x") });
   await p.click("#msForm [type=submit]");
@@ -267,6 +271,46 @@ console.log("JavaScript disabled");
   ok(await p.locator("#maison .axes li").last().isVisible(), "content readable without JS");
   ok(await p.locator("#bookList").count() === 1, "book list fallback present");
   await ctx.close();
+}
+
+// ---------- every link and every button, on every page ----------
+console.log("link & button audit");
+{
+  const p = await page({ width: 1280, height: 800 });
+  const pages = ["/index.html", "/maison.html", "/services.html", "/catalogue.html", "/contact.html", "/manuscrit.html", "/confidentialite.html",
+    ...readdirSync(join(ROOT, "livres")).map((f) => "/livres/" + f), ...readdirSync(join(ROOT, "auteurs")).map((f) => "/auteurs/" + f)];
+  const bad = [], seen = new Set(), deadButtons = [];
+  for (const pg of pages) {
+    await p.goto(BASE + pg); await settle(p, 250);
+    const hrefs = await p.$$eval("a[href]", (as) => as.map((a) => a.getAttribute("href")));
+    for (const h of hrefs) {
+      if (/^https:\/\/(a\.co|maps\.google\.com)\//.test(h) || /^mailto:estevaomacumba@gmail\.com/.test(h) || /^tel:\+17065725957$/.test(h)) continue;
+      if (/^(https?:|mailto:|tel:)/.test(h)) { bad.push(`${pg} → unexpected external ${h}`); continue; }
+      if (h === "#" || h === "") { bad.push(`${pg} → empty link`); continue; }
+      const u = new URL(h, BASE + pg);
+      const key = u.pathname;
+      if (u.hash && u.pathname === new URL(BASE + pg).pathname) {
+        if (!(await p.$(u.hash))) bad.push(`${pg} → missing anchor ${u.hash}`);
+        continue;
+      }
+      if (seen.has(key)) continue; seen.add(key);
+      const r = await fetch(BASE + key);
+      if (r.status !== 200) bad.push(`${pg} → ${h} (${r.status})`);
+    }
+    // Every visible button must be wired to something real.
+    const unwired = await p.$$eval("button", (bs) => bs.filter((b) => b.offsetParent).filter((b) =>
+      !(b.type === "submit" || b.matches("[data-open],[data-book],[data-lang-btn],[data-close],#menuBtn,#classicBtn,#motionBtn,.fchip,#desk,.dlg-x"))
+    ).map((b) => b.outerHTML.slice(0, 80)));
+    unwired.forEach((u) => deadButtons.push(`${pg}: ${u}`));
+  }
+  ok(bad.length === 0, `all links resolve on ${pages.length} pages (${seen.size} internal targets checked)` + (bad.length ? "\n    " + bad.join("\n    ") : ""));
+  ok(deadButtons.length === 0, "every button is wired" + (deadButtons.length ? "\n    " + deadButtons.join("\n    ") : ""));
+  // Order button → contact form prefilled with the book and request type.
+  await p.goto(BASE + "/livres/chretiente-ere-intelligence-artificielle.html"); await settle(p, 300);
+  await p.click(".book-info .btn-gold"); await p.waitForLoadState(); await settle(p, 900);
+  ok(/contact\.html/.test(p.url()) && (await p.inputValue("#contactSubject")).includes("Christianisme") && (await p.inputValue("#contactType")) === "order", "« Commander » opens the contact form prefilled (book + order)");
+  ok(p.errors.length === 0, "no JS errors across the audit" + (p.errors.length ? ": " + p.errors.slice(0, 3).join(" | ") : ""));
+  await p.context().close();
 }
 
 await browser.close();

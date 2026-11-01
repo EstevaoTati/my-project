@@ -40,6 +40,18 @@
   to = "/catalogue.html"
   status = 200
 [[redirects]]
+  from = "/maison"
+  to = "/maison.html"
+  status = 200
+[[redirects]]
+  from = "/services"
+  to = "/services.html"
+  status = 200
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+[[redirects]]
   from = "/manuscrit"
   to = "/manuscrit.html"
   status = 200

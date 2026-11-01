@@ -9,12 +9,15 @@ cd "$(dirname "$0")/.."
 node scripts/build-pages.mjs --check
 OUT="$(cd .. && pwd)/les-elites-netlify.zip"
 TMP="$(mktemp -d)"
-cp -r index.html catalogue.html manuscrit.html confidentialite.html livres auteurs assets data \
-      styles.css pages.css i18n.js ui.js experience.js forms.js robots.txt sitemap.xml "$TMP/"
+cp -r index.html maison.html services.html contact.html catalogue.html manuscrit.html confidentialite.html livres auteurs assets data \
+      styles.css pages.css site.css motion.css i18n.js content.js ui.js motion.js experience.js forms.js robots.txt sitemap.xml "$TMP/"
 [[ -n "$(ls media 2>/dev/null)" ]] && cp -r media "$TMP/"
 # Drop honours _redirects/_headers (not netlify.toml): mirror the rules.
 cat > "$TMP/_redirects" <<'R'
 /catalogue        /catalogue.html        200
+/maison           /maison.html           200
+/services         /services.html         200
+/contact          /contact.html          200
 /manuscrit        /manuscrit.html        200
 /confidentialite  /confidentialite.html  200
 R
