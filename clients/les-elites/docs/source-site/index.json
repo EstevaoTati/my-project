@@ -1,13 +1,15 @@
 {
  "base": "https://leselitespublishinghouse.com/",
- "crawled": "2026-11-01T13:46:01Z",
+ "crawled": "2026-11-01T13:48:10.315Z",
+ "renderer": "playwright-chromium",
  "pages": [
   {
    "url": "https://leselitespublishinghouse.com/",
    "slug": "home",
-   "title": "LES ÉLITES — Maison d'Édition"
+   "title": "LES ÉLITES — Maison d'Édition",
+   "chars": 8289
   }
  ],
- "wp": {},
- "images": []
+ "images": 0,
+ "bundles": 1
 }
