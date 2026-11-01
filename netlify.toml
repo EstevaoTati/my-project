@@ -44,6 +44,14 @@
   status = 404
   force = true
 
+# Client sites (clients/<name>/) deploy as their own Netlify sites, never
+# under the MWINDA domain.
+[[redirects]]
+  from = "/clients/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
 [[redirects]]
   from = "/data/*"
   to = "/index.html"

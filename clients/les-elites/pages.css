@@ -1,0 +1,24 @@
+/* Sub-pages (catalogue, book, author, manuscript, privacy). Builds on styles.css. */
+.sub-main { padding: calc(var(--nav-h) + 40px) 0 80px; min-height: 80vh; background: radial-gradient(ellipse 80% 40% at 50% 0, rgba(199,166,107,.12), transparent 70%); }
+.page-sub .nav { background: rgba(16,17,20,.94); border-bottom: 1px solid var(--line); }
+.sub-hero { padding: 20px 0 34px; }
+.lead.left { margin-left: 0; }
+.status-track { list-style: none; padding: 0; margin: 0 0 8px; display: grid; grid-template-columns: repeat(4, 1fr); counter-reset: s; }
+.status-track li { counter-increment: s; padding: 34px 8px 0 0; position: relative; font: 600 12px/1.35 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ivory-2); border-top: 1px solid var(--line); }
+.status-track li::before { content: counter(s, upper-roman); position: absolute; top: 8px; left: 0; font: italic 500 18px/1 var(--f-display); color: var(--gold); text-transform: none; }
+.filters { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 0 0 12px; }
+.filters input, .filters select { min-height: 48px; padding: 0 14px; background: var(--graphite); color: var(--ivory); border: 1px solid rgba(199,166,107,.25); font: 400 16px/1 var(--f-ui); border-radius: 0; }
+.count { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+.cards a.card { color: var(--ivory); }
+.section-h { font: 500 clamp(28px, 3.4vw, 42px)/1.1 var(--f-display); margin: 70px 0 10px; padding-top: 30px; border-top: 1px solid var(--line); }
+.book-page { display: grid; grid-template-columns: minmax(200px, 360px) 1fr; gap: clamp(24px, 5vw, 64px); align-items: start; }
+.book-page .bookx { display: contents; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 0 0 22px; }
+.crumbs a { color: var(--ivory-2); }
+.prose h2 { font: 500 28px/1.2 var(--f-display); margin: 34px 0 10px; }
+.prose p, .prose li { color: var(--ivory-2); }
+@media (max-width: 760px) {
+  .filters { grid-template-columns: 1fr; }
+  .status-track { grid-template-columns: 1fr 1fr; row-gap: 14px; }
+  .book-page { grid-template-columns: 1fr; }
+}

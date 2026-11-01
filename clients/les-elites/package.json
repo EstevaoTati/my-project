@@ -1,0 +1,11 @@
+{
+  "name": "les-elites-publishing-house",
+  "private": true,
+  "type": "module",
+  "description": "Static site + one Netlify function. No runtime dependencies.",
+  "scripts": {
+    "pages": "node scripts/build-pages.mjs",
+    "check": "node scripts/build-pages.mjs --check && node --check netlify/functions/submit.mjs",
+    "test": "node scripts/smoke-test.mjs"
+  }
+}

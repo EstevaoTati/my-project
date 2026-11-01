@@ -1,0 +1,46 @@
+# Les Élites — crawl the current public site (text, structure, images) into
+# clients/les-elites/docs/source-site/ so the rebuild uses the house's own
+# words. Runs on GitHub's runners: the Claude sandbox cannot reach the domain.
+name: les-elites-crawl
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/les-elites-house-of-knowledge]
+    paths:
+      - clients/les-elites/scripts/crawl-source-site.mjs
+      - .github/workflows/les-elites-crawl.yml
+permissions:
+  contents: write
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Playwright + Chromium
+        run: npm i --no-save --prefix /tmp/pw playwright@1.47.2 && npx --prefix /tmp/pw playwright install --with-deps chromium
+      - name: Render-crawl
+        run: |
+          rm -rf clients/les-elites/docs/source-site
+          # ESM ignores NODE_PATH: run the script from where playwright is installed.
+          cp clients/les-elites/scripts/crawl-source-site.mjs /tmp/pw/crawl.mjs
+          node /tmp/pw/crawl.mjs "$GITHUB_WORKSPACE/clients/les-elites/docs/source-site"
+      - name: Download every image the app references
+        run: |
+          D=clients/les-elites/docs/source-site
+          mkdir -p $D/images
+          grep -oh 'https://d2xsxph8kpxj0f\.cloudfront\.net/[^"'"'"' )\\]*' $D/bundle/* | sort -u > $D/images/urls.txt
+          while read -r u; do curl -fsSL --max-time 60 -H "Referer: https://leselitespublishinghouse.com/" -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/126 Safari/537.36" -o "$D/images/$(basename "$u")" "$u" || echo "fail $u"; done < $D/images/urls.txt
+          ls -la $D/images
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git stash -q -u || true; git pull -q --rebase origin "${GITHUB_REF_NAME}" || true; git stash pop -q || true
+          git add clients/les-elites/docs/source-site
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -m "Les Élites: crawl of the current public site (text, structure, images)"
+          git push

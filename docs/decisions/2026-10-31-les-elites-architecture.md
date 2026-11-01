@@ -1,0 +1,88 @@
+# LES ÉLITES — "House of Knowledge" site: architecture choices
+
+Date: 2026-10-31 · Code: `clients/les-elites/`
+
+## Decision
+
+Build the Les Élites platform on the stack MWINDA already runs (static
+HTML/CSS/JS + Netlify functions + Supabase), **not** the Next.js / React Three
+Fiber / custom CMS stack the brief suggested. Ship it as a self-contained
+folder that deploys as its **own** Netlify site. `/clients/*` is 404'd on the
+MWINDA domain.
+
+## Why
+
+- **Cinematic depth comes from footage, not WebGL.** Photoreal Higgsfield
+  clips scrubbed by scroll give real camera movement through a believable
+  building. A real-time Three.js building at that fidelity is weeks of 3D work
+  and heavy on phones. Interactive objects (the bookshelf, the manuscript
+  turning into a book) use CSS 3D: real 3D transforms, keyboard-accessible
+  buttons, no GPU-context failures, so no WebGL fallback is needed.
+- **Native scroll, no GSAP.** The engine only reads `scrollY`, so wheel,
+  touch, anchors, fast flicks and scrolling back all work. Removing GSAP also
+  removes the "GSAP blocked → fallback path hides a bug" trap recorded in
+  CLAUDE.md.
+- **Admin = Supabase Studio with MFA for v1.** A custom admin with roles, MFA
+  and an audit trail is a project in itself. Studio already gives the team
+  auth, MFA and table editing; a trigger logs every status change. The
+  catalogue is versioned data (`data/catalog.js` → generated static pages)
+  edited by pull request. Build a custom admin only when non-technical staff
+  edit daily.
+- **Manuscripts bypass the function.** Netlify's ~6 MB sync body limit is
+  below a 20 MB manuscript. The function issues a single-use signed upload URL
+  to a private bucket; the browser holds no credential.
+- **Nothing invented.** The live site could not be fetched from the sandbox,
+  so the catalogue holds only what official covers and posters show. Unknown
+  facts are `null` and hidden: no prices, buy links, bios or unconfirmed services.
+
+## Trade-offs accepted
+
+- Scroll-scrubbed video needs re-encoding (keyframe every 6 frames) and about
+  2–5 MB per scene. Only the current and next scene load.
+- Shot-to-shot continuity is a cross-fade "through the doorway", not one
+  continuous take. A truly seamless take needs bridge clips (start + end frame).
+- The SEO pages are generated and committed. `build-pages.mjs --check` guards
+  against drift.
+
+## Revisit when
+
+- The house sells direct (add Stripe Checkout: hosted, no card data on our side).
+- Editors outside the founder's team need to change content weekly (custom admin).
+- The domain moves here (update `site.origin` and canonical/hreflang links).
+
+## Update — videos play continuously (founder, 2026-10-31)
+
+The founder asked for the scenes to be « animés without stopping ». Scroll no
+longer scrubs video time; the visible scene **plays continuously** and scroll
+moves the visitor between rooms (cross-fades, reveals, `--p` objects are
+unchanged). To avoid the camera snapping back at each loop, every clip is a
+**boomerang** (forward + reversed, 14 s, seamless). Hidden scenes pause;
+reduced-motion / calm mode / Save-Data still get posters only. Easing became
+time-based so slow devices busy decoding video do not lag behind the scroll.
+
+## Update — immersive by default (founder, 2026-10-31)
+
+« Remets-le en mode immersif. » Visitors ended up stuck outside the
+experience: "Passer l'expérience" and "Réduire les animations" were stored in
+`localStorage`, so one click lasted forever, and the OS reduced-motion setting
+silently switched the site to posters. Now:
+- **Every visit starts immersive.** Both opt-outs are `sessionStorage` (this
+  tab only); old stored keys are cleared; `?mode=immersive` resets the tab.
+- **OS reduced-motion keeps the footage** (slow camera moves, pausable) and
+  only drops parallax, scroll smoothing and reveal travel. The in-page
+  "Réduire les animations" button remains the full stop (WCAG 2.2.2 pause
+  control). Trade-off accepted by founder preference: immersion first, with
+  a one-click way out on every page.
+
+## Update — scrolling must be felt (founder, 2026-10-31)
+
+« Qu'en scrollant l'immersion des vidéos soit notoire. » Continuous playback
+alone made scroll feel like a slideshow. Scroll now drives the camera on top
+of the loop:
+- **Speed → playbackRate** 1× idle … 4× fast scroll, eased back in ~1 s, plus
+  a light motion blur at high speed.
+- **Progress → dolly-in** +22% and a slight tilt across each room.
+- **Doorway**: the outgoing room surges past (+30%, blur 5 px) while the next
+  fades in.
+- **Depth**: text panels drift against the scroll (CSS `translate`).
+OS reduced-motion and the calm button skip all of it (footage only / posters).
