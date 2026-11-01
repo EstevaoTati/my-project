@@ -7,7 +7,7 @@ on:
   push:
     branches: [claude/les-elites-house-of-knowledge]
     paths:
-      - clients/les-elites/scripts/crawl-source-site.py
+      - clients/les-elites/scripts/crawl-source-site.mjs
       - .github/workflows/les-elites-crawl.yml
 permissions:
   contents: write
@@ -17,12 +17,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.12"
-      - run: pip install -q requests beautifulsoup4
-      - name: Crawl
-        run: python clients/les-elites/scripts/crawl-source-site.py clients/les-elites/docs/source-site
+          node-version: 22
+      - name: Playwright + Chromium
+        run: npm i --no-save --prefix /tmp/pw playwright@1.47.2 && npx --prefix /tmp/pw playwright install --with-deps chromium
+      - name: Render-crawl
+        run: |
+          rm -rf clients/les-elites/docs/source-site
+          NODE_PATH=/tmp/pw/node_modules node clients/les-elites/scripts/crawl-source-site.mjs clients/les-elites/docs/source-site
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
