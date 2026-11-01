@@ -33,13 +33,13 @@ jobs:
           D=clients/les-elites/docs/source-site
           mkdir -p $D/images
           grep -oh 'https://d2xsxph8kpxj0f\.cloudfront\.net/[^"'"'"' )\\]*' $D/bundle/* | sort -u > $D/images/urls.txt
-          while read -r u; do curl -fsSL --max-time 60 -o "$D/images/$(basename "$u")" "$u" || echo "fail $u"; done < $D/images/urls.txt
+          while read -r u; do curl -fsSL --max-time 60 -H "Referer: https://leselitespublishinghouse.com/" -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/126 Safari/537.36" -o "$D/images/$(basename "$u")" "$u" || echo "fail $u"; done < $D/images/urls.txt
           ls -la $D/images
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull -q --rebase origin "${GITHUB_REF_NAME}" || true
+          git stash -q -u || true; git pull -q --rebase origin "${GITHUB_REF_NAME}" || true; git stash pop -q || true
           git add clients/les-elites/docs/source-site
           git diff --cached --quiet && { echo "no change"; exit 0; }
           git commit -m "Les Élites: crawl of the current public site (text, structure, images)"
