@@ -28,6 +28,13 @@ jobs:
           # ESM ignores NODE_PATH: run the script from where playwright is installed.
           cp clients/les-elites/scripts/crawl-source-site.mjs /tmp/pw/crawl.mjs
           node /tmp/pw/crawl.mjs "$GITHUB_WORKSPACE/clients/les-elites/docs/source-site"
+      - name: Download every image the app references
+        run: |
+          D=clients/les-elites/docs/source-site
+          mkdir -p $D/images
+          grep -oh 'https://d2xsxph8kpxj0f\.cloudfront\.net/[^"'"'"' )\\]*' $D/bundle/* | sort -u > $D/images/urls.txt
+          while read -r u; do curl -fsSL --max-time 60 -o "$D/images/$(basename "$u")" "$u" || echo "fail $u"; done < $D/images/urls.txt
+          ls -la $D/images
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
