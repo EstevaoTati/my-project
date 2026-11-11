@@ -1,0 +1,20 @@
+# Secret scanning (gitleaks) — the default rules, plus the two things that are
+# public by design and would otherwise be reported on every run.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public by design"
+regexes = [
+  # Supabase publishable key: authorises only what RLS allows; meant to ship in clients.
+  '''sb_publishable_[A-Za-z0-9_-]+''',
+  # AsyncStorage key names such as LAUNCHED_KEY = '242k.launched'.
+  '''^242k\.[a-z.]+$''',
+]
+paths = [
+  # Generated builds and the packages built from them (they embed the publishable key).
+  '''242konnect-web/''',
+  '''\.zip$''',
+  '''242konnect-lite\.html$''',
+  '''242konnect-app/dist[^/]*/''',
+]

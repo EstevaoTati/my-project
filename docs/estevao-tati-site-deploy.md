@@ -2,8 +2,16 @@
 
 ## 1. Mise en ligne (30 secondes)
 
+Le site vit dans `estevao-tati-site/`, séparé de 242Konnect (qui a son propre
+site Netlify et son propre paquet, `242konnect-netlify-package.zip`).
+
+- **Site relié à GitHub** : rien à régler. Le `netlify.toml` à la racine du dépôt
+  publie `estevao-tati-site/` et rien d'autre.
+- **Glisser-déposer** : reconstruire le paquet avec
+  `python3 scripts/package-estevao-site.py`, puis :
+
 1. Aller sur **https://app.netlify.com/drop**
-2. Glisser-déposer ce dossier (ou le ZIP).
+2. Glisser-déposer `netlify-package.zip`.
 3. C'est en ligne. **La vidéo de fond joue immédiatement**, sans rien configurer.
 
 Le formulaire `portfolio-contact` est détecté automatiquement par Netlify :
@@ -64,14 +72,14 @@ aucune modification de code.
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | Le site complet (une seule page, FR/EN) |
+| `estevao-tati-site/index.html` | Le site complet (une seule page, FR/EN) — chemins ci-dessous relatifs à ce dossier |
 | `vendor/gsap.min.js`, `ScrollTrigger.min.js` | Moteur d'animation, auto-hébergé |
 | `vendor/fonts.css` | Chakra Petch + JetBrains Mono en woff2 base64 (aucun CDN de polices) |
 | `assets/estevao-graded.jpg` | Portrait étalonné de la carte 3D |
 | `assets/hero/og-frame.jpg` | Image Open Graph 1200×630 |
 | `assets/README.md` | Documentation des assets et de la génération Higgsfield |
-| `netlify.toml` | Proxy vidéo, en-têtes de sécurité, cache |
-| `fetch-video.sh` | Rapatrie la vidéo pour un hébergement 100 % local |
+| `../netlify.toml` (racine du dépôt) | Dossier publié, proxy vidéo, en-têtes de sécurité, cache |
+| `../fetch-video.sh` (racine du dépôt) | Rapatrie la vidéo pour un hébergement 100 % local |
 | `favicon.svg`, `robots.txt` | Icône et indexation |
 
 ## 5. Accessibilité et performance
