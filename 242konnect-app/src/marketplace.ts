@@ -20,6 +20,7 @@ import type { Account } from './auth';
 import type { Pricing } from './pricing';
 import type { MissionDuration, MissionStage } from './store';
 import { supabaseConfigured, supabaseFetch, type SupabaseSession } from './supabase';
+import { T, tr } from './i18n';
 
 /** Off when the build has no Supabase — the test builds, and nothing else. */
 export const marketplaceEnabled = supabaseConfigured;
@@ -55,6 +56,11 @@ export type RequestStatus =
 
 export type RemoteRequest = {
   id: string;
+  /**
+   * 'inquiry': a contact request ("Contacter", "Demander un devis") — a
+   * conversation with no amount and no payment, which cannot become a mission.
+   */
+  kind: 'booking' | 'inquiry';
   clientId: string;
   /** Null on an open request until a prestataire claims it. */
   providerId: string | null;
@@ -91,20 +97,22 @@ export function isExpired(r: RemoteRequest): boolean {
 
 /** Server messages, in the user's terms. */
 const MESSAGES: [RegExp, string][] = [
-  [/cannot be booked yet/, "Ce prestataire est en cours de vérification : il ne peut pas encore être réservé."],
-  [/cannot book themselves/, 'Vous ne pouvez pas vous réserver vous-même.'],
-  [/long project needs/, 'Un projet long demande la signature du contrat de projet.'],
-  [/already paid/, 'Cette demande est déjà payée.'],
-  [/only a completed mission/, 'Seule une mission terminée peut être validée.'],
-  [/only an accepted mission can be disputed/, 'Seule une mission acceptée peut faire l’objet d’un signalement.'],
-  [/can no longer be accepted/, 'Cette demande ne peut plus être acceptée (délai dépassé ou déjà traitée).'],
-  [/not approved yet/, "Votre profil n'est pas encore approuvé par 242Konnect."],
-  [/can no longer be cancelled/, 'Cette demande ne peut plus être annulée.'],
-  [/confirmed by the payment service/, 'Le paiement passe par le service de paiement 242Konnect. Mettez l’application à jour.'],
-  [/payment not verified/, "Le paiement de cette demande n'est pas encore confirmé par l'opérateur."],
-  [/open request needs a city/, 'Indiquez votre ville pour que les prestataires de votre zone reçoivent la demande.'],
-  [/open request needs a trade/, 'Choisissez le métier recherché.'],
-  [/not signed in|JWT|jwt/, 'Votre session a expiré. Reconnectez-vous.'],
+  [/cannot be booked yet/, T("Ce prestataire est en cours de vérification : il ne peut pas encore être réservé.")],
+  [/cannot book themselves/, T('Vous ne pouvez pas vous réserver vous-même.')],
+  [/long project needs/, T('Un projet long demande la signature du contrat de projet.')],
+  [/already paid/, T('Cette demande est déjà payée.')],
+  [/only a completed mission/, T('Seule une mission terminée peut être validée.')],
+  [/only an accepted mission can be disputed/, T('Seule une mission acceptée peut faire l’objet d’un signalement.')],
+  [/can no longer be accepted/, T('Cette demande ne peut plus être acceptée (délai dépassé ou déjà traitée).')],
+  [/not approved yet/, T("Votre profil n'est pas encore approuvé par 242Konnect.")],
+  [/can no longer be cancelled/, T('Cette demande ne peut plus être annulée.')],
+  [/confirmed by the payment service/, T('Le paiement passe par le service de paiement 242Konnect. Mettez l’application à jour.')],
+  [/not available in your country/, T("Ce prestataire n'est pas disponible dans votre pays.")],
+  [/a message is required/, T('Écrivez votre message.')],
+  [/payment not verified/, T("Le paiement de cette demande n'est pas encore confirmé par l'opérateur.")],
+  [/open request needs a city/, T('Indiquez votre ville pour que les prestataires de votre zone reçoivent la demande.')],
+  [/open request needs a trade/, T('Choisissez le métier recherché.')],
+  [/not signed in|JWT|jwt/, T('Votre session a expiré. Reconnectez-vous.')],
 ];
 
 export class MarketplaceError extends Error {}
@@ -113,7 +121,7 @@ async function fail(response: Response): Promise<never> {
   const payload = (await response.json().catch(() => ({}))) as { message?: string };
   const raw = payload.message ?? '';
   const known = MESSAGES.find(([re]) => re.test(raw));
-  throw new MarketplaceError(known ? known[1] : "Le service 242Konnect n'a pas pu traiter la demande. Réessayez.");
+  throw new MarketplaceError(tr(known ? known[1] : "Le service 242Konnect n'a pas pu traiter la demande. Réessayez."));
 }
 
 async function call<T>(
@@ -121,12 +129,12 @@ async function call<T>(
   path: string,
   init: { method?: string; body?: unknown; headers?: Record<string, string> } = {}
 ): Promise<T> {
-  if (!marketplaceEnabled) throw new MarketplaceError('Service indisponible sur cette version.');
+  if (!marketplaceEnabled) throw new MarketplaceError(tr('Service indisponible sur cette version.'));
   let response: Response;
   try {
     response = await supabaseFetch(path, init, session);
   } catch {
-    throw new MarketplaceError('Connexion impossible. Vérifiez votre réseau et réessayez.');
+    throw new MarketplaceError(tr('Connexion impossible. Vérifiez votre réseau et réessayez.'));
   }
   if (!response.ok) return fail(response);
   if (response.status === 204) return undefined as T;
@@ -182,7 +190,8 @@ type RequestRow = {
   slot: string;
   duration: MissionDuration;
   contract_accepted_at: string | null;
-  amount: number;
+  amount: number | null;
+  kind?: 'booking' | 'inquiry';
   currency: 'FCFA' | 'USD';
   idempotency_key: string;
   status: RequestStatus;
@@ -199,6 +208,7 @@ type RequestRow = {
 
 const requestFrom = (row: RequestRow): RemoteRequest => ({
   id: row.id,
+  kind: row.kind === 'inquiry' ? 'inquiry' : 'booking',
   clientId: row.client_id,
   providerId: row.provider_id,
   clientName: row.client_name,
@@ -209,7 +219,7 @@ const requestFrom = (row: RequestRow): RemoteRequest => ({
   slot: row.slot,
   duration: row.duration,
   ...(row.contract_accepted_at ? { contractAcceptedAt: row.contract_accepted_at } : {}),
-  amount: row.amount,
+  amount: row.amount ?? 0,
   currency: row.currency,
   idempotencyKey: row.idempotency_key,
   status: row.status,
@@ -230,11 +240,15 @@ const requestFrom = (row: RequestRow): RemoteRequest => ({
 
 const LISTING_COLUMNS = 'id,full_name,trade_id,zone,city,country,pricing,durations,bio,status,refusal_reason,available';
 
-/** Every listing, approved first. Pending ones are shown with their badge. */
-export async function listListings(session: SupabaseSession): Promise<Listing[]> {
+/**
+ * The directory of one country: approved prestataires, plus the caller's own
+ * listing whatever its status (the database shows nobody else's pending one).
+ * A client never sees another country's prestataires (Client §11).
+ */
+export async function listListings(session: SupabaseSession, country?: 'CG' | 'US'): Promise<Listing[]> {
   const rows = await call<ListingRow[]>(
     session,
-    `/rest/v1/provider_listings?select=${LISTING_COLUMNS}&order=status.asc,updated_at.desc&limit=200`
+    `/rest/v1/provider_listings?select=${LISTING_COLUMNS}${country ? `&country=eq.${country}` : ''}&order=status.asc,updated_at.desc&limit=500`
   );
   return rows.map(listingFrom);
 }
@@ -324,6 +338,22 @@ export async function createRequest(
     headers: { Prefer: 'return=minimal' },
   });
   return created;
+}
+
+/** The slot the server gives a contact request: no time was asked for. */
+export const NO_SLOT = T('À convenir');
+
+/**
+ * "Contacter" / "Demander un devis": opens a conversation with an approved
+ * prestataire of the client's country, with no amount and no payment. Writing
+ * again to the same prestataire continues the open conversation. Returns the
+ * request that carries it.
+ */
+export async function contactProvider(session: SupabaseSession, providerId: string, message: string): Promise<string> {
+  return call<string>(session, '/rest/v1/rpc/contact_provider', {
+    method: 'POST',
+    body: { p_provider: providerId, p_message: message },
+  });
 }
 
 /** Requests this account made, newest first. */
@@ -527,17 +557,17 @@ export class PaymentError extends MarketplaceError {
 }
 
 async function paymentCall<T>(session: SupabaseSession, body: Record<string, unknown>): Promise<T> {
-  if (!marketplaceEnabled) throw new MarketplaceError('Service indisponible sur cette version.');
+  if (!marketplaceEnabled) throw new MarketplaceError(tr('Service indisponible sur cette version.'));
   let response: Response;
   try {
     response = await supabaseFetch('/functions/v1/payment', { method: 'POST', body }, session);
   } catch {
-    throw new MarketplaceError('Connexion impossible. Vérifiez votre réseau et réessayez.');
+    throw new MarketplaceError(tr('Connexion impossible. Vérifiez votre réseau et réessayez.'));
   }
   const payload = (await response.json().catch(() => ({}))) as T & { error?: string; message?: string };
   if (!response.ok || payload.error) {
     throw new PaymentError(
-      payload.message ?? "Le service de paiement n'a pas pu traiter la demande. Réessayez.",
+      payload.message ?? tr("Le service de paiement n'a pas pu traiter la demande. Réessayez."),
       payload.error ?? 'unknown'
     );
   }
@@ -585,7 +615,7 @@ export async function payRequest(
     await new Promise((r) => setTimeout(r, options.pollMs ?? PAYMENT_POLL_MS));
   } while (Date.now() < deadline);
   return last.status === 'pending'
-    ? { status: 'expired', reason: 'Aucune confirmation reçue. Si votre compte a été débité, relancez le paiement avec le même numéro : il sera retrouvé, sans second débit.' }
+    ? { status: 'expired', reason: tr('Aucune confirmation reçue. Si votre compte a été débité, relancez le paiement avec le même numéro : il sera retrouvé, sans second débit.') }
     : last;
 }
 

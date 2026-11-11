@@ -294,7 +294,11 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
             return send(res, 201);
           }
           const id = eq(q, "id");
-          const rows = [...listings.values()].filter((l) => !id || l.id === id);
+          const country = eq(q, "country");
+          // As in production since the hardening: approved, or your own.
+          const rows = [...listings.values()].filter(
+            (l) => (!id || l.id === id) && (!country || (l.country || "CG") === country) && (l.status === "approved" || l.id === uid)
+          );
           rows.sort((a, b) => (a.status < b.status ? -1 : 1));
           return send(res, 200, rows);
         }
@@ -371,6 +375,29 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
           return send(res, 200, messages.filter((m) => m.request_id === r.id));
         }
         if (table === "rpc/request_action") return send(res, 200, action(uid, body));
+        // contact_requests.sql: a conversation with no amount and no payment.
+        if (table === "rpc/contact_provider") {
+          const text = String(body.p_message || "").trim();
+          const listing = listings.get(body.p_provider);
+          if (!text) return fail(res, 400, "a message is required");
+          if (body.p_provider === uid) return fail(res, 400, "a prestataire cannot book themselves");
+          if (!listing || listing.status !== "approved") return fail(res, 400, "this prestataire cannot be booked yet");
+          const mine = profiles.get(uid)?.country;
+          if (mine && mine !== (listing.country || "CG")) return fail(res, 400, "this prestataire is not available in your country");
+          let r = [...requests.values()].find((x) => x.client_id === uid && x.provider_id === body.p_provider && x.kind === "inquiry" && x.status === "sent");
+          if (!r) {
+            r = {
+              id: crypto.randomUUID(), kind: "inquiry", client_id: uid, provider_id: body.p_provider,
+              client_name: profiles.get(uid)?.full_name ?? "", trade_id: listing.trade_id, city: listing.city,
+              description: mask(text), zone_hint: "", slot: "À convenir", duration: "hours", amount: null, currency: "FCFA",
+              idempotency_key: `inq-${crypto.randomUUID()}`, status: "sent", stage: null, stage_at: {},
+              refund_status: "none", created_at: now(), updated_at: now(),
+            };
+            requests.set(r.id, r);
+          }
+          messages.push({ id: ++messageId, request_id: r.id, sender_id: uid, body: mask(text), created_at: now() });
+          return send(res, 200, r.id);
+        }
         if (table === "request_dismissals") return send(res, 200, dismissals.filter((d) => d.provider_id === uid).reverse());
         if (table === "rpc/claim_request") {
           const r = requests.get(body.p_request);
@@ -438,6 +465,12 @@ function createFakeSupabase({ port = 8990, outbox = "/tmp/242konnect-fake-supaba
     dismissals,
     listen: () => new Promise((r) => server.listen(port, "127.0.0.1", r)),
     close: () => server.close(),
+    /** A prestataire already in the directory, with no browser behind it. */
+    seedListing: (l) => {
+      const id = crypto.randomUUID();
+      listings.set(id, { id, zone: "", country: "CG", pricing: null, durations: ["hours"], bio: "", status: "approved", refusal_reason: null, available: true, updated_at: now(), ...l });
+      return id;
+    },
     /** What 242Konnect's reviewers would do from the dashboard. */
     approveAll: () => listings.forEach((l) => (l.status = "approved")),
     /** An account from before the password moved to Supabase. */

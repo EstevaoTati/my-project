@@ -20,7 +20,7 @@ import { PAYMENT_METHODS, methodNeedsPhone, settle, type PaymentMethod } from '.
 import { formatAmount } from '../../pricing';
 import { DEFAULT_COUNTRY, fromE164, isCompleteNumber, normalizeNational, type CountryCode } from '../../countries';
 import { colors, fonts, radius } from '../../theme';
-import { T, useT } from '../../i18n';
+import { T, useT, tr, locale } from '../../i18n';
 import { onlineStyles as o, RequestChatSheet, requestStatusLabel, StageTracker, useMarketData } from './shared';
 
 const DISPUTE_REASONS = [T('Travail non conforme'), T('Travail incomplet'), T('Prestataire absent'), T('Dommages'), T('Autre')];
@@ -76,7 +76,7 @@ export function ClientRequests() {
       await requestAction(session, r.id, action, payload);
       await refresh();
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Action impossible.');
+      setActionError(e instanceof Error ? e.message : tr('Action impossible.'));
     }
   };
 
@@ -119,7 +119,7 @@ export function ClientRequests() {
       setPaying(null);
     } catch (e) {
       if (e instanceof PaymentError && e.code === 'payments_unavailable') setSheetNote(e.message);
-      else setSheetError(e instanceof Error ? e.message : 'Paiement impossible.');
+      else setSheetError(e instanceof Error ? e.message : tr('Paiement impossible.'));
     } finally {
       setBusy(false);
       setWaiting(false);
@@ -136,6 +136,36 @@ export function ClientRequests() {
       {requests.map((r) => {
         const expired = isExpired(r);
         const trade = t(getTrade(r.tradeId)?.label ?? r.tradeId);
+        // A contact request: a conversation, with nothing to pay or validate.
+        if (r.kind === 'inquiry')
+          return (
+            <View key={r.id} style={o.card}>
+              <View style={o.head}>
+                <View style={o.headBody}>
+                  <Text style={o.name}>{trade}</Text>
+                  <Text style={o.sub}>{t('Message au prestataire')}</Text>
+                </View>
+                <View style={o.chip}>
+                  <Text style={o.chipText}>{t(requestStatusLabel(r))}</Text>
+                </View>
+              </View>
+              {!!r.description && <Text style={o.body}>{r.description}</Text>}
+              {r.status === 'sent' ? (
+                <View style={o.actions}>
+                  <Pressable onPress={() => act(r, 'cancel')} accessibilityRole="button" accessibilityLabel={t('Fermer la conversation')} style={o.ghost}>
+                    <Text style={o.ghostLabel}>{t('Fermer')}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => setChat(r)} accessibilityRole="button" accessibilityLabel={t('Ouvrir le chat de la demande')} style={o.solid}>
+                    <Text style={o.solidLabel}>{t('Message')}</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={o.line}>
+                  {r.status === 'refused' ? t('Le prestataire a fermé cette conversation.') : t('Vous avez fermé cette conversation.')}
+                </Text>
+              )}
+            </View>
+          );
         return (
           <View key={r.id} style={o.card}>
             <View style={o.head}>
@@ -168,7 +198,7 @@ export function ClientRequests() {
                 )}
                 <Text style={o.line}>
                   {t('Réponse attendue avant')}{' '}
-                  {r.responseDeadline ? new Date(r.responseDeadline).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : ''}.
+                  {r.responseDeadline ? new Date(r.responseDeadline).toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' }) : ''}.
                 </Text>
                 <View style={o.actions}>
                   <Pressable onPress={() => act(r, 'cancel')} accessibilityRole="button" accessibilityLabel={t('Annuler la demande en ligne')} style={o.ghost}>
@@ -282,11 +312,11 @@ export function ClientRequests() {
                 key={m.id}
                 onPress={() => setMethod(m.id)}
                 accessibilityRole="button"
-                accessibilityLabel={m.label}
+                accessibilityLabel={t(m.label)}
                 aria-selected={method === m.id}
                 style={[styles.method, method === m.id && styles.methodOn]}
               >
-                <Text style={styles.methodLabel}>{m.label}</Text>
+                <Text style={styles.methodLabel}>{t(m.label)}</Text>
               </Pressable>
             ))}
             {methodNeedsPhone(method) && (

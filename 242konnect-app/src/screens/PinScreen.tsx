@@ -7,7 +7,7 @@ import { FormError, SubmitButton } from '../components/form';
 import { useAuth } from '../auth';
 import { PIN_LENGTH } from '../pin';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 /**
  * The PIN, as the second factor at sign-in.
@@ -39,7 +39,7 @@ export function PinScreen() {
     try {
       await confirmPin(value);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Code incorrect.');
+      setError(e instanceof Error ? e.message : tr('Code incorrect.'));
       setPin('');
     } finally {
       setBusy(false);
@@ -107,7 +107,7 @@ export function PinScreen() {
             try {
               await useEmailCodeInstead();
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Impossible d'envoyer un code.");
+              setError(e instanceof Error ? e.message : tr("Impossible d'envoyer un code."));
             } finally {
               setSwitching(false);
             }

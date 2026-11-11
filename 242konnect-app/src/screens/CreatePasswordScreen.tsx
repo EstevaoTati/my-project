@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon';
 import { FormError, PasswordField, SubmitButton } from '../components/form';
 import { MIN_PASSWORD, passwordProblem, passwordStrength, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { T, useT, tr } from '../i18n';
 
 /**
  * The last step of sign-up: choosing a password, after the code has been
@@ -21,7 +21,7 @@ import { useT } from '../i18n';
  * The account does not exist until this screen succeeds.
  */
 
-const STRENGTH_LABELS = ['Trop faible', 'Faible', 'Correct', 'Solide'];
+const STRENGTH_LABELS = [T('Trop faible'), T('Faible'), T('Correct'), T('Solide')];
 
 export function CreatePasswordScreen() {
   const t = useT();
@@ -46,7 +46,7 @@ export function CreatePasswordScreen() {
     try {
       await completeSignUp(password);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Création impossible.');
+      setError(e instanceof Error ? e.message : tr('Création impossible.'));
     } finally {
       setBusy(false);
     }
@@ -79,21 +79,20 @@ export function CreatePasswordScreen() {
 
         <Text style={styles.title}>{t('Créer votre mot de passe')}</Text>
         <Text style={styles.lede}>
-          Il protège votre compte 242Konnect. Au moins {MIN_PASSWORD} caractères, avec des lettres
-          et des chiffres.
+          {t('Il protège votre compte 242Konnect. Au moins {n} caractères, avec des lettres et des chiffres.', { n: MIN_PASSWORD })}
         </Text>
 
         <View style={styles.form}>
           <PasswordField
             value={password}
             onChangeText={setPassword}
-            placeholder={`${MIN_PASSWORD} caractères minimum`}
+            placeholder={t('{n} caractères minimum', { n: MIN_PASSWORD })}
             autoCapitalize="none"
             error={problem ?? undefined}
           />
 
           {password.length > 0 && (
-            <View style={styles.meter} accessibilityLabel={`Robustesse : ${STRENGTH_LABELS[strength]}`}>
+            <View style={styles.meter} accessibilityLabel={t('Robustesse : {level}', { level: t(STRENGTH_LABELS[strength]) })}>
               <View style={styles.meterTrack}>
                 {[0, 1, 2].map((i) => (
                   <View
@@ -106,7 +105,7 @@ export function CreatePasswordScreen() {
                   />
                 ))}
               </View>
-              <Text style={styles.meterLabel}>{STRENGTH_LABELS[strength]}</Text>
+              <Text style={styles.meterLabel}>{t(STRENGTH_LABELS[strength])}</Text>
             </View>
           )}
 
@@ -116,7 +115,7 @@ export function CreatePasswordScreen() {
             onChangeText={setConfirm}
             autoCapitalize="none"
             onSubmitEditing={ready ? submit : undefined}
-            error={mismatch ? 'Les deux mots de passe ne correspondent pas.' : undefined}
+            error={mismatch ? t('Les deux mots de passe ne correspondent pas.') : undefined}
           />
 
           <FormError message={error} />

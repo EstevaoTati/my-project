@@ -13,7 +13,7 @@ import { ProviderInbox } from '../components/online/ProviderInbox';
 import { marketplaceEnabled } from '../marketplace';
 import type { AccountStackParamList } from '../navigation';
 import { fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { T, useT, locale } from '../i18n';
 import { pro } from '../proTheme';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'EspacePrestataire'>;
@@ -43,9 +43,9 @@ type Props = NativeStackScreenProps<AccountStackParamList, 'EspacePrestataire'>;
  */
 
 const SUBSCRIPTIONS = [
-  { id: 'standard', label: 'Standard', price: 'Gratuit', perks: ['Profil public', 'Réception des demandes'] },
-  { id: 'premium', label: 'Premium', price: 'À définir', perks: ['Priorité dans les résultats', 'Badge Premium'] },
-  { id: 'business', label: 'Business', price: 'À définir', perks: ['Appels d’offres entreprises', 'Support prioritaire'] },
+  { id: 'standard', label: T('Standard'), price: T('Gratuit'), perks: [T('Profil public'), T('Réception des demandes')] },
+  { id: 'premium', label: T('Premium'), price: T('À définir'), perks: [T('Priorité dans les résultats'), T('Badge Premium')] },
+  { id: 'business', label: T('Business'), price: T('À définir'), perks: [T('Appels d’offres entreprises'), T('Support prioritaire')] },
 ];
 
 export function EspacePrestataireScreen({ navigation }: Props) {
@@ -70,7 +70,7 @@ export function EspacePrestataireScreen({ navigation }: Props) {
       label: t('Dossier soumis'),
       state: details ? 'done' : 'missing',
       hint: details?.submittedAt
-        ? new Date(details.submittedAt).toLocaleDateString('fr-FR')
+        ? new Date(details.submittedAt).toLocaleDateString(locale())
         : details
           ? t('Reçu')
           : t('Complétez votre profil'),
@@ -114,12 +114,12 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         <UserAvatar name={account.name} avatar={account.avatar} size={56} />
         <View style={styles.identityBody}>
           <Text style={styles.name}>{account.name}</Text>
-          <Text style={styles.trade}>{trade?.label ?? 'Métier non renseigné'}</Text>
-          {!!details?.zone && <Text style={styles.zone}>Zone : {details.zone}</Text>}
+          <Text style={styles.trade}>{trade ? t(trade.label) : t('Métier non renseigné')}</Text>
+          {!!details?.zone && <Text style={styles.zone}>{t('Zone : {zone}', { zone: details.zone })}</Text>}
         </View>
         <View style={[styles.badge, details?.verified ? styles.badgeOn : styles.badgeOff]}>
           <Text style={[styles.badgeLabel, details?.verified ? styles.badgeLabelOn : styles.badgeLabelOff]}>
-            {details?.verified ? 'Vérifié' : 'En attente'}
+            {details?.verified ? t('Vérifié') : t('En attente')}
           </Text>
         </View>
       </View>
@@ -131,8 +131,8 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           <Icon name="solar:shield-check-bold" size={18} color={pro.warning} />
           <Text style={styles.noticeText}>
             {details
-              ? "Votre compte est en attente de vérification. 242Konnect contrôle vos pièces justificatives avant d'attribuer le badge « Prestataire vérifié »."
-              : "Profil prestataire incomplet : métier, zone d'intervention, tarif et pièces justificatives manquent. Renseignez-les depuis Profil › Modifier le profil pour recevoir des demandes."}
+              ? t("Votre compte est en attente de vérification. 242Konnect contrôle vos pièces justificatives avant d'attribuer le badge « Prestataire vérifié ».")
+              : t("Profil prestataire incomplet : métier, zone d'intervention, tarif et pièces justificatives manquent. Renseignez-les depuis Profil › Modifier le profil pour recevoir des demandes.")}
           </Text>
         </View>
       )}
@@ -176,10 +176,10 @@ export function EspacePrestataireScreen({ navigation }: Props) {
 
       <Section title={t('Revenus')}>
         <View style={styles.grid}>
-          {['Aujourd’hui', 'Cette semaine', 'Ce mois', 'Cette année'].map((label) => (
+          {[t('Aujourd’hui'), t('Cette semaine'), t('Ce mois'), t('Cette année')].map((label) => (
             <View key={label} style={styles.gridCell}>
               <Text style={styles.gridValue}>0</Text>
-              <Text style={styles.gridUnit}>{t('FCFA')}</Text>
+              <Text style={styles.gridUnit}>{t(pricing?.currency ?? 'FCFA')}</Text>
               <Text style={styles.gridLabel}>{label}</Text>
             </View>
           ))}
@@ -228,8 +228,7 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           </View>
         </View>
         <Text style={styles.sectionNote}>
-          Le Score 242K se calcule à partir des prestations réalisées, des avis, de la ponctualité
-          et du taux d'annulation (§7.5). Il reste vide tant qu'aucune mission n'a eu lieu.
+          {t("Le Score 242K se calcule à partir des prestations réalisées, des avis, de la ponctualité et du taux d'annulation (§7.5). Il reste vide tant qu'aucune mission n'a eu lieu.")}
         </Text>
       </Section>
 
@@ -241,14 +240,14 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         />
         <InfoRow
           label={t('Contrat Prestataire')}
-          value={contract?.granted ? `v${contract.version} · ${t('signé le')} ${new Date(contract.at).toLocaleDateString('fr-FR')}` : t('Non signé')}
+          value={contract?.granted ? `v${contract.version} · ${t('signé le')} ${new Date(contract.at).toLocaleDateString(locale())}` : t('Non signé')}
         />
         <InfoRow label={t('Commission 242Konnect')} value={`${COMMISSION_RATE * 100} %`} />
         <InfoRow
           label={t('Versement standard')}
-          value={`${PAYOUT_STANDARD_DELAY_DAYS} jours · ${(PAYOUT_STANDARD_RATE * 100).toLocaleString('fr-FR')} %`}
+          value={`${t('{n} jours', { n: PAYOUT_STANDARD_DELAY_DAYS })} · ${(PAYOUT_STANDARD_RATE * 100).toLocaleString(locale())} %`}
         />
-        <InfoRow label={t('Versement express')} value={`Immédiat · ${PAYOUT_EXPRESS_RATE * 100} %`} />
+        <InfoRow label={t('Versement express')} value={`${t('Immédiat')} · ${PAYOUT_EXPRESS_RATE * 100} %`} />
         <Text style={styles.sectionNote}>{t("Vous ne recevez jamais d'argent directement du client. 242Konnect encaisse, conserve les fonds, puis vous verse après validation de la prestation.")}</Text>
       </Section>
 
@@ -257,7 +256,7 @@ export function EspacePrestataireScreen({ navigation }: Props) {
           details.documents.map((_, i) => (
             <View key={i} style={styles.row}>
               <View style={styles.rowBody}>
-                <Text style={styles.rowLabel}>Pièce justificative {i + 1}</Text>
+                <Text style={styles.rowLabel}>{t('Pièce justificative {n}', { n: i + 1 })}</Text>
                 <Text style={styles.rowHint}>{t('En attente de vérification par 242Konnect')}</Text>
               </View>
               {/* §04 statuses: reçu, en examen, approuvé, refusé, à remplacer.
@@ -276,12 +275,12 @@ export function EspacePrestataireScreen({ navigation }: Props) {
         {SUBSCRIPTIONS.map((plan, i) => (
           <View key={plan.id} style={[styles.plan, i === 0 && styles.planActive]}>
             <View style={styles.planHead}>
-              <Text style={styles.planLabel}>{plan.label}</Text>
-              <Text style={styles.planPrice}>{plan.price}</Text>
+              <Text style={styles.planLabel}>{t(plan.label)}</Text>
+              <Text style={styles.planPrice}>{t(plan.price)}</Text>
             </View>
             {plan.perks.map((perk) => (
               <Text key={perk} style={styles.planPerk}>
-                · {perk}
+                · {t(perk)}
               </Text>
             ))}
             {i === 0 && <Text style={styles.planCurrent}>{t('Votre formule actuelle')}</Text>}

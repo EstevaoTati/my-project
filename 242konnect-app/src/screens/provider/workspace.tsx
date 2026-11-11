@@ -243,6 +243,7 @@ export function TradeBadge({ tradeId }: { tradeId: string }) {
 export function RequestCard({ request, onOpen }: { request: RemoteRequest; onOpen: () => void }) {
   const t = useT();
   const open = request.providerId === null;
+  const inquiry = request.kind === 'inquiry';
   const expiry = expiresIn(request, t);
   return (
     <View style={s.card}>
@@ -250,28 +251,38 @@ export function RequestCard({ request, onOpen }: { request: RemoteRequest; onOpe
         <TradeBadge tradeId={request.tradeId} />
         <View style={s.cardBody}>
           <Text style={s.cardTitle} numberOfLines={1}>
-            {t(tradeLabel(request.tradeId))}
+            {inquiry ? shortName(request.clientName) || t('Client') : t(tradeLabel(request.tradeId))}
           </Text>
           <Text style={s.cardMeta} numberOfLines={1}>
-            {place(request)}
+            {inquiry ? t('Prise de contact') : place(request)}
           </Text>
-          <Text style={s.cardMeta} numberOfLines={1}>
-            {t(request.slot)}
+          <Text style={s.cardMeta} numberOfLines={2}>
+            {inquiry ? request.description : t(request.slot)}
           </Text>
         </View>
         <View style={s.cardSide}>
-          <Text style={s.amount}>{formatAmount(request.amount, request.currency)}</Text>
-          {!!expiry && <Text style={s.expiry}>{expiry}</Text>}
-          {!open && <Text style={s.forYou}>{t('Pour vous')}</Text>}
+          {inquiry ? (
+            <Text style={s.forYou}>{t('Message')}</Text>
+          ) : (
+            <>
+              <Text style={s.amount}>{formatAmount(request.amount, request.currency)}</Text>
+              {!!expiry && <Text style={s.expiry}>{expiry}</Text>}
+              {!open && <Text style={s.forYou}>{t('Pour vous')}</Text>}
+            </>
+          )}
         </View>
       </View>
       <Pressable
         onPress={onOpen}
         accessibilityRole="button"
-        accessibilityLabel={`${t('Voir la demande')} ${t(tradeLabel(request.tradeId))}`}
+        accessibilityLabel={
+          inquiry
+            ? `${t('Lire le message de')} ${shortName(request.clientName) || t('Client')}`
+            : `${t('Voir la demande')} ${t(tradeLabel(request.tradeId))}`
+        }
         style={s.darkButton}
       >
-        <Text style={s.darkButtonLabel}>{t('Voir la demande')}</Text>
+        <Text style={s.darkButtonLabel}>{inquiry ? t('Lire et répondre') : t('Voir la demande')}</Text>
       </Pressable>
     </View>
   );
@@ -424,11 +435,50 @@ export function RequestSheet({
   };
 
   const expiry = request ? expiresIn(request, t) : null;
+  const inquiry = request?.kind === 'inquiry';
 
   return (
     <>
-      <Sheet visible={!!request} title={t('Demande de service')} onClose={onClose}>
-        {request && (
+      <Sheet visible={!!request} title={inquiry ? t('Message d’un client') : t('Demande de service')} onClose={onClose}>
+        {request && inquiry && (
+          <View style={s.sheetBody}>
+            <View style={s.clientRow}>
+              <View style={s.initials}>
+                <Text style={s.initialsText}>{(request.clientName.trim()[0] ?? '?').toUpperCase()}</Text>
+              </View>
+              <View style={s.cardBody}>
+                <Text style={s.cardTitle}>{shortName(request.clientName) || t('Client')}</Text>
+                <Text style={s.cardMeta}>{t('Prise de contact')} · {t(tradeLabel(request.tradeId))}</Text>
+              </View>
+            </View>
+            <Text style={s.description}>{request.description}</Text>
+            <View style={s.lockNote}>
+              <Icon name="solar:shield-check-bold" size={16} color={colors.mutedForeground} />
+              <Text style={s.lockNoteText}>
+                {t('Répondez dans la conversation : prix, disponibilité, questions. La mission et le paiement se font ensuite par une demande dans 242Konnect.')}
+              </Text>
+            </View>
+            {!!error && <Text style={s.error}>{error}</Text>}
+            <Pressable
+              onPress={() => setChat(request)}
+              accessibilityRole="button"
+              accessibilityLabel={t('Répondre au client')}
+              style={s.darkButton}
+            >
+              <Text style={s.darkButtonLabel}>{t('Répondre')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => answer('decline')}
+              disabled={!!busy}
+              accessibilityRole="button"
+              accessibilityLabel={t('Fermer la conversation')}
+              style={s.lightButton}
+            >
+              <Text style={s.lightButtonLabel}>{busy === 'decline' ? t('Envoi…') : t('Fermer la conversation')}</Text>
+            </Pressable>
+          </View>
+        )}
+        {request && !inquiry && (
           <View style={s.sheetBody}>
             {!!expiry && (
               <View style={s.expiryChip}>

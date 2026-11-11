@@ -55,7 +55,7 @@ import {
   type CountryCode,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
-import { T, useT } from '../i18n';
+import { T, useT, tr, locale } from '../i18n';
 
 const STATUS: Record<MissionStatus, { label: string; bg: string; fg: string }> = {
   demandee: { label: T('À payer'), bg: colors.warningSurface, fg: colors.warning },
@@ -280,7 +280,7 @@ export function MissionsScreen() {
       setMomoPhase('idle');
       // An abort is the payer's own doing, so it is not an error to report.
       if (!controller.signal.aborted)
-        setPayError(e instanceof Error ? e.message : 'Le paiement a échoué.');
+        setPayError(e instanceof Error ? e.message : tr('Le paiement a échoué.'));
     } finally {
       momoAbort.current = null;
     }
@@ -302,7 +302,7 @@ export function MissionsScreen() {
       const next = await pickAvatar();
       if (next) setReviewPhoto(next);
     } catch (e) {
-      setReviewError(e instanceof Error ? e.message : "Impossible d'ajouter cette photo.");
+      setReviewError(e instanceof Error ? e.message : tr("Impossible d'ajouter cette photo."));
     }
   };
 
@@ -473,7 +473,7 @@ export function MissionsScreen() {
                     {payment ? ` Réf. ${payment.reference}.` : ''}{' '}
                     {expired
                       ? t('Le délai de réponse est dépassé.')
-                      : `${t('Réponse attendue avant')} ${new Date(responseDeadline).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}.`}
+                      : `${t('Réponse attendue avant')} ${new Date(responseDeadline).toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' })}.`}
                   </Text>
                 )}
 
@@ -517,7 +517,7 @@ export function MissionsScreen() {
                           </Text>
                           {!!at && (
                             <Text style={styles.trackerTime}>
-                              {new Date(at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                           )}
                         </View>
@@ -824,13 +824,13 @@ export function MissionsScreen() {
                   key={m.id}
                   onPress={() => setMethod(m.id)}
                   accessibilityRole="button"
-                  accessibilityLabel={m.label}
+                  accessibilityLabel={t(m.label)}
                   aria-selected={selected}
                   style={[styles.method, selected && styles.methodSelected]}
                 >
                   <View style={styles.methodBody}>
-                    <Text style={[styles.methodLabel, selected && styles.methodLabelSelected]}>{m.label}</Text>
-                    <Text style={styles.methodHint}>{m.hint}</Text>
+                    <Text style={[styles.methodLabel, selected && styles.methodLabelSelected]}>{t(m.label)}</Text>
+                    <Text style={styles.methodHint}>{t(m.hint)}</Text>
                   </View>
                   {selected && <Icon name="solar:shield-check-bold" size={20} color={colors.foreground} />}
                 </Pressable>

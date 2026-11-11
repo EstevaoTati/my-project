@@ -17,7 +17,7 @@ import { STAGES } from '../../store';
 import type { SupabaseSession } from '../../supabase';
 import { fonts } from '../../theme';
 import { pro } from '../../proTheme';
-import { useT } from '../../i18n';
+import { useT, tr, locale } from '../../i18n';
 import { onlineStylesPro as o, RequestChatSheet, requestStatusLabel, STAGE_LABELS, StageTracker, useMarketData } from './shared';
 
 type Inbox = { listing: Listing | null; requests: RemoteRequest[]; addresses: Record<string, string> };
@@ -55,7 +55,7 @@ export function ProviderInbox() {
       await requestAction(session, r.id, action);
       await refresh();
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Action impossible.');
+      setActionError(e instanceof Error ? e.message : tr('Action impossible.'));
     }
   };
 
@@ -129,7 +129,7 @@ export function ProviderInbox() {
               <>
                 <Text style={o.line}>
                   {t('Paiement bloqué par 242Konnect. Adresse exacte et coordonnées communiquées après acceptation. Répondez avant')}{' '}
-                  {r.responseDeadline ? new Date(r.responseDeadline).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : ''}.
+                  {r.responseDeadline ? new Date(r.responseDeadline).toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' }) : ''}.
                 </Text>
                 {!approved && <Text style={o.error}>{t("Votre profil doit être approuvé pour accepter une demande.")}</Text>}
                 <View style={o.actions}>

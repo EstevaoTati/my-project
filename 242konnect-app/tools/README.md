@@ -160,3 +160,22 @@ BASE_URL="https://…/242konnect-web/index.html" node tools/verify-demo.js
 
 Run it against the deep, githack-shaped URL — that is where a build with an
 absolute asset path silently 404s, and where this catches it.
+
+## `verify-english.js` — is anything still in French?
+
+`i18n-check.js` only sees strings written as `t('…')`. This reads the screens
+instead: it drives the app in English, sign-up to chat, as a client and a
+prestataire in the United States, and fails on any French text, accessibility
+label or placeholder, and on any key the app asked for in English without
+finding a translation (`globalThis.__i18nMissing`). The same run checks that a
+US account sees the United States — its cities, its prestataires — and can
+contact one, phone number masked.
+
+```sh
+EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:8990 EXPO_PUBLIC_SUPABASE_ANON_KEY=test-key \
+  EXPO_PUBLIC_API_URL= npx expo export --platform web --clear --output-dir dist-market
+APP_DIST=$PWD/dist-market node tools/verify-english.js
+```
+
+`SHOTS=<dir>` keeps pictures of the key screens and of any failure. It covers
+the screens it visits: add a stop to the tour when a screen is added.

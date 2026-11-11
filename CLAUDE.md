@@ -99,4 +99,13 @@ publish the other's files.
   Edge Functions live in `supabase/functions/` (`pin`, `payment`,
   `search-providers`); the repo version is the one deployed. Only the
   `payment` function marks a request paid — never add a client-side path.
+- **242Konnect product rules** (decision 2026-11-11): a client browses the
+  country of their account, never another; with Supabase configured only real,
+  approved prestataires are shown (no sample catalogue); writing to a
+  prestataire is a free contact request (`contact_provider`), separate from
+  paid booking. Approving prestataires: `docs/242konnect-approbation-prestataires.md`.
+- Every string on screen goes through `t()` / `tr()` with an entry in
+  `src/locales/en.ts`. `node tools/i18n-check.js --strict` and
+  `APP_DIST=… node tools/verify-english.js` (English crawl, US accounts) must
+  pass before a 242Konnect release.
 - Verify changes by opening the affected page before committing.

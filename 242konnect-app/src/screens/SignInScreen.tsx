@@ -7,7 +7,7 @@ import { FormError, Field, PasswordField, SubmitButton } from '../components/for
 import { isValidEmail, useAuth } from '../auth';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Connexion'>;
 
@@ -27,7 +27,7 @@ export function SignInScreen({ navigation }: Props) {
     try {
       await signIn({ identifier, password });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Connexion impossible.');
+      setError(e instanceof Error ? e.message : tr('Connexion impossible.'));
     } finally {
       setBusy(false);
     }
@@ -42,7 +42,7 @@ export function SignInScreen({ navigation }: Props) {
   const forgot = async () => {
     setError(null);
     if (!identifier.trim()) {
-      setError("Entrez d'abord votre numéro ou votre e-mail, puis touchez « Mot de passe oublié ».");
+      setError(tr("Entrez d'abord votre numéro ou votre e-mail, puis touchez « Mot de passe oublié »."));
       return;
     }
     setBusy(true);
@@ -51,7 +51,7 @@ export function SignInScreen({ navigation }: Props) {
     } catch (e) {
       // Includes the deliberately vague "if an account exists" reply, which is
       // shown as-is so an unknown address looks the same as a known one.
-      setError(e instanceof Error ? e.message : 'Impossible de lancer la récupération.');
+      setError(e instanceof Error ? e.message : tr('Impossible de lancer la récupération.'));
     } finally {
       setBusy(false);
     }

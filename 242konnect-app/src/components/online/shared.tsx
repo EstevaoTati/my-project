@@ -15,7 +15,7 @@ import {
 import { STAGES, type MissionStage } from '../../store';
 import type { SupabaseSession } from '../../supabase';
 import { colors, fonts, radius } from '../../theme';
-import { T, useT } from '../../i18n';
+import { T, useT, tr, locale } from '../../i18n';
 import { pro } from '../../proTheme';
 
 /**
@@ -47,7 +47,7 @@ export function useMarketData<T>(
       setData(await loadRef.current(session));
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Chargement impossible.');
+      setError(e instanceof Error ? e.message : tr('Chargement impossible.'));
     }
   }, [marketSession]);
 
@@ -71,6 +71,8 @@ export const STAGE_LABELS: Record<MissionStage, string> = {
 
 /** One label per state, the same on both sides of the request. */
 export function requestStatusLabel(r: RemoteRequest): string {
+  if (r.kind === 'inquiry')
+    return r.status === 'sent' ? T('Prise de contact') : r.status === 'refused' ? T('Conversation fermée') : T('Fermée');
   if (isExpired(r)) return T('Expirée');
   const labels: Record<RequestStatus, string> = {
     draft: T('À payer'),
@@ -107,7 +109,7 @@ export function StageTracker({ request, proMode = false }: { request: RemoteRequ
             </Text>
             {!!at && (
               <Text style={[styles.trackerTime, proMode && trackerPro.label]}>
-                {new Date(at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(at).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}
               </Text>
             )}
           </View>
@@ -174,7 +176,7 @@ export function RequestChatSheet({
       setDraft('');
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Message non envoyé.");
+      setError(e instanceof Error ? e.message : tr("Message non envoyé."));
     }
   };
 
@@ -197,7 +199,7 @@ export function RequestChatSheet({
           <View key={m.id} style={[styles.bubble, m.senderId === me ? styles.mine : styles.theirs]}>
             <Text style={[styles.bubbleText, m.senderId === me && styles.mineText]}>{m.body}</Text>
             <Text style={[styles.bubbleTime, m.senderId === me && styles.mineTime]}>
-              {new Date(m.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(m.createdAt).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
         ))}

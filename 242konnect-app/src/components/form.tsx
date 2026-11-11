@@ -9,7 +9,7 @@ import {
   type CountryCode,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useI18n, useT } from '../i18n';
 
 type FieldProps = TextInputProps & {
   label: string;
@@ -60,9 +60,12 @@ export function PhoneField({
   onCountryChange,
   error,
   onSubmitEditing,
-  label = 'Numéro de téléphone',
+  label: labelProp,
 }: PhoneFieldProps) {
   const t = useT();
+  const { language } = useI18n();
+  const label = labelProp ?? t('Numéro de téléphone');
+  const nameOf = (c: { nameFr: string; nameEn: string }) => (language === 'en' ? c.nameEn : c.nameFr);
   const [picking, setPicking] = useState(false);
   const selected = countryFor(country);
 
@@ -73,7 +76,7 @@ export function PhoneField({
         <Pressable
           onPress={() => setPicking(true)}
           accessibilityRole="button"
-          accessibilityLabel={`Indicatif pays : +${selected.dial}. Changer de pays`}
+          accessibilityLabel={t('Indicatif pays : +{dial}. Changer de pays', { dial: selected.dial })}
           style={styles.prefix}
         >
           <Text style={styles.prefixText}>
@@ -115,12 +118,12 @@ export function PhoneField({
                       setPicking(false);
                     }}
                     accessibilityRole="button"
-                    accessibilityLabel={`${c.nameFr}, +${c.dial}`}
+                    accessibilityLabel={`${nameOf(c)}, +${c.dial}`}
                     aria-selected={active}
                     style={[styles.countryRow, active && styles.countryRowActive]}
                   >
                     <Text style={styles.countryFlag}>{c.flag}</Text>
-                    <Text style={styles.countryName}>{c.nameFr}</Text>
+                    <Text style={styles.countryName}>{nameOf(c)}</Text>
                     <Text style={styles.countryDial}>+{c.dial}</Text>
                   </Pressable>
                 );
@@ -142,12 +145,14 @@ export function PhoneField({
  * screen.
  */
 export function PasswordField({
-  label = 'Mot de passe',
+  label: labelProp,
   value,
   onChangeText,
   error,
   ...input
 }: Omit<FieldProps, 'label'> & { label?: string }) {
+  const t = useT();
+  const label = labelProp ?? t('Mot de passe');
   const [shown, setShown] = useState(false);
   return (
     <View style={styles.field}>
@@ -165,11 +170,11 @@ export function PasswordField({
         <Pressable
           onPress={() => setShown((v) => !v)}
           accessibilityRole="button"
-          accessibilityLabel={shown ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          accessibilityLabel={shown ? t('Masquer le mot de passe') : t('Afficher le mot de passe')}
           hitSlop={8}
           style={styles.reveal}
         >
-          <Text style={styles.revealText}>{shown ? 'Masquer' : 'Afficher'}</Text>
+          <Text style={styles.revealText}>{shown ? t('Masquer') : t('Afficher')}</Text>
         </Pressable>
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
@@ -190,6 +195,7 @@ export function SubmitButton({
   disabled?: boolean;
   accessibilityLabel?: string;
 }) {
+  const t = useT();
   const off = disabled || busy;
   return (
     <Pressable
@@ -200,7 +206,7 @@ export function SubmitButton({
       aria-disabled={!!off} aria-busy={!!busy}
       style={({ pressed }) => [styles.submit, off && styles.submitOff, pressed && !off && styles.pressed]}
     >
-      <Text style={styles.submitLabel}>{busy ? 'Un instant…' : label}</Text>
+      <Text style={styles.submitLabel}>{busy ? t('Un instant…') : label}</Text>
     </Pressable>
   );
 }

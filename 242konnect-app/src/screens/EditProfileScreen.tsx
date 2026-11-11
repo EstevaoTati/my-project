@@ -21,7 +21,7 @@ import { PricingEditor } from '../components/PricingEditor';
 import { currencyFor, pricingOf, pricingProblem, type PricingModel, type ProjectDuration } from '../pricing';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'ModifierProfil'>;
 
@@ -78,7 +78,7 @@ export function EditProfileScreen({ navigation }: Props) {
       const next = await take();
       if (next) setAvatar(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Impossible d'utiliser cette image.");
+      setError(e instanceof Error ? e.message : tr("Impossible d'utiliser cette image."));
     } finally {
       setPicking(false);
     }
@@ -98,8 +98,8 @@ export function EditProfileScreen({ navigation }: Props) {
         // of birth. Enforced here as well as at sign-up, because activating the
         // profile from the account screen is a second way in and must not be a
         // way around the rules.
-        if (!tradeId) throw new Error('Choisissez votre métier.');
-        if (!zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+        if (!tradeId) throw new Error(tr('Choisissez votre métier.'));
+        if (!zone.trim()) throw new Error(tr("Indiquez votre zone d'intervention."));
         const currency = currencyFor(account.location.country);
         const pricing = priceModel
           ? {
@@ -111,10 +111,10 @@ export function EditProfileScreen({ navigation }: Props) {
           : undefined;
         const priceIssue = pricingProblem(pricing);
         if (priceIssue) throw new Error(t(priceIssue));
-        if (!durations.length) throw new Error('Indiquez les durées de mission acceptées.');
-        if (!birthDate) throw new Error('Indiquez votre date de naissance.');
+        if (!durations.length) throw new Error(tr('Indiquez les durées de mission acceptées.'));
+        if (!birthDate) throw new Error(tr('Indiquez votre date de naissance.'));
         const age = ageFrom(birthDate);
-        if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
+        if (age === null) throw new Error(tr('Date de naissance invalide (AAAA-MM-JJ).'));
         if (age < MIN_PRESTATAIRE_AGE)
           throw new Error(
             `L'activité de prestataire est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
@@ -148,7 +148,7 @@ export function EditProfileScreen({ navigation }: Props) {
       });
       navigation.goBack();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Enregistrement impossible.');
+      setError(e instanceof Error ? e.message : tr('Enregistrement impossible.'));
     } finally {
       setBusy(false);
     }
@@ -238,7 +238,7 @@ export function EditProfileScreen({ navigation }: Props) {
                 style={styles.select}
               >
                 <Text style={[styles.selectValue, !selectedTrade && styles.selectPlaceholder]}>
-                  {selectedTrade?.label ?? 'Choisir un métier'}
+                  {selectedTrade ? t(selectedTrade.label) : t('Choisir un métier')}
                 </Text>
                 <Icon name="solar:alt-arrow-down-linear" size={18} color={colors.mutedForeground} />
               </Pressable>
@@ -281,7 +281,7 @@ export function EditProfileScreen({ navigation }: Props) {
             label={t('À propos de vous')}
             value={bio}
             onChangeText={setBio}
-            placeholder={isPro ? 'Décrivez votre expérience et vos services' : 'Quelques mots sur vous'}
+            placeholder={isPro ? t('Décrivez votre expérience et vos services') : t('Quelques mots sur vous')}
             multiline
             numberOfLines={4}
             style={styles.textarea}
@@ -301,13 +301,13 @@ export function EditProfileScreen({ navigation }: Props) {
               setShowTrades(false);
             }}
             accessibilityRole="button"
-            accessibilityLabel={trade.label}
+            accessibilityLabel={t(trade.label)}
             aria-selected={trade.id === tradeId}
             style={[styles.tradeRow, trade.id === tradeId && styles.tradeRowSelected]}
           >
-            <Text style={styles.tradeLabel}>{trade.label}</Text>
+            <Text style={styles.tradeLabel}>{t(trade.label)}</Text>
             <Text style={styles.tradeDesc} numberOfLines={2}>
-              {trade.description}
+              {t(trade.description)}
             </Text>
           </Pressable>
         ))}

@@ -78,7 +78,10 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const [showPost, setShowPost] = useState(false);
   const [showPro, setShowPro] = useState(false);
   const proMode = useProMode();
-  const unread = useUnreadCount(proMode);
+  // With a server the dot is real for both profiles; without one, client mode
+  // keeps the design's sample dot.
+  const live = proMode || marketplaceEnabled;
+  const unread = useUnreadCount(live);
 
   // The professional profile has its own "Réserver maintenant" action bar
   // pinned to the bottom. Leaving the tab bar up stacks two bars on top of each
@@ -95,7 +98,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
     if (!meta) return null;
     // Client mode: a red dot as in the design. Provider mode: only when
     // something is actually unread (Messages §3.1).
-    const badge = routeName === 'Messages' && (proMode ? unread > 0 : true);
+    const badge = routeName === 'Messages' && (live ? unread > 0 : true);
 
     return (
       <Pressable

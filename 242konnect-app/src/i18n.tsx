@@ -63,6 +63,37 @@ function interpolate(template: string, vars?: Vars): string {
   );
 }
 
+/**
+ * The language outside React.
+ *
+ * Messages are also written where there is no component: an error thrown by
+ * the sign-in code, a notice stored by the mission store, a server refusal
+ * turned into a sentence. Those used to be French for everyone, whatever the
+ * language chosen, because only `t()` from the hook translated. `tr()` is the
+ * same lookup for that code; the provider below keeps it on the language the
+ * screens use.
+ */
+let current: Language = 'fr';
+
+/** Keys asked for in English with no translation; read by tools/verify-english.js. */
+const missing = new Set<string>();
+(globalThis as { __i18nMissing?: Set<string> }).__i18nMissing = missing;
+
+function lookup(language: Language, french: string, vars?: Vars): string {
+  if (language === 'en' && !(french in en) && /\p{L}{2}/u.test(french)) missing.add(french);
+  return interpolate(language === 'en' ? (en[french] ?? french) : french, vars);
+}
+
+/** `t()` for code that is not a component. The French string is the key. */
+export function tr(french: string, vars?: Vars): string {
+  return lookup(current, french, vars);
+}
+
+/** The locale for dates and numbers in the current language. */
+export function locale(): string {
+  return current === 'en' ? 'en-US' : 'fr-FR';
+}
+
 type I18nState = {
   language: Language;
   setLanguage: (next: Language) => void;
@@ -83,6 +114,8 @@ function deviceLanguage(): Language {
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(deviceLanguage);
+  // Before anything renders with it, so `tr()` and `t()` never disagree.
+  current = language;
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -98,7 +131,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback<I18nState['t']>(
-    (french, vars) => interpolate(language === 'en' ? (en[french] ?? french) : french, vars),
+    (french, vars) => lookup(language, french, vars),
     [language]
   );
 

@@ -27,7 +27,7 @@ import { T, useT } from '../i18n';
 type Props = NativeStackScreenProps<HomeStackParamList, 'Profil'>;
 
 /** Slots offered in the booking sheet; a real build reads these from the pro. */
-const SLOTS = [T('Dès que possible'), "Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+const SLOTS = [T('Dès que possible'), T("Aujourd'hui, 14h00"), T("Aujourd'hui, 16h30"), T('Demain, 09h00'), T('Demain, 11h00')];
 
 /** Commande §02: a few hours to months, and recurring services. */
 const DURATIONS: { id: MissionDuration; label: string }[] = [

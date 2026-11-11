@@ -1,5 +1,6 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
+import { tr } from './i18n';
 
 /**
  * Turning a camera roll photo into an avatar small enough to store.
@@ -94,7 +95,7 @@ export async function toStorableAvatar(uri: string): Promise<string> {
  */
 export async function pickAvatar(): Promise<string | null> {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!perm.granted) throw new Error("Autorisez l'accès à vos photos pour changer votre image.");
+  if (!perm.granted) throw new Error(tr("Autorisez l'accès à vos photos pour changer votre image."));
   const result = await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
   if (result.canceled || !result.assets?.[0]) return null;
   return toStorableAvatar(result.assets[0].uri);
@@ -103,7 +104,7 @@ export async function pickAvatar(): Promise<string | null> {
 /** The same, from the camera. */
 export async function captureAvatar(): Promise<string | null> {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
-  if (!perm.granted) throw new Error("Autorisez l'accès à la caméra pour prendre une photo.");
+  if (!perm.granted) throw new Error(tr("Autorisez l'accès à la caméra pour prendre une photo."));
   const result = await ImagePicker.launchCameraAsync(PICKER_OPTIONS);
   if (result.canceled || !result.assets?.[0]) return null;
   return toStorableAvatar(result.assets[0].uri);

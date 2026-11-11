@@ -23,12 +23,13 @@ out="$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/security_tes
 # The other test files number their rows from 1 again; prefixed so the lists read.
 out="$out
 $(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/payment_tests.sql" 2>&1 | sed -E 's/^ *([0-9]+) \|/P\1 |/')
-$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/provider_workspace_tests.sql" 2>&1 | sed -E 's/^ *([0-9]+) \|/W\1 |/')"
-echo "$out" | grep -E '^\s*[PW]?[0-9]+ \|' || true
-fails="$(echo "$out" | grep -cE '^\s*[PW]?[0-9]+ \| f \|' || true)"
+$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/provider_workspace_tests.sql" 2>&1 | sed -E 's/^ *([0-9]+) \|/W\1 |/')
+$(psql -v ON_ERROR_STOP=0 -X -d "$db" -A -F ' | ' -t -f "$here/contact_tests.sql" 2>&1 | sed -E 's/^ *([0-9]+) \|/C\1 |/')"
+echo "$out" | grep -E '^\s*[PWC]?[0-9]+ \|' || true
+fails="$(echo "$out" | grep -cE '^\s*[PWC]?[0-9]+ \| f \|' || true)"
 # A payment test block that aborts prints no rows; count the error instead.
 fails=$((fails + $(echo "$out" | grep -c 'ERROR:' || true)))
-total="$(echo "$out" | grep -cE '^\s*[PW]?[0-9]+ \|' || true)"
+total="$(echo "$out" | grep -cE '^\s*[PWC]?[0-9]+ \|' || true)"
 echo
 echo "$((total - fails)) passed, $fails failed"
 [ "$total" -gt 0 ] && [ "$fails" -eq 0 ]

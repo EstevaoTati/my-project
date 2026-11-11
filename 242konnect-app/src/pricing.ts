@@ -20,6 +20,9 @@ import { T } from './i18n';
 export type PricingModel = 'fixed' | 'from' | 'hourly' | 'quote';
 export type Currency = 'FCFA' | 'USD';
 
+/** Currency codes read the same in both languages; named here so the dictionary knows them. */
+export const CURRENCY_LABELS: Record<Currency, string> = { FCFA: T('FCFA'), USD: T('USD') };
+
 export type Pricing = {
   model: PricingModel;
   /** Absent for `quote`. Whole units of `currency`. */

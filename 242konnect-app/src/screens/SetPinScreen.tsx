@@ -7,7 +7,7 @@ import { FormError, SubmitButton } from '../components/form';
 import { useAuth } from '../auth';
 import { PIN_LENGTH, pinProblem } from '../pin';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 /**
  * Choosing the 6-digit PIN.
@@ -55,7 +55,7 @@ export function SetPinScreen() {
     try {
       await definePin(pin, replacing ? current : undefined);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de définir le code.');
+      setError(e instanceof Error ? e.message : tr('Impossible de définir le code.'));
       setPin('');
       setConfirm('');
       setCurrent('');

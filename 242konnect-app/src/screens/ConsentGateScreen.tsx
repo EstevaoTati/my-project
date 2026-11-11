@@ -6,7 +6,7 @@ import { Field, FormError, SubmitButton } from '../components/form';
 import { useAuth } from '../auth';
 import { needsReacceptance, PRIVACY, PROVIDER_CONTRACT, TERMS, type LegalDocument } from '../consent';
 import { colors, fonts, radius } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 /**
  * Stands between a signed-in account and the app when a mandatory document has
@@ -50,7 +50,7 @@ export function ConsentGateScreen() {
         }))
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Enregistrement impossible.');
+      setError(e instanceof Error ? e.message : tr('Enregistrement impossible.'));
     } finally {
       setBusy(false);
     }

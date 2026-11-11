@@ -8,21 +8,23 @@ import { getCategory, getTrade, searchProfessionals, type Professional } from '.
 import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { T, useT } from '../i18n';
+import { ListingResults } from '../components/online/ListingResults';
+import { marketplaceEnabled } from '../marketplace';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Resultats'>;
 
 type SortId = 'pertinence' | 'prix' | 'note' | 'verifie' | 'distance' | 'disponible' | 'identifie';
 
 const SORTS: { id: SortId; label: string; icon?: 'solar:sort-from-top-to-bottom-bold' }[] = [
-  { id: 'pertinence', label: 'Pertinence', icon: 'solar:sort-from-top-to-bottom-bold' },
-  { id: 'prix', label: 'Prix' },
-  { id: 'note', label: 'Note (4+)' },
-  { id: 'verifie', label: 'Vérifié' },
+  { id: 'pertinence', label: T('Pertinence'), icon: 'solar:sort-from-top-to-bottom-bold' },
+  { id: 'prix', label: T('Prix') },
+  { id: 'note', label: T('Note (4+)') },
+  { id: 'verifie', label: T('Vérifié') },
   // Client §12: distance, availability and provider type as filters too.
-  { id: 'distance', label: 'Moins de 5 km' },
-  { id: 'disponible', label: 'Disponible maintenant' },
-  { id: 'identifie', label: 'Prestataire identifié' },
+  { id: 'distance', label: T('Moins de 5 km') },
+  { id: 'disponible', label: T('Disponible maintenant') },
+  { id: 'identifie', label: T('Prestataire identifié') },
 ];
 
 /**
@@ -51,7 +53,25 @@ function applySort(list: Professional[], sort: SortId): Professional[] {
   }
 }
 
-export function SearchResultsScreen({ route, navigation }: Props) {
+/**
+ * With the server, results are the real directory of the client's country.
+ * The sample catalogue below is for builds without one.
+ */
+export function SearchResultsScreen(props: Props) {
+  if (!marketplaceEnabled) return <SampleResults {...props} />;
+  const { category, tradeId, query } = props.route.params ?? {};
+  return (
+    <ListingResults
+      category={category}
+      tradeId={tradeId}
+      query={query}
+      onBack={() => props.navigation.goBack()}
+      onOpen={(id) => props.navigation.navigate('Inscrit', { id })}
+    />
+  );
+}
+
+function SampleResults({ route, navigation }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const { category, tradeId, query } = route.params ?? {};
@@ -64,11 +84,9 @@ export function SearchResultsScreen({ route, navigation }: Props) {
     [category, tradeId, query, sort]
   );
 
-  const title =
-    (tradeId && getTrade(tradeId)?.label) ||
-    (category && getCategory(category)?.label) ||
-    query ||
-    'Tous les services';
+  const tradeLabel = tradeId ? getTrade(tradeId)?.label : undefined;
+  const categoryLabel = category ? getCategory(category)?.label : undefined;
+  const title = tradeLabel ? t(tradeLabel) : categoryLabel ? t(categoryLabel) : query || t('Tous les services');
 
   return (
     <View style={styles.root}>
@@ -86,8 +104,9 @@ export function SearchResultsScreen({ route, navigation }: Props) {
           <View style={styles.titleBlock}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>
-              {results.length} professionnel{results.length === 1 ? '' : 's'} disponible
-              {results.length === 1 ? '' : 's'}
+              {results.length === 1
+                ? t('1 professionnel disponible')
+                : t('{n} professionnels disponibles', { n: results.length })}
             </Text>
           </View>
         </View>
@@ -106,7 +125,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
                 accessibilityRole="button"
                 // Distinguishes the "Vérifié" filter from the "Vérifié par 242K"
                 // badge on the cards below, which otherwise reads identically.
-                accessibilityLabel={`Trier par ${option.label}`}
+                accessibilityLabel={`${t('Trier par')} ${t(option.label)}`}
                 aria-selected={active}
                 style={[styles.sortPill, active ? styles.sortPillActive : styles.sortPillInactive]}
               >
@@ -123,7 +142,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
                     active ? styles.sortLabelActive : styles.sortLabelInactive,
                   ]}
                 >
-                  {option.label}
+                  {t(option.label)}
                 </Text>
               </Pressable>
             );
@@ -140,7 +159,7 @@ export function SearchResultsScreen({ route, navigation }: Props) {
             <Icon name="solar:magnifer-linear" size={32} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>{t('Aucun professionnel trouvé')}</Text>
             <Text style={styles.emptyBody}>
-              Essayez une autre catégorie ou retirez le filtre « {SORTS.find((s) => s.id === sort)?.label} ».
+              {t('Essayez une autre catégorie ou retirez le filtre « {filter} ».', { filter: t(SORTS.find((s) => s.id === sort)?.label ?? '') })}
             </Text>
           </View>
         ) : (

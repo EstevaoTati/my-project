@@ -57,6 +57,7 @@ import {
   verifyPin as checkPin,
   PIN_LENGTH,
 } from './pin';
+import { T, tr } from './i18n';
 
 /**
  * Accounts, stored on the device.
@@ -97,8 +98,8 @@ import {
 export type ProfileKind = 'particulier' | 'prestataire';
 
 export const PROFILE_LABELS: Record<ProfileKind, string> = {
-  particulier: 'Particulier',
-  prestataire: 'Prestataire',
+  particulier: T('Particulier'),
+  prestataire: T('Prestataire'),
 };
 
 /**
@@ -154,8 +155,8 @@ export const MAX_DOCUMENTS = 5;
 export const MAX_INTERESTS = 3;
 
 export const INTERESTS = [
-  'Maison', 'Bricolage', 'Automobile', 'Beauté', 'Santé', 'Éducation',
-  'Événementiel', 'Informatique', 'Jardinage', 'Nettoyage',
+  T('Maison'), T('Bricolage'), T('Automobile'), T('Beauté'), T('Santé'), T('Éducation'),
+  T('Événementiel'), T('Informatique'), T('Jardinage'), T('Nettoyage'),
 ];
 
 export type Account = {
@@ -699,51 +700,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Shared identity rules. No password here any more: it is chosen after
       // verification, so the code can be requested before one exists.
-      if (draft.name.trim().length < 2) throw new Error('Entrez votre nom complet.');
+      if (draft.name.trim().length < 2) throw new Error(tr('Entrez votre nom complet.'));
       if (!isCompleteNumber(draft.phone, country))
-        throw new Error('Entrez un numéro de téléphone complet.');
-      if (!isValidEmail(mail)) throw new Error('Entrez une adresse e-mail valide.');
-      if (!draft.location?.city?.trim()) throw new Error('Indiquez votre ville.');
+        throw new Error(tr('Entrez un numéro de téléphone complet.'));
+      if (!isValidEmail(mail)) throw new Error(tr('Entrez une adresse e-mail valide.'));
+      if (!draft.location?.city?.trim()) throw new Error(tr('Indiquez votre ville.'));
       if (draft.location.country === 'US' && !draft.location.state)
-        throw new Error("Choisissez votre État.");
+        throw new Error(tr("Choisissez votre État."));
 
       // Per-profile rules — §2.2 asks for a different set from each.
       if (draft.profile === 'particulier') {
         const d = draft.particulier;
-        if (!d?.address.trim()) throw new Error('Indiquez votre adresse complète.');
+        if (!d?.address.trim()) throw new Error(tr('Indiquez votre adresse complète.'));
         if (!d?.addressReference.trim())
-          throw new Error("Indiquez une référence d'adresse (un repère pour vous trouver).");
+          throw new Error(tr("Indiquez une référence d'adresse (un repère pour vous trouver)."));
         if ((d.interests ?? []).length > MAX_INTERESTS)
-          throw new Error(`Choisissez au plus ${MAX_INTERESTS} centres d'intérêt.`);
+          throw new Error(tr("Choisissez au plus {n} centres d'intérêt.", { n: MAX_INTERESTS }));
       }
 
       if (draft.profile === 'prestataire') {
         const d = draft.prestataire;
         // "photo de profil obligatoire" is stated for prestataires only.
-        if (!draft.avatar) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
-        if (!d?.birthDate) throw new Error('Indiquez votre date de naissance.');
+        if (!draft.avatar) throw new Error(tr('Une photo de profil est obligatoire pour un prestataire.'));
+        if (!d?.birthDate) throw new Error(tr('Indiquez votre date de naissance.'));
         const age = ageFrom(d.birthDate);
-        if (age === null) throw new Error('Date de naissance invalide (JJ/MM/AAAA).');
+        if (age === null) throw new Error(tr('Date de naissance invalide (JJ/MM/AAAA).'));
         if (age < MIN_PRESTATAIRE_AGE)
           throw new Error(
             `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
           );
-        if (!d.tradeId) throw new Error('Choisissez votre métier.');
-        if (!d.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+        if (!d.tradeId) throw new Error(tr('Choisissez votre métier.'));
+        if (!d.zone.trim()) throw new Error(tr("Indiquez votre zone d'intervention."));
         const priceIssue = pricingProblem(d.pricing);
         if (priceIssue) throw new Error(priceIssue);
-        if (!d.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
-        if (!draft.bio?.trim()) throw new Error('Rédigez une courte biographie.');
+        if (!d.durations?.length) throw new Error(tr('Indiquez les durées de mission acceptées.'));
+        if (!draft.bio?.trim()) throw new Error(tr('Rédigez une courte biographie.'));
         if (d.documents.length > MAX_DOCUMENTS)
-          throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
+          throw new Error(tr('Au plus {n} pièces justificatives.', { n: MAX_DOCUMENTS }));
       }
 
       // Client §10 / Prestataire §06: nothing is activated without them.
       const granted = (kind: string) => draft.consents?.some((c) => c.kind === kind && c.granted);
       if (!granted('terms') || !granted('privacy'))
-        throw new Error("Acceptez les conditions d'utilisation et la politique de confidentialité.");
+        throw new Error(tr("Acceptez les conditions d'utilisation et la politique de confidentialité."));
       if (draft.profile === 'prestataire' && !granted('provider_contract'))
-        throw new Error('Lisez et signez le contrat Prestataire.');
+        throw new Error(tr('Lisez et signez le contrat Prestataire.'));
 
       // §9.10: a phone number and an e-mail each belong to one account only.
       const accounts = await readAccounts();
@@ -773,7 +774,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const confirmSignUp = useCallback<AuthState['confirmSignUp']>(
     async (code) => {
-      if (!pending) throw new Error('Aucune inscription en cours.');
+      if (!pending) throw new Error(tr('Aucune inscription en cours.'));
       // Always server-side: the device holds nothing to compare against, so
       // attempts are capped and the code expires where it was issued.
       const session = await checkCode(pending.storedPhone, pending.email, code, pending.delivery);
@@ -788,8 +789,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const completeSignUp = useCallback<AuthState['completeSignUp']>(
     async (password) => {
-      if (!pending) throw new Error('Aucune inscription en cours.');
-      if (!pending.verified) throw new Error("Vérifiez d'abord le code reçu.");
+      if (!pending) throw new Error(tr('Aucune inscription en cours.'));
+      if (!pending.verified) throw new Error(tr("Vérifiez d'abord le code reçu."));
 
       const problem = passwordProblem(password);
       if (problem) throw new Error(problem);
@@ -924,7 +925,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const ok = found
           ? await verifyPassword(password, found.secret)
           : await verifyPassword(password, DECOY_SECRET).then(() => false);
-        if (!found || !ok) throw new Error('Identifiant ou mot de passe incorrect.');
+        if (!found || !ok) throw new Error(tr('Identifiant ou mot de passe incorrect.'));
         const { secret: _omit, ...safe } = found;
         const delivery = await requestCode(safe.phone, safe.email, { name: safe.name, phone: safe.phone });
         setPendingSignIn({ account: safe, method: 'email', delivery, session: null });
@@ -939,7 +940,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const email = raw.includes('@') ? raw : found?.email;
       if (!email)
         throw new Error(
-          "Sur un nouvel appareil, connectez-vous avec votre adresse e-mail. Votre numéro sera reconnu ensuite."
+          tr("Sur un nouvel appareil, connectez-vous avec votre adresse e-mail. Votre numéro sera reconnu ensuite.")
         );
 
       let session: SupabaseSession;
@@ -961,13 +962,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setPendingSignIn({ account: safe, method: 'email', delivery, session: null, migratePassword: password });
           return;
         }
-        throw new Error('Identifiant ou mot de passe incorrect.');
+        throw new Error(tr('Identifiant ou mot de passe incorrect.'));
       }
 
       const account = await accountFromServer(session, found);
       if (!account)
         throw new Error(
-          "Cette adresse n'a pas terminé son inscription. Créez votre compte : la même adresse sera reprise."
+          tr("Cette adresse n'a pas terminé son inscription. Créez votre compte : la même adresse sera reprise.")
         );
       await rememberSupabaseSession(session);
       await rememberOnDevice(account, password);
@@ -994,10 +995,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const confirmSignIn = useCallback<AuthState['confirmSignIn']>(
     async (code) => {
-      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      if (!pendingSignIn) throw new Error(tr('Aucune connexion en cours.'));
       // Server-side, so attempts are capped and the code expires where it was
       // issued rather than on this device.
-      if (!pendingSignIn.delivery) throw new Error('Aucun code en attente.');
+      if (!pendingSignIn.delivery) throw new Error(tr('Aucun code en attente.'));
       const session = await checkCode(
         pendingSignIn.account.phone,
         pendingSignIn.account.email,
@@ -1063,7 +1064,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const confirmPin = useCallback<AuthState['confirmPin']>(
     async (pin) => {
-      if (!pendingSignIn) throw new Error('Aucune connexion en cours.');
+      if (!pendingSignIn) throw new Error(tr('Aucune connexion en cours.'));
       // Opened offline, the PIN screen may not hold a session yet: try again
       // now that someone is here to enter the PIN.
       let session = pendingSignIn.session;
@@ -1074,7 +1075,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (!session)
         throw new Error(
-          'Connexion impossible pour vérifier votre code. Vérifiez votre réseau, ou recevez un code par e-mail.'
+          tr('Connexion impossible pour vérifier votre code. Vérifiez votre réseau, ou recevez un code par e-mail.')
         );
       supabaseSession.current = session;
       await checkPin(session, pin);
@@ -1139,7 +1140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const live = await freshSession(supabaseSession.current);
       if (!live)
         throw new Error(
-          'Votre session de vérification a expiré. Reconnectez-vous pour définir un code.'
+          tr('Votre session de vérification a expiré. Reconnectez-vous pour définir un code.')
         );
       supabaseSession.current = live;
       try {
@@ -1152,7 +1153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setHasPin(true);
           setPendingPinSetup((prev) => (prev ? { ...prev, replacing: true } : prev));
           throw new Error(
-            'Un code confidentiel existe déjà sur ce compte. Saisissez votre code actuel pour le remplacer.'
+            tr('Un code confidentiel existe déjà sur ce compte. Saisissez votre code actuel pour le remplacer.')
           );
         }
         throw e;
@@ -1197,7 +1198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!found) {
         setResetting(null);
         throw new Error(
-          "Si un compte existe pour cet identifiant, un code vient d'être envoyé à l'adresse e-mail associée."
+          tr("Si un compte existe pour cet identifiant, un code vient d'être envoyé à l'adresse e-mail associée.")
         );
       }
       await requestCode(found.phone, found.email, { name: found.name, phone: found.phone });
@@ -1209,7 +1210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const completePasswordReset = useCallback<AuthState['completePasswordReset']>(
     async (code, password) => {
-      if (!resetting) throw new Error('Aucune réinitialisation en cours.');
+      if (!resetting) throw new Error(tr('Aucune réinitialisation en cours.'));
       const problem = passwordProblem(password);
       if (problem) throw new Error(problem);
 
@@ -1261,9 +1262,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = useCallback<AuthState['updateProfile']>(
     async (edits) => {
-      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account) throw new Error(tr('Aucun compte connecté.'));
       if (edits.name !== undefined && edits.name.trim().length < 2)
-        throw new Error('Entrez votre nom complet.');
+        throw new Error(tr('Entrez votre nom complet.'));
       await persistAccount({ ...account, ...edits, name: edits.name?.trim() ?? account.name });
     },
     [account, persistAccount]
@@ -1271,9 +1272,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const switchProfile = useCallback<AuthState['switchProfile']>(
     async (kind) => {
-      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account) throw new Error(tr('Aucun compte connecté.'));
       if (!account.profiles.includes(kind))
-        throw new Error("Ce profil n'est pas encore activé sur votre compte.");
+        throw new Error(tr("Ce profil n'est pas encore activé sur votre compte."));
       await persistAccount({ ...account, activeProfile: kind });
     },
     [account, persistAccount]
@@ -1281,7 +1282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const activateProfile = useCallback<AuthState['activateProfile']>(
     async (kind) => {
-      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account) throw new Error(tr('Aucun compte connecté.'));
       if (account.profiles.includes(kind)) {
         await persistAccount({ ...account, activeProfile: kind });
         return;
@@ -1297,7 +1298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const giveConsents = useCallback<AuthState['giveConsents']>(
     async (records) => {
-      if (!account) throw new Error('Aucun compte connecté.');
+      if (!account) throw new Error(tr('Aucun compte connecté.'));
       const now = Date.now();
       let consents: ConsentRecord[] = [
         ...(account.consents ?? []),
@@ -1325,26 +1326,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const submitProviderDossier = useCallback<AuthState['submitProviderDossier']>(
     async ({ details, bio, avatar, signature }) => {
-      if (!account) throw new Error('Aucun compte connecté.');
-      if (!(avatar ?? account.avatar)) throw new Error('Une photo de profil est obligatoire pour un prestataire.');
-      if (!details.birthDate) throw new Error('Indiquez votre date de naissance.');
+      if (!account) throw new Error(tr('Aucun compte connecté.'));
+      if (!(avatar ?? account.avatar)) throw new Error(tr('Une photo de profil est obligatoire pour un prestataire.'));
+      if (!details.birthDate) throw new Error(tr('Indiquez votre date de naissance.'));
       const age = ageFrom(details.birthDate);
-      if (age === null) throw new Error('Date de naissance invalide (AAAA-MM-JJ).');
+      if (age === null) throw new Error(tr('Date de naissance invalide (AAAA-MM-JJ).'));
       if (age < MIN_PRESTATAIRE_AGE)
         throw new Error(
           `L'inscription des prestataires est réservée aux personnes de ${MIN_PRESTATAIRE_AGE} ans et plus.`
         );
-      if (!details.tradeId) throw new Error('Choisissez votre métier.');
-      if (!details.zone.trim()) throw new Error("Indiquez votre zone d'intervention.");
+      if (!details.tradeId) throw new Error(tr('Choisissez votre métier.'));
+      if (!details.zone.trim()) throw new Error(tr("Indiquez votre zone d'intervention."));
       const priceIssue = pricingProblem(details.pricing);
       if (priceIssue) throw new Error(priceIssue);
-      if (!details.durations?.length) throw new Error('Indiquez les durées de mission acceptées.');
-      if (!bio.trim()) throw new Error('Rédigez une courte biographie.');
+      if (!details.durations?.length) throw new Error(tr('Indiquez les durées de mission acceptées.'));
+      if (!bio.trim()) throw new Error(tr('Rédigez une courte biographie.'));
       if (details.documents.length > MAX_DOCUMENTS)
-        throw new Error(`Au plus ${MAX_DOCUMENTS} pièces justificatives.`);
+        throw new Error(tr('Au plus {n} pièces justificatives.', { n: MAX_DOCUMENTS }));
       const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, ' ');
       if (norm(signature) !== norm(account.name))
-        throw new Error('La signature doit reprendre votre nom complet.');
+        throw new Error(tr('La signature doit reprendre votre nom complet.'));
 
       const now = Date.now();
       let consents: ConsentRecord[] = [

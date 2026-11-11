@@ -8,19 +8,19 @@ import { getProfessional, professionalTrade } from '../data';
 import { useStore } from '../store';
 import type { MessagesStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { tr, useT } from '../i18n';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Conversations'>;
 
 /** "il y a 5 min" — relative time reads better than a clock in a thread list. */
 export function relativeTime(at: number): string {
   const mins = Math.round((Date.now() - at) / 60000);
-  if (mins < 1) return "à l'instant";
-  if (mins < 60) return `il y a ${mins} min`;
+  if (mins < 1) return tr("à l'instant");
+  if (mins < 60) return tr('il y a {n} min', { n: mins });
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `il y a ${hours} h`;
+  if (hours < 24) return tr('il y a {n} h', { n: hours });
   const days = Math.round(hours / 24);
-  return days === 1 ? 'hier' : `il y a ${days} j`;
+  return days === 1 ? tr('hier') : tr('il y a {n} j', { n: days });
 }
 
 export function MessagesScreen({ navigation }: Props) {
@@ -60,7 +60,7 @@ export function MessagesScreen({ navigation }: Props) {
                 key={pro.id}
                 onPress={() => navigation.navigate('Discussion', { id: pro.id })}
                 accessibilityRole="button"
-                accessibilityLabel={`Conversation avec ${pro.name}`}
+                accessibilityLabel={`${t('Conversation avec')} ${pro.name}`}
                 style={({ pressed }) => [styles.row, pressed && styles.pressed]}
               >
                 <ProAvatar professional={pro} size={52} rounded={26} />
@@ -72,10 +72,10 @@ export function MessagesScreen({ navigation }: Props) {
                     {!!last && <Text style={styles.rowTime}>{relativeTime(last.at)}</Text>}
                   </View>
                   <Text style={styles.rowTrade} numberOfLines={1}>
-                    {professionalTrade(pro)?.label ?? ''}
+                    {t(professionalTrade(pro)?.label ?? '')}
                   </Text>
                   <Text style={styles.rowPreview} numberOfLines={1}>
-                    {last ? (last.from === 'me' ? 'Vous : ' : '') + last.text : 'Nouvelle conversation'}
+                    {last ? (last.from === 'me' ? `${t('Vous :')} ` : '') + last.text : t('Nouvelle conversation')}
                   </Text>
                 </View>
               </Pressable>

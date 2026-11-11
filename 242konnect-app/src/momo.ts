@@ -24,6 +24,7 @@
  * talks to the operators. Same reasoning as the Resend key in `otpClient.ts`.
  */
 
+import { tr } from './i18n';
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
 /** True when a real collection gateway is reachable. */
@@ -114,14 +115,14 @@ async function call(path: string, init: RequestInit): Promise<Record<string, unk
     const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) {
       const detail = typeof payload.detail === 'string' ? payload.detail : null;
-      throw new MomoError(detail ?? "Le paiement Mobile Money n'a pas pu être lancé.");
+      throw new MomoError(detail ?? tr("Le paiement Mobile Money n'a pas pu être lancé."));
     }
     return payload;
   } catch (e) {
     if (e instanceof MomoError) throw e;
     if (e instanceof Error && e.name === 'AbortError')
-      throw new MomoError('Le service de paiement ne répond pas. Vérifiez votre connexion.');
-    throw new MomoError('Impossible de joindre le service de paiement.');
+      throw new MomoError(tr('Le service de paiement ne répond pas. Vérifiez votre connexion.'));
+    throw new MomoError(tr('Impossible de joindre le service de paiement.'));
   } finally {
     clearTimeout(timer);
   }
@@ -212,7 +213,7 @@ export async function requestToPay(input: {
 export async function collectionStatus(id: string, phone: string): Promise<Collection> {
   if (!momoGatewayConfigured) {
     const startedAt = simulated.get(id);
-    if (startedAt === undefined) return { id, status: 'failed', reason: 'Transaction inconnue.', simulated: true };
+    if (startedAt === undefined) return { id, status: 'failed', reason: tr('Transaction inconnue.'), simulated: true };
     // Four seconds stands in for the customer reaching for their phone.
     if (Date.now() - startedAt < 4000) return { id, status: 'pending', simulated: true };
     simulated.delete(id);
@@ -221,7 +222,7 @@ export async function collectionStatus(id: string, phone: string): Promise<Colle
       id,
       status: outcome,
       operatorReference: outcome === 'successful' ? `SIM${id.slice(-6)}` : undefined,
-      reason: outcome === 'failed' ? 'Solde insuffisant sur le compte Mobile Money.' : undefined,
+      reason: outcome === 'failed' ? tr('Solde insuffisant sur le compte Mobile Money.') : undefined,
       simulated: true,
     };
   }
@@ -248,9 +249,9 @@ export async function pollCollection(
   const deadline = Date.now() + PIN_PROMPT_TIMEOUT_SECONDS * 1000;
 
   while (Date.now() < deadline) {
-    if (options.signal?.aborted) throw new MomoError('Paiement annulé.');
+    if (options.signal?.aborted) throw new MomoError(tr('Paiement annulé.'));
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    if (options.signal?.aborted) throw new MomoError('Paiement annulé.');
+    if (options.signal?.aborted) throw new MomoError(tr('Paiement annulé.'));
 
     options.onTick?.(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
 
@@ -266,7 +267,7 @@ export async function pollCollection(
   return {
     id,
     status: 'expired',
-    reason: "Aucune confirmation reçue. La demande a expiré sur votre téléphone.",
+    reason: tr('Aucune confirmation reçue. La demande a expiré sur votre téléphone.'),
     simulated: !momoGatewayConfigured,
   };
 }
@@ -275,6 +276,6 @@ export async function pollCollection(
 export function failureMessage(collection: Collection): string {
   if (collection.reason) return collection.reason;
   if (collection.status === 'expired')
-    return "La demande a expiré avant que vous ne saisissiez votre code PIN.";
-  return "Le paiement a été refusé par l'opérateur.";
+    return tr('La demande a expiré avant que vous ne saisissiez votre code PIN.');
+  return tr("Le paiement a été refusé par l'opérateur.");
 }

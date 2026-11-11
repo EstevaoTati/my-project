@@ -22,6 +22,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigured, type SupabaseSession } from './supabase';
+import { tr } from './i18n';
 
 export const PIN_LENGTH = 6;
 
@@ -44,35 +45,37 @@ type PinAction =
 function messageFor(code: string, payload: Record<string, unknown>): string {
   switch (code) {
     case 'invalid_pin_format':
-      return `Le code doit contenir ${PIN_LENGTH} chiffres.`;
+      return tr('Le code doit contenir {digits} chiffres.', { digits: PIN_LENGTH });
     case 'weak_pin':
       return typeof payload.message === 'string'
         ? payload.message
-        : 'Ce code est trop simple. Choisissez-en un autre.';
+        : tr('Ce code est trop simple. Choisissez-en un autre.');
     case 'current_pin_incorrect':
-      return 'Le code actuel est incorrect.';
+      return tr('Le code actuel est incorrect.');
     case 'pin_incorrect': {
       const left = Number(payload.attemptsLeft);
       return Number.isFinite(left) && left > 0
-        ? `Code incorrect. Il vous reste ${left} tentative${left > 1 ? 's' : ''}.`
-        : 'Code incorrect.';
+        ? left > 1
+          ? tr('Code incorrect. Il vous reste {n} tentatives.', { n: left })
+          : tr('Code incorrect. Il vous reste 1 tentative.')
+        : tr('Code incorrect.');
     }
     case 'locked': {
       const until = typeof payload.lockedUntil === 'string' ? Date.parse(payload.lockedUntil) : NaN;
       const minutes = Number.isFinite(until)
         ? Math.max(1, Math.ceil((until - Date.now()) / 60_000))
         : 15;
-      return `Trop de codes incorrects. Réessayez dans ${minutes} minutes.`;
+      return tr('Trop de codes incorrects. Réessayez dans {minutes} minutes.', { minutes });
     }
     case 'step_up_required':
-      return 'Pour remplacer un code oublié, reconnectez-vous avec un code reçu par e-mail.';
+      return tr('Pour remplacer un code oublié, reconnectez-vous avec un code reçu par e-mail.');
     case 'no_pin':
-      return "Aucun code n'est défini sur ce compte.";
+      return tr("Aucun code n'est défini sur ce compte.");
     case 'invalid_token':
     case 'missing_token':
-      return 'Votre session a expiré. Reconnectez-vous.';
+      return tr('Votre session a expiré. Reconnectez-vous.');
     default:
-      return 'Le service de code confidentiel est indisponible. Réessayez.';
+      return tr('Le service de code confidentiel est indisponible. Réessayez.');
   }
 }
 
@@ -82,7 +85,7 @@ async function callPin(
   session: SupabaseSession,
   body: PinAction
 ): Promise<Record<string, unknown>> {
-  if (!supabaseConfigured) throw new PinError('Service non configuré.', 'unconfigured');
+  if (!supabaseConfigured) throw new PinError(tr('Service non configuré.'), 'unconfigured');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -133,8 +136,8 @@ async function callPin(
   } catch (e) {
     if (e instanceof PinError) throw e;
     if (e instanceof Error && e.name === 'AbortError')
-      throw new PinError('Le service ne répond pas. Vérifiez votre connexion.', 'timeout');
-    throw new PinError('Impossible de joindre le service de code confidentiel.', 'unreachable');
+      throw new PinError(tr('Le service ne répond pas. Vérifiez votre connexion.'), 'timeout');
+    throw new PinError(tr('Impossible de joindre le service de code confidentiel.'), 'unreachable');
   } finally {
     clearTimeout(timer);
   }
@@ -204,11 +207,11 @@ export async function knownToHavePin(userId: string): Promise<boolean> {
 /** The rules the screen states before anyone types, matching the server's. */
 export function pinProblem(pin: string): string | null {
   const digits = pin.replace(/\D/g, '');
-  if (digits.length !== PIN_LENGTH) return `Le code doit contenir ${PIN_LENGTH} chiffres.`;
-  if (/^(\d)\1{5}$/.test(digits)) return 'Évitez six chiffres identiques.';
+  if (digits.length !== PIN_LENGTH) return tr('Le code doit contenir {digits} chiffres.', { digits: PIN_LENGTH });
+  if (/^(\d)\1{5}$/.test(digits)) return tr('Évitez six chiffres identiques.');
   if ('0123456789012345'.includes(digits) || '9876543210987654'.includes(digits))
-    return 'Évitez des chiffres qui se suivent.';
+    return tr('Évitez des chiffres qui se suivent.');
   if (/^(\d{2})\1{2}$/.test(digits) || /^(\d{3})\1$/.test(digits))
-    return 'Évitez un motif qui se répète.';
+    return tr('Évitez un motif qui se répète.');
   return null;
 }

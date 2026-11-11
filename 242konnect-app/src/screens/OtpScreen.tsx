@@ -14,7 +14,7 @@ import { Icon } from '../components/Icon';
 import { FormError, SubmitButton } from '../components/form';
 import { formatStored, OTP_LENGTH, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 /**
  * OTP verification (§3.2, §9.1).
@@ -83,7 +83,7 @@ export function OtpScreen({ mode = 'signup' }: Props) {
     try {
       await confirm(value);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Vérification impossible.');
+      setError(e instanceof Error ? e.message : tr('Vérification impossible.'));
       setCode('');
     } finally {
       setBusy(false);
@@ -178,7 +178,7 @@ export function OtpScreen({ mode = 'signup' }: Props) {
             try {
               await resend();
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Impossible d'envoyer un nouveau code.");
+              setError(e instanceof Error ? e.message : tr("Impossible d'envoyer un nouveau code."));
             }
           }}
           accessibilityRole="button"

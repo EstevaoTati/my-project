@@ -179,7 +179,13 @@ export type Thread = { professionalId: string; messages: Message[] };
 
 type UserData = {
   favorites: Record<string, boolean>;
+  /** Legacy: the Congolese city label the home screen used to store. Unused. */
   city: City;
+  /**
+   * The city being browsed (area.tsx). Undefined: the account's own city.
+   * Null: the whole country.
+   */
+  area?: string | null;
   bookings: Booking[];
   payments: Payment[];
   threads: Record<string, Thread>;
@@ -205,7 +211,7 @@ type Store = UserData & {
   isFavorite: (id: string) => boolean;
   toggleFavorite: (id: string) => void;
   favoriteCount: number;
-  setCity: (city: City) => void;
+  setArea: (city: string | null) => void;
   addBooking: (input: {
     professionalId: string;
     slot: string;
@@ -472,7 +478,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite: (id) =>
         update((prev) => ({ ...prev, favorites: { ...prev.favorites, [id]: !prev.favorites[id] } })),
       favoriteCount: Object.values(data.favorites).filter(Boolean).length,
-      setCity: (city) => update((prev) => ({ ...prev, city })),
+      setArea: (city) => update((prev) => ({ ...prev, area: city })),
       addBooking,
       acceptBooking,
       refuseBooking,

@@ -30,6 +30,7 @@ import { ProviderHomeScreen } from './screens/provider/ProviderHomeScreen';
 import { JobsScreen } from './screens/provider/JobsScreen';
 import { ConversationsScreen } from './screens/provider/ConversationsScreen';
 import { useProMode } from './proTheme';
+import { marketplaceEnabled } from './marketplace';
 import { useAuth } from './auth';
 import { needsReacceptance } from './consent';
 import { ConsentGateScreen } from './screens/ConsentGateScreen';
@@ -91,8 +92,10 @@ function MissionsTab() {
   return useProMode() ? <JobsScreen /> : <MissionsScreen />;
 }
 
+// Clients get the real conversations too once there is a server: the local
+// threads belong to the sample catalogue, which is not shown then.
 function ConversationsTab(props: React.ComponentProps<typeof MessagesScreen>) {
-  return useProMode() ? <ConversationsScreen /> : <MessagesScreen {...props} />;
+  return useProMode() || marketplaceEnabled ? <ConversationsScreen /> : <MessagesScreen {...props} />;
 }
 
 function HomeStackScreens() {

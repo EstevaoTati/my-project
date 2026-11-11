@@ -74,7 +74,7 @@ jobs:
       - working-directory: 242konnect-app
         run: npm ci
       - working-directory: 242konnect-app
-        run: npx tsc --noEmit -p . && node tools/i18n-check.js
+        run: npx tsc --noEmit -p . && node tools/i18n-check.js --strict
       - name: Edge Functions — logic tests and type check
         run: |
           node --experimental-strip-types supabase/functions/pin/core.test.mjs

@@ -14,7 +14,7 @@ import { pickAvatar } from '../photo';
 import { currencyFor, pricingProblem, type PricingModel, type ProjectDuration } from '../pricing';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'DossierPrestataire'>;
 
@@ -87,7 +87,7 @@ export function ProviderDossierScreen({ navigation }: Props) {
       const next = await pickAvatar();
       if (next) onPicked(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Impossible d'utiliser cette image.");
+      setError(e instanceof Error ? e.message : tr("Impossible d'utiliser cette image."));
     }
   };
 
@@ -114,7 +114,7 @@ export function ProviderDossierScreen({ navigation }: Props) {
       });
       navigation.replace('EspacePrestataire');
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Le dossier n'a pas pu être envoyé.");
+      setError(e instanceof Error ? e.message : tr("Le dossier n'a pas pu être envoyé."));
     } finally {
       setBusy(false);
     }
@@ -235,7 +235,7 @@ export function ProviderDossierScreen({ navigation }: Props) {
               <Pressable
                 onPress={() => setDocuments(documents.filter((__, j) => j !== i))}
                 accessibilityRole="button"
-                accessibilityLabel={`Retirer le document ${i + 1}`}
+                accessibilityLabel={t('Retirer le document {n}', { n: i + 1 })}
               >
                 <Text style={styles.remove}>{t('Retirer')}</Text>
               </Pressable>

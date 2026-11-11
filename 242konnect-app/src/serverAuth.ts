@@ -20,6 +20,7 @@
  */
 
 import { supabaseConfigured, supabaseFetch, sessionFromPayload, type SupabaseSession } from './supabase';
+import { tr } from './i18n';
 
 /** Wrong e-mail/password pair — kept distinct so the caller can try the legacy path. */
 export class InvalidCredentialsError extends Error {}
@@ -29,7 +30,7 @@ const reasonOf = (payload: Record<string, unknown>) =>
 
 /** E-mail + password → session. Throws `InvalidCredentialsError` on a wrong pair. */
 export async function signInWithPassword(email: string, password: string): Promise<SupabaseSession> {
-  if (!supabaseConfigured) throw new Error('Service non configuré.');
+  if (!supabaseConfigured) throw new Error(tr('Service non configuré.'));
   let response: Response;
   try {
     response = await supabaseFetch('/auth/v1/token?grant_type=password', {
@@ -37,7 +38,7 @@ export async function signInWithPassword(email: string, password: string): Promi
       body: { email: email.trim().toLowerCase(), password },
     });
   } catch {
-    throw new Error('Connexion impossible. Vérifiez votre réseau et réessayez.');
+    throw new Error(tr('Connexion impossible. Vérifiez votre réseau et réessayez.'));
   }
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (response.ok) {
@@ -45,12 +46,12 @@ export async function signInWithPassword(email: string, password: string): Promi
     if (session) return session;
   }
   const reason = reasonOf(payload);
-  if (response.status === 429) throw new Error('Trop de tentatives. Patientez une minute avant de réessayer.');
+  if (response.status === 429) throw new Error(tr('Trop de tentatives. Patientez une minute avant de réessayer.'));
   if (/email_not_confirmed/i.test(reason))
-    throw new Error("Cette adresse n'a pas encore été vérifiée. Terminez l'inscription avec le code reçu par e-mail.");
+    throw new Error(tr("Cette adresse n'a pas encore été vérifiée. Terminez l'inscription avec le code reçu par e-mail."));
   if (response.status === 400 || /invalid_credentials|invalid_grant/i.test(reason))
     throw new InvalidCredentialsError('invalid credentials');
-  throw new Error('Le service de connexion est indisponible. Réessayez.');
+  throw new Error(tr('Le service de connexion est indisponible. Réessayez.'));
 }
 
 /**
@@ -63,7 +64,7 @@ export async function setServerPassword(session: SupabaseSession, password: stri
   try {
     response = await supabaseFetch('/auth/v1/user', { method: 'PUT', body: { password } }, session);
   } catch {
-    throw new Error("Le mot de passe n'a pas pu être enregistré : vérifiez votre connexion et réessayez.");
+    throw new Error(tr("Le mot de passe n'a pas pu être enregistré : vérifiez votre connexion et réessayez."));
   }
   if (response.ok) return;
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
@@ -71,6 +72,6 @@ export async function setServerPassword(session: SupabaseSession, password: stri
   // Already that password: nothing to change, nothing wrong.
   if (/same_password/i.test(reason)) return;
   if (/weak_password/i.test(reason))
-    throw new Error('Ce mot de passe est trop faible pour le serveur. Choisissez-en un plus long ou plus varié.');
-  throw new Error("Le mot de passe n'a pas pu être enregistré sur le serveur. Réessayez.");
+    throw new Error(tr('Ce mot de passe est trop faible pour le serveur. Choisissez-en un plus long ou plus varié.'));
+  throw new Error(tr("Le mot de passe n'a pas pu être enregistré sur le serveur. Réessayez."));
 }

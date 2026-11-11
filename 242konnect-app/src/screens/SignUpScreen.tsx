@@ -48,7 +48,7 @@ import { trades } from '../data';
 import type { IconName } from '../icons';
 import type { AuthStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { T, useT } from '../i18n';
+import { T, useT, tr } from '../i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Inscription'>;
 
@@ -82,7 +82,7 @@ const BUSINESS_HINT = T('Sur demande · validation 242Konnect requise');
 
 const CHANNELS: { id: OtpChannel; label: string }[] = [
   { id: 'email', label: T('E-mail') },
-  { id: 'sms', label: 'SMS' },
+  { id: 'sms', label: T('SMS') },
 ];
 
 type Step = 'type' | 'identity' | 'details' | 'consent';
@@ -147,7 +147,7 @@ export function SignUpScreen({ navigation }: Props) {
       const next = await pickAvatar();
       if (next) onPicked(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Impossible d'utiliser cette image.");
+      setError(e instanceof Error ? e.message : tr("Impossible d'utiliser cette image."));
     }
   };
 
@@ -254,7 +254,7 @@ export function SignUpScreen({ navigation }: Props) {
         consents: consents(),
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de créer le compte.');
+      setError(e instanceof Error ? e.message : tr('Impossible de créer le compte.'));
     } finally {
       setBusy(false);
     }
@@ -289,7 +289,7 @@ export function SignUpScreen({ navigation }: Props) {
 
         {/* Three steps, so the progress is worth showing — it tells someone
             filling a long prestataire form that it does end. */}
-        <View style={styles.progress} accessibilityLabel={`Étape ${STEP_INDEX[step] + 1} sur 4`}>
+        <View style={styles.progress} accessibilityLabel={t('Étape {n} sur 4', { n: STEP_INDEX[step] + 1 })}>
           {[0, 1, 2, 3].map((i) => (
             <View key={i} style={[styles.progressBar, i <= STEP_INDEX[step] && styles.progressBarOn]} />
           ))}
@@ -308,7 +308,7 @@ export function SignUpScreen({ navigation }: Props) {
                     key={option.id}
                     onPress={() => setProfile(option.id)}
                     accessibilityRole="radio"
-                    accessibilityLabel={PROFILE_LABELS[option.id]}
+                    accessibilityLabel={t(PROFILE_LABELS[option.id])}
                     aria-selected={selected}
                     style={[styles.type, selected && styles.typeSelected]}
                   >
@@ -319,7 +319,7 @@ export function SignUpScreen({ navigation }: Props) {
                     />
                     <View style={styles.typeBody}>
                       <Text style={[styles.typeLabel, selected && styles.typeLabelSelected]}>
-                        {PROFILE_LABELS[option.id]}
+                        {t(PROFILE_LABELS[option.id])}
                       </Text>
                       <Text style={[styles.typeHint, selected && styles.typeHintSelected]}>
                         {t(option.hint)}
@@ -346,8 +346,8 @@ export function SignUpScreen({ navigation }: Props) {
             <View style={styles.requires}>
               <Text style={styles.requiresTitle}>{t('Ce compte demande')}</Text>
               {(profile === 'particulier'
-                ? ['Nom, téléphone et e-mail', 'Adresse complète et un repère pour vous trouver', `Jusqu’à ${MAX_INTERESTS} centres d’intérêt (optionnel)`]
-                : ['Une photo de profil (obligatoire)', `Votre date de naissance — ${MIN_PRESTATAIRE_AGE} ans minimum`, 'Votre métier, votre zone, votre modèle de prix et vos durées', `Formations, diplômes et jusqu'à ${MAX_DOCUMENTS} pièces justificatives`, 'La signature du contrat Prestataire — le profil reste non réservable jusqu’à validation']
+                ? [t('Nom, téléphone et e-mail'), t('Adresse complète et un repère pour vous trouver'), t('Jusqu’à {n} centres d’intérêt (optionnel)', { n: MAX_INTERESTS })]
+                : [t('Une photo de profil (obligatoire)'), t('Votre date de naissance — {n} ans minimum', { n: MIN_PRESTATAIRE_AGE }), t('Votre métier, votre zone, votre modèle de prix et vos durées'), t("Formations, diplômes et jusqu'à {n} pièces justificatives", { n: MAX_DOCUMENTS }), t('La signature du contrat Prestataire — le profil reste non réservable jusqu’à validation')]
               ).map((line) => (
                 <View key={line} style={styles.requireRow}>
                   <View style={styles.requireDot} />
@@ -364,8 +364,7 @@ export function SignUpScreen({ navigation }: Props) {
           <>
             <Text style={styles.title}>{t('Vos identifiants')}</Text>
             <Text style={styles.lede}>
-              Compte {PROFILE_LABELS[profile].toLowerCase()}. Votre numéro et votre e-mail
-              identifient le compte et ne peuvent pas servir deux fois.
+              {t('Compte {profile}. Votre numéro et votre e-mail identifient le compte et ne peuvent pas servir deux fois.', { profile: t(PROFILE_LABELS[profile]).toLowerCase() })}
             </Text>
 
             <View style={styles.photoBlock}>
@@ -378,7 +377,7 @@ export function SignUpScreen({ navigation }: Props) {
               >
                 <Icon name="solar:add-square-bold" size={18} color={colors.foreground} />
                 <Text style={styles.photoButtonLabel}>
-                  {avatar ? 'Changer la photo' : 'Ajouter une photo'}
+                  {avatar ? t('Changer la photo') : t('Ajouter une photo')}
                 </Text>
               </Pressable>
               {profile === 'prestataire' && !avatar && (
@@ -425,12 +424,12 @@ export function SignUpScreen({ navigation }: Props) {
                         key={option.id}
                         onPress={() => setChannel(option.id)}
                         accessibilityRole="radio"
-                        accessibilityLabel={`Recevoir le code par ${option.label}`}
+                        accessibilityLabel={t('Recevoir le code par {channel}', { channel: t(option.label) })}
                         aria-selected={selected}
                         style={[styles.channelChip, selected && styles.channelChipSelected]}
                       >
                         <Text style={[styles.channelLabel, selected && styles.channelLabelSelected]}>
-                          {option.label}
+                          {t(option.label)}
                         </Text>
                       </Pressable>
                     );
@@ -468,7 +467,7 @@ export function SignUpScreen({ navigation }: Props) {
                   label={t("Référence de l'adresse")}
                   value={addressReference}
                   onChangeText={setAddressReference}
-                  placeholder="Près de quel repère ? (école, marché, station)"
+                  placeholder={t('Près de quel repère ? (école, marché, station)')}
                 />
                 <View>
                   <Text style={styles.sectionLabel}>
@@ -486,11 +485,11 @@ export function SignUpScreen({ navigation }: Props) {
                           onPress={() => toggle(interests, item, setInterests, MAX_INTERESTS)}
                           disabled={full}
                           accessibilityRole="button"
-                          accessibilityLabel={`Centre d'intérêt ${item}`}
+                          accessibilityLabel={`${t("Centre d'intérêt")} ${t(item)}`}
                           aria-selected={on} aria-disabled={full}
                           style={[styles.chip, on && styles.chipOn, full && styles.chipFull]}
                         >
-                          <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{item}</Text>
+                          <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{t(item)}</Text>
                         </Pressable>
                       );
                     })}
@@ -521,7 +520,7 @@ export function SignUpScreen({ navigation }: Props) {
                     style={styles.select}
                   >
                     <Text style={[styles.selectValue, !tradeId && styles.selectPlaceholder]}>
-                      {trades.find((t) => t.id === tradeId)?.label ?? 'Choisir un métier'}
+                      {tradeId ? t(trades.find((x) => x.id === tradeId)?.label ?? tradeId) : t('Choisir un métier')}
                     </Text>
                     <Icon name="solar:alt-arrow-down-linear" size={18} color={colors.mutedForeground} />
                   </Pressable>
@@ -554,19 +553,19 @@ export function SignUpScreen({ navigation }: Props) {
                   style={styles.textarea}
                 />
                 <Field
-                  label="Formations (optionnel)"
+                  label={t('Formations (optionnel)')}
                   value={formations}
                   onChangeText={setFormations}
                   placeholder={t('Écoles, centres de formation')}
                 />
                 <Field
-                  label="Diplômes et certificats (optionnel)"
+                  label={t('Diplômes et certificats (optionnel)')}
                   value={diplomas}
                   onChangeText={setDiplomas}
                   placeholder={t('CAP, BTS, certifications')}
                 />
                 <Field
-                  label="Expériences professionnelles (optionnel)"
+                  label={t('Expériences professionnelles (optionnel)')}
                   value={experience}
                   onChangeText={setExperience}
                   placeholder={t('Employeurs, chantiers, années')}
@@ -592,7 +591,7 @@ export function SignUpScreen({ navigation }: Props) {
                       <Pressable
                         onPress={() => setDocuments(documents.filter((_, j) => j !== i))}
                         accessibilityRole="button"
-                        accessibilityLabel={`Retirer le document ${i + 1}`}
+                        accessibilityLabel={t('Retirer le document {n}', { n: i + 1 })}
                       >
                         <Text style={styles.docRemove}>{t('Retirer')}</Text>
                       </Pressable>
@@ -757,13 +756,13 @@ export function SignUpScreen({ navigation }: Props) {
               setShowTrades(false);
             }}
             accessibilityRole="button"
-            accessibilityLabel={trade.label}
+            accessibilityLabel={t(trade.label)}
             aria-selected={trade.id === tradeId}
             style={[styles.sheetRow, trade.id === tradeId && styles.sheetRowOn]}
           >
-            <Text style={styles.sheetRowLabel}>{trade.label}</Text>
+            <Text style={styles.sheetRowLabel}>{t(trade.label)}</Text>
             <Text style={styles.sheetRowHint} numberOfLines={2}>
-              {trade.description}
+              {t(trade.description)}
             </Text>
           </Pressable>
         ))}

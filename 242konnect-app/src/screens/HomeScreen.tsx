@@ -17,8 +17,10 @@ import { ProCard } from '../components/ProCard';
 import { Sheet } from '../components/Sheet';
 import { categories, promo, topProfessionals } from '../data';
 import { useAuth } from '../auth';
-import { DirectorySection } from '../components/online/DirectorySection';
-import { CITIES, useStore, type City } from '../store';
+import { DirectorySection, useDirectory } from '../components/online/Directory';
+import { sameCity } from '../area';
+import { marketplaceEnabled } from '../marketplace';
+import { useStore } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { T, useT } from '../i18n';
@@ -60,21 +62,27 @@ export function HomeScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCities, setShowCities] = useState(false);
-  const { city, setCity, notices, markNoticesRead } = useStore();
+  const { notices, markNoticesRead } = useStore();
   const { account } = useAuth();
+  // The area follows the account's country (area.tsx): its cities, its people.
+  const directory = useDirectory();
+  const { area, label: city, options: cityOptions, setArea } = directory;
+  // The design's sample notifications and professionals are for builds with
+  // no server; with one, only real activity and real prestataires are shown.
+  const samples = marketplaceEnabled ? [] : SAMPLE_NOTIFICATIONS;
   const [readIds, setReadIds] = useState<string[]>([]);
   const initials = (account?.name ?? '')
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
-  const sampleUnread = SAMPLE_NOTIFICATIONS.filter((n) => n.unread && !readIds.includes(n.id)).length;
+  const sampleUnread = samples.filter((n) => n.unread && !readIds.includes(n.id)).length;
   const unreadCount = notices.filter((n) => !n.read).length + sampleUnread;
 
   const openNotifications = () => {
     setShowNotifications(true);
     // Opening the panel is what "seeing" them means, so the dot clears here.
-    setReadIds(SAMPLE_NOTIFICATIONS.map((n) => n.id));
+    setReadIds(samples.map((n) => n.id));
     markNoticesRead();
   };
 
@@ -107,7 +115,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={openNotifications}
             accessibilityRole="button"
             accessibilityLabel={
-              unreadCount > 0 ? `Notifications, ${unreadCount} non lues` : 'Notifications'
+              unreadCount > 0 ? t('Notifications, {n} non lues', { n: unreadCount }) : t('Notifications')
             }
             style={styles.bell}
           >
@@ -119,7 +127,7 @@ export function HomeScreen({ navigation }: Props) {
         <Pressable
           onPress={() => setShowCities(true)}
           accessibilityRole="button"
-          accessibilityLabel={`Localisation : ${city}. Changer de ville`}
+          accessibilityLabel={t('Localisation : {city}. Changer de ville', { city })}
           style={styles.locationRow}
         >
           <Icon name="solar:map-point-bold" size={20} color={colors.primary} />
@@ -175,7 +183,7 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.promoBadge}>
               <Text style={styles.promoBadgeLabel}>{promo.badge}</Text>
             </View>
-            <Text style={styles.promoTitle}>{promo.title}</Text>
+            <Text style={styles.promoTitle}>{t(promo.title)}</Text>
             <Text style={styles.promoSubtitle}>{promo.subtitle}</Text>
           </View>
         </View>
@@ -204,23 +212,31 @@ export function HomeScreen({ navigation }: Props) {
           ))}
         </ScrollView>
 
-        <View style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-          <Text style={styles.sectionTitle}>{t('Top Professionnels')}</Text>
-          <Pressable onPress={() => navigation.navigate('Resultats', {})} accessibilityRole="button">
-            <Text style={styles.sectionAction}>{t('Voir plus')}</Text>
-          </Pressable>
-        </View>
-        <View style={styles.proList}>
-          {topProfessionals.map((pro) => (
-            <ProCard
-              key={pro.id}
-              professional={pro}
-              onPress={() => navigation.navigate('Profil', { id: pro.id })}
-            />
-          ))}
-        </View>
-
-        <DirectorySection onOpen={(id) => navigation.navigate('Inscrit', { id })} />
+        {marketplaceEnabled ? (
+          <DirectorySection
+            directory={directory}
+            onOpen={(id) => navigation.navigate('Inscrit', { id })}
+            onSeeAll={() => navigation.navigate('Resultats', {})}
+          />
+        ) : (
+          <>
+            <View style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
+              <Text style={styles.sectionTitle}>{t('Top Professionnels')}</Text>
+              <Pressable onPress={() => navigation.navigate('Resultats', {})} accessibilityRole="button">
+                <Text style={styles.sectionAction}>{t('Voir plus')}</Text>
+              </Pressable>
+            </View>
+            <View style={styles.proList}>
+              {topProfessionals.map((pro) => (
+                <ProCard
+                  key={pro.id}
+                  professional={pro}
+                  onPress={() => navigation.navigate('Profil', { id: pro.id })}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <Sheet
@@ -228,7 +244,7 @@ export function HomeScreen({ navigation }: Props) {
         title={t('Notifications')}
         onClose={() => setShowNotifications(false)}
       >
-        {notices.length === 0 && (
+        {notices.length === 0 && samples.length === 0 && (
           <Text style={styles.notificationText}>{t('Vos notifications de demande et de paiement apparaîtront ici.')}</Text>
         )}
         {notices.map((item) => (
@@ -242,7 +258,7 @@ export function HomeScreen({ navigation }: Props) {
             </View>
           </View>
         ))}
-        {SAMPLE_NOTIFICATIONS.map((item) => (
+        {samples.map((item) => (
           <View key={item.id} style={styles.notification}>
             <View style={styles.notificationIcon}>
               <Icon name="solar:bell-bing-bold-duotone" size={20} color={colors.primary} />
@@ -255,18 +271,21 @@ export function HomeScreen({ navigation }: Props) {
         ))}
       </Sheet>
 
-      <Sheet visible={showCities} title={t('Votre ville')} onClose={() => setShowCities(false)}>
-        {CITIES.map((option) => {
-          const selected = option === city;
+      <Sheet visible={showCities} title={t('Votre zone')} onClose={() => setShowCities(false)}>
+        <Text style={styles.notificationText}>
+          {t('Vous voyez les prestataires de votre pays. Ceux de la ville choisie apparaissent en premier.')}
+        </Text>
+        {cityOptions.map((option) => {
+          const selected = option.city === null ? area.city === null : sameCity(option.city, area.city);
           return (
             <Pressable
-              key={option}
+              key={option.label}
               onPress={() => {
-                setCity(option as City);
+                setArea(option.city);
                 setShowCities(false);
               }}
               accessibilityRole="button"
-              accessibilityLabel={option}
+              accessibilityLabel={option.label}
               aria-selected={selected}
               style={[styles.cityRow, selected && styles.cityRowSelected]}
             >
@@ -275,7 +294,7 @@ export function HomeScreen({ navigation }: Props) {
                 size={20}
                 color={selected ? colors.primary : colors.mutedForeground}
               />
-              <Text style={[styles.cityLabel, selected && styles.cityLabelSelected]}>{option}</Text>
+              <Text style={[styles.cityLabel, selected && styles.cityLabelSelected]}>{option.label}</Text>
               {selected && <Icon name="solar:shield-check-bold" size={20} color={colors.primary} />}
             </Pressable>
           );

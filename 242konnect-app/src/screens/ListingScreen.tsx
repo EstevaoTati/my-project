@@ -7,16 +7,17 @@ import { UserAvatar } from '../components/Avatar';
 import { Sheet } from '../components/Sheet';
 import { useAuth } from '../auth';
 import { getTrade } from '../data';
-import { createRequest, getListing, type Listing } from '../marketplace';
+import { contactProvider, createRequest, getListing, type Listing } from '../marketplace';
+import { tidyCity } from '../area';
 import { bookableAmount, describePricing, DURATIONS as PROVIDER_DURATIONS, formatAmount } from '../pricing';
 import { LONG_DURATIONS, type MissionDuration } from '../store';
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { T, useT } from '../i18n';
+import { T, useT, tr } from '../i18n';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Inscrit'>;
 
-const SLOTS = [T('Dès que possible'), "Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+const SLOTS = [T('Dès que possible'), T("Aujourd'hui, 14h00"), T("Aujourd'hui, 16h30"), T('Demain, 09h00'), T('Demain, 11h00')];
 
 const DURATIONS: { id: MissionDuration; label: string }[] = [
   { id: 'hours', label: T('Quelques heures') },
@@ -54,6 +55,29 @@ export function ListingScreen({ route, navigation }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState(false);
+  // "Contacter": a conversation with no payment, for a question or a quote.
+  const [contacting, setContacting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [contacted, setContacted] = useState(false);
+
+  const sendContact = async () => {
+    if (!listing || !message.trim()) return;
+    setContactBusy(true);
+    setContactError(null);
+    try {
+      const session = await marketSession();
+      if (!session) throw new Error(t('Votre session a expiré. Reconnectez-vous.'));
+      await contactProvider(session, listing.id, message.trim());
+      setMessage('');
+      setContacted(true);
+    } catch (e) {
+      setContactError(e instanceof Error ? e.message : t('Message non envoyé.'));
+    } finally {
+      setContactBusy(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -99,7 +123,7 @@ export function ListingScreen({ route, navigation }: Props) {
       });
       setCreated(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Demande impossible.');
+      setError(e instanceof Error ? e.message : tr('Demande impossible.'));
     } finally {
       setBusy(false);
     }
@@ -126,7 +150,7 @@ export function ListingScreen({ route, navigation }: Props) {
               <View style={styles.identityBody}>
                 <Text style={styles.name}>{listing.fullName}</Text>
                 <Text style={styles.muted}>
-                  {t(getTrade(listing.tradeId)?.label ?? listing.tradeId)} · {listing.zone || listing.city}
+                  {t(getTrade(listing.tradeId)?.label ?? listing.tradeId)} · {tidyCity(listing.city)}
                 </Text>
                 <View style={[styles.badge, approved ? styles.badgeOn : styles.badgeOff]}>
                   <Text style={[styles.badgeText, approved ? styles.badgeTextOn : styles.badgeTextOff]}>
@@ -155,25 +179,93 @@ export function ListingScreen({ route, navigation }: Props) {
               <Text style={styles.muted}>{t('Ceci est votre propre profil, tel que les clients le voient.')}</Text>
             ) : !approved ? (
               <Text style={styles.muted}>{t('Ce prestataire est en cours de vérification par 242Konnect. Il pourra être réservé après approbation.')}</Text>
-            ) : amount <= 0 ? (
-              <Text style={styles.muted}>{t('Ce prestataire travaille sur devis. La demande de devis arrive bientôt.')}</Text>
             ) : (
-              <Pressable
-                onPress={() => {
-                  setCreated(false);
-                  setError(null);
-                  setOpen(true);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={`${t('Envoyer une demande à')} ${listing.fullName}`}
-                style={styles.cta}
-              >
-                <Text style={styles.ctaLabel}>{t('Envoyer une demande')}</Text>
-              </Pressable>
+              <View style={styles.form}>
+                {amount <= 0 && (
+                  <Text style={styles.muted}>{t('Ce prestataire travaille sur devis : écrivez-lui pour décrire votre besoin et recevoir son prix.')}</Text>
+                )}
+                {amount > 0 && (
+                  <Pressable
+                    onPress={() => {
+                      setCreated(false);
+                      setError(null);
+                      setOpen(true);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t('Envoyer une demande à')} ${listing.fullName}`}
+                    style={styles.cta}
+                  >
+                    <Text style={styles.ctaLabel}>{t('Envoyer une demande')}</Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={() => {
+                    setContacted(false);
+                    setContactError(null);
+                    setContacting(true);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('Contacter')} ${listing.fullName}`}
+                  style={amount > 0 ? styles.ctaLight : styles.cta}
+                >
+                  <Text style={amount > 0 ? styles.ctaLightLabel : styles.ctaLabel}>
+                    {amount > 0 ? t('Contacter') : t('Demander un devis')}
+                  </Text>
+                </Pressable>
+              </View>
             )}
           </>
         )}
       </ScrollView>
+
+      <Sheet
+        visible={contacting}
+        title={contacted ? t('Message envoyé') : `${t('Contacter')} ${listing?.fullName ?? ''}`}
+        onClose={() => setContacting(false)}
+      >
+        {contacted ? (
+          <View style={styles.form}>
+            <Text style={styles.bio}>{t('Votre message est parti. La réponse arrivera dans l’onglet Messages.')}</Text>
+            <Pressable
+              onPress={() => {
+                setContacting(false);
+                navigation.getParent()?.navigate('Messages' as never);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('Ouvrir mes messages')}
+              style={styles.cta}
+            >
+              <Text style={styles.ctaLabel}>{t('Ouvrir mes messages')}</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.form}>
+            <TextInput
+              value={message}
+              onChangeText={setMessage}
+              multiline
+              maxLength={2000}
+              placeholder={t('Décrivez votre besoin, le lieu et le moment souhaité')}
+              placeholderTextColor={colors.mutedForeground}
+              accessibilityLabel={t('Votre message au prestataire')}
+              style={[styles.input, styles.textarea]}
+            />
+            <Text style={styles.muted}>
+              {t('Gratuit et sans engagement. Les échanges restent dans 242Konnect : numéros de téléphone, e-mails et liens sont masqués.')}
+            </Text>
+            {!!contactError && <Text style={styles.error}>{contactError}</Text>}
+            <Pressable
+              onPress={sendContact}
+              disabled={!message.trim() || contactBusy}
+              accessibilityRole="button"
+              accessibilityLabel={t('Envoyer le message au prestataire')}
+              style={[styles.cta, (!message.trim() || contactBusy) && styles.ctaOff]}
+            >
+              <Text style={styles.ctaLabel}>{contactBusy ? t('Envoi…') : t('Envoyer le message')}</Text>
+            </Pressable>
+          </View>
+        )}
+      </Sheet>
 
       <Sheet visible={open} title={created ? t('Demande préparée') : t('Votre demande')} onClose={() => setOpen(false)}>
         {created ? (
@@ -328,6 +420,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaOff: { opacity: 0.5 },
+  ctaLight: {
+    height: 52,
+    borderRadius: radius['2xl'],
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaLightLabel: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.foreground },
   ctaLabel: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.primaryForeground },
   form: { gap: 10 },
   label: { fontFamily: fonts.sansSemibold, fontSize: 13, color: colors.foreground },

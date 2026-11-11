@@ -9,7 +9,7 @@ import { LONG_DURATIONS, type MissionDuration } from '../../store';
 import { colors, fonts, radius } from '../../theme';
 import { T, useT } from '../../i18n';
 
-const SLOTS = [T('Dès que possible'), "Aujourd'hui, 14h00", "Aujourd'hui, 16h30", 'Demain, 09h00', 'Demain, 11h00'];
+const SLOTS = [T('Dès que possible'), T("Aujourd'hui, 14h00"), T("Aujourd'hui, 16h30"), T('Demain, 09h00'), T('Demain, 11h00')];
 
 const DURATIONS: { id: MissionDuration; label: string }[] = [
   { id: 'hours', label: T('Quelques heures') },
@@ -151,7 +151,7 @@ export function OpenRequestSheet({
               key={c.id}
               onPress={() => setCategory(c.id)}
               accessibilityRole="button"
-              accessibilityLabel={`Publier une demande en ${c.label}`}
+              accessibilityLabel={`${t('Publier une demande en')} ${t(c.label)}`}
               style={styles.row}
             >
               <Icon name={c.icon} size={24} color={colors.foreground} />

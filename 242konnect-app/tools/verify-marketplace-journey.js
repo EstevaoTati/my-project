@@ -195,19 +195,20 @@ async function finishSignUp(page, h, email, password) {
     await finishSignUp(pa, a, "estevao@mwinda.cg", "Mwinda2026");
     return true;
   });
-  await check("a pending prestataire is listed with a badge but cannot be booked", async () => {
-    await a.waitSeen('[aria-label="Prestataire inscrit Jean-Paul Massamba"]');
-    await a.tap('[aria-label="Prestataire inscrit Jean-Paul Massamba"]');
-    const shown = await a.waitSeen("text=En examen · non réservable");
-    const blocked = !(await a.seen('[aria-label="Envoyer une demande à Jean-Paul Massamba"]'));
-    await a.tap('[aria-label="Retour"]');
-    return shown && blocked;
+  await check("a prestataire awaiting review is not shown to clients", async () => {
+    // Production only returns approved listings to anyone but their owner.
+    const home = await a.waitSeen("text=Prestataires près de vous");
+    await pa.waitForTimeout(1500);
+    return home && !(await a.seen('[aria-label="Prestataire inscrit Jean-Paul Massamba"]'));
   });
+  await check("the home screen is the account's country and city", async () =>
+    (await a.seen('[aria-label="Localisation : Pointe-Noire, Rép. du Congo. Changer de ville"]')) && !(await a.seen("text=/USA/")));
 
   fake.approveAll(); // what a 242Konnect reviewer does from the dashboard
 
   await check("once approved, a request can be prepared", async () => {
-    await pa.waitForTimeout(800);
+    // The directory refreshes on its own every 30 seconds.
+    await a.waitSeen('[aria-label="Prestataire inscrit Jean-Paul Massamba"]', 45000);
     await a.tap('[aria-label="Prestataire inscrit Jean-Paul Massamba"]');
     await a.waitSeen('[aria-label="Envoyer une demande à Jean-Paul Massamba"]');
     await a.tap('[aria-label="Envoyer une demande à Jean-Paul Massamba"]');

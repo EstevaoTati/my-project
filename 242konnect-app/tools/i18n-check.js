@@ -33,7 +33,8 @@ for (const file of walk(SRC)) {
   const src = fs.readFileSync(file, "utf8");
   // `t(...)` translates now; `T(...)` marks a module-level string that is
   // translated later at the point of use. Both are strings on screen.
-  const re = /\b[tT]\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1/g;
+  // `tr(...)` is the same lookup for code outside components (i18n.tsx).
+  const re = /\b(?:[tT]|tr)\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1/g;
   let m;
   while ((m = re.exec(src))) {
     const key = m[2].replace(/\\(['"])/g, "$1");

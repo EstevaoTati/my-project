@@ -11,6 +11,7 @@ import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { LANGUAGES, T, useI18n, useT } from '../i18n';
 import { useProMode } from '../proTheme';
+import { countryName, useArea } from '../area';
 import { ProviderSettingsScreen } from './provider/ProviderSettingsScreen';
 
 /**
@@ -32,7 +33,9 @@ export function AccountScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { account, signOut, switchProfile, activateProfile, hasPin, startPinSetup, accountSynced } =
     useAuth();
-  const { favoriteCount, city, bookings, payments } = useStore();
+  const { favoriteCount, bookings, payments } = useStore();
+  const { area } = useArea();
+  const city = area.city ?? countryName(area.country, language);
 
   // Provider mode has its own "Profile & settings" (spec 14).
   const proMode = useProMode();
@@ -92,16 +95,16 @@ export function AccountScreen({ navigation }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={
                   owned
-                    ? `Profil ${PROFILE_LABELS[kind]}`
+                    ? t('Profil {profile}', { profile: t(PROFILE_LABELS[kind]) })
                     : kind === 'prestataire'
-                      ? 'Offrir mes services'
-                      : `Activer le profil ${PROFILE_LABELS[kind]}`
+                      ? t('Offrir mes services')
+                      : t('Activer le profil {profile}', { profile: t(PROFILE_LABELS[kind]) })
                 }
                 aria-selected={active}
                 style={[s.profileChip, active && s.profileChipActive]}
               >
                 <Text style={[s.profileChipLabel, active && s.profileChipLabelActive]}>
-                  {PROFILE_LABELS[kind]}
+                  {t(PROFILE_LABELS[kind])}
                 </Text>
                 {!owned && (
                   <Text style={s.profileChipAdd}>
@@ -253,7 +256,7 @@ export function AccountScreen({ navigation }: Props) {
         {SOON.map((row) => (
           <View key={row.label} style={s.row}>
             <Icon name={row.icon} size={20} color={mutedColor} />
-            <Text style={s.rowLabel}>{row.label}</Text>
+            <Text style={s.rowLabel}>{t(row.label)}</Text>
             <Text style={s.rowSoon}>{t('Bientôt')}</Text>
           </View>
         ))}

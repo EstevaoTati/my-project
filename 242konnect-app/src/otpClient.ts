@@ -41,6 +41,7 @@ import {
   supabaseConfigured,
   type SupabaseSession,
 } from './supabase';
+import { tr } from './i18n';
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
@@ -159,8 +160,8 @@ async function postJson(
   } catch (e) {
     if (e instanceof OtpApiError) throw e;
     if (e instanceof Error && e.name === 'AbortError')
-      throw new OtpApiError('Le service de vérification ne répond pas. Vérifiez votre connexion.');
-    throw new OtpApiError('Impossible de joindre le service de vérification.');
+      throw new OtpApiError(tr('Le service de vérification ne répond pas. Vérifiez votre connexion.'));
+    throw new OtpApiError(tr('Impossible de joindre le service de vérification.'));
   } finally {
     clearTimeout(timer);
   }
@@ -219,7 +220,7 @@ export async function requestCode(
     { key, email },
     {},
     // FastAPI puts the reason in `detail`; it is already in French and safe to show.
-    (_status, reason) => reason ?? 'Le service de vérification est indisponible.'
+    (_status, reason) => reason ?? tr('Le service de vérification est indisponible.')
   );
   const expiresIn = typeof payload.expires_in === 'number' ? payload.expires_in : 600;
   return { provider: 'api', expiresIn };
@@ -251,10 +252,10 @@ export async function checkCode(
       (status, reason) => {
         // GoTrue answers 401/403 for a wrong token and 410 once it has expired,
         // with an English message. Both are shown to the user, so translate.
-        if (status === 410) return 'Ce code a expiré. Demandez-en un nouveau.';
+        if (status === 410) return tr('Ce code a expiré. Demandez-en un nouveau.');
         if (status === 401 || status === 403 || status === 400)
-          return 'Code incorrect. Vérifiez les chiffres reçus par e-mail.';
-        return reason ?? 'La vérification a échoué. Réessayez.';
+          return tr('Code incorrect. Vérifiez les chiffres reçus par e-mail.');
+        return reason ?? tr('La vérification a échoué. Réessayez.');
       }
     );
     return sessionFromPayload(payload);
@@ -264,7 +265,7 @@ export async function checkCode(
     `${API_URL}/auth/otp/verify`,
     { key, code: token },
     {},
-    (_status, reason) => reason ?? 'Code incorrect. Vérifiez les chiffres reçus par e-mail.'
+    (_status, reason) => reason ?? tr('Code incorrect. Vérifiez les chiffres reçus par e-mail.')
   );
   return null;
 }

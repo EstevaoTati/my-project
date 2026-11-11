@@ -10,7 +10,7 @@ import {
   type Location,
 } from '../countries';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useI18n, useT } from '../i18n';
 
 /**
  * Where someone is, asked the way each country is actually addressed.
@@ -31,8 +31,11 @@ type Props = {
   label?: string;
 };
 
-export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }: Props) {
+export function LocationField({ value, onChange, label: labelProp }: Props) {
   const t = useT();
+  const { language } = useI18n();
+  const label = labelProp ?? t('Où habitez-vous ?');
+  const nameOf = (c: { nameFr: string; nameEn: string }) => (language === 'en' ? c.nameEn : c.nameFr);
   const [picking, setPicking] = useState<null | 'country' | 'city' | 'state'>(null);
   const country = countryFor(value.country);
 
@@ -43,7 +46,7 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
 
   const options =
     picking === 'country'
-      ? COUNTRIES.map((c) => ({ key: c.code, label: `${c.flag}  ${c.nameFr}` }))
+      ? COUNTRIES.map((c) => ({ key: c.code, label: `${c.flag}  ${nameOf(c)}` }))
       : picking === 'city'
         ? CONGO_CITIES.map((c) => ({ key: c, label: c }))
         : picking === 'state'
@@ -60,7 +63,7 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
   };
 
   const title =
-    picking === 'country' ? 'Pays' : picking === 'city' ? 'Ville' : 'État';
+    picking === 'country' ? t('Pays') : picking === 'city' ? t('Ville') : t('État');
 
   return (
     <View style={styles.wrap}>
@@ -69,11 +72,11 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
       <Pressable
         onPress={() => setPicking('country')}
         accessibilityRole="button"
-        accessibilityLabel={`Pays : ${country.nameFr}. Changer de pays`}
+        accessibilityLabel={t('Pays : {name}. Changer de pays', { name: nameOf(country) })}
         style={styles.select}
       >
         <Text style={styles.selectValue}>
-          {country.flag}  {country.nameFr}
+          {country.flag}  {nameOf(country)}
         </Text>
         <Icon name="solar:alt-arrow-down-linear" size={16} color={colors.mutedForeground} />
       </Pressable>
@@ -82,11 +85,11 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
         <Pressable
           onPress={() => setPicking('state')}
           accessibilityRole="button"
-          accessibilityLabel={value.state ? `État : ${value.state}. Changer d'État` : "Choisir l'État"}
+          accessibilityLabel={value.state ? t("État : {name}. Changer d'État", { name: value.state }) : t("Choisir l'État")}
           style={styles.select}
         >
           <Text style={[styles.selectValue, !value.state && styles.placeholder]}>
-            {value.state ?? 'Choisir votre État'}
+            {value.state ?? t('Choisir votre État')}
           </Text>
           <Icon name="solar:alt-arrow-down-linear" size={16} color={colors.mutedForeground} />
         </Pressable>
@@ -96,11 +99,11 @@ export function LocationField({ value, onChange, label = 'Où habitez-vous ?' }:
         <Pressable
           onPress={() => setPicking('city')}
           accessibilityRole="button"
-          accessibilityLabel={value.city ? `Ville : ${value.city}. Changer de ville` : 'Choisir la ville'}
+          accessibilityLabel={value.city ? t('Ville : {name}. Changer de ville', { name: value.city }) : t('Choisir la ville')}
           style={styles.select}
         >
           <Text style={[styles.selectValue, !value.city && styles.placeholder]}>
-            {value.city || 'Choisir votre ville'}
+            {value.city || t('Choisir votre ville')}
           </Text>
           <Icon name="solar:alt-arrow-down-linear" size={16} color={colors.mutedForeground} />
         </Pressable>

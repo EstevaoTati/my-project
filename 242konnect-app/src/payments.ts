@@ -16,6 +16,8 @@
  *     (§5.8, §6.4) — or after 242Konnect settles a dispute.
  */
 
+
+import { T, tr } from './i18n';
 /** 242Konnect's commission on every completed prestation (§6.5). */
 export const COMMISSION_RATE = 0.12;
 
@@ -79,21 +81,22 @@ export const PAYMENT_METHODS: {
   {
     id: 'mtn',
     label: 'MTN Mobile Money',
-    hint: 'Confirmation par code PIN sur votre téléphone',
+    hint: T('Confirmation par code PIN sur votre téléphone'),
     needsPhone: true,
   },
   {
     id: 'airtel',
     label: 'Airtel Money',
-    hint: 'Confirmation par code PIN sur votre téléphone',
+    hint: T('Confirmation par code PIN sur votre téléphone'),
     needsPhone: true,
   },
-  { id: 'carte', label: 'Carte bancaire', hint: 'Visa, Mastercard', needsPhone: false },
-  { id: 'virement', label: 'Virement bancaire', hint: 'Depuis votre banque', needsPhone: false },
+  { id: 'carte', label: T('Carte bancaire'), hint: T('Visa, Mastercard'), needsPhone: false },
+  { id: 'virement', label: T('Virement bancaire'), hint: T('Depuis votre banque'), needsPhone: false },
 ];
 
 export function paymentMethodLabel(id: PaymentMethod): string {
-  return PAYMENT_METHODS.find((m) => m.id === id)?.label ?? id;
+  const label = PAYMENT_METHODS.find((m) => m.id === id)?.label;
+  return label ? tr(label) : id;
 }
 
 export function methodNeedsPhone(id: PaymentMethod | null): boolean {

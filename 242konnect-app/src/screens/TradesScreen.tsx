@@ -14,6 +14,8 @@ import {
 import type { HomeStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
 import { useT } from '../i18n';
+import { filterDirectory, useDirectory } from '../components/online/Directory';
+import { marketplaceEnabled } from '../marketplace';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Metiers'>;
 
@@ -30,6 +32,12 @@ export function TradesScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState<CategoryId | undefined>(route.params?.category);
   const [query, setQuery] = useState('');
+  // With the server: how many real prestataires of the client's country offer
+  // each trade. The indicative FCFA ranges are Congolese and shown only there.
+  const { listings, country } = useDirectory();
+  const countFor = (tradeId: string) =>
+    marketplaceEnabled ? filterDirectory(listings, { tradeId }, t).length : searchProfessionals({ tradeId }).length;
+  const people = (n: number) => (n === 1 ? t('1 professionnel') : t('{n} professionnels', { n }));
 
   const results = useMemo(() => {
     const found = searchTrades(query);
@@ -62,7 +70,7 @@ export function TradesScreen({ navigation, route }: Props) {
           <View style={styles.titleBlock}>
             <Text style={styles.title}>{t('Tous les métiers')}</Text>
             <Text style={styles.subtitle}>
-              {results.length} métier{results.length > 1 ? 's' : ''} dans {categories.length} catégories
+              {t('{n} métiers dans {c} catégories', { n: results.length, c: categories.length })}
             </Text>
           </View>
         </View>
@@ -98,7 +106,7 @@ export function TradesScreen({ navigation, route }: Props) {
                 key={category.id}
                 onPress={() => setActive(selected ? undefined : category.id)}
                 accessibilityRole="button"
-                accessibilityLabel={`Catégorie ${t(category.label)}`}
+                accessibilityLabel={`${t('Catégorie')} ${t(category.label)}`}
                 aria-selected={selected}
                 style={[styles.chip, selected && styles.chipSelected]}
               >
@@ -130,25 +138,27 @@ export function TradesScreen({ navigation, route }: Props) {
               <Text style={styles.groupBlurb}>{t(category.blurb)}</Text>
 
               {list.map((trade) => {
-                const count = searchProfessionals({ tradeId: trade.id }).length;
+                const count = countFor(trade.id);
                 return (
                   <Pressable
                     key={trade.id}
                     onPress={() => navigation.navigate('Resultats', { tradeId: trade.id })}
                     accessibilityRole="button"
-                    accessibilityLabel={`${t(trade.label)}, ${count} professionnel${count > 1 ? 's' : ''}`}
+                    accessibilityLabel={`${t(trade.label)}, ${people(count)}`}
                     style={({ pressed }) => [styles.trade, pressed && styles.pressed]}
                   >
                     <View style={styles.tradeTop}>
                       <Text style={styles.tradeLabel}>{t(trade.label)}</Text>
-                      <Text style={styles.tradeRate}>
-                        {formatFcfa(trade.minRate)}–{formatFcfa(trade.maxRate)} FCFA/h
-                      </Text>
+                      {country === 'CG' && (
+                        <Text style={styles.tradeRate}>
+                          {formatFcfa(trade.minRate)}–{formatFcfa(trade.maxRate)} FCFA/h
+                        </Text>
+                      )}
                     </View>
                     <Text style={styles.tradeDesc}>{t(trade.description)}</Text>
                     <View style={styles.tradeFoot}>
                       <Text style={styles.tradeCount}>
-                        {count} professionnel{count > 1 ? 's' : ''}
+                        {people(count)}
                       </Text>
                       <Icon name="solar:arrow-right-bold" size={16} color={colors.primary} />
                     </View>

@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon';
 import { Field, FormError, PasswordField, SubmitButton } from '../components/form';
 import { MIN_PASSWORD, OTP_LENGTH, passwordProblem, useAuth } from '../auth';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, tr } from '../i18n';
 
 /**
  * "Mot de passe oublié ?" — recovery by the same code the rest of the app uses.
@@ -44,7 +44,7 @@ export function ResetPasswordScreen() {
       await completePasswordReset(code, password);
       setDone(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Réinitialisation impossible.');
+      setError(e instanceof Error ? e.message : tr('Réinitialisation impossible.'));
     } finally {
       setBusy(false);
     }
@@ -110,7 +110,7 @@ export function ResetPasswordScreen() {
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
-            placeholder={`${MIN_PASSWORD} caractères minimum`}
+            placeholder={t('{n} caractères minimum', { n: MIN_PASSWORD })}
             error={problem ?? undefined}
           />
           <PasswordField
@@ -119,7 +119,7 @@ export function ResetPasswordScreen() {
             onChangeText={setConfirm}
             autoCapitalize="none"
             onSubmitEditing={ready ? submit : undefined}
-            error={mismatch ? 'Les deux mots de passe ne correspondent pas.' : undefined}
+            error={mismatch ? t('Les deux mots de passe ne correspondent pas.') : undefined}
           />
 
           <FormError message={error} />

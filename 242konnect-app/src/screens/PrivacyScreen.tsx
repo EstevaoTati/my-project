@@ -17,7 +17,7 @@ import {
 } from '../consent';
 import type { AccountStackParamList } from '../navigation';
 import { colors, fonts, radius, shadow } from '../theme';
-import { useT } from '../i18n';
+import { useT, locale } from '../i18n';
 
 type Props = NativeStackScreenProps<AccountStackParamList, 'Confidentialite'>;
 
@@ -109,7 +109,7 @@ export function PrivacyScreen({ navigation }: Props) {
                   <Text style={styles.rowLabel}>{t(doc.title)}</Text>
                   <Text style={styles.rowHint}>
                     {record?.granted
-                      ? `v${record.version} · ${t('accepté le')} ${new Date(record.at).toLocaleString('fr-FR')}${
+                      ? `v${record.version} · ${t('accepté le')} ${new Date(record.at).toLocaleString(locale())}${
                           record.recorded ? '' : ` · ${t("en attente d'envoi")}`
                         }`
                       : t('Non accepté')}
